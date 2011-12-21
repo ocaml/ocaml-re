@@ -1,0 +1,39 @@
+
+High priority (before next release)
+=============
+* Improve the Perl regular expressions parser
+* Character classes (in the three regular expression parsers)
+
+* Reduce memory usage
+  - More compact representation of character sequences
+  - Special notation for "anything but this set of characters"
+  (more generally, optimize the compilation of regular expressions)
+* Simple optimisations
+  - alt containing alt
+  - epsilon elimination
+  - Seq (Seq (x,y), z) => Seq (x, Seq (y, z)) under some circumptances
+    (x or y has a fixed length)
+  ...
+
+* Test suite
+
+Medium priority
+===============
+* Implement back-references
+* Implement look-ahead and look-behind assertions
+
+Low priority
+============
+* Optimize the main loop for processor that are not register starved
+* Rewrite the main loops in C
+  (but keep the option to compile a pure OCaml version)
+* Limit the size of the cached DFAs by removing states that have not
+  been used recently
+* Documentation
+
+Other ideas
+===========
+* It would be great to have a more generic interface (parameterized
+  over some abstract tokens).
+* Str compatibility module
+  (should we implement string_partial_match?)

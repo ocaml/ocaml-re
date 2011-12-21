@@ -1,0 +1,19 @@
+/.cvsignore/1.1/Wed Oct  3 13:46:34 2001//
+/Input/1.1.1.1/Fri Sep 21 15:54:11 2001//
+/Makefile/1.1.1.1/Fri Sep 21 15:54:11 2001//
+/env.ml/1.1/Thu Oct 25 04:50:59 2001//
+/longest.c/1.1.1.1/Fri Sep 21 15:54:12 2001//
+/pcre_match.ml/1.1.1.1/Fri Sep 21 15:54:12 2001//
+/pcre_scan.ml/1.1.1.1/Fri Sep 21 15:54:12 2001//
+/perl_scan.pl/1.2/Tue Sep 25 14:26:31 2001//
+/re_match.ml/1.2/Wed Oct  3 15:04:59 2001//
+/re_scan.ml/1.1.1.1/Fri Sep 21 15:54:12 2001//
+/scan.ml/1.1.1.1/Fri Sep 21 15:54:12 2001//
+/test_emacs.ml/1.4/Thu Oct 25 04:50:59 2001//
+/test_perl.ml/1.4/Wed Jul  3 15:47:21 2002//
+/test_re.ml/1.9/Tue Jan 15 13:43:51 2002//
+/test_str.ml/1.1/Thu Oct 25 04:51:33 2001//
+/unison.ml/1.1.1.1/Fri Sep 21 15:54:12 2001//
+/unison2.ml/1.1.1.1/Fri Sep 21 15:54:12 2001//
+/unison3.ml/1.1.1.1/Fri Sep 21 15:54:12 2001//
+D

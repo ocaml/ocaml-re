@@ -1,0 +1,3 @@
+version = "0.1"
+archive(byte) = "re.cma"
+archive(native) = "re.cmxa"

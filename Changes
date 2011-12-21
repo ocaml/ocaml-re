@@ -1,0 +1,12 @@
+- Improved API for accessing substring information.
+- The search can now be bounded to a given length.
+- The function "execp" returns a boolean indicating whether the match
+  was successful.
+- The "leol" assertion is fully implemented.
+- The "stop" assertion matches the end of the searched part of the
+  string.
+- "nest" operator: when matching against "nest e", only the group
+  contained in the last match of e will be considered as matching.
+- The semantics of nested matches in Posix regular expressions
+  now follows the standard.
+- Str-compatibility interface
