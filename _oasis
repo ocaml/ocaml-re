@@ -1,0 +1,13 @@
+OASISFormat: 0.2
+Name:        regexp
+Version:     0.9-dev
+Synopsis:    Pure OCaml regular expression library
+Authors:     Jerome Vouillon
+License:     LGPL-2.0 with OCaml linking exception
+Plugins:     META (0.2)
+
+Library re
+  Path:       lib
+  BuildTools: ocamlbuild
+  Modules: Re,Cset,Automata,Re_posix,Re_perl,Re_glob,Re_str
+  

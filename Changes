@@ -1,3 +1,4 @@
+- Building using OASIS.
 - Improved API for accessing substring information.
 - The search can now be bounded to a given length.
 - The function "execp" returns a boolean indicating whether the match

@@ -1,0 +1,9 @@
+# OASIS_START
+# DO NOT EDIT (digest: 50f4e2b5330b2d9e94554eba6b37b43c)
+version = "0.9-dev"
+description = "Pure OCaml regular expression library"
+archive(byte) = "re.cma"
+archive(native) = "re.cmxa"
+exists_if = "re.cma"
+# OASIS_STOP
+
