@@ -1,6 +1,9 @@
 .*.swp
 _build/
+*.bak
 setup.data
 setup.log
-*.bak
-CVS/
+setup.bin
+*.native
+*.byte
+*.docdir

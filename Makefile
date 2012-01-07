@@ -1,19 +1,33 @@
 .PHONY: all clean install build
-all: build
+all: build doc 
 
-setup.data:
-	ocaml setup.ml -configure
+NAME=re
 
-build: setup.data
-	ocaml setup.ml -build
+export OCAMLRUNPARAM=b
 
-install:
-	ocaml setup.ml -install
+setup.bin: setup.ml
+	ocamlopt.opt -o $@ $< || ocamlopt -o $@ $< || ocamlc -o $@ $<
+	rm -f setup.cmx setup.cmi setup.o setup.cmo
 
-reinstall:
-	ocamlfind -remove regexp || true
-	ocaml setup.ml -reinstall
+setup.data: setup.bin
+	./setup.bin -configure
+
+build: setup.data setup.bin
+	./setup.bin -build
+
+doc: setup.data setup.bin
+	./setup.bin -doc
+
+install: setup.bin
+	./setup.bin -install
+
+test: setup.bin build
+	./setup.bin -test
+
+reinstall: setup.bin
+	ocamlfind remove $(NAME) || true
+	./setup.bin -reinstall
 
 clean:
 	ocamlbuild -clean
-	rm -f setup.data setup.log
+	rm -f setup.data setup.log setup.bin

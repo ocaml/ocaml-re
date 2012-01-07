@@ -5,9 +5,26 @@ Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon
 License:     LGPL-2.0 with OCaml linking exception
 Plugins:     META (0.2)
+BuildTools: ocamlbuild
 
 Library re
   Path:       lib
-  BuildTools: ocamlbuild
-  Modules: Re,Cset,Automata,Re_posix,Re_perl,Re_glob,Re_str
+  Modules: Re,Cset,Automata,Re_emacs,Re_posix,Re_perl,Re_glob,Re_str
   
+Flag tests
+  Description:        Build and run tests
+  Default:            true
+
+Executable re_match
+  Path:               lib_test
+  MainIs:             re_match.ml
+  Build$:             flag(tests)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       re
+
+Test re_match
+  Run$:               flag(tests)
+  Command:            $re_match
+  WorkingDirectory:   lib_test
