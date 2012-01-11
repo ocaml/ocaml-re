@@ -9,7 +9,49 @@ BuildTools: ocamlbuild
 
 Library re
   Path:       lib
-  Modules: Re,Cset,Automata,Re_emacs,Re_posix,Re_perl,Re_glob,Re_str
+  InternalModules: Cset, Automata
+  Modules: Re
+  Findlibname: re
+
+Library re_emacs
+  Path: lib
+  XMETADescription: Emacs-compatible regexps
+  Modules: Re_emacs
+  Findlibname: emacs
+  FindlibParent: re
+  BuildDepends: re
+
+Library re_str
+  Path: lib
+  XMETADescription: Str-compatible regexps
+  Modules: Re_str
+  Findlibname: str
+  FindlibParent: re
+  BuildDepends: re,re.emacs
+
+Library re_posix
+  Path: lib
+  Modules: Re_posix
+  XMETADescription: POSIX-compatible regexps
+  Findlibname: posix
+  FindlibParent: re
+  BuildDepends: re
+
+Library re_glob
+  Path: lib
+  Modules: Re_glob
+  XMETADescription: Shell glob regexps
+  Findlibname: glob
+  FindlibParent: re
+  BuildDepends: re
+
+Library re_perl
+  Path: lib
+  Modules: Re_perl
+  XMETADescription: Perl-compatible regexps
+  Findlibname: perl
+  FindlibParent: re
+  BuildDepends: re
   
 Flag tests
   Description:        Build and run tests

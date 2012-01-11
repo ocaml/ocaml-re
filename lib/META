@@ -1,9 +1,53 @@
 # OASIS_START
-# DO NOT EDIT (digest: 50f4e2b5330b2d9e94554eba6b37b43c)
+# DO NOT EDIT (digest: 74f55bd06cdf0cbca4ebdc3f647a082b)
 version = "0.9-dev"
 description = "Pure OCaml regular expression library"
 archive(byte) = "re.cma"
 archive(native) = "re.cmxa"
 exists_if = "re.cma"
+package "posix" (
+ version = "0.9-dev"
+ description = "POSIX-compatible regexps"
+ requires = "re"
+ archive(byte) = "re_posix.cma"
+ archive(native) = "re_posix.cmxa"
+ exists_if = "re_posix.cma"
+)
+
+package "glob" (
+ version = "0.9-dev"
+ description = "Shell glob regexps"
+ requires = "re"
+ archive(byte) = "re_glob.cma"
+ archive(native) = "re_glob.cmxa"
+ exists_if = "re_glob.cma"
+)
+
+package "perl" (
+ version = "0.9-dev"
+ description = "Perl-compatible regexps"
+ requires = "re"
+ archive(byte) = "re_perl.cma"
+ archive(native) = "re_perl.cmxa"
+ exists_if = "re_perl.cma"
+)
+
+package "str" (
+ version = "0.9-dev"
+ description = "Str-compatible regexps"
+ requires = "re re.emacs"
+ archive(byte) = "re_str.cma"
+ archive(native) = "re_str.cmxa"
+ exists_if = "re_str.cma"
+)
+
+package "emacs" (
+ version = "0.9-dev"
+ description = "Emacs-compatible regexps"
+ requires = "re"
+ archive(byte) = "re_emacs.cma"
+ archive(native) = "re_emacs.cmxa"
+ exists_if = "re_emacs.cma"
+)
 # OASIS_STOP
 
