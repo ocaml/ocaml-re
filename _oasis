@@ -4,7 +4,7 @@ Version:     0.9-dev
 Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon
 License:     LGPL-2.0 with OCaml linking exception
-Plugins:     META (0.2)
+Plugins:     META (0.3)
 BuildTools: ocamlbuild
 
 Library re
@@ -47,7 +47,7 @@ Library re_glob
 
 Library re_perl
   Path: lib
-  Modules: Re_perl
+  Modules: Re_perl, Pcre
   XMETADescription: Perl-compatible regexps
   Findlibname: perl
   FindlibParent: re
