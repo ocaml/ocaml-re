@@ -1,21 +1,3 @@
-(*
-   Copyright (C) 2012 Thomas Gazagnaire <thomas@ocamlpro.com>
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*)
-
 type regexp = Re.re
 
 let regexp ?(flags = []) pat =
@@ -39,6 +21,40 @@ let get_substring_ofs s i =
 let pmatch ~rex s =
   Re.execp rex s
 
+let substitute ~rex ~subst str =
+  let b = Buffer.create 1024 in
+  let rec loop pos =
+    if pos >= String.length str then
+      Buffer.contents b
+    else if Re.execp ~pos rex str then (
+      let ss = Re.exec ~pos rex str in
+      let start, fin = Re.get_ofs ss 0 in
+      let pat = Re.get ss 0 in
+      Buffer.add_substring b str pos (start - pos);
+      Buffer.add_string b (subst pat);
+      loop fin
+    ) else (
+      Buffer.add_substring b str pos (String.length str - pos);
+      loop (String.length str)
+    )
+  in
+  loop 0
+
+let split ~rex str =
+  let rec loop accu pos =
+    if pos >= String.length str then
+      List.rev accu
+    else if Re.execp ~pos rex str then (
+      let ss = Re.exec ~pos rex str in
+      let start, fin = Re.get_ofs ss 0 in
+      let s = String.sub str pos (start - pos) in
+      loop (s :: accu) fin
+    ) else (
+      let s = String.sub str pos (String.length str - pos) in
+      loop (s :: accu) (String.length str)
+    ) in
+  loop [] 0
+
 (* From PCRE *)
 let string_unsafe_sub s ofs len =
   let r = String.create len in
@@ -59,20 +75,3 @@ let quote s =
     | c -> String.unsafe_set buf !pos c; incr pos
   done;
   string_unsafe_sub buf 0 !pos
-
-(* XXX: quick hack, untested *)
-let qreplace ~pat ~templ str =
-  let r = Re_perl.compile_pat pat in
-  let ss = Re.exec r str in
-  let ofs = Re.get_all_ofs ss in
-  let b = Buffer.create (String.length str) in
-  let prev = ref 0 in
-  for i = 0 to Array.length ofs - 1 do
-    let orig, off = ofs.(i) in
-    Buffer.add_substring b str !prev (orig - !prev);
-    Buffer.add_string b templ;
-    prev := orig + off;
-  done;
-  if !prev <> String.length str then
-    Buffer.add_substring b str !prev (String.length str - !prev);
-  Buffer.contents b
