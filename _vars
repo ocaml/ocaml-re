@@ -1,0 +1,6 @@
+NAME=re
+VERSION=1.0
+LIB="re re_str re_perl re_emacs re_posix re_glob"
+SYNTAX=
+DEPS=
+SYNTAX_DEPS=
