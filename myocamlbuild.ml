@@ -43,7 +43,7 @@ end
 module OS = struct
 
   type unix = Linux | Darwin | FreeBSD
-  type arch = X86_32 | X86_64
+  type arch = X86_32 | X86_64 | Unknown_arch of string
 
   let host =
     match String.lowercase (Util.run_and_read "uname -s") with
@@ -57,7 +57,7 @@ module OS = struct
     | "x86_32" | "i686"  -> X86_32
     | "i386" -> (match host with Linux | FreeBSD -> X86_32 | Darwin -> X86_64)
     | "x86_64" | "amd64" -> X86_64
-    | arch -> eprintf "`%s` is not a supported arch\n" arch; exit (-1)
+    | arch -> Unknown_arch arch
 
   let js_of_ocaml_installed =
     try
