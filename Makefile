@@ -3,8 +3,6 @@ all: build doc
 
 NAME=re
 
-export OCAMLRUNPARAM=b
-
 setup.bin: setup.ml
 	ocamlopt.opt -o $@ $< || ocamlopt -o $@ $< || ocamlc -o $@ $<
 	rm -f setup.cmx setup.cmi setup.o setup.cmo
