@@ -1,26 +1,32 @@
 # OASIS_START
-# DO NOT EDIT (digest: 74f55bd06cdf0cbca4ebdc3f647a082b)
+# DO NOT EDIT (digest: 1f20136033b003daaf1ce6b45da1b107)
 version = "0.9-dev"
 description = "Pure OCaml regular expression library"
 archive(byte) = "re.cma"
+archive(byte, plugin) = "re.cma"
 archive(native) = "re.cmxa"
+archive(native, plugin) = "re.cmxs"
 exists_if = "re.cma"
+package "str" (
+ version = "0.9-dev"
+ description = "Str-compatible regexps"
+ requires = "re re.emacs"
+ archive(byte) = "re_str.cma"
+ archive(byte, plugin) = "re_str.cma"
+ archive(native) = "re_str.cmxa"
+ archive(native, plugin) = "re_str.cmxs"
+ exists_if = "re_str.cma"
+)
+
 package "posix" (
  version = "0.9-dev"
  description = "POSIX-compatible regexps"
  requires = "re"
  archive(byte) = "re_posix.cma"
+ archive(byte, plugin) = "re_posix.cma"
  archive(native) = "re_posix.cmxa"
+ archive(native, plugin) = "re_posix.cmxs"
  exists_if = "re_posix.cma"
-)
-
-package "glob" (
- version = "0.9-dev"
- description = "Shell glob regexps"
- requires = "re"
- archive(byte) = "re_glob.cma"
- archive(native) = "re_glob.cmxa"
- exists_if = "re_glob.cma"
 )
 
 package "perl" (
@@ -28,17 +34,21 @@ package "perl" (
  description = "Perl-compatible regexps"
  requires = "re"
  archive(byte) = "re_perl.cma"
+ archive(byte, plugin) = "re_perl.cma"
  archive(native) = "re_perl.cmxa"
+ archive(native, plugin) = "re_perl.cmxs"
  exists_if = "re_perl.cma"
 )
 
-package "str" (
+package "glob" (
  version = "0.9-dev"
- description = "Str-compatible regexps"
- requires = "re re.emacs"
- archive(byte) = "re_str.cma"
- archive(native) = "re_str.cmxa"
- exists_if = "re_str.cma"
+ description = "Shell glob regexps"
+ requires = "re"
+ archive(byte) = "re_glob.cma"
+ archive(byte, plugin) = "re_glob.cma"
+ archive(native) = "re_glob.cmxa"
+ archive(native, plugin) = "re_glob.cmxs"
+ exists_if = "re_glob.cma"
 )
 
 package "emacs" (
@@ -46,7 +56,9 @@ package "emacs" (
  description = "Emacs-compatible regexps"
  requires = "re"
  archive(byte) = "re_emacs.cma"
+ archive(byte, plugin) = "re_emacs.cma"
  archive(native) = "re_emacs.cmxa"
+ archive(native, plugin) = "re_emacs.cmxs"
  exists_if = "re_emacs.cma"
 )
 # OASIS_STOP
