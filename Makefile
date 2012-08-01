@@ -1,11 +1,33 @@
-.PHONY: all clean depend install
+.PHONY: all clean install build
+all: build doc 
 
-all: 
-	./cmd configure
-	./cmd build
+NAME=re
 
-install:
-	./cmd install
+export OCAMLRUNPARAM=b
+
+setup.bin: setup.ml
+	ocamlopt.opt -o $@ $< || ocamlopt -o $@ $< || ocamlc -o $@ $<
+	rm -f setup.cmx setup.cmi setup.o setup.cmo
+
+setup.data: setup.bin
+	./setup.bin -configure
+
+build: setup.data setup.bin
+	./setup.bin -build
+
+doc: setup.data setup.bin
+	./setup.bin -doc
+
+install: setup.bin
+	./setup.bin -install
+
+test: setup.bin build
+	./setup.bin -test
+
+reinstall: setup.bin
+	ocamlfind remove $(NAME) || true
+	./setup.bin -reinstall
 
 clean:
-	./cmd clean
+	ocamlbuild -clean
+	rm -f setup.data setup.log setup.bin
