@@ -1,6 +1,6 @@
 OASISFormat: 0.2
 Name:        regexp
-Version:     1.0
+Version:     1.1dev
 Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon
 License:     LGPL-2.0 with OCaml linking exception
