@@ -1,6 +1,6 @@
 OASISFormat: 0.2
 Name:        regexp
-Version:     0.9-dev
+Version:     1.1dev
 Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon
 License:     LGPL-2.0 with OCaml linking exception
@@ -70,3 +70,12 @@ Test re_match
   Run$:               flag(tests)
   Command:            $re_match
   WorkingDirectory:   lib_test
+
+Document "re-api"
+  Title: API reference for Re
+  Type: ocamlbuild (0.3)
+  Install: true
+  InstallDir: $htmldir/api
+  BuildTools: ocamldoc
+  XOCamlbuildPath: ./lib
+  XOCamlbuildLibraries: re, re.emacs, re.glob, re.posix, re.perl, re.str

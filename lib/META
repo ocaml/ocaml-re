@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1f20136033b003daaf1ce6b45da1b107)
-version = "0.9-dev"
+# DO NOT EDIT (digest: 5cd328deb9add63826a3966ca6c4101f)
+version = "1.1dev"
 description = "Pure OCaml regular expression library"
 archive(byte) = "re.cma"
 archive(byte, plugin) = "re.cma"
@@ -8,7 +8,7 @@ archive(native) = "re.cmxa"
 archive(native, plugin) = "re.cmxs"
 exists_if = "re.cma"
 package "str" (
- version = "0.9-dev"
+ version = "1.1dev"
  description = "Str-compatible regexps"
  requires = "re re.emacs"
  archive(byte) = "re_str.cma"
@@ -19,7 +19,7 @@ package "str" (
 )
 
 package "posix" (
- version = "0.9-dev"
+ version = "1.1dev"
  description = "POSIX-compatible regexps"
  requires = "re"
  archive(byte) = "re_posix.cma"
@@ -30,7 +30,7 @@ package "posix" (
 )
 
 package "perl" (
- version = "0.9-dev"
+ version = "1.1dev"
  description = "Perl-compatible regexps"
  requires = "re"
  archive(byte) = "re_perl.cma"
@@ -41,7 +41,7 @@ package "perl" (
 )
 
 package "glob" (
- version = "0.9-dev"
+ version = "1.1dev"
  description = "Shell glob regexps"
  requires = "re"
  archive(byte) = "re_glob.cma"
@@ -52,7 +52,7 @@ package "glob" (
 )
 
 package "emacs" (
- version = "0.9-dev"
+ version = "1.1dev"
  description = "Emacs-compatible regexps"
  requires = "re"
  archive(byte) = "re_emacs.cma"
