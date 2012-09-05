@@ -28,6 +28,11 @@ regular expressions (module Re)
 The most notable missing features are back-references and
 look-ahead/look-behind assertions.
 
+There is also a subset of the PCRE interface available in the
+Re.pcre library. This makes it easier to port code from that
+library to Re without any changes beyond replacing the `pcre`
+findlib package with `re.pcre`.
+
 PERFORMANCES
 ============
 
