@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: f6e70549ceb8fb9459af62c2365385b9)
+# DO NOT EDIT (digest: ff5a01cc7b7908872adeea16e04afa19)
 version = "1.1.0"
 description = "Pure OCaml regular expression library"
 archive(byte) = "re.cma"
@@ -38,6 +38,17 @@ package "perl" (
  archive(native) = "re_perl.cmxa"
  archive(native, plugin) = "re_perl.cmxs"
  exists_if = "re_perl.cma"
+)
+
+package "pcre" (
+ version = "1.1.0"
+ description = "subset of PCRE using the Re engine"
+ requires = "re re.perl"
+ archive(byte) = "re_pcre.cma"
+ archive(byte, plugin) = "re_pcre.cma"
+ archive(native) = "re_pcre.cmxa"
+ archive(native, plugin) = "re_pcre.cmxs"
+ exists_if = "re_pcre.cma"
 )
 
 package "glob" (

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: fd7b7932bedf3d73c9707b119a754fe3)
+# DO NOT EDIT (digest: b36ce2e27d4fbe0189821b58b73d9794)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -26,6 +26,9 @@
 "lib/re_glob.cmxs": use_re_glob
 # Library re_perl
 "lib/re_perl.cmxs": use_re_perl
+# Library re_pcre
+"lib/re_pcre.cmxs": use_re_pcre
+<lib/*.ml{,i}>: use_re_perl
 <lib/*.ml{,i}>: use_re
 # Executable re_match
 <lib_test/re_match.{native,byte}>: use_re
