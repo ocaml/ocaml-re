@@ -1,8 +1,8 @@
 OASISFormat: 0.2
 Name:        regexp
-Version:     1.1dev
+Version:     1.1.0
 Synopsis:    Pure OCaml regular expression library
-Authors:     Jerome Vouillon
+Authors:     Jerome Vouillon, Thomas Gazagnaire, Anil Madhavapeddy
 License:     LGPL-2.0 with OCaml linking exception
 Plugins:     META (0.3)
 BuildTools: ocamlbuild
