@@ -47,11 +47,19 @@ Library re_glob
 
 Library re_perl
   Path: lib
-  Modules: Re_perl, Pcre
+  Modules: Re_perl
   XMETADescription: Perl-compatible regexps
   Findlibname: perl
   FindlibParent: re
   BuildDepends: re
+
+Library re_pcre
+  Path: lib
+  Modules: Pcre
+  XMETADescription: subset of PCRE using the Re engine
+  Findlibname: pcre
+  FindlibParent: re
+  BuildDepends: re, re.perl
   
 Flag tests
   Description:        Build and run tests
