@@ -1,6 +1,6 @@
-OASISFormat: 0.2
+OASISFormat: 0.3
 Name:        regexp
-Version:     1.1.0
+Version:     1.1.1
 Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon, Thomas Gazagnaire, Anil Madhavapeddy
 License:     LGPL-2.0 with OCaml linking exception
@@ -61,10 +61,6 @@ Library re_pcre
   FindlibParent: re
   BuildDepends: re, re.perl
   
-Flag tests
-  Description:        Build and run tests
-  Default:            true
-
 Executable re_match
   Path:               lib_test
   MainIs:             re_match.ml
