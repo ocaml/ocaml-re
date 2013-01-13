@@ -167,7 +167,7 @@ let count = ref 0
 let rec visit rx p =
 (*incr count; if !count > 50 then raise Exit;*)
   try
-    ignore (Pcre.exec ~rex:rx p);
+    ignore (Re_pcre.exec ~rex:rx p);
 (*Format.eprintf "-%s@." p*)
   with Not_found ->
 (*Format.eprintf "+%s@." p;*)
@@ -197,7 +197,7 @@ let _ =
 Format.eprintf "%s@." rx;
 for i = 0 to 9 do
 count := 0;
-  let rx = Pcre.regexp rx in
+  let rx = Re_pcre.regexp rx in
 try
   List.iter (fun p -> visit rx p) paths
 with Exit -> ()

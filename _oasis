@@ -55,7 +55,7 @@ Library re_perl
 
 Library re_pcre
   Path: lib
-  Modules: Pcre
+  Modules: Re_pcre
   XMETADescription: subset of PCRE using the Re engine
   Findlibname: pcre
   FindlibParent: re
@@ -82,4 +82,4 @@ Document "re-api"
   InstallDir: $htmldir/api
   BuildTools: ocamldoc
   XOCamlbuildPath: ./lib
-  XOCamlbuildLibraries: re, re.emacs, re.glob, re.posix, re.perl, re.str
+  XOCamlbuildLibraries: re, re.emacs, re.glob, re.posix, re.perl, re.str, re.pcre
