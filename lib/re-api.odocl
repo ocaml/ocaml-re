@@ -1,9 +1,10 @@
 # OASIS_START
-# DO NOT EDIT (digest: c828af27478a6aad65b5878af6478071)
+# DO NOT EDIT (digest: 6d7c6cc012fc4f435c31b8d8e968ddbd)
 Re
 Re_emacs
 Re_glob
 Re_posix
 Re_perl
 Re_str
+Re_pcre
 # OASIS_STOP

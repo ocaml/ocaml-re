@@ -4,7 +4,7 @@
  * from: Markus Mottl
  *)
 
-open Pcre
+open Re_pcre
 
 let rex =
   regexp ~flags:[`EXTENDED]
