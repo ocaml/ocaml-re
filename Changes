@@ -1,8 +1,11 @@
-===== 1.1.0 (05-Sep-2012) =====
+1.2.0 (15-Jan-2012):
+* Rename Pcre module to `Re_pcre` to make it more suitable for
+  upstream packaging (it currently conflicts with the `Pcre` package).
+  From Mehdi Dogguy.
 
-* Add a basic Pcre wrapper around Re_perl for
-  porting applications using that API.
+1.1.0 (05-Sep-2012):
+* Add a basic Pcre wrapper around Re_perl for porting applications 
+  using that API.
 
-===== 1.0.0 (01-Aug-2012) =====
-
+1.0.0 (01-Aug-2012):
 * Initial public release
