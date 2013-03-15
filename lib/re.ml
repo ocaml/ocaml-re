@@ -803,7 +803,7 @@ let compl l =
 let diff r r' =
   let r'' = Difference (r, r') in
   if is_charset r'' then r'' else
-  invalid_arg "Re.compl"
+  invalid_arg "Re.diff"
 
 let any = Set cany
 let notnl = Set (Cset.diff cany (csingle '\n'))
