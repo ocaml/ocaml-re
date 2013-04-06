@@ -1,11 +1,16 @@
+1.2.1 (07-Apr-2013):
+
+* Correct OASIS metadata (Christophe Troestler).
+* Fix typo in Invalid_arg error message (Jeremy Yallop).
+
 1.2.0 (15-Jan-2012):
 * Rename Pcre module to `Re_pcre` to make it more suitable for
   upstream packaging (it currently conflicts with the `Pcre` package).
-  From Mehdi Dogguy.
+  (Mehdi Dogguy).
 
 1.1.0 (05-Sep-2012):
 * Add a basic Pcre wrapper around Re_perl for porting applications 
-  using that API.
+  using that API (Thomas Gazagnaire).
 
 1.0.0 (01-Aug-2012):
-* Initial public release
+* Initial public release.
