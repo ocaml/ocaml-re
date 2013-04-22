@@ -11,7 +11,7 @@ High priority (before next release)
 * Simple optimisations
   - alt containing alt
   - epsilon elimination
-  - Seq (Seq (x,y), z) => Seq (x, Seq (y, z)) under some circumptances
+  - Seq (Seq (x,y), z) => Seq (x, Seq (y, z)) under some circumstances
     (x or y has a fixed length)
   ...
 
