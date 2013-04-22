@@ -37,3 +37,5 @@ Other ideas
   over some abstract tokens).
 * Str compatibility module
   (should we implement string_partial_match?)
+* Compile checked printers parameterized over match groups (DRY for
+  literal subexpressions)
