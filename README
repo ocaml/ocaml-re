@@ -2,14 +2,14 @@
 DESCRIPTION
 ===========
 
-RE is a regular expression library for OCaml.  It is still under
-development, but is already rather usable.
+RE is a regular expression library for OCaml.
 
 CONTACT
 =======
 
-This library has been written by Jerome Vouillon (Jerome.Vouillon@inria.fr).
-It can be downloaded from http://libre.sourceforge.net
+This library has been written by Jerome Vouillon
+(Jerome.Vouillon@pps.univ-paris-diderot.fr).
+It can be downloaded from https://github.com/ocaml/ocaml-re
 
 Bug reports, suggestions and contributions are welcome.
 
