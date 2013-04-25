@@ -31,7 +31,6 @@ let parse s =
   let accept c = let r = test c in if r then incr i; r in
   let accept2 c c' = let r = test2 c c' in if r then i := !i + 2; r in
   let get () = let r = s.[!i] in incr i; r in
-  let unget () = decr i in
 
   let rec regexp () = regexp' (branch ())
   and regexp' left =

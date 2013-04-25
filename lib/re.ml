@@ -458,7 +458,7 @@ let rec colorize c regexp =
     | Beg_of_word | End_of_word
     | Not_bound                 -> split cword c
     | Beg_of_str | End_of_str
-    | Start | Stop | Not_bound  -> ()
+    | Start | Stop              -> ()
     | Last_end_of_line          -> lnl := true
     | Sem (_, r)
     | Sem_greedy (_, r)
@@ -886,7 +886,7 @@ let test (s, marks, pos, _) i =
 
 let dummy_offset = (-1, -1)
 
-let get_all_ofs ((s, marks, pos, count) as m) =
+let get_all_ofs (s, marks, pos, count) =
   let res = Array.make count dummy_offset in
   for i = 0 to Array.length marks / 2 - 1 do
     let m1 = marks.(2 * i) in
@@ -900,7 +900,7 @@ let get_all_ofs ((s, marks, pos, count) as m) =
 
 let dummy_string = ""
 
-let get_all ((s, marks, pos, count) as m) =
+let get_all (s, marks, pos, count) =
   let res = Array.make count dummy_string in
   for i = 0 to Array.length marks / 2 - 1 do
     let m1 = marks.(2 * i) in

@@ -92,7 +92,7 @@ let print_marks ch l =
 
 let rec print_state_rec ch e y =
   match e with
-    TMatch marks as x ->
+    TMatch marks ->
       Format.fprintf ch "@[<2>(Match@ %a)@]" print_marks marks
   | TSeq (l', x, kind) ->
       Format.fprintf ch "@[<2>(Seq@ ";
@@ -302,9 +302,9 @@ let remove_matches l =
 
 let rec split_at_match_rec l' l =
   match l with
-    []                 -> assert false
-  | TMatch _ as x :: r -> (List.rev l', remove_matches r)
-  | x :: r             -> split_at_match_rec (x :: l') r
+    []            -> assert false
+  | TMatch _ :: r -> (List.rev l', remove_matches r)
+  | x :: r        -> split_at_match_rec (x :: l') r
 
 let split_at_match l = split_at_match_rec [] l
 
