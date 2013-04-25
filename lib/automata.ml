@@ -351,11 +351,7 @@ let rec set_idx used idx l =
       TExp (marks_set_idx used idx marks, x) :: set_idx used idx r
 
 let rec filter_marks b e marks =
-  match marks with
-    []            ->
-      []
-  | (i, p) :: rem ->
-      if i >= b && i <= e then rem else (i, p) :: filter_marks b e rem
+  List.filter (fun (i, _) -> i < b || i > e) marks
 
 let rec delta_1 marks c cat' cat x rem =
 (*Format.eprintf "%d@." x.id;*)
