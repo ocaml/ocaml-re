@@ -495,6 +495,59 @@ let flatten_cmap cm =
 
 (**** Compilation ****)
 
+let rec equal x1 x2 =
+  match x1, x2 with
+    Set s1, Set s2 ->
+      s1 = s2
+  | Sequence l1, Sequence l2 ->
+      eq_list l1 l2
+  | Alternative l1, Alternative l2 ->
+      eq_list l1 l2
+  | Repeat (x1', i1, j1), Repeat (x2', i2, j2) ->
+      i1 = i2 && j1 = j2 && equal x1' x2'
+  | Beg_of_line, Beg_of_line
+  | End_of_line, End_of_line
+  | Beg_of_word, Beg_of_word
+  | End_of_word, End_of_word
+  | Not_bound, Not_bound
+  | Beg_of_str, Beg_of_str
+  | End_of_str, End_of_str
+  | Last_end_of_line, Last_end_of_line
+  | Start, Start
+  | Stop, Stop ->
+      true
+  | Sem (sem1, x1'), Sem (sem2, x2') ->
+      sem1 = sem2 && equal x1' x2'
+  | Sem_greedy (k1, x1'), Sem_greedy (k2, x2') ->
+      k1 = k2 && equal x1' x2'
+  | Group _, Group _ -> (* Do not merge groups! *)
+      false
+  | No_group x1', No_group x2' ->
+      equal x1' x2'
+  | Nest x1', Nest x2' ->
+      equal x1' x2'
+  | Case x1', Case x2' ->
+      equal x1' x2'
+  | No_case x1', No_case x2' ->
+      equal x1' x2'
+  | Intersection l1, Intersection l2 ->
+      eq_list l1 l2
+  | Complement l1, Complement l2 ->
+      eq_list l1 l2
+  | Difference (x1', x1''), Difference (x2', x2'') ->
+      equal x1' x2' && equal x1'' x2''
+  | _ ->
+      false
+
+and eq_list l1 l2 =
+  match l1, l2 with
+    [], [] ->
+      true
+  | x1 :: r1, x2 :: r2 ->
+      equal x1 x2 && eq_list r1 r2
+  | _ ->
+      false
+
 let sequence l =
   match l with
     [x] -> x
@@ -508,7 +561,7 @@ let rec merge_sequences l =
       merge_sequences (l' @ r)
   | Sequence (x :: y) :: r ->
       begin match merge_sequences r with
-        Sequence (x' :: y') :: r' when x = x' ->
+        Sequence (x' :: y') :: r' when equal x x' ->
           Sequence [x; Alternative [sequence y; sequence y']] :: r'
       | r' ->
           Sequence (x :: y) :: r'
