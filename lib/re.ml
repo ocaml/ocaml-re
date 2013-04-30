@@ -113,7 +113,9 @@ let category re c =
   (* Special category for the last newline *)
   if c = re.lnl then cat_lastnewline lor cat_newline lor cat_not_letter else
   match re.col_repr.[c] with
-    'a'..'z' | 'A'..'Z' ->
+    (* Should match [cword] definition *)
+    'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
+  | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
       cat_letter
   | '\n' ->
       cat_not_letter lor cat_newline
@@ -440,9 +442,12 @@ let rec split s cm =
   | (i, j)::r -> cm.[i] <- '\001'; cm.[j + 1] <- '\001'; split r cm
 
 let cupper =
-  Cset.union (cseq 'A' 'Z') (Cset.union (cseq '\192' '\214') (cseq '\216' '\222'))
+  Cset.union (cseq 'A' 'Z')
+    (Cset.union (cseq '\192' '\214') (cseq '\216' '\222'))
 let clower = Cset.offset 32 cupper
-let calpha = cadd '\170' (cadd '\186' (Cset.union clower cupper))
+let calpha =
+  List.fold_right cadd ['\170'; '\181'; '\186'; '\223'; '\255']
+    (Cset.union clower cupper)
 let cdigit = cseq '0' '9'
 let calnum = Cset.union calpha cdigit
 let cword = cadd '_' calnum
