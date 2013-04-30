@@ -830,7 +830,7 @@ let punct =
        rg '\123' '\126'; rg '\160' '\169'; rg '\171' '\180';
        rg '\182' '\185'; rg '\187' '\191'; char '\215'; char '\247']
 let space = alt [char ' '; rg '\009' '\013']
-let xdigit = alt [digit; rg 'a' 'f'; rg 'A' 'Z']
+let xdigit = alt [digit; rg 'a' 'f'; rg 'A' 'F']
 
 let case r = Case r
 let no_case r = No_case r
