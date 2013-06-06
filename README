@@ -1,4 +1,3 @@
-
 DESCRIPTION
 ===========
 
@@ -62,7 +61,7 @@ Here are some timing results (Pentium III 500Mhz):
   (repeated 100 times).
     - RE: 2.6s
     - PCRE: 68s
-* Regular expression example from http://www.bagley.org/~doug/shootout/.
+* Regular expression example from http://www.bagley.org/~doug/shootout/ [1]
     - RE: 0.43s
     - PCRE: 3.68s
 * The large regular expression (about 2000 characters long) that
@@ -73,3 +72,7 @@ Here are some timing results (Pentium III 500Mhz):
     - PCRE: 3.7s
   However, RE is only faster than PCRE when there are more than about
   300 filenames.
+  
+  
+  [1] this page is no longer up but is avaliable via the internet archive 
+  http://web.archive.org/web/20010429190941/http://www.bagley.org/~doug/shootout/bench/regexmatch/
