@@ -1,5 +1,5 @@
 (** This is a little command line tool to test the library.
-@author Christian Lindig <lindig@gmail.cm>
+@author Christian Lindig <lindig@gmail.com>
 *)
 
 module R = Re
