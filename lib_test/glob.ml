@@ -13,7 +13,7 @@ let printf      = Printf.printf
 let (@@) f x    = f x
 
 let glob pattern str =
-    let rx = R.compile @@ G.globx pattern in
+    let rx = R.compile @@ R.whole_string @@ G.globx pattern in
     (* let () = R.print_re Format.std_formatter rx in *)
     if R.execp rx str
     then printf "%s matches:       %s\n" pattern str
