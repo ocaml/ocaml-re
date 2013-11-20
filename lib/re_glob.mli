@@ -22,10 +22,10 @@
 
 exception Parse_error
 
-val glob : string -> Re.t
-   (* Implements the semantics of shells patterns. Not that the returned
-      regular expression is unanchored, so you will probably want to combine
-      it with [Re.bos] and [Re.eos].
+val glob : ?anchored:unit -> string -> Re.t
+   (* Implements the semantics of shells patterns. The returned regular
+      expression is unanchored by default. If the [anchored] parameter
+      is provided, the regular expression will only matches whole strings.
 
       Character '/' must be explicitely matched.  A dot at the
       beginning of a file name must be explicitely matched as well.
@@ -35,10 +35,10 @@ val glob : string -> Re.t
       A sequence '[...]' matches any of the enclosed characters.
       A backslash escapes the following character. *)
 
-val glob' : bool -> string -> Re.t
+val glob' : ?anchored:unit -> bool -> string -> Re.t
    (* Same, but allows to choose whether dots at the beginning of a
       file name need to be explicitly matched (true) or not (false) *)
 
-val globx : string -> Re.t
-val globx' : bool -> string -> Re.t
+val globx : ?anchored:unit -> string -> Re.t
+val globx' : ?anchored:unit -> bool -> string -> Re.t
     (* These two functions also recognize the pattern {..,..} *)
