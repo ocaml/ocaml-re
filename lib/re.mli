@@ -77,6 +77,7 @@ val start : t                          (* Initial position *)
 val stop : t                           (* Final position *)
 val word : t -> t                      (* Word *)
 val not_boundary : t                   (* Not at a word boundary *)
+val whole_string : t -> t              (* Only matches the whole string *)
 
 (* Match semantics *)
 val longest : t -> t                   (* Longest match *)

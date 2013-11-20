@@ -770,6 +770,7 @@ let word r = seq [bow; r; eow]
 let not_boundary = Not_bound
 let bos = Beg_of_str
 let eos = End_of_str
+let whole_string r = seq [bos; r; eos]
 let leol = Last_end_of_line
 let start = Start
 let stop = Stop
