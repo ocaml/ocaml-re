@@ -23,6 +23,17 @@
 exception Parse_error
 
 val glob : string -> Re.t
+   (* Implements the semantics of shells patterns. Not that the returned
+      regular expression is unanchored, so you will probably want to combine
+      it with [Re.bos] and [Re.eos].
+
+      Character '/' must be explicitely matched.  A dot at the
+      beginning of a file name must be explicitely matched as well.
+      Character '*' matches any sequence of characters and character
+      '?' matches a single character, provided these restrictions are
+      satisfied,
+      A sequence '[...]' matches any of the enclosed characters.
+      A backslash escapes the following character. *)
 
 val glob' : bool -> string -> Re.t
    (* Same, but allows to choose whether dots at the beginning of a
