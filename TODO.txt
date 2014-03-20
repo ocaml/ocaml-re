@@ -1,5 +1,47 @@
+* To compile r{i,j} we need a sequence that does not match epsilon
+  (or a constructor around an expression telling that this expression
+  does not match epsilon)
+* A subexpression repeated by an asterisk ( '*' ) or an interval
+  expression shall not match a null expression unless this is the only
+  match for the repetition or it is necessary to satisfy the exact or
+  minimum number of occurrences for the interval expression.
+* There might be a typo in deriv_1/delta_1: should we generate 'TMatch
+  mark' or 'TMatch mark'? (neither is correct!)
 
-High priority (before next release)
+POSIX:
+   "(a?)*"   "b"    ""
+   "(a?)*"   "ab"   "a"
+   "((a)|(b))*"   "ab"  -> "b" none "b"
+Str
+   "(a?)*"   "b"    no submatch
+   "(a?)*"   "ab"   "a"
+   "((a)|(b))*"   "ab"  -> "b" "a" "b"
+Javascript
+   "(a?)*"   "b"    no submatch
+   "(a?)*"   "ab"   "a"
+   "((a)|(b))*"   "ab"  -> "b" none "b"
+PCRE
+   "(a?)*"   "b"    ""
+   "(a?)*"   "ab"   ""
+   "(a?)*?"  "b"    ""
+   "(a?)*?"  "ab"   "a"
+   "((a)|(b))*"   "ab"  -> "b" "a" "b"
+Emacs
+   "(a?)*"   "b"    ""
+   "(a?)*"   "ab"   ""
+   "(a?)*?"   "b"    ""
+   "(a?)*?"   "ab"   "a"
+   "((a)|(b))*"   "ab"  -> "b" "a" "b"
+
+
+  r{0,0}  = eps
+  r{i+1,j+1} = r,r{i,j}
+  r{0,j+1} = r,r{0,j} | eps            PCRE/Emacs
+  r{0,j+1} = (r-eps},r{0,j} | eps      JavaScript
+
+* Rewrite sequences of sequences when possible...
+
+High priority
 =============
 * Improve the Perl regular expressions parser
 * Character classes (in the three regular expression parsers)
@@ -35,7 +77,5 @@ Other ideas
 ===========
 * It would be great to have a more generic interface (parameterized
   over some abstract tokens).
-* Str compatibility module
-  (should we implement string_partial_match?)
 * Compile checked printers parameterized over match groups (DRY for
   literal subexpressions)
