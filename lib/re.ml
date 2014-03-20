@@ -303,7 +303,7 @@ let rec scan_str info s initial_state groups =
   else
     loop_no_mark info s pos last initial_state
 
-let match_str groups re s pos len =
+let match_str groups partial re s pos len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
@@ -326,7 +326,7 @@ let match_str groups re s pos len =
   let initial_state = find_initial_state re initial_cat in
   let st = scan_str info s initial_state groups in
   let res =
-    if st.idx = break then
+    if st.idx = break || partial then
       Automata.status st.desc
     else
       let final_cat =
@@ -897,21 +897,21 @@ let compile r = compile_1 (seq [shortest (rep any); group r])
 let exec ?(pos = 0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg "Re.exec";
-  match match_str true re s pos len with
+  match match_str true false re s pos len with
     `Match substr -> substr
   | _             -> raise Not_found
 
 let execp ?(pos = 0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg "Re.execp";
-  match match_str false re s pos len with
+  match match_str false false re s pos len with
     `Match substr -> true
   | _             -> false
 
 let exec_partial ?(pos = 0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg "Re.exec_partial";
-  match match_str false re s pos len with
+  match match_str false true re s pos len with
     `Match _ -> `Full
   | `Running -> `Partial
   | `Failed  -> `Mismatch
