@@ -1,14 +1,14 @@
 DESCRIPTION
 ===========
 
-RE is a regular expression library for OCaml.
+Re is a regular expression library for OCaml.
 
 CONTACT
 =======
 
 This library has been written by Jerome Vouillon
 (Jerome.Vouillon@pps.univ-paris-diderot.fr).
-It can be downloaded from https://github.com/ocaml/ocaml-re
+It can be downloaded from <https://github.com/ocaml/ocaml-re>
 
 Bug reports, suggestions and contributions are welcome.
 
@@ -16,19 +16,19 @@ FEATURES
 ========
 
 The following styles of regular expressions are supported:
-- Perl-style regular expressions (module Re_perl);
-- Posix extended regular expressions (module Re_posix);
-- Emacs-style regular expressions (module Re_emacs);
-- Shell-style file globbing (module Re_glob).
+- Perl-style regular expressions (module `Re_perl`);
+- Posix extended regular expressions (module `Re_posix`);
+- Emacs-style regular expressions (module `Re_emacs`);
+- Shell-style file globbing (module `Re_glob`).
 
 It is also possible to build regular expressions by combining simpler
-regular expressions (module Re)
+regular expressions (module `Re`).
 
-The most notable missing features are back-references and
-look-ahead/look-behind assertions.
+The most notable missing features are **back-references** and
+look-ahead/look-behind **assertions**.
 
 There is also a subset of the PCRE interface available in the
-Re.pcre library. This makes it easier to port code from that
+`Re.pcre` library. This makes it easier to port code from that
 library to Re without any changes beyond replacing the `pcre`
 findlib package with `re.pcre`.
 
@@ -36,7 +36,7 @@ PERFORMANCES
 ============
 
 The matches are performed by lazily building a DFA (deterministic
-finite automata) from the regular expression.  As a consequence,
+finite automaton) from the regular expression. As a consequence,
 matching takes linear time in the length of the matched string.
 
 The compilation of patterns is slower than with libraries using
@@ -56,14 +56,18 @@ library is compiled to bytecode than when it is compiled to native
 code.
 
 Here are some timing results (Pentium III 500Mhz):
-* Scanning a 1Mb string containing only 'a's, except for the last
-  character which is a 'b', searching for the pattern "aa?b"
-  (repeated 100 times).
+* Scanning a 1Mb string containing only `a`s, except for the last
+  character which is a `b`, searching for the pattern `aa?b`
+  (repeated 100 times):
     - RE: 2.6s
     - PCRE: 68s
 * Regular expression example from http://www.bagley.org/~doug/shootout/ [1]
     - RE: 0.43s
     - PCRE: 3.68s
+
+  [1] this page is no longer up but is available via the Internet Archive 
+  http://web.archive.org/web/20010429190941/http://www.bagley.org/~doug/shootout/bench/regexmatch/
+
 * The large regular expression (about 2000 characters long) that
   Unison uses with my preference file to decide whether a file should
   be ignored or not.  This expression is matched against a filename
@@ -72,7 +76,3 @@ Here are some timing results (Pentium III 500Mhz):
     - PCRE: 3.7s
   However, RE is only faster than PCRE when there are more than about
   300 filenames.
-  
-  
-  [1] this page is no longer up but is available via the Internet Archive 
-  http://web.archive.org/web/20010429190941/http://www.bagley.org/~doug/shootout/bench/regexmatch/
