@@ -1,9 +1,9 @@
-DESCRIPTION
+Description
 ===========
 
 Re is a regular expression library for OCaml.
 
-CONTACT
+Contact
 =======
 
 This library has been written by Jerome Vouillon
@@ -12,7 +12,7 @@ It can be downloaded from <https://github.com/ocaml/ocaml-re>
 
 Bug reports, suggestions and contributions are welcome.
 
-FEATURES
+Features
 ========
 
 The following styles of regular expressions are supported:
@@ -32,7 +32,7 @@ There is also a subset of the PCRE interface available in the
 library to Re without any changes beyond replacing the `pcre`
 findlib package with `re.pcre`.
 
-PERFORMANCES
+Performances
 ============
 
 The matches are performed by lazily building a DFA (deterministic
