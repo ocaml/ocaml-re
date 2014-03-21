@@ -793,6 +793,26 @@ let compile_1 regexp =
 
 (****)
 
+let rec anchored r =
+  match r with
+  | Sequence l ->
+      List.exists anchored l
+  | Alternative l ->
+      List.for_all anchored l
+  | Repeat (r, i, _) ->
+      i > 0 && anchored r
+  | Set _ | Beg_of_line | End_of_line | Beg_of_word | End_of_word
+  | Not_bound | End_of_str | Last_end_of_line | Stop
+  | Intersection _ | Complement _ | Difference _ ->
+      false
+  | Beg_of_str | Start ->
+      true
+  | Sem (_, r) | Sem_greedy (_, r) | Group r | No_group r | Nest r
+  | Case r | No_case r ->
+      anchored r
+
+(****)
+
 type t = regexp
 
 let str s =
@@ -892,7 +912,8 @@ let no_case r = No_case r
 
 type substrings = (string * Automata.mark_infos * int array * int)
 
-let compile r = compile_1 (seq [shortest (rep any); group r])
+let compile r =
+  compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
 
 let exec ?(pos = 0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
