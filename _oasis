@@ -1,10 +1,10 @@
-OASISFormat: 0.3
+OASISFormat: 0.4
 Name:        re
 Version:     1.2.1
 Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon, Thomas Gazagnaire, Anil Madhavapeddy
 License:     LGPL-2.0 with OCaml linking exception
-Plugins:     META (0.3)
+Plugins:     META (0.4)
 BuildTools: ocamlbuild
 
 Library re
@@ -60,7 +60,7 @@ Library re_pcre
   Findlibname: pcre
   FindlibParent: re
   BuildDepends: re, re.perl
-  
+
 Executable re_match
   Path:               lib_test
   MainIs:             re_match.ml
