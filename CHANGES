@@ -1,3 +1,20 @@
+1.2.2 (05-May-2014):
+
+* Add a Re.whole_string convenience function to only match whole strings
+* Add a ?anchored parameter to functions in Re_glob to specify whole
+  string matching
+* Document Re_glob module
+* Fix compilation of submatches occurring inside a Kleen star
+* Fix word boundary matching
+* Fix definition of Re.xdigit
+* Fix Re.exec_partial function
+* Fix compilation of patterns of the shape r1r2|r1r3
+* Fixed compilation of re.cmxs (Vincent Bernardoff)
+* Improved matching of anchored regular expressions: stop as soon as
+  we know there cannot possibly be any match.
+* Updated to OASIS 0.4.x (Vincent Bernardoff)
+* Add the linking exception to the license
+
 1.2.1 (07-Apr-2013):
 
 * Correct OASIS metadata (Christophe Troestler).
