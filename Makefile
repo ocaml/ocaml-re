@@ -1,31 +1,46 @@
-.PHONY: all clean install build
-all: build doc 
+# OASIS_START
+# DO NOT EDIT (digest: 46f8bd9984975bd4727bed22d0876cd2)
 
-NAME=re
+SETUP = ./setup.exe
 
-setup.bin: setup.ml
-	ocamlopt.opt -o $@ $< || ocamlopt -o $@ $< || ocamlc -o $@ $<
-	rm -f setup.cmx setup.cmi setup.o setup.cmo
+build: setup.data $(SETUP)
+	$(SETUP) -build $(BUILDFLAGS)
 
-setup.data: setup.bin
-	./setup.bin -configure
+doc: setup.data $(SETUP) build
+	$(SETUP) -doc $(DOCFLAGS)
 
-build: setup.data setup.bin
-	./setup.bin -build
+test: setup.data $(SETUP) build
+	$(SETUP) -test $(TESTFLAGS)
 
-doc: setup.data setup.bin
-	./setup.bin -doc
+all: $(SETUP)
+	$(SETUP) -all $(ALLFLAGS)
 
-install: setup.bin
-	./setup.bin -install
+install: setup.data $(SETUP)
+	$(SETUP) -install $(INSTALLFLAGS)
 
-test: setup.bin build
-	./setup.bin -test
+uninstall: setup.data $(SETUP)
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
 
-reinstall: setup.bin
-	ocamlfind remove $(NAME) || true
-	./setup.bin -reinstall
+reinstall: setup.data $(SETUP)
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
-clean:
-	ocamlbuild -clean
-	rm -f setup.data setup.log setup.bin
+clean: $(SETUP)
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean: $(SETUP)
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+	$(RM) $(SETUP)
+
+setup.data: $(SETUP)
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+configure: $(SETUP)
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+setup.exe: setup.ml
+	ocamlfind ocamlopt -o $@ $< || ocamlfind ocamlc -o $@ $< || true
+	$(RM) setup.cmi setup.cmo setup.cmx setup.o
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP

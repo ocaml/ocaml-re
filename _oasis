@@ -4,7 +4,8 @@ Version:     1.2.1
 Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon, Thomas Gazagnaire, Anil Madhavapeddy
 License:     LGPL-2.0 with OCaml linking exception
-Plugins:     META (0.4)
+Plugins:     META (0.4), DevFiles (0.4)
+AlphaFeatures: compiled_setup_ml
 BuildTools: ocamlbuild
 
 Library re
