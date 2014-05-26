@@ -20,6 +20,24 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
+module type Char = sig
+  type t
+  val code : t -> int
+  val chr : int -> t
+  val category : t -> int
+  val of_char : char -> t
+end
+module type String = sig
+  type t
+  module Char : Char
+  val of_string : string -> t
+  val create : int -> t
+  val length : t -> int
+  val make : int -> Char.t -> t
+  val sub : t -> int -> int -> t
+  val get : t -> int -> Char.t
+  val set : t -> int -> Char.t -> unit
+end
 let rec first f l =
   match l with
     []     -> None
