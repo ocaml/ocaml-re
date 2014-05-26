@@ -1022,18 +1022,7 @@ include Make (struct
   let create = create
   let of_string x = x
   let length = length
-  module Char = struct
-    type t = char
-    open Char
-    let of_char x = x
-    let code = code
-    let chr = chr
-    let category = function (* Should match [cword] definition *)
-      | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
-      | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' -> cat_letter
-      | '\n' -> cat_not_letter lor cat_newline
-      | _ -> cat_not_letter
-  end
+  module Char = Caml_char
 end)
 
 (**********************************)
