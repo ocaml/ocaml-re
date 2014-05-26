@@ -38,6 +38,14 @@ module type String = sig
   val get : t -> int -> Char.t
   val set : t -> int -> Char.t -> unit
 end
+
+let cat_inexistant = 1
+let cat_letter = 2
+let cat_not_letter = 4
+let cat_newline = 8
+let cat_lastnewline = 16
+let cat_search_boundary = 32
+
 let rec first f l =
   match l with
     []     -> None
@@ -118,13 +126,6 @@ type info =
         (* Position where the match should stop *) }
 
 (****)
-
-let cat_inexistant = 1
-let cat_letter = 2
-let cat_not_letter = 4
-let cat_newline = 8
-let cat_lastnewline = 16
-let cat_search_boundary = 32
 
 let category re c =
   if c = -1 then cat_inexistant else
