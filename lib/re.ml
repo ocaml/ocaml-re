@@ -397,22 +397,22 @@ module Make (String : Re_intf.String) = struct
 
   type sem_status = Compulsory | Indicative
 
-  type regexp =
+  type t =
       Set of Cset.t
-    | Sequence of regexp list
-    | Alternative of regexp list
-    | Repeat of regexp * int * int option
+    | Sequence of t list
+    | Alternative of t list
+    | Repeat of t * int * int option
     | Beg_of_line | End_of_line
     | Beg_of_word | End_of_word | Not_bound
     | Beg_of_str | End_of_str
     | Last_end_of_line | Start | Stop
-    | Sem of Automata.sem * regexp
-    | Sem_greedy of Automata.rep_kind * regexp
-    | Group of regexp | No_group of regexp | Nest of regexp
-    | Case of regexp | No_case of regexp
-    | Intersection of regexp list
-    | Complement of regexp list
-    | Difference of regexp * regexp
+    | Sem of Automata.sem * t
+    | Sem_greedy of Automata.rep_kind * t
+    | Group of t | No_group of t | Nest of t
+    | Case of t | No_case of t
+    | Intersection of t list
+    | Complement of t list
+    | Difference of t * t
 
   let rec is_charset r =
     match r with
@@ -810,16 +810,12 @@ module Make (String : Re_intf.String) = struct
 
   (****)
 
-  type t = regexp
-
   let str s =
     let l = ref [] in
     for i = String.length s - 1 downto 0 do
       l := Set (csingle s.[i]) :: !l
     done;
     Sequence !l
-  let char c = Set (csingle c)
-
   let alt l =
     match l with
       [r] -> r
