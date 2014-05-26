@@ -46,6 +46,11 @@ let cat_newline = 8
 let cat_lastnewline = 16
 let cat_search_boundary = 32
 
+module Make (String : String) = struct
+  type string = String.t
+  type char = String.Char.t
+  module Char = String.Char
+
 let rec first f l =
   match l with
     []     -> None
@@ -131,15 +136,7 @@ let category re c =
   if c = -1 then cat_inexistant else
   (* Special category for the last newline *)
   if c = re.lnl then cat_lastnewline lor cat_newline lor cat_not_letter else
-  match re.col_repr.[c] with
-    (* Should match [cword] definition *)
-    'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
-  | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
-      cat_letter
-  | '\n' ->
-      cat_not_letter lor cat_newline
-  | _ ->
-      cat_not_letter
+  Char.category re.col_repr.[c]
 
 (****)
 
@@ -280,7 +277,7 @@ let get_color re s pos =
   let slen = String.length s in
   if pos >= slen then -1 else
   (* Special case for the last newline *)
-  if pos = slen - 1 && re.lnl <> -1 && s.[pos] = '\n' then re.lnl else
+  if pos = slen - 1 && re.lnl <> -1 && s.[pos] = (Char.of_char '\n') then re.lnl else
   Char.code re.cols.[Char.code s.[pos]]
 
 let rec handle_last_newline info pos st groups =
@@ -294,7 +291,7 @@ let rec handle_last_newline info pos st groups =
     st'
   end else begin (* Unknown *)
     let c = info.re.lnl in
-    let real_c = Char.code info.i_cols.[Char.code '\n'] in
+    let real_c = Char.code info.i_cols.[Char.code (Char.of_char '\n')] in
     let cat = category info.re c in
     let desc' = delta info cat real_c st in
     let st' = find_state info.re desc' in
@@ -309,7 +306,7 @@ let rec scan_str info s initial_state groups =
     last = String.length s &&
     info.re.lnl <> -1 &&
     last > pos &&
-    s.[last - 1] = '\n'
+    s.[last - 1] = (Char.of_char '\n')
   then begin
     info.last <- last - 1;
     let st = scan_str info s initial_state groups in
@@ -458,18 +455,18 @@ let rec is_charset r =
 let rec split s cm =
   match s with
     []    -> ()
-  | (i, j)::r -> cm.[i] <- '\001'; cm.[j + 1] <- '\001'; split r cm
+  | (i, j)::r -> cm.[i] <- (Char.of_char '\001'); cm.[j + 1] <- (Char.of_char '\001'); split r cm
 
 let cupper =
-  Cset.union (cseq 'A' 'Z')
-    (Cset.union (cseq '\192' '\214') (cseq '\216' '\222'))
+  Cset.union (cseq (Char.of_char 'A') (Char.of_char 'Z'))
+    (Cset.union (cseq (Char.of_char '\192') (Char.of_char '\214')) (cseq (Char.of_char '\216') (Char.of_char '\222')))
 let clower = Cset.offset 32 cupper
 let calpha =
-  List.fold_right cadd ['\170'; '\181'; '\186'; '\223'; '\255']
+  List.fold_right cadd [(Char.of_char '\170'); (Char.of_char '\181'); (Char.of_char '\186'); (Char.of_char '\223'); (Char.of_char '\255')]
     (Cset.union clower cupper)
-let cdigit = cseq '0' '9'
+let cdigit = cseq (Char.of_char '0') (Char.of_char '9')
 let calnum = Cset.union calpha cdigit
-let cword = cadd '_' calnum
+let cword = cadd (Char.of_char '_') calnum
 
 let rec colorize c regexp =
   let lnl = ref false in
@@ -479,7 +476,7 @@ let rec colorize c regexp =
     | Sequence l                -> List.iter colorize l
     | Alternative l             -> List.iter colorize l
     | Repeat (r, _, _)          -> colorize r
-    | Beg_of_line | End_of_line -> split (csingle '\n') c
+    | Beg_of_line | End_of_line -> split (csingle (Char.of_char '\n')) c
     | Beg_of_word | End_of_word
     | Not_bound                 -> split cword c
     | Beg_of_str | End_of_str
@@ -497,16 +494,16 @@ let rec colorize c regexp =
   colorize regexp;
   !lnl
 
-let make_cmap () = String.make 257 '\000'
+let make_cmap () = String.make 257 (Char.of_char '\000')
 
 let flatten_cmap cm =
   let c = String.create 256 in
   let col_repr = String.create 256 in
   let v = ref 0 in
-  c.[0] <- '\000';
-  col_repr.[0] <- '\000';
+  c.[0] <- (Char.of_char '\000');
+  col_repr.[0] <- (Char.of_char '\000');
   for i = 1 to 255 do
-    if cm.[i] <> '\000' then incr v;
+    if cm.[i] <> (Char.of_char '\000') then incr v;
     c.[i] <- Char.chr !v;
     col_repr.[!v] <- Char.chr i
   done;
@@ -905,7 +902,11 @@ let diff r r' =
   invalid_arg "Re.diff"
 
 let any = Set cany
-let notnl = Set (Cset.diff cany (csingle '\n'))
+let notnl = Set (Cset.diff cany (csingle (Char.of_char '\n')))
+
+module Sets = struct
+  let rg c c' = rg (Char.of_char c) (Char.of_char c')
+  let char c = char (Char.of_char c)
 
 let lower = alt [rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255']
 let upper = alt [rg 'A' 'Z'; rg '\192' '\214'; rg '\216' '\222']
@@ -913,7 +914,7 @@ let alpha = alt [lower; upper; char '\170'; char '\186']
 let digit = rg '0' '9'
 let alnum = alt [alpha; digit]
 let ascii = rg '\000' '\127'
-let blank = set "\t "
+let blank = set (String.of_string "\t ")
 let cntrl = alt [rg '\000' '\031'; rg '\127' '\159']
 let graph = alt [rg '\033' '\126'; rg '\160' '\255']
 let print = alt [rg '\032' '\126'; rg '\160' '\255']
@@ -923,6 +924,9 @@ let punct =
        rg '\182' '\185'; rg '\187' '\191'; char '\215'; char '\247']
 let space = alt [char ' '; rg '\009' '\013']
 let xdigit = alt [digit; rg 'a' 'f'; rg 'A' 'F']
+end
+
+include Sets
 
 let case r = Case r
 let no_case r = No_case r
@@ -998,7 +1002,7 @@ let get_all_ofs (s, marks, pos, count) =
   done;
   res
 
-let dummy_string = ""
+let dummy_string = String.of_string ""
 
 let get_all (s, marks, pos, count) =
   let res = Array.make count dummy_string in
