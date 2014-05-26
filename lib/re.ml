@@ -861,7 +861,7 @@ module Make (String : Re_intf.String) = struct
     done;
     Set !s
 
-  let rg c c' = Set (cseq c c')
+  let rg' c c' = Set (cseq c c')
 
   let inter l =
     let r = Intersection l in
@@ -881,9 +881,11 @@ module Make (String : Re_intf.String) = struct
   let any = Set cany
   let notnl = Set (Cset.diff cany (csingle (Char.of_char '\n')))
 
+  let char' c = Set (csingle c)
+
   module Sets = struct
-    let rg c c' = rg (Char.of_char c) (Char.of_char c')
-    let char c = char (Char.of_char c)
+    let rg c c' = rg' (Char.of_char c) (Char.of_char c')
+    let char c = char' (Char.of_char c)
 
     let lower = alt [rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255']
     let upper = alt [rg 'A' 'Z'; rg '\192' '\214'; rg '\216' '\222']
@@ -904,6 +906,9 @@ module Make (String : Re_intf.String) = struct
   end
 
   include Sets
+
+  let char = char'
+  let rg = rg'
 
   let case r = Case r
   let no_case r = No_case r
@@ -992,7 +997,19 @@ module Make (String : Re_intf.String) = struct
       end
     done;
     res
+end
 
+module Caml_char = struct
+  type t = char
+  open Char
+  let of_char x = x
+  let code = code
+  let chr = chr
+  let category = function (* Should match [cword] definition *)
+    | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
+    | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' -> cat_letter
+    | '\n' -> cat_not_letter lor cat_newline
+    | _ -> cat_not_letter
 end
 
 include Make (struct
