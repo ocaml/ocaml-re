@@ -20,14 +20,18 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-(* Errors that can be raised during the parsing of the regular expression *)
+(** Emacs-style regular expressions *)
+
 exception Parse_error
 exception Not_supported
+(** Errors that can be raised during the parsing of the regular expression *)
 
-(* Parsing of an Emacs-style regular expression *)
 val re : ?case:bool -> string -> Re.t
+(** Parsing of an Emacs-style regular expression *)
 
-(* Regular expression compilation *)
 val compile : Re.t -> Re.re
-      (* Same as [Re.compile] *)
+(** Regular expression compilation *)
+
 val compile_pat : ?case:bool -> string -> Re.re
+(** Same as [Re.compile] *)
+
