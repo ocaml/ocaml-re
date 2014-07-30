@@ -20,18 +20,22 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-(* Errors that can be raised during the parsing of the regular expression *)
+(** Perl-style regular expressions *)
+
 exception Parse_error
 exception Not_supported
+(** Errors that can be raised during the parsing of the regular expression *)
+
 
 type opt =
   [ `Ungreedy | `Dotall | `Dollar_endonly
   | `Multiline | `Anchored | `Caseless ]
 
-(* Parsing of a Perl-style regular expression *)
 val re : ?opts:opt list -> string -> Re.t
+(** Parsing of a Perl-style regular expression *)
 
-(* Regular expression compilation *)
 val compile : Re.t -> Re.re
-      (* (Same as [Re.compile]) *)
+(** Regular expression compilation *)
+
 val compile_pat : ?opts:opt list -> string -> Re.re
+(** (Same as [Re.compile]) *)

@@ -26,21 +26,22 @@
      http://www.opengroup.org/onlinepubs/007908799/xsh/regcomp.html
 *)
 
-(* XXX Character classes *)
+(** XXX Character classes *)
 
-(* Errors that can be raised during the parsing of the regular expression *)
 exception Parse_error
 exception Not_supported
+(** Errors that can be raised during the parsing of the regular expression *)
 
 type opt = [`ICase | `NoSub | `Newline]
 
-(* Parsing of a Posix extended regular expression *)
 val re : ?opts:(opt list) -> string -> Re.t
+(** Parsing of a Posix extended regular expression *)
 
-(* Regular expression compilation *)
 val compile : Re.t -> Re.re
-   (* [compile r] is defined as [Re.compile (Re.longest r)] *)
+(** Regular expression compilation *)
+
 val compile_pat : ?opts:(opt list) -> string -> Re.re
+(** [compile r] is defined as [Re.compile (Re.longest r)] *)
 
 (*
 Deviation from the standard / ambiguities in the standard
