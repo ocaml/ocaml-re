@@ -29,8 +29,12 @@ let cat_search_boundary = 32
 
 module Make (String : Re_intf.String) = struct
   type string = String.t
-  type char = String.Char.t
-  module Char = String.Char
+
+  let category' = function (* Should match [cword] definition *)
+    | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
+    | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' -> cat_letter
+    | '\n' -> cat_not_letter lor cat_newline
+    | _ -> cat_not_letter
 
   let rec first f l =
     match l with
@@ -117,7 +121,7 @@ module Make (String : Re_intf.String) = struct
     if c = -1 then cat_inexistant else
       (* Special category for the last newline *)
     if c = re.lnl then cat_lastnewline lor cat_newline lor cat_not_letter else
-      Char.category re.col_repr.[c]
+      category' re.col_repr.[c]
 
   (****)
 
@@ -258,7 +262,7 @@ module Make (String : Re_intf.String) = struct
       let slen = String.length s in
       if pos >= slen then -1 else
         (* Special case for the last newline *)
-      if pos = slen - 1 && re.lnl <> -1 && s.[pos] = (Char.of_char '\n') then re.lnl else
+      if pos = slen - 1 && re.lnl <> -1 && s.[pos] = '\n' then re.lnl else
         Char.code re.cols.[Char.code s.[pos]]
 
   let rec handle_last_newline info pos st groups =
@@ -272,7 +276,7 @@ module Make (String : Re_intf.String) = struct
       st'
     end else begin (* Unknown *)
       let c = info.re.lnl in
-      let real_c = Char.code info.i_cols.[Char.code (Char.of_char '\n')] in
+      let real_c = Char.code info.i_cols.[Char.code '\n'] in
       let cat = category info.re c in
       let desc' = delta info cat real_c st in
       let st' = find_state info.re desc' in
@@ -287,7 +291,7 @@ module Make (String : Re_intf.String) = struct
       last = String.length s &&
       info.re.lnl <> -1 &&
       last > pos &&
-      s.[last - 1] = (Char.of_char '\n')
+      s.[last - 1] = '\n'
     then begin
       info.last <- last - 1;
       let st = scan_str info s initial_state groups in
@@ -436,18 +440,18 @@ module Make (String : Re_intf.String) = struct
   let rec split s cm =
     match s with
       []    -> ()
-    | (i, j)::r -> cm.[i] <- (Char.of_char '\001'); cm.[j + 1] <- (Char.of_char '\001'); split r cm
+    | (i, j)::r -> cm.[i] <- '\001'; cm.[j + 1] <- '\001'; split r cm
 
   let cupper =
-    Cset.union (cseq (Char.of_char 'A') (Char.of_char 'Z'))
-      (Cset.union (cseq (Char.of_char '\192') (Char.of_char '\214')) (cseq (Char.of_char '\216') (Char.of_char '\222')))
+    Cset.union (cseq 'A' 'Z')
+      (Cset.union (cseq '\192' '\214') (cseq '\216' '\222'))
   let clower = Cset.offset 32 cupper
   let calpha =
-    List.fold_right cadd [(Char.of_char '\170'); (Char.of_char '\181'); (Char.of_char '\186'); (Char.of_char '\223'); (Char.of_char '\255')]
+    List.fold_right cadd ['\170'; '\181'; '\186'; '\223'; '\255']
       (Cset.union clower cupper)
-  let cdigit = cseq (Char.of_char '0') (Char.of_char '9')
+  let cdigit = cseq '0' '9'
   let calnum = Cset.union calpha cdigit
-  let cword = cadd (Char.of_char '_') calnum
+  let cword = cadd '_' calnum
 
   let rec colorize c regexp =
     let lnl = ref false in
@@ -457,7 +461,7 @@ module Make (String : Re_intf.String) = struct
       | Sequence l                -> List.iter colorize l
       | Alternative l             -> List.iter colorize l
       | Repeat (r, _, _)          -> colorize r
-      | Beg_of_line | End_of_line -> split (csingle (Char.of_char '\n')) c
+      | Beg_of_line | End_of_line -> split (csingle '\n') c
       | Beg_of_word | End_of_word
       | Not_bound                 -> split cword c
       | Beg_of_str | End_of_str
@@ -475,16 +479,16 @@ module Make (String : Re_intf.String) = struct
     colorize regexp;
     !lnl
 
-  let make_cmap () = String.make 257 (Char.of_char '\000')
+  let make_cmap () = String.make 257 '\000'
 
   let flatten_cmap cm =
     let c = String.create 256 in
     let col_repr = String.create 256 in
     let v = ref 0 in
-    c.[0] <- (Char.of_char '\000');
-    col_repr.[0] <- (Char.of_char '\000');
+    c.[0] <- '\000';
+    col_repr.[0] <- '\000';
     for i = 1 to 255 do
-      if cm.[i] <> (Char.of_char '\000') then incr v;
+      if cm.[i] <> '\000' then incr v;
       c.[i] <- Char.chr !v;
       col_repr.[!v] <- Char.chr i
     done;
@@ -879,13 +883,13 @@ module Make (String : Re_intf.String) = struct
       invalid_arg "Re.diff"
 
   let any = Set cany
-  let notnl = Set (Cset.diff cany (csingle (Char.of_char '\n')))
+  let notnl = Set (Cset.diff cany (csingle '\n'))
 
   let char' c = Set (csingle c)
 
   module Sets = struct
-    let rg c c' = rg' (Char.of_char c) (Char.of_char c')
-    let char c = char' (Char.of_char c)
+    let rg c c' = rg' c c'
+    let char c = char' c
 
     let lower = alt [rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255']
     let upper = alt [rg 'A' 'Z'; rg '\192' '\214'; rg '\216' '\222']
@@ -997,19 +1001,7 @@ module Make (String : Re_intf.String) = struct
       end
     done;
     res
-end
 
-module Caml_char = struct
-  type t = char
-  open Char
-  let of_char x = x
-  let code = code
-  let chr = chr
-  let category = function (* Should match [cword] definition *)
-    | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
-    | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' -> cat_letter
-    | '\n' -> cat_not_letter lor cat_newline
-    | _ -> cat_not_letter
 end
 
 include Make (struct
@@ -1022,7 +1014,6 @@ include Make (struct
   let create = create
   let of_string x = x
   let length = length
-  module Char = Caml_char
 end)
 
 (**********************************)

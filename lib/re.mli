@@ -20,10 +20,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-module Caml_char : Re_intf.Char with type t = char
+module Make (String : Re_intf.String) : Re_intf.S with type string = String.t
 
-module Make (String : Re_intf.String) :
-  Re_intf.S with type string = String.t
-             and type char = String.Char.t
-
-include Re_intf.S with type string = string and type char = char
+include Re_intf.S with type string = string

@@ -1,26 +1,16 @@
-module type Char = sig
-  type t
-  val code : t -> int
-  val chr : int -> t
-  val category : t -> int
-  val of_char : char -> t
-end
-
 module type String = sig
   type t
-  module Char : Char
   val of_string : string -> t
   val create : int -> t
   val length : t -> int
-  val make : int -> Char.t -> t
+  val make : int -> char -> t
   val sub : t -> int -> int -> t
-  val get : t -> int -> Char.t
-  val set : t -> int -> Char.t -> unit
+  val get : t -> int -> char
+  val set : t -> int -> char -> unit
 end
 
 module type S = sig
   type string
-  type char
 
   type t
   (** Regular expression *)
