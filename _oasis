@@ -11,7 +11,7 @@ BuildTools: ocamlbuild
 Library re
   Path:       lib
   InternalModules: Cset, Automata
-  Modules: Re
+  Modules: Re, Re_intf
   Findlibname: re
 
 Library re_emacs
