@@ -960,6 +960,28 @@ let get_ofs (s, marks, pos, _) i =
   let p2 = pos.(marks.(2 * i + 1)) - 1 in
   (p1, p2)
 
+let exec_iter ?(pos=0) ?(len= -1) re s yield =
+  if pos < 0 || len < -1 || pos + len > String.length s then
+    invalid_arg "Re.exec";
+  let len = if len= -1 then String.length s else len in
+  (* iterate on matches. When a match is found, search for
+    the next one just after its end *)
+  let rec iter pos len =
+    if pos+len > String.length s
+    then ()  (* no more matches *)
+    else match match_str true false re s pos len with
+      | `Match substr ->
+          let p1, p2 = get_ofs substr 0 in
+          yield substr;
+          (* find next group *)
+          let pos' = p2 and len' = String.length s - p2 in
+          iter pos' len'
+      | `Running
+      | `Failed -> ()
+  in
+  (* use the length of the string, rather than -1 *)
+  iter pos len
+
 let test (s, marks, pos, _) i =
   if 2 * i >= Array.length marks then false else
   let idx = marks.(2 * i) in
