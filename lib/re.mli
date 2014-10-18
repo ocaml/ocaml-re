@@ -47,6 +47,11 @@ val exec_partial :
   ?len:int ->    (* Default: -1 (until end of string) *)
   re -> string -> [ `Full | `Partial | `Mismatch ]
 
+val exec_iter :
+  ?pos:int ->    (* Default: 0 *)
+  ?len:int ->    (* Default: -1 (until end of string) *)
+  re -> string -> (substrings -> unit) -> unit
+
 (** {2 Substring extraction} *)
 
 val get : substrings -> int -> string
