@@ -34,18 +34,33 @@ type substrings
 (** {2 Compilation and execution of a regular expression} *)
 
 val compile : t -> re
+(** Compile a regular expression into an executable version that can be
+    used to match strings, e.g. with {!exec}. *)
+
 val exec :
   ?pos:int ->    (* Default: 0 *)
   ?len:int ->    (* Default: -1 (until end of string) *)
   re -> string -> substrings
+(** [exec re str] matches [str] against the compiled expression [re],
+    and returns the matched groups if any.
+    @param pos optional beginning of the string (default 0)
+    @param len length of the substring of [str] that can be matched (default [-1],
+      meaning to the end of the string
+    @raise Not_found if the regular expression can't be found in [str]
+*)
+
 val execp :
   ?pos:int ->    (* Default: 0 *)
   ?len:int ->    (* Default: -1 (until end of string) *)
   re -> string -> bool
+(** Similar to {!exec}, but returns [true] if the expression matches,
+    and [false] if it doesn't *)
+
 val exec_partial :
   ?pos:int ->    (* Default: 0 *)
   ?len:int ->    (* Default: -1 (until end of string) *)
   re -> string -> [ `Full | `Partial | `Mismatch ]
+(* More detailed version of {!exec_p} *)
 
 (** {2 Substring extraction} *)
 
