@@ -893,6 +893,7 @@ let upper = alt [rg 'A' 'Z'; rg '\192' '\214'; rg '\216' '\222']
 let alpha = alt [lower; upper; char '\170'; char '\186']
 let digit = rg '0' '9'
 let alnum = alt [alpha; digit]
+let wordc = alt [alnum; char '_']
 let ascii = rg '\000' '\127'
 let blank = set "\t "
 let cntrl = alt [rg '\000' '\031'; rg '\127' '\159']
