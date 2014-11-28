@@ -201,11 +201,15 @@ let parse multiline dollar_endonly dotall ungreedy s =
     if c = '[' then begin
       if accept '=' then raise Not_supported;
       if accept ':' then
+        let compl = accept '^' in
         let cls =
           try List.find accept_s posix_class_strings
           with Not_found -> raise Parse_error in
         if not (accept_s ":]") then raise Parse_error;
-        `Set (posix_class_of_string cls)
+        let re =
+          let posix_class = posix_class_of_string cls in
+          if compl then Re.compl [posix_class] else posix_class in
+        `Set (re)
       else if accept '.' then begin
         if eos () then raise Parse_error;
         let c = get () in
