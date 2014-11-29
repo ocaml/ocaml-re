@@ -2,6 +2,8 @@ type regexp = Re.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
 
+type substrings = Re.substrings
+
 let re ?(flags = []) pat =
   let opts = List.map (function
     | `CASELESS -> `Caseless
