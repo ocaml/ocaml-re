@@ -154,16 +154,15 @@ let replacement_text repl orig =
 
 let quote s =
   let len = String.length s in
-  let buf = String.create (2 * len) in
-  let pos = ref 0 in
+  let buf = Buffer.create (2 * len) in
   for i = 0 to len - 1 do
     match s.[i] with
       '[' | ']' | '*' | '.' | '\\' | '?' | '+' | '^' | '$' as c ->
-        buf.[!pos] <- '\\'; buf.[!pos + 1] <- c; pos := !pos + 2
-    | c ->
-        buf.[!pos] <- c; pos := !pos + 1
+      Buffer.add_char buf '\\';
+      Buffer.add_char buf c
+    | c -> Buffer.add_char buf c
   done;
-  String.sub buf 0 !pos
+  Buffer.contents buf
 
 let string_before s n = String.sub s 0 n
 
