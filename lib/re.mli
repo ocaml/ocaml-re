@@ -205,6 +205,7 @@ val notnl : t
 (** Any character but a newline *)
 
 val alnum : t
+val wordc : t
 val alpha : t
 val ascii : t
 val blank : t

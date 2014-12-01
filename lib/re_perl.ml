@@ -23,15 +23,47 @@
 exception Parse_error
 exception Not_supported
 
+let posix_class_of_string = function
+  | "alnum"  -> Re.alnum
+  | "ascii"  -> Re.ascii
+  | "blank"  -> Re.blank
+  | "cntrl"  -> Re.cntrl
+  | "digit"  -> Re.digit
+  | "lower"  -> Re.lower
+  | "print"  -> Re.print
+  | "space"  -> Re.space
+  | "upper"  -> Re.upper
+  | "word"   -> Re.wordc
+  | "punct"  -> Re.punct
+  | "graph"  -> Re.graph
+  | "xdigit" -> Re.xdigit
+  | class_   -> invalid_arg ("Invalid pcre class: " ^ class_)
+
+let posix_class_strings =
+  [ "alnum" ; "ascii" ; "blank"
+  ; "cntrl" ; "digit" ; "lower"
+  ; "print" ; "space" ; "upper"
+  ; "word"  ; "punct" ; "graph"
+  ; "xdigit" ]
+
 let parse multiline dollar_endonly dotall ungreedy s =
   let i = ref 0 in
   let l = String.length s in
   let eos () = !i = l in
   let test c = not (eos ()) && s.[!i] = c in
   let accept c = let r = test c in if r then incr i; r in
+  let accept_s s' =
+    let len = String.length s' in
+    try
+      for j = 0 to len - 1 do
+        try if s'.[j] <> s.[!i + j] then raise Exit
+        with _ -> raise Exit
+      done;
+      i := !i + len;
+      true
+    with Exit -> false in
   let get () = let r = s.[!i] in incr i; r in
   let unget () = decr i in
-
   let greedy_mod r =
     let gr = accept '?' in
     let gr = if ungreedy then not gr else gr in
@@ -150,26 +182,35 @@ let parse multiline dollar_endonly dotall ungreedy s =
   and bracket s =
     if s <> [] && accept ']' then s else begin
       match char () with
-        `Char c ->
-          if accept '-' then begin
-            if accept ']' then Re.char c :: Re.char '-' :: s else begin
-              match char () with
-                `Char c' ->
-                  bracket (Re.rg c c' :: s)
-              | `Set st' ->
-                  Re.char c :: Re.char '-' :: st' :: s
-            end
-          end else
-            bracket (Re.char c :: s)
-      | `Set st ->
-          bracket (st :: s)
+      | `Char c ->
+        if accept '-' then begin
+          if accept ']' then Re.char c :: Re.char '-' :: s else begin
+            match char () with
+              `Char c' ->
+              bracket (Re.rg c c' :: s)
+            | `Set st' ->
+              Re.char c :: Re.char '-' :: st' :: s
+          end
+        end else
+          bracket (Re.char c :: s)
+      | `Set st -> bracket (st :: s)
     end
   and char () =
     if eos () then raise Parse_error;
     let c = get () in
     if c = '[' then begin
-      if accept '=' || accept ':' then raise Not_supported;
-      if accept '.' then begin
+      if accept '=' then raise Not_supported;
+      if accept ':' then
+        let compl = accept '^' in
+        let cls =
+          try List.find accept_s posix_class_strings
+          with Not_found -> raise Parse_error in
+        if not (accept_s ":]") then raise Parse_error;
+        let re =
+          let posix_class = posix_class_of_string cls in
+          if compl then Re.compl [posix_class] else posix_class in
+        `Set (re)
+      else if accept '.' then begin
         if eos () then raise Parse_error;
         let c = get () in
         if not (accept '.') then raise Not_supported;
