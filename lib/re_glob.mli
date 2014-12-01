@@ -24,7 +24,7 @@
 
 exception Parse_error
 
-val glob : ?anchored:unit -> string -> Re.t
+val glob : ?anchored:bool -> string -> Re.t
 (** Implements the semantics of shells patterns. The returned regular
     expression is unanchored by default. If the [anchored] parameter
     is provided, the regular expression will only matches whole strings.
@@ -37,10 +37,10 @@ val glob : ?anchored:unit -> string -> Re.t
     A sequence '[...]' matches any of the enclosed characters.
     A backslash escapes the following character. *)
 
-val glob' : ?anchored:unit -> bool -> string -> Re.t
+val glob' : ?anchored:bool -> bool -> string -> Re.t
 (** Same, but allows to choose whether dots at the beginning of a
     file name need to be explicitly matched (true) or not (false) *)
 
-val globx : ?anchored:unit -> string -> Re.t
-val globx' : ?anchored:unit -> bool -> string -> Re.t
+val globx : ?anchored:bool -> string -> Re.t
+val globx' : ?anchored:bool -> bool -> string -> Re.t
 (** These two functions also recognize the pattern \{..,..\} *)

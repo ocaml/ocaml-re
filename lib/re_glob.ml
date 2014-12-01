@@ -34,7 +34,7 @@ let beg_start =
 let beg_start' =
   Re.seq [notdot; Re.rep gany]
 
-let glob_parse ?anchored init s =
+let glob_parse ?(anchored=false) init s =
   let i = ref 0 in
   let l = String.length s in
   let eos () = !i = l in
@@ -103,7 +103,7 @@ let glob_parse ?anchored init s =
     get ()
   in
   let res = expr () in
-  if anchored = None then res else Re.whole_string res
+  if anchored then Re.whole_string res else res
 
 let rec mul l l' =
   List.flatten (List.map (fun s -> List.map (fun s' -> s ^ s') l') l)
