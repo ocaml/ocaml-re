@@ -1,10 +1,18 @@
 type regexp = Re.re
 
-let regexp ?(flags = []) pat =
+type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
+
+type substrings = Re.substrings
+
+let re ?(flags = []) pat =
   let opts = List.map (function
     | `CASELESS -> `Caseless
+    | `MULTILINE -> `Multiline
+    | `ANCHORED -> `Anchored
   ) flags in
-  Re_perl.compile_pat ~opts pat
+  Re_perl.re ~opts pat
+
+let regexp ?flags pat = Re.compile (re ?flags pat)
 
 let extract ~rex s =
   Re.get_all (Re.exec rex s)
