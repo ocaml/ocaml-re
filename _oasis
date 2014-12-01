@@ -62,6 +62,13 @@ Library re_pcre
   FindlibParent: re
   BuildDepends: re, re.perl
 
+Library fort_unit
+  Path: lib_test
+  Build$: flag(tests)
+  Modules: Fort_unit
+  BuildDepends: oUnit
+  Install: false
+
 Executable re_match
   Path:               lib_test
   MainIs:             re_match.ml
@@ -71,6 +78,42 @@ Executable re_match
   Install:            false
   BuildDepends:       re
 
+Executable re_test_re
+  Path:               lib_test
+  MainIs:             test_re.ml
+  Build$:             flag(tests)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       re, fort_unit
+
+Executable re_test_perl
+  Path:               lib_test
+  MainIs:             test_perl.ml
+  Build$:             flag(tests)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       re, fort_unit
+
+Executable re_test_emacs
+  Path:               lib_test
+  MainIs:             test_emacs.ml
+  Build$:             flag(tests)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       re, fort_unit
+
+Executable re_test_str
+  Path:               lib_test
+  MainIs:             test_str.ml
+  Build$:             flag(tests)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       re, fort_unit, str
+
 Executable test_pcre
   Path:               lib_test
   MainIs:             test_pcre.ml
@@ -79,6 +122,26 @@ Executable test_pcre
   CompiledObject:     best
   Install:            false
   BuildDepends:       re, oUnit
+
+Test re_test_re
+  Run$:             flag(tests)
+  Command:          $re_test_re
+  WorkingDirectory: lib_test
+
+Test re_test_perl
+  Run$:             flag(tests)
+  Command:          $re_test_perl
+  WorkingDirectory: lib_test
+
+Test re_test_emacs
+  Run$:             flag(tests)
+  Command:          $re_test_emacs
+  WorkingDirectory: lib_test
+
+# Test re_test_str
+#   Run$:             flag(tests)
+#   Command:          $re_test_str
+#   WorkingDirectory: lib_test
 
 Test re_match
   Run$:               flag(tests)
