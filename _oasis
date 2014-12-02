@@ -13,6 +13,7 @@ Library re
   InternalModules: Cset, Automata
   Modules: Re
   Findlibname: re
+  BuildDepends: bytes
 
 Library re_emacs
   Path: lib
