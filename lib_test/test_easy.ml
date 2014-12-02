@@ -20,6 +20,8 @@ let test_split () =
     ["aa"; "bb"; "c"; "d"] (Re.Easy.split re_whitespace "aa bb c d ");
   assert_equal ~printer:pp_list
     ["a"; "b"] (Re.Easy.split ~pos:1 ~len:4 re_whitespace "aa b c d");
+  assert_equal ~printer:pp_list
+    ["a"; "full_word"; "bc"] (Re.Easy.split re_whitespace " a full_word bc   ");
   ()
 
 let test_replace () =
