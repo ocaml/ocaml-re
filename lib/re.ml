@@ -1066,7 +1066,9 @@ module Easy = struct
             (* what should we replace the matched group with? *)
             let replacing = f substr in
             Buffer.add_string buf replacing;
-            iter p2 (pos+len - p2)
+            if all
+              then iter p2 (pos+len - p2)
+              else Buffer.add_substring buf s p2 (pos+len - p2)
         | `Running -> ()
         | `Failed ->
             Buffer.add_substring buf s pos len

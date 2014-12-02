@@ -27,6 +27,8 @@ let test_replace () =
   let f sub = String.capitalize (Re.get sub 0) in
   assert_equal ~printer:pp_str  " Hello World; I Love Chips!"
     (Re.Easy.replace re ~f " hello world; I love chips!");
+  assert_equal ~printer:pp_str " Allo maman, bobo"
+    (Re.Easy.replace ~all:false re ~f " allo maman, bobo");
   ()
 
 let suite = "easy" >:::
