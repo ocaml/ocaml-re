@@ -83,60 +83,57 @@ val test : substrings -> int -> bool
 
 type 'a gen = unit -> 'a option
 
-module Easy : sig
-  val iter_gen :
-    ?pos:int ->    (* Default: 0 *)
-    ?len:int ->    (* Default: -1 (until end of string) *)
-    re -> string -> substrings gen
-  (** Repeatedly calls {!exec} on the given string, starting at given
-      position and length. This returns a generator {!gen} that is
-      evaluated lazily. *)
+val all :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> substrings list
+(** Repeatedly calls {!exec} on the given string, starting at given
+    position and length.*)
 
-  val iter :
-    ?pos:int ->    (* Default: 0 *)
-    ?len:int ->    (* Default: -1 (until end of string) *)
-    re -> string -> substrings list
+val all_gen :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> substrings gen
+(** Same as {!all} but returns a generator *)
 
-  val iter_matched_gen :
-    ?pos:int ->    (* Default: 0 *)
-    ?len:int ->    (* Default: -1 (until end of string) *)
-    re -> string -> string gen
-    (** Same as {!iter}, but extracts the matched substring rather than
-        returning the whole group. This basically iterates over matched
-        strings *)
+val matches :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> string list
+(** Same as {!all}, but extracts the matched substring rather than
+    returning the whole group. This basically iterates over matched
+    strings *)
 
-  val iter_matched :
-    ?pos:int ->    (* Default: 0 *)
-    ?len:int ->    (* Default: -1 (until end of string) *)
-    re -> string -> string list
-    (** Same as {!iter_matched}, but returns a list. *)
+val matches_gen :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> string gen
+(** Same as {!matches}, but returns a generator. *)
 
+val split :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> string list
+(** [split re s] splits [s] into chunks separated by [re]. It yields
+    the chunks themselves, not the separator. For instance
+    this can be used with a whitespace-matching re such as ["[\t ]+"]. *)
 
-  val split_gen :
-    ?pos:int ->    (* Default: 0 *)
-    ?len:int ->    (* Default: -1 (until end of string) *)
-    re -> string -> string gen
-    (** [split re s] splits [s] into chunks separated by [re]. It yields
-        the chunks themselves, not the separator. For instance
-        this can be used with a whitespace-matching re such as ["[\t ]+"]. *)
+val split_gen :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> string gen
 
-  val split :
-    ?pos:int ->    (* Default: 0 *)
-    ?len:int ->    (* Default: -1 (until end of string) *)
-    re -> string -> string list
-
-  val replace :
-    ?pos:int ->    (* Default: 0 *)
-    ?len:int ->    (* Default: -1 (until end of string) *)
-    ?all:bool ->   (* Default: true. Otherwise only replace first occurrence *)
-    re ->          (* matched groups *)
-    f:(substrings -> string) ->  (* how to replace *)
-    string ->     (* string to replace in *)
-    string
-    (** [replace ~all re ~f s] iterates on [s], and replaces every occurrence
-        of [re] with [f substring] where [substring] is the current match.
-        If [all = false], then only the first occurrence of [re] is replaced. *)
-end
+val replace :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  ?all:bool ->   (** Default: true. Otherwise only replace first occurrence *)
+  re ->          (** matched groups *)
+  f:(substrings -> string) ->  (* how to replace *)
+  string ->     (** string to replace in *)
+  string
+(** [replace ~all re ~f s] iterates on [s], and replaces every occurrence
+    of [re] with [f substring] where [substring] is the current match.
+    If [all = false], then only the first occurrence of [re] is replaced. *)
 
 (** {2 String expressions (literal match)} *)
 

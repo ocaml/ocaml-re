@@ -963,119 +963,129 @@ let get_ofs (s, marks, pos, _) i =
 
 type 'a gen = unit -> 'a option
 
-module Easy = struct
-  let iter_gen ?(pos=0) ?(len= -1) re s =
-    if pos < 0 || len < -1 || pos + len > String.length s then
-      invalid_arg "Re.Easy.iter";
-    let len = if len= -1 then String.length s - pos else len in
-    (* iterate on matches. When a match is found, search for the next
-       one just after its end *)
-    let pos = ref pos and len = ref len in
-    fun () ->
-      if !pos + !len > String.length s
-      then None  (* no more matches *)
-      else match match_str true false re s !pos !len with
-        | `Match substr ->
-            let p1, p2 = get_ofs substr 0 in
-            len := !pos + !len - p2;
-            pos := p2;
-            Some substr
-        | `Running
-        | `Failed -> None
+let all_gen ?(pos=0) ?len re s =
+  if pos < 0 then invalid_arg "Re.Easy.iter";
+  let len = match len with
+    | None -> String.length s - pos
+    | Some l ->
+        if l<0 || pos+l > String.length s then invalid_arg "Re.Easy.iter";
+        l
+  in
+  (* iterate on matches. When a match is found, search for the next
+     one just after its end *)
+  let pos = ref pos and len = ref len in
+  fun () ->
+    if !pos + !len > String.length s
+    then None  (* no more matches *)
+    else match match_str true false re s !pos !len with
+      | `Match substr ->
+          let p1, p2 = get_ofs substr 0 in
+          len := !pos + !len - p2;
+          pos := p2;
+          Some substr
+      | `Running
+      | `Failed -> None
 
-  let iter ?pos ?len re s =
-    let l = ref [] in
-    let g = iter_gen ?pos ?len re s in
-    let rec iter () = match g() with
-      | None -> List.rev !l
-      | Some sub -> l := sub :: !l; iter ()
-    in iter ()
+let all ?pos ?len re s =
+  let l = ref [] in
+  let g = all_gen ?pos ?len re s in
+  let rec iter () = match g() with
+    | None -> List.rev !l
+    | Some sub -> l := sub :: !l; iter ()
+  in iter ()
 
-  let iter_matched_gen ?pos ?len re s =
-    let g = iter_gen ?pos ?len re s in
-    fun () ->
-      match g() with
-      | None -> None
-      | Some sub -> Some (get sub 0)
+let matches_gen ?pos ?len re s =
+  let g = all_gen ?pos ?len re s in
+  fun () ->
+    match g() with
+    | None -> None
+    | Some sub -> Some (get sub 0)
 
-  let iter_matched ?pos ?len re s =
-    let l = ref [] in
-    let g = iter_gen ?pos ?len re s in
-    let rec iter () = match g() with
-      | None -> List.rev !l
-      | Some sub -> l := get sub 0 :: !l; iter ()
-    in iter ()
+let matches ?pos ?len re s =
+  let l = ref [] in
+  let g = all_gen ?pos ?len re s in
+  let rec iter () = match g() with
+    | None -> List.rev !l
+    | Some sub -> l := get sub 0 :: !l; iter ()
+  in iter ()
 
-  let split_gen ?(pos=0) ?(len= -1) re s =
-    if pos < 0 || len < -1 || pos + len > String.length s then
-      invalid_arg "Re.Easy.split";
-    let len = if len= -1 then String.length s - pos else len in
-    (* i: start of delimited string
-      pos: first position after last match of [re]
-      len: length of substring to consider *)
-    let pos0 = pos in
-    let i = ref pos and pos = ref pos and len = ref len in
-    let rec next () =
-      if !pos + !len > String.length s
-      then None
-      else match match_str true false re s !pos !len with
-        | `Match substr ->
-            let p1, p2 = get_ofs substr 0 in
-            len := !pos + !len - p2;
-            pos := p2;
-            let old_i = !i in
-            i := p2;
-            if p1 = pos0  (* match from beginning of string *)
-            then next()
-            else (
-              let sub = String.sub s old_i (p1 - old_i) in
-              Some sub
-            )
-        | `Running -> None
-        | `Failed ->
-            if !i < !pos + !len
-            then (
-              let sub = String.sub s !i (!pos + !len - !i) in
-              i := !pos + !len;
-              Some sub  (* yield last string *)
-            ) else None
-    in next
+let split_gen ?(pos=0) ?len re s =
+  if pos < 0 then invalid_arg "Re.Easy.split";
+  let len = match len with
+    | None -> String.length s - pos
+    | Some l ->
+        if l<0 || pos+l > String.length s then invalid_arg "Re.Easy.split";
+        l
+  in
+  (* i: start of delimited string
+    pos: first position after last match of [re]
+    len: length of substring to consider *)
+  let pos0 = pos in
+  let i = ref pos and pos = ref pos and len = ref len in
+  let rec next () =
+    if !pos + !len > String.length s
+    then None
+    else match match_str true false re s !pos !len with
+      | `Match substr ->
+          let p1, p2 = get_ofs substr 0 in
+          len := !pos + !len - p2;
+          pos := p2;
+          let old_i = !i in
+          i := p2;
+          if p1 = pos0  (* match from beginning of string *)
+          then next()
+          else (
+            let sub = String.sub s old_i (p1 - old_i) in
+            Some sub
+          )
+      | `Running -> None
+      | `Failed ->
+          if !i < !pos + !len
+          then (
+            let sub = String.sub s !i (!pos + !len - !i) in
+            i := !pos + !len;
+            Some sub  (* yield last string *)
+          ) else None
+  in next
 
-  let split ?pos ?len re s =
-    let l = ref [] in
-    let g = split_gen ?pos ?len re s in
-    let rec iter () = match g() with
-      | None -> List.rev !l
-      | Some s -> l := s :: !l; iter ()
-    in iter ()
+let split ?pos ?len re s =
+  let l = ref [] in
+  let g = split_gen ?pos ?len re s in
+  let rec iter () = match g() with
+    | None -> List.rev !l
+    | Some s -> l := s :: !l; iter ()
+  in iter ()
 
-  let replace ?(pos=0) ?(len= -1) ?(all=true) re ~f s =
-    if pos < 0 || len < -1 || pos + len > String.length s then
-      invalid_arg "Re.Easy.split";
-    let len = if len= -1 then String.length s - pos else len in
-    (* buffer into which we write the result *)
-    let buf = Buffer.create (String.length s) in
-    (* iterate on matched substrings. *)
-    let rec iter pos len =
-      if pos + len <= String.length s
-      then match match_str true false re s pos len with
-        | `Match substr ->
-            let p1, p2 = get_ofs substr 0 in
-            (* add string between previous match and current match *)
-            Buffer.add_substring buf s pos (p1-pos);
-            (* what should we replace the matched group with? *)
-            let replacing = f substr in
-            Buffer.add_string buf replacing;
-            if all
-              then iter p2 (pos+len - p2)
-              else Buffer.add_substring buf s p2 (pos+len - p2)
-        | `Running -> ()
-        | `Failed ->
-            Buffer.add_substring buf s pos len
-    in
-    iter pos len;
-    Buffer.contents buf
-end
+let replace ?(pos=0) ?len ?(all=true) re ~f s =
+  if pos < 0 then invalid_arg "Re.Easy.split";
+  let len = match len with
+    | None -> String.length s - pos
+    | Some l ->
+        if l<0 || pos+l > String.length s then invalid_arg "Re.Easy.split";
+        l
+  in
+  (* buffer into which we write the result *)
+  let buf = Buffer.create (String.length s) in
+  (* iterate on matched substrings. *)
+  let rec iter pos len =
+    if pos + len <= String.length s
+    then match match_str true false re s pos len with
+      | `Match substr ->
+          let p1, p2 = get_ofs substr 0 in
+          (* add string between previous match and current match *)
+          Buffer.add_substring buf s pos (p1-pos);
+          (* what should we replace the matched group with? *)
+          let replacing = f substr in
+          Buffer.add_string buf replacing;
+          if all
+            then iter p2 (pos+len - p2)
+            else Buffer.add_substring buf s p2 (pos+len - p2)
+      | `Running -> ()
+      | `Failed ->
+          Buffer.add_substring buf s pos len
+  in
+  iter pos len;
+  Buffer.contents buf
 
 let test (s, marks, pos, _) i =
   if 2 * i >= Array.length marks then false else
