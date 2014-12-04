@@ -123,6 +123,20 @@ val split_gen :
   ?len:int ->
   re -> string -> string gen
 
+type split_token =
+  | SplitText of string  (** Text between delimiters *)
+  | SplitDelim of substrings (** Delimiter *)
+
+val split_full :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> split_token list
+
+val split_full_gen :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> split_token gen
+
 val replace :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->

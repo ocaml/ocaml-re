@@ -24,6 +24,35 @@ let test_split () =
     ["a"; "full_word"; "bc"] (Re.split re_whitespace " a full_word bc   ");
   ()
 
+let map_split_delim =
+  List.map
+    (function
+      | Re.SplitText x -> `T x
+      | Re.SplitDelim s -> `D (Re.get s 0)
+    )
+
+let pp_list' l =
+  pp_list
+    (List.map
+      (function `T s -> s
+      | `D s -> "delim '" ^ s ^ "'"
+      ) l
+    )
+
+let (|>) x f = f x
+
+let test_split_full () =
+  assert_equal ~printer:pp_list'
+    [`T "aa"; `D " "; `T "bb"; `D " "; `T "c"; `D " "; `T "d"; `D " "]
+    (Re.split_full re_whitespace "aa bb c d " |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [`T "a"; `D " \t"; `T "b"; `D " "]
+    (Re.split_full ~pos:1 ~len:5 re_whitespace "aa \tb c d" |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [`D " "; `T "a"; `D " "; `T "full_word"; `D " "; `T "bc"; `D "   "]
+    (Re.split_full re_whitespace " a full_word bc   " |> map_split_delim);
+  ()
+
 let test_replace () =
   let re = Re_posix.compile_pat "[a-zA-Z]+" in
   let f sub = String.capitalize (Re.get sub 0) in
@@ -36,6 +65,7 @@ let test_replace () =
 let suite = "easy" >:::
   [ "iter" >:: test_iter
   ; "split" >:: test_split
+  ; "split_full" >:: test_split_full
   ; "replace" >:: test_replace
   ]
 
