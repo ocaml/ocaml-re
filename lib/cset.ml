@@ -95,14 +95,6 @@ let rec hash_rec l =
   | (i, j)::r -> i + 13 * j + 257 * hash_rec r
 let hash l = (hash_rec l) land 0x3FFFFFFF
 
-module Map =
-  Map.Make
-    (struct
-       type t = int * (int * int) list
-       let compare (i, u) (j, v) =
-         let c = compare i j in if c <> 0 then c else compare u v
-     end)
-
 (****)
 
 let print_one ch c1 c2 =
