@@ -635,7 +635,7 @@ Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_st
 
 let flatten_match m =
   let ma = List.fold_left (fun ma (i, _) -> max ma i) (-1) m in
-  let res = Array.create (ma + 1) (-1) in
+  let res = Array.make (ma + 1) (-1) in
   List.iter (fun (i, v) -> res.(i) <- v) m;
   res
 
