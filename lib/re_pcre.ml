@@ -2,6 +2,12 @@ type regexp = Re.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
 
+type split_result =
+  | Text  of string
+  | Delim of string
+  | Group of int * string
+  | NoGroup
+
 type substrings = Re.substrings
 
 let re ?(flags = []) pat =
@@ -83,3 +89,9 @@ let quote s =
     | c -> Bytes.unsafe_set buf !pos c; incr pos
   done;
   string_unsafe_sub buf 0 !pos
+
+let full_split ?(max=0) ~rex s =
+  if String.length s = 0 then []
+  else if max = 1 then [Text s]
+  else
+    failwith "TODO"
