@@ -981,8 +981,8 @@ let all_gen ?(pos=0) ?len re s =
     then None  (* no more matches *)
     else match match_str true false re s !pos (limit - !pos) with
       | `Match substr ->
-          let _p1, p2 = get_ofs substr 0 in
-          pos := p2;
+          let p1, p2 = get_ofs substr 0 in
+          pos := if p1=p2 then p2+1 else p2;
           Some substr
       | `Running
       | `Failed -> None
@@ -1030,12 +1030,17 @@ let split_full_gen ?(pos=0) ?len re s =
   let state = ref `Idle in
   let i = ref pos and pos = ref pos in
   let rec next () = match !state with
-  | `Idle when !pos >= limit -> None
+  | `Idle when !pos >= limit ->
+      if !i < limit then (
+        let sub = String.sub s !i (limit - !i) in
+        incr i;
+        Some (`Text sub)
+      ) else None
   | `Idle ->
     begin match match_str true false re s !pos (limit - !pos) with
       | `Match substr ->
           let p1, p2 = get_ofs substr 0 in
-          pos := p2;
+          pos := if p1=p2 then p2+1 else p2;
           let old_i = !i in
           i := p2;
           if p1 > pos0 then (
@@ -1105,7 +1110,7 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
           let replacing = f substr in
           Buffer.add_string buf replacing;
           if all
-            then iter p2
+            then iter (if p1=p2 then p2+1 else p2)
             else Buffer.add_substring buf s p2 (limit-p2)
       | `Running -> ()
       | `Failed ->

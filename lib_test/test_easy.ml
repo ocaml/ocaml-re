@@ -6,6 +6,7 @@ let pp_str x = x
 let pp_list l = "[" ^ String.concat ", " l ^ "]"
 
 let re_whitespace = Re_posix.compile_pat "[\t ]+"
+let re_empty = Re_posix.compile_pat ""
 
 let test_iter () =
   let re = Re_posix.compile_pat "(ab)+" in
@@ -13,6 +14,8 @@ let test_iter () =
     ["abab"; "ab"; "ab"] (Re.matches re "aabab aaabba  dab ");
   assert_equal ~printer:pp_list
     ["ab"; "abab"] (Re.matches ~pos:2 ~len:7 re "abab ababab");
+  assert_equal ~printer:pp_list
+    [""; ""] (Re.matches re_empty "ab");
   ()
 
 let test_split () =
@@ -22,6 +25,8 @@ let test_split () =
     ["a"; "b"] (Re.split ~pos:1 ~len:4 re_whitespace "aa b c d");
   assert_equal ~printer:pp_list
     ["a"; "full_word"; "bc"] (Re.split re_whitespace " a full_word bc   ");
+  assert_equal ~printer:pp_list
+    ["a"; "b"; "c"; "d"] (Re.split re_empty "abcd");
   ()
 
 let map_split_delim =
@@ -51,6 +56,9 @@ let test_split_full () =
   assert_equal ~printer:pp_list'
     [`D " "; `T "a"; `D " "; `T "full_word"; `D " "; `T "bc"; `D "   "]
     (Re.split_full re_whitespace " a full_word bc   " |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [`D ""; `T "a"; `D ""; `T  "b"] (* XXX: not trivial *)
+    (Re.split_full re_empty "ab" |> map_split_delim);
   ()
 
 let test_replace () =
