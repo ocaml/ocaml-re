@@ -124,8 +124,9 @@ val split_gen :
   re -> string -> string gen
 
 type split_token =
-  | SplitText of string  (** Text between delimiters *)
-  | SplitDelim of substrings (** Delimiter *)
+  [ `Text of string  (** Text between delimiters *)
+  | `Delim of substrings (** Delimiter *)
+  ]
 
 val split_full :
   ?pos:int ->    (** Default: 0 *)

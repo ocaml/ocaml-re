@@ -1010,8 +1010,9 @@ let matches ?pos ?len re s =
   in iter ()
 
 type split_token =
-  | SplitText of string  (** Text between delimiters *)
-  | SplitDelim of substrings (** Delimiter *)
+  [ `Text of string  (** Text between delimiters *)
+  | `Delim of substrings (** Delimiter *)
+  ]
 
 let split_full_gen ?(pos=0) ?len re s =
   if pos < 0 then invalid_arg "Re.split_full";
@@ -1040,16 +1041,16 @@ let split_full_gen ?(pos=0) ?len re s =
           if p1 > pos0 then (
             (* string does not start by a delimiter *)
             let text = String.sub s old_i (p1 - old_i) in
-            state := `Yield (SplitDelim substr);
-            Some (SplitText text)
-          ) else Some (SplitDelim substr)
+            state := `Yield (`Delim substr);
+            Some (`Text text)
+          ) else Some (`Delim substr)
       | `Running -> None
       | `Failed ->
           if !i < !pos + !len
           then (
             let text = String.sub s !i (!pos + !len - !i) in
             i := !pos + !len;
-            Some (SplitText text)  (* yield last string *)
+            Some (`Text text)  (* yield last string *)
           ) else None
     end
   | `Yield x ->
@@ -1069,8 +1070,8 @@ let split_gen ?pos ?len re s =
   let g = split_full_gen ?pos ?len re s in
   let rec next() = match g()  with
     | None -> None
-    | Some (SplitDelim _) -> next()
-    | Some (SplitText s) -> Some s
+    | Some (`Delim _) -> next()
+    | Some (`Text s) -> Some s
   in next
 
 let split ?pos ?len re s =
@@ -1078,8 +1079,8 @@ let split ?pos ?len re s =
   let g = split_full_gen ?pos ?len re s in
   let rec iter () = match g() with
     | None -> List.rev !l
-    | Some (SplitDelim _) -> iter()
-    | Some (SplitText s) -> l := s :: !l; iter ()
+    | Some (`Delim _) -> iter()
+    | Some (`Text s) -> l := s :: !l; iter ()
   in iter ()
 
 let replace ?(pos=0) ?len ?(all=true) re ~f s =

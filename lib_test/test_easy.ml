@@ -27,8 +27,8 @@ let test_split () =
 let map_split_delim =
   List.map
     (function
-      | Re.SplitText x -> `T x
-      | Re.SplitDelim s -> `D (Re.get s 0)
+      | `Text x -> `T x
+      | `Delim s -> `D (Re.get s 0)
     )
 
 let pp_list' l =
