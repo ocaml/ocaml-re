@@ -964,23 +964,24 @@ let get_ofs (s, marks, pos, _) i =
 type 'a gen = unit -> 'a option
 
 let all_gen ?(pos=0) ?len re s =
-  if pos < 0 then invalid_arg "Re.iter";
-  let len = match len with
-    | None -> String.length s - pos
+  if pos < 0 then invalid_arg "Re.all";
+  (* index of the first position we do not consider.
+    !pos < limit is an invariant *)
+  let limit = match len with
+    | None -> String.length s
     | Some l ->
-        if l<0 || pos+l > String.length s then invalid_arg "Re.iter";
-        l
+        if l<0 || pos+l > String.length s then invalid_arg "Re.all";
+        pos+l
   in
   (* iterate on matches. When a match is found, search for the next
      one just after its end *)
-  let pos = ref pos and len = ref len in
+  let pos = ref pos in
   fun () ->
-    if !pos + !len > String.length s
+    if !pos >= limit
     then None  (* no more matches *)
-    else match match_str true false re s !pos !len with
+    else match match_str true false re s !pos (limit - !pos) with
       | `Match substr ->
-          let p1, p2 = get_ofs substr 0 in
-          len := !pos + !len - p2;
+          let _p1, p2 = get_ofs substr 0 in
           pos := p2;
           Some substr
       | `Running
@@ -1015,26 +1016,25 @@ type split_token =
   ]
 
 let split_full_gen ?(pos=0) ?len re s =
-  if pos < 0 then invalid_arg "Re.split_full";
-  let len = match len with
-    | None -> String.length s - pos
+  if pos < 0 then invalid_arg "Re.split";
+  let limit = match len with
+    | None -> String.length s
     | Some l ->
-        if l<0 || pos+l > String.length s then invalid_arg "Re.split_full";
-        l
+        if l<0 || pos+l > String.length s then invalid_arg "Re.split";
+        pos+l
   in
   (* i: start of delimited string
     pos: first position after last match of [re]
-    len: length of substring to consider *)
+    limit: first index we ignore (!pos < limit is an invariant) *)
   let pos0 = pos in
   let state = ref `Idle in
-  let i = ref pos and pos = ref pos and len = ref len in
+  let i = ref pos and pos = ref pos in
   let rec next () = match !state with
-  | `Idle when !pos + !len > String.length s -> None
+  | `Idle when !pos >= limit -> None
   | `Idle ->
-    begin match match_str true false re s !pos !len with
+    begin match match_str true false re s !pos (limit - !pos) with
       | `Match substr ->
           let p1, p2 = get_ofs substr 0 in
-          len := !pos + !len - p2;
           pos := p2;
           let old_i = !i in
           i := p2;
@@ -1046,10 +1046,10 @@ let split_full_gen ?(pos=0) ?len re s =
           ) else Some (`Delim substr)
       | `Running -> None
       | `Failed ->
-          if !i < !pos + !len
+          if !i < limit
           then (
-            let text = String.sub s !i (!pos + !len - !i) in
-            i := !pos + !len;
+            let text = String.sub s !i (limit - !i) in
+            i := limit;
             Some (`Text text)  (* yield last string *)
           ) else None
     end
@@ -1084,19 +1084,19 @@ let split ?pos ?len re s =
   in iter ()
 
 let replace ?(pos=0) ?len ?(all=true) re ~f s =
-  if pos < 0 then invalid_arg "Re.split";
-  let len = match len with
-    | None -> String.length s - pos
+  if pos < 0 then invalid_arg "Re.replace";
+  let limit = match len with
+    | None -> String.length s
     | Some l ->
-        if l<0 || pos+l > String.length s then invalid_arg "Re.split";
-        l
+        if l<0 || pos+l > String.length s then invalid_arg "Re.replace";
+        pos+l
   in
   (* buffer into which we write the result *)
   let buf = Buffer.create (String.length s) in
   (* iterate on matched substrings. *)
-  let rec iter pos len =
-    if pos + len <= String.length s
-    then match match_str true false re s pos len with
+  let rec iter pos =
+    if pos < limit
+    then match match_str true false re s pos (limit-pos) with
       | `Match substr ->
           let p1, p2 = get_ofs substr 0 in
           (* add string between previous match and current match *)
@@ -1105,13 +1105,13 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
           let replacing = f substr in
           Buffer.add_string buf replacing;
           if all
-            then iter p2 (pos+len - p2)
-            else Buffer.add_substring buf s p2 (pos+len - p2)
+            then iter p2
+            else Buffer.add_substring buf s p2 (limit-p2)
       | `Running -> ()
       | `Failed ->
-          Buffer.add_substring buf s pos len
+          Buffer.add_substring buf s pos (limit-pos)
   in
-  iter pos len;
+  iter pos;
   Buffer.contents buf
 
 let test (s, marks, pos, _) i =
