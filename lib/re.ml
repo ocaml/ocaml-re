@@ -66,9 +66,9 @@ type re =
         (* The whole regular expression *)
     mutable initial_states : (int * state) list;
         (* Initial states, indexed by initial category *)
-    cols : string;
+    cols : Bytes.t;
         (* Color table *)
-    col_repr : string;
+    col_repr : Bytes.t;
         (* Table from colors to one character of this color *)
     ncol : int;
         (* Number of colors *)
@@ -88,7 +88,7 @@ let print_re ch re = Automata.print_expr ch re.initial
 type info =
   { re : re;
         (* The automata *)
-    i_cols : string;
+    i_cols : Bytes.t;
         (* Color table ([x.i_cols = x.re.cols])
            Sortcut used for performance reasons *)
     mutable positions : int array;
@@ -112,7 +112,7 @@ let category re c =
   if c = -1 then cat_inexistant else
   (* Special category for the last newline *)
   if c = re.lnl then cat_lastnewline lor cat_newline lor cat_not_letter else
-  match re.col_repr.[c] with
+  match Bytes.get re.col_repr c with
     (* Should match [cword] definition *)
     'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
   | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
@@ -164,8 +164,8 @@ let delta info cat c st =
   end;
   desc
 
-let validate info s pos st =
-  let c = Char.code info.i_cols.[Char.code s.[pos]] in
+let validate info (s:string) pos st =
+  let c = Char.code (Bytes.get info.i_cols (Char.code s.[pos])) in
   let cat = category info.re c in
   let desc' = delta info cat c st in
   let st' = find_state info.re desc' in
@@ -190,9 +190,9 @@ let rec loop info s pos st =
     st
 *)
 
-let rec loop info s pos st =
+let rec loop info (s:string) pos st =
   if pos < info.last then
-    let st' = st.next.(Char.code info.i_cols.[Char.code s.[pos]]) in
+    let st' = st.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
     loop2 info s pos st st'
   else
     st
@@ -205,7 +205,7 @@ and loop2 info s pos st st' =
       (* It is important to place these reads before the write *)
       (* But then, we don't have enough registers left to store the
          right position.  So, we store the position plus one. *)
-      let st'' = st'.next.(Char.code info.i_cols.[Char.code s.[pos]]) in
+      let st'' = st'.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
       info.positions.(idx) <- pos;
       loop2 info s pos st' st''
     end else begin
@@ -222,7 +222,7 @@ and loop2 info s pos st st' =
 
 let rec loop_no_mark info s pos last st =
   if pos < last then
-    let st' = st.next.(Char.code info.i_cols.[Char.code s.[pos]]) in
+    let st' = st.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
     let idx = st'.idx in
     if idx >= 0 then
       loop_no_mark info s (pos + 1) last st'
@@ -256,13 +256,13 @@ let find_initial_state re cat =
 
 let dummy_substrings = `Match ("", [], [||], 0)
 
-let get_color re s pos =
+let get_color re (s:string) pos =
   if pos < 0 then -1 else
   let slen = String.length s in
   if pos >= slen then -1 else
   (* Special case for the last newline *)
   if pos = slen - 1 && re.lnl <> -1 && s.[pos] = '\n' then re.lnl else
-  Char.code re.cols.[Char.code s.[pos]]
+  Char.code (Bytes.get re.cols (Char.code s.[pos]))
 
 let rec handle_last_newline info pos st groups =
   let st' = st.next.(info.re.lnl) in
@@ -275,7 +275,7 @@ let rec handle_last_newline info pos st groups =
     st'
   end else begin (* Unknown *)
     let c = info.re.lnl in
-    let real_c = Char.code info.i_cols.[Char.code '\n'] in
+    let real_c = Char.code (Bytes.get info.i_cols (Char.code '\n')) in
     let cat = category info.re c in
     let desc' = delta info cat real_c st in
     let st' = find_state info.re desc' in
@@ -283,14 +283,14 @@ let rec handle_last_newline info pos st groups =
     handle_last_newline info pos st groups
   end
 
-let rec scan_str info s initial_state groups =
+let rec scan_str info (s:string) initial_state groups =
   let pos = info.pos in
   let last = info.last in
   if
     last = String.length s &&
     info.re.lnl <> -1 &&
     last > pos &&
-    s.[last - 1] = '\n'
+    String.get s (last - 1) = '\n'
   then begin
     info.last <- last - 1;
     let st = scan_str info s initial_state groups in
@@ -382,7 +382,7 @@ module CSetMap =
 let trans_set cache cm s =
   match s with
     [i, j] when i = j ->
-      csingle cm.[i]
+      csingle (Bytes.get cm i)
   | _ ->
       let v = (cset_hash_rec s, s) in
       try
@@ -390,7 +390,7 @@ let trans_set cache cm s =
       with Not_found ->
         let l =
           List.fold_right
-            (fun (i, j) l -> Cset.union (cseq cm.[i] cm.[j]) l)
+            (fun (i, j) l -> Cset.union (cseq (Bytes.get cm i) (Bytes.get cm j)) l)
             s Cset.empty
         in
         cache := CSetMap.add v l !cache;
@@ -439,7 +439,7 @@ let rec is_charset r =
 let rec split s cm =
   match s with
     []    -> ()
-  | (i, j)::r -> cm.[i] <- '\001'; cm.[j + 1] <- '\001'; split r cm
+  | (i, j)::r -> Bytes.set cm i '\001'; Bytes.set cm (j + 1) '\001'; split r cm
 
 let cupper =
   Cset.union (cseq 'A' 'Z')
@@ -452,7 +452,7 @@ let cdigit = cseq '0' '9'
 let calnum = Cset.union calpha cdigit
 let cword = cadd '_' calnum
 
-let rec colorize c regexp =
+let colorize c regexp =
   let lnl = ref false in
   let rec colorize regexp =
     match regexp with
@@ -478,20 +478,20 @@ let rec colorize c regexp =
   colorize regexp;
   !lnl
 
-let make_cmap () = String.make 257 '\000'
+let make_cmap () = Bytes.make 257 '\000'
 
 let flatten_cmap cm =
-  let c = String.create 256 in
-  let col_repr = String.create 256 in
+  let c = Bytes.create 256 in
+  let col_repr = Bytes.create 256 in
   let v = ref 0 in
-  c.[0] <- '\000';
-  col_repr.[0] <- '\000';
+  Bytes.set c 0 '\000';
+  Bytes.set col_repr 0 '\000';
   for i = 1 to 255 do
-    if cm.[i] <> '\000' then incr v;
-    c.[i] <- Char.chr !v;
-    col_repr.[!v] <- Char.chr i
+    if Bytes.get cm i <> '\000' then incr v;
+    Bytes.set c i (Char.chr !v);
+    Bytes.set col_repr !v (Char.chr i)
   done;
-  (c, String.sub col_repr 0 (!v + 1), !v + 1)
+  (c, Bytes.sub col_repr 0 (!v + 1), !v + 1)
 
 (**** Compilation ****)
 
@@ -578,7 +578,7 @@ let enforce_kind ids kind kind' cr =
   |  _               -> cr
 
 (* XXX should probably compute a category mask *)
-let rec translate ids kind ign_group ign_case greedy pos cache c r =
+let rec translate ids kind ign_group ign_case greedy pos cache (c:Bytes.t) r =
   match r with
     Set s ->
       (A.cst ids (trans_set cache c s), kind)

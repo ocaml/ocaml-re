@@ -99,7 +99,7 @@ let rec print_state_rec ch e y =
       Format.fprintf ch "@[<2>(Seq@ ";
       print_state_lst ch l' x;
       Format.fprintf ch " %a)@]" print_expr x
-  | TExp (marks, {def = Eps}) ->
+  | TExp (marks, {def = Eps; _}) ->
       Format.fprintf ch "(Exp %d (%a) (eps))" y.id print_marks marks
   | TExp (marks, x) ->
       Format.fprintf ch "(Exp %d (%a) %a)" x.id print_marks marks print_expr x
@@ -319,7 +319,7 @@ let rec remove_duplicates prev l y =
       let (l'', prev') = remove_duplicates prev l' x in
       let (r', prev'') = remove_duplicates prev' r y in
       (tseq kind l'' x r', prev'')
-  | TExp (marks, {def = Eps}) as e :: r ->
+  | TExp (marks, {def = Eps; _}) as e :: r ->
       if List.memq y.id prev then
         remove_duplicates prev r y
       else
@@ -351,7 +351,7 @@ let rec set_idx used idx l =
   | TExp (marks, x) :: r ->
       TExp (marks_set_idx used idx marks, x) :: set_idx used idx r
 
-let rec filter_marks b e marks =
+let filter_marks b e marks =
   List.filter (fun (i, _) -> i < b || i > e) marks
 
 let rec delta_1 marks c cat' cat x rem =
@@ -635,7 +635,7 @@ Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_st
 
 let flatten_match m =
   let ma = List.fold_left (fun ma (i, _) -> max ma i) (-1) m in
-  let res = Array.create (ma + 1) (-1) in
+  let res = Array.make (ma + 1) (-1) in
   List.iter (fun (i, v) -> res.(i) <- v) m;
   res
 
