@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a29fd5dee0d2931a22de0c716698998e)
+# DO NOT EDIT (digest: b6e76d997d1b7ec52bc8efafa3482a96)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -69,10 +69,15 @@ true: annot, bin_annot
 <lib_test/test_pcre.{native,byte}>: pkg_bytes
 <lib_test/test_pcre.{native,byte}>: pkg_oUnit
 <lib_test/test_pcre.{native,byte}>: use_re
+<lib_test/test_pcre.{native,byte}>: custom
+# Executable test_easy
+<lib_test/test_easy.{native,byte}>: pkg_bytes
+<lib_test/test_easy.{native,byte}>: pkg_oUnit
+<lib_test/test_easy.{native,byte}>: use_re
 <lib_test/*.ml{,i,y}>: pkg_bytes
 <lib_test/*.ml{,i,y}>: pkg_oUnit
 <lib_test/*.ml{,i,y}>: use_re
-<lib_test/test_pcre.{native,byte}>: custom
+<lib_test/test_easy.{native,byte}>: custom
 # OASIS_STOP
 
 #true: safe_string
