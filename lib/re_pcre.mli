@@ -27,5 +27,6 @@ val pmatch : rex:regexp -> string -> bool
 
 val full_split : ?max:int -> rex:regexp -> string -> split_result list
 
+val split : rex:regexp -> string -> string list
+
 val quote : string -> string
-(** [quote str] @return the quoted string of [str]. *)
