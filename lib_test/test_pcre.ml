@@ -1,6 +1,16 @@
 open OUnit
 open Re_pcre
 
+let sp = Printf.sprintf
+
+let string_of_group = function
+  | Text s       -> sp "Text %s" s
+  | Delim s      -> sp "Delim %s" s
+  | Group (x, s) -> sp "Group (%d %s)" x s
+  | NoGroup      -> "NoGroup"
+
+let list_printer f xs = xs |> List.map f |> String.concat " ; "
+
 let test_blank_class _ =
   let re = Re_perl.compile_pat {|\d[[:blank:]]\d[[:blank:]]+[a-z]|} in
   let successes = ["1 2  a"; "2\t3 z"; "9\t0 \t a"] in
@@ -21,13 +31,15 @@ let split_max_1 _ =
   assert_equal (full_split ~rex ~max:1 "xxx:yyy") [Text "xxx:yyy"]
 
 let rex = regexp "x(x)?"
+let printer = list_printer string_of_group
+
 let group_split1 _ =
   let sp = full_split ~rex "testxxyyy" in
-  assert_equal sp [Text "test"; Delim "xx"; Group (1, "x"); Text "yyy"]
+  assert_equal ~printer sp [Text "test"; Delim "xx"; Group (1, "x"); Text "yyy"]
 
 let group_split2 _ =
   let sp = full_split ~rex "testxyyy" in
-  assert_equal sp [Text "test"; Delim "xx"; NoGroup; Text "yyy"]
+  assert_equal ~printer sp [Text "test"; Delim "x"; NoGroup; Text "yyy"]
 
 let test_fixtures =
   "test pcre features" >:::
