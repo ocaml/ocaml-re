@@ -26,3 +26,6 @@ val get_substring_ofs : substrings -> int -> int * int
 val pmatch : rex:regexp -> string -> bool
 
 val full_split : ?max:int -> rex:regexp -> string -> split_result list
+
+val quote : string -> string
+(** [quote str] @return the quoted string of [str]. *)
