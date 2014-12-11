@@ -1,7 +1,7 @@
 open OUnit
 
 let test_blank_class _ =
-  let re = Re_perl.compile_pat "|\\d[[:blank:]]\\d[[:blank:]]+[a-z]|" in
+  let re = Re_perl.compile_pat "\\d[[:blank:]]\\d[[:blank:]]+[a-z]" in
   let successes = ["1 2  a"; "2\t3 z"; "9\t0 \t a"] in
   let failures = [""; "123"; "  "; "1 3z"] in
   successes |> List.iter (fun s ->
