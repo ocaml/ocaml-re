@@ -1119,6 +1119,9 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
   iter pos;
   Buffer.contents buf
 
+let replace_string ?pos ?len ?all re ~by s =
+  replace ?pos ?len ?all re s ~f:(fun _ -> by)
+
 let test (s, marks, pos, _) i =
   if 2 * i >= Array.length marks then false else
   let idx = marks.(2 * i) in

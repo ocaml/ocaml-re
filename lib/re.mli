@@ -150,6 +150,18 @@ val replace :
     of [re] with [f substring] where [substring] is the current match.
     If [all = false], then only the first occurrence of [re] is replaced. *)
 
+val replace_string :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  ?all:bool ->   (** Default: true. Otherwise only replace first occurrence *)
+  re ->          (** matched groups *)
+  by:string ->   (** replacement string *)
+  string ->      (** string to replace in *)
+  string
+(** [replace_string ~all re ~by s] iterates on [s], and replaces every
+    occurrence of [re] with [by]. If [all = false], then only the first
+    occurrence of [re] is replaced. *)
+
 (** {2 String expressions (literal match)} *)
 
 val str : string -> t
