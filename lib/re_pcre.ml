@@ -95,18 +95,18 @@ let full_split ?(max=0) ~rex s =
   else if max = 1 then [Text s]
   else
     let results = Re.split_full rex s in
-    results
-    |> List.map (function
-      | `Text s -> [Text s]
-      | `Delim s ->
-        let matches = Re.get_all s in
-        (Delim (matches.(0)))::(
-          let l = ref [] in
-          for i = 1 to Array.length matches - 1 do
-            l :=
-              (if matches.(i) = ""
-               then NoGroup
-               else Group (i, matches.(i)))::(!l)
-          done;
-          List.rev !l))
-    |> List.concat
+    let matches =
+      List.map (function
+        | `Text s -> [Text s]
+        | `Delim s ->
+          let matches = Re.get_all s in
+          (Delim (matches.(0)))::(
+            let l = ref [] in
+            for i = 1 to Array.length matches - 1 do
+              l :=
+                (if matches.(i) = ""
+                 then NoGroup
+                 else Group (i, matches.(i)))::(!l)
+            done;
+            List.rev !l)) results in
+    List.concat matches
