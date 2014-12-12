@@ -98,15 +98,17 @@ let full_split ?(max=0) ~rex s =
     let matches =
       List.map (function
         | `Text s -> [Text s]
-        | `Delim s ->
-          let matches = Re.get_all s in
-          (Delim (matches.(0)))::(
+        | `Delim d ->
+          let matches = Re.get_all_ofs d in
+          let delim = Re.get d 0 in
+          (Delim delim)::(
             let l = ref [] in
             for i = 1 to Array.length matches - 1 do
               l :=
-                (if matches.(i) = ""
+                (if matches.(i) = (-1, -1)
                  then NoGroup
-                 else Group (i, matches.(i)))::(!l)
+                 else Group (i, Re.get d i))
+                ::(!l)
             done;
             List.rev !l)) results in
     List.concat matches
