@@ -2,6 +2,7 @@ Description
 ===========
 
 Re is a regular expression library for OCaml.
+[![Build Status](https://travis-ci.org/ocaml/ocaml-re.svg?branch=master)](https://travis-ci.org/ocaml/ocaml-re)
 
 Contact
 =======
