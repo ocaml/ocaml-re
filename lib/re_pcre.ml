@@ -2,6 +2,12 @@ type regexp = Re.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
 
+type split_result =
+  | Text  of string
+  | Delim of string
+  | Group of int * string
+  | NoGroup
+
 type substrings = Re.substrings
 
 let re ?(flags = []) pat =
@@ -83,3 +89,26 @@ let quote s =
     | c -> Bytes.unsafe_set buf !pos c; incr pos
   done;
   string_unsafe_sub buf 0 !pos
+
+let full_split ?(max=0) ~rex s =
+  if String.length s = 0 then []
+  else if max = 1 then [Text s]
+  else
+    let results = Re.split_full rex s in
+    let matches =
+      List.map (function
+        | `Text s -> [Text s]
+        | `Delim d ->
+          let matches = Re.get_all_ofs d in
+          let delim = Re.get d 0 in
+          (Delim delim)::(
+            let l = ref [] in
+            for i = 1 to Array.length matches - 1 do
+              l :=
+                (if matches.(i) = (-1, -1)
+                 then NoGroup
+                 else Group (i, Re.get d i))
+                ::(!l)
+            done;
+            List.rev !l)) results in
+    List.concat matches
