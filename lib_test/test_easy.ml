@@ -70,11 +70,16 @@ let test_replace () =
     (Re.replace ~all:false re ~f " allo maman, bobo");
   ()
 
+let lsplit2 () =
+  let re = Re.compile (Re.str "-") in
+  assert_equal (Some ("test", "123")) (Re.lsplit2 re "test-123")
+
 let suite = "easy" >:::
   [ "iter" >:: test_iter
   ; "split" >:: test_split
   ; "split_full" >:: test_split_full
   ; "replace" >:: test_replace
+  ; "lsplit2" >:: lsplit2
   ]
 
 let () =
