@@ -8,12 +8,24 @@ Plugins:     META (0.4), DevFiles (0.4)
 AlphaFeatures: compiled_setup_ml
 BuildTools: ocamlbuild
 
+Flag unicode
+  Default: true
+
 Library re
   Path:       lib
-  InternalModules: Cset, Automata
+  InternalModules: Cset, Automata, Re_core
   Modules: Re
   Findlibname: re
   BuildDepends: bytes
+
+Library re_unicode
+  Path:            lib
+  Build$:          flag(unicode)
+  InternalModules: Unicode_groups, Re_core
+  Modules:         Re_unicode
+  FindlibName:     unicode
+  FindlibParent:   re
+  BuildDepends:    re, uutf
 
 Library re_emacs
   Path: lib
@@ -176,3 +188,12 @@ Document "re-api"
   BuildTools: ocamldoc
   XOCamlbuildPath: ./lib
   XOCamlbuildLibraries: re, re.emacs, re.glob, re.posix, re.perl, re.str, re.pcre
+
+Executable gen_unicode_groups
+  Path:             tools
+  MainIs:           gen_unicode_groups.ml
+  Build$:           false
+  Install:          false
+  Custom:           true
+  CompiledObject:   byte
+  BuildDepends:     uucd, re

@@ -7,3 +7,4 @@ setup.exe
 *.native
 *.byte
 *.docdir
+ucd.all.grouped.*

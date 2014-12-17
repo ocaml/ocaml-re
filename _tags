@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: b6e76d997d1b7ec52bc8efafa3482a96)
+# DO NOT EDIT (digest: 3681e55fb52e99b75cf1cad29b125bfd)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -16,6 +16,9 @@ true: annot, bin_annot
 "_darcs": not_hygienic
 # Library re
 "lib/re.cmxs": use_re
+# Library re_unicode
+"lib/re_unicode.cmxs": use_re_unicode
+<lib/*.ml{,i,y}>: pkg_uutf
 # Library re_emacs
 "lib/re_emacs.cmxs": use_re_emacs
 # Library re_str
@@ -78,6 +81,14 @@ true: annot, bin_annot
 <lib_test/*.ml{,i,y}>: pkg_oUnit
 <lib_test/*.ml{,i,y}>: use_re
 <lib_test/test_easy.{native,byte}>: custom
+# Executable gen_unicode_groups
+"tools/gen_unicode_groups.byte": pkg_bytes
+"tools/gen_unicode_groups.byte": pkg_uucd
+"tools/gen_unicode_groups.byte": use_re
+<tools/*.ml{,i,y}>: pkg_bytes
+<tools/*.ml{,i,y}>: pkg_uucd
+<tools/*.ml{,i,y}>: use_re
+"tools/gen_unicode_groups.byte": custom
 # OASIS_STOP
 
 #true: safe_string

@@ -7035,6 +7035,16 @@ let setup_t =
           files_ab = [];
           sections =
             [
+               Flag
+                 ({
+                     cs_name = "unicode";
+                     cs_data = PropList.Data.create ();
+                     cs_plugin_data = []
+                  },
+                   {
+                      flag_description = None;
+                      flag_default = [(OASISExpr.EBool true, true)]
+                   });
                Library
                  ({
                      cs_name = "re";
@@ -7060,9 +7070,44 @@ let setup_t =
                    {
                       lib_modules = ["Re"];
                       lib_pack = false;
-                      lib_internal_modules = ["Cset"; "Automata"];
+                      lib_internal_modules = ["Cset"; "Automata"; "Re_core"];
                       lib_findlib_parent = None;
                       lib_findlib_name = Some "re";
+                      lib_findlib_containers = []
+                   });
+               Library
+                 ({
+                     cs_name = "re_unicode";
+                     cs_data = PropList.Data.create ();
+                     cs_plugin_data = []
+                  },
+                   {
+                      bs_build =
+                        [
+                           (OASISExpr.EBool true, false);
+                           (OASISExpr.EFlag "unicode", true)
+                        ];
+                      bs_install = [(OASISExpr.EBool true, true)];
+                      bs_path = "lib";
+                      bs_compiled_object = Best;
+                      bs_build_depends =
+                        [InternalLibrary "re"; FindlibPackage ("uutf", None)];
+                      bs_build_tools = [ExternalTool "ocamlbuild"];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(OASISExpr.EBool true, [])];
+                      bs_cclib = [(OASISExpr.EBool true, [])];
+                      bs_dlllib = [(OASISExpr.EBool true, [])];
+                      bs_dllpath = [(OASISExpr.EBool true, [])];
+                      bs_byteopt = [(OASISExpr.EBool true, [])];
+                      bs_nativeopt = [(OASISExpr.EBool true, [])]
+                   },
+                   {
+                      lib_modules = ["Re_unicode"];
+                      lib_pack = false;
+                      lib_internal_modules = ["Unicode_groups"; "Re_core"];
+                      lib_findlib_parent = Some "re";
+                      lib_findlib_name = Some "unicode";
                       lib_findlib_containers = []
                    });
                Library
@@ -7671,6 +7716,37 @@ let setup_t =
                       doc_data_files = [];
                       doc_build_tools =
                         [ExternalTool "ocamlbuild"; ExternalTool "ocamldoc"]
+                   });
+               Executable
+                 ({
+                     cs_name = "gen_unicode_groups";
+                     cs_data = PropList.Data.create ();
+                     cs_plugin_data = []
+                  },
+                   {
+                      bs_build =
+                        [
+                           (OASISExpr.EBool true, false);
+                           (OASISExpr.EBool false, true)
+                        ];
+                      bs_install = [(OASISExpr.EBool true, false)];
+                      bs_path = "tools";
+                      bs_compiled_object = Byte;
+                      bs_build_depends =
+                        [FindlibPackage ("uucd", None); InternalLibrary "re"];
+                      bs_build_tools = [ExternalTool "ocamlbuild"];
+                      bs_c_sources = [];
+                      bs_data_files = [];
+                      bs_ccopt = [(OASISExpr.EBool true, [])];
+                      bs_cclib = [(OASISExpr.EBool true, [])];
+                      bs_dlllib = [(OASISExpr.EBool true, [])];
+                      bs_dllpath = [(OASISExpr.EBool true, [])];
+                      bs_byteopt = [(OASISExpr.EBool true, [])];
+                      bs_nativeopt = [(OASISExpr.EBool true, [])]
+                   },
+                   {
+                      exec_custom = true;
+                      exec_main_is = "gen_unicode_groups.ml"
                    })
             ];
           plugins =
