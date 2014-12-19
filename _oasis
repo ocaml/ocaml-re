@@ -139,6 +139,11 @@ Test re_test_emacs
   Command:          $re_test_emacs
   WorkingDirectory: lib_test
 
+Test re_test_easy
+  Run$: flag(tests)
+  Command: $test_easy
+  WorkingDirectory: lib_test
+
 # Test re_test_str
 #   Run$:             flag(tests)
 #   Command:          $re_test_str
