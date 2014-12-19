@@ -138,6 +138,9 @@ val split_full_gen :
   ?len:int ->
   re -> string -> split_token gen
 
+val lsplit2 : ?pos:int -> ?len:int -> re -> string -> (string * string) option
+(** [lsplit2 re str] splits [str] into 2 strings if [re] matches *)
+
 val replace :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->

@@ -1088,6 +1088,11 @@ let split ?pos ?len re s =
     | Some (`Text s) -> l := s :: !l; iter ()
   in iter ()
 
+let lsplit2 ?pos ?len re s =
+  match split ?pos ?len re s with
+  | [x; y] -> Some (x, y)
+  | _ -> None
+
 let replace ?(pos=0) ?len ?(all=true) re ~f s =
   if pos < 0 then invalid_arg "Re.replace";
   let limit = match len with
