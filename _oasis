@@ -25,7 +25,7 @@ Library re_unicode
   Modules:         Re_unicode
   FindlibName:     unicode
   FindlibParent:   re
-  BuildDepends:    re, uutf
+  BuildDepends:    re
 
 Library re_emacs
   Path: lib

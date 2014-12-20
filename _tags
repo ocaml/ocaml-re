@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 3681e55fb52e99b75cf1cad29b125bfd)
+# DO NOT EDIT (digest: 53354bf1e5af01321146c70a92bf8e2f)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,7 +18,6 @@ true: annot, bin_annot
 "lib/re.cmxs": use_re
 # Library re_unicode
 "lib/re_unicode.cmxs": use_re_unicode
-<lib/*.ml{,i,y}>: pkg_uutf
 # Library re_emacs
 "lib/re_emacs.cmxs": use_re_emacs
 # Library re_str

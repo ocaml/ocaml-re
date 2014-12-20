@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: cbef92210560575e8c12972cf76e9c1f)
+# DO NOT EDIT (digest: f37a0bdd1310dd889338cb969a07abad)
 version = "1.2.2"
 description = "Pure OCaml regular expression library"
 requires = "bytes"
@@ -11,7 +11,7 @@ exists_if = "re.cma"
 package "unicode" (
  version = "1.2.2"
  description = "Pure OCaml regular expression library"
- requires = "re uutf"
+ requires = "re"
  archive(byte) = "re_unicode.cma"
  archive(byte, plugin) = "re_unicode.cma"
  archive(native) = "re_unicode.cmxa"
