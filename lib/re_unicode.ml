@@ -163,8 +163,8 @@ let split_full_gen r s =
 let replace ?all r ~f s =
   replace ?all r ~f s
 
-(* let notnl = *)
-(*   diff any (char 11) *)
+let notnl =
+  diff any (char 11)
 
 let alnum =
   let s = Cset.union Unicode_groups.alphabetic Unicode_groups.decimal_number in

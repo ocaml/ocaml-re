@@ -178,8 +178,8 @@ val rg : uchar -> uchar -> t
 val any : t
 (** Any character *)
 
-(* val notnl : t *)
-(** Any character but a newline *)
+val notnl : t
+(** Any character but a newline '\n' *)
 
 val alnum : t
 val wordc : t
