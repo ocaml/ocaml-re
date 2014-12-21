@@ -708,10 +708,6 @@ and trans_seq ids kind ign_group ign_case greedy pos cache c l =
 
 (**** Case ****)
 
-(* let case_insens s = *)
-(*   Cset.union s (Cset.union (Cset.offset 32 (Cset.inter s cupper)) *)
-(*                    (Cset.offset (-32) (Cset.inter s clower))) *)
-
 let as_set r =
   match r with
     Set s -> s
@@ -724,7 +720,7 @@ let rec handle_case case_insens cany ign_case r =
   let handle_case = handle_case case_insens cany in
   match r with
     Set s ->
-      if ign_case then case_insens s else r
+      Set (if ign_case then case_insens s else s)
   | Sequence l ->
       Sequence (List.map (handle_case ign_case) l)
   | Alternative l ->

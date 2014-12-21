@@ -97,15 +97,15 @@ let rec handle_unicode r =
       assert false
 
 let case_insens s =
-  Set s
+  s (* FIXME *)
 
 let compile r =
-  let r = handle_case case_insens [0, 0x10ffff] false r in
+  let r = if anchored r then group r else seq [shortest (rep any); group r] in
+  let r = handle_case case_insens cany false r in
   let r = handle_unicode r in
-  compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
+  compile_1 r
 
-let char c =
-  Set (Cset.single c)
+let char c = Set (Cset.single c)
 
 (** {2 Character sets} *)
 

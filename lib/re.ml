@@ -46,9 +46,10 @@ let space = alt [char ' '; rg '\009' '\013']
 let xdigit = alt [digit; rg 'a' 'f'; rg 'A' 'F']
 
 let case_insens s =
-  Set (Cset.union s (Cset.union (Cset.offset 32 (Cset.inter s cupper))
-                       (Cset.offset (-32) (Cset.inter s clower))))
+  Cset.union s (Cset.union (Cset.offset 32 (Cset.inter s cupper))
+                  (Cset.offset (-32) (Cset.inter s clower)))
 
 let compile r =
+  let r = if anchored r then group r else seq [shortest (rep any); group r] in
   let r = handle_case case_insens cany false r in
-  compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
+  compile_1 r

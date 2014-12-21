@@ -198,8 +198,8 @@ val xdigit : t
 
 (** {2 Case modifiers} *)
 
-(* val case : t -> t *)
-(* (\** Case sensitive matching *\) *)
+val case : t -> t
+(** Case sensitive matching *)
 
-(* val no_case : t -> t *)
+val no_case : t -> t
 (** Case insensitive matching *)
