@@ -424,10 +424,8 @@ let rec is_charset r =
   | Difference (r, r') ->
       is_charset r && is_charset r'
   | Sem (_, r) | Sem_greedy (_, r)
-  | No_group r ->
+  | No_group r | Case r | No_case r ->
       is_charset r
-  | Case _ | No_case _ ->
-      false
   | Sequence _ | Repeat _ | Beg_of_line | End_of_line
   | Beg_of_word | End_of_word | Beg_of_str | End_of_str
   | Not_bound | Last_end_of_line | Start | Stop | Group _ | Nest _ ->
