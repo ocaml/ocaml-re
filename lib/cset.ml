@@ -85,6 +85,18 @@ let rec mem (c : int) s =
     []              -> false
   | (c1, c2) :: rem -> if c <= c2 then c >= c1 else mem c rem
 
+let rec mem_range r s =
+  let (a, b) = r in
+  match s with
+    [] -> false
+  | (c1, c2) :: s ->
+      if a < c1 then false
+      else (* c1 <= a *)
+      if c2 < a then mem_range r s
+      else (* c1 <= a && a <= c2 *)
+      if b <= c2 then true
+      else (* c1 <= a && c2 < b *) mem_range (c2 + 1, b) s
+
 (****)
 
 type hash = int

@@ -36,6 +36,7 @@ val seq : c -> c -> t
 val add : c -> t -> t
 
 val mem : c -> t -> bool
+val mem_range : c * c -> t -> bool
 
 type hash
 val hash : t -> hash
