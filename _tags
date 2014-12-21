@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 53354bf1e5af01321146c70a92bf8e2f)
+# DO NOT EDIT (digest: e50e2e86ba7444d00de73a2b492ea21c)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -80,14 +80,14 @@ true: annot, bin_annot
 <lib_test/*.ml{,i,y}>: pkg_oUnit
 <lib_test/*.ml{,i,y}>: use_re
 <lib_test/test_easy.{native,byte}>: custom
-# Executable gen_unicode_groups
-"tools/gen_unicode_groups.byte": pkg_bytes
-"tools/gen_unicode_groups.byte": pkg_uucd
-"tools/gen_unicode_groups.byte": use_re
+# Executable make_unicode_tables
+"tools/make_unicode_tables.byte": pkg_bytes
+"tools/make_unicode_tables.byte": pkg_uucd
+"tools/make_unicode_tables.byte": use_re
 <tools/*.ml{,i,y}>: pkg_bytes
 <tools/*.ml{,i,y}>: pkg_uucd
 <tools/*.ml{,i,y}>: use_re
-"tools/gen_unicode_groups.byte": custom
+"tools/make_unicode_tables.byte": custom
 # OASIS_STOP
 
 #true: safe_string

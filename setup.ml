@@ -7718,7 +7718,7 @@ let setup_t =
                    });
                Executable
                  ({
-                     cs_name = "gen_unicode_groups";
+                     cs_name = "make_unicode_tables";
                      cs_data = PropList.Data.create ();
                      cs_plugin_data = []
                   },
@@ -7745,7 +7745,7 @@ let setup_t =
                    },
                    {
                       exec_custom = true;
-                      exec_main_is = "gen_unicode_groups.ml"
+                      exec_main_is = "make_unicode_tables.ml"
                    })
             ];
           plugins =

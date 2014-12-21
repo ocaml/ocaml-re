@@ -189,9 +189,9 @@ Document "re-api"
   XOCamlbuildPath: ./lib
   XOCamlbuildLibraries: re, re.emacs, re.glob, re.posix, re.perl, re.str, re.pcre
 
-Executable gen_unicode_groups
+Executable make_unicode_tables
   Path:             tools
-  MainIs:           gen_unicode_groups.ml
+  MainIs:           make_unicode_tables.ml
   Build$:           false
   Install:          false
   Custom:           true
