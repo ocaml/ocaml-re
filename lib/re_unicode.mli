@@ -165,6 +165,18 @@ val repn : t -> int -> int option -> t
 val opt : t -> t
 (** 0 or 1 matches *)
 
+(** {2 Groups (or submatches)} *)
+
+val group : t -> t
+(** Delimit a group *)
+
+val no_group : t -> t
+(** Remove all groups *)
+
+val nest : t -> t
+(** when matching against [nest e], only the group matching in the
+       last match of e will be considered as matching *)
+
 (** {2 Character sets} *)
 
 val set : string -> t
