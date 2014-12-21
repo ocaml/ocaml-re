@@ -134,9 +134,9 @@ let out_foldcase ppf r =
   in
   let ll = List.concat (List.map aux ll) in
   let ll = make_foldranges ll in
-  Format.fprintf ppf "@\n@[<hov 2>let foldcase = [@\n";
+  Format.fprintf ppf "@\n@[<hov 2>let foldcase = [|@\n";
   List.iter (fun (a, b, d) -> Format.fprintf ppf "(%i, %i, %i);@ " a b d) ll;
-  Format.fprintf ppf "]@]@\n"
+  Format.fprintf ppf "|]@]@\n"
 
 let ucd = "http://www.unicode.org/Public/7.0.0/ucdxml/ucd.all.grouped.zip"
 let in_name = Filename.chop_extension (Filename.basename ucd) ^ ".xml"
