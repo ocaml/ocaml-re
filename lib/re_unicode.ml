@@ -24,11 +24,12 @@ include Re_core
 
 type uchar = int
 
+let cany = [0, 0x10ffff]
+
 let rg a b =
   if a <= b then Set [a, b] else Set [b, a]
 
-let any =
-  rg 0 0x10ffff
+let any = Set cany
 
 let unicode_rg (a, b) =
   let lo x i = 0x80 lor ((x lsr (6 * i)) land 0x3f) in
@@ -162,11 +163,10 @@ let replace ?all r ~f s =
   replace ?all r ~f s
 
 let notnl =
-  diff any (char 11)
+  Set (Cset.diff cany (Cset.single 11))
 
 let alnum =
-  let s = Cset.union Unicode_groups.alphabetic Unicode_groups.decimal_number in
-  alt (List.map (fun (a, b) -> rg a b) s)
+  Set (Cset.union Unicode_groups.alphabetic Unicode_groups.decimal_number)
 
 let wordc =
   let sl =
@@ -176,21 +176,19 @@ let wordc =
       Unicode_groups.connector_punctuation;
       Unicode_groups.join_control ]
   in
-  let s = List.fold_left Cset.union [] sl in
-  alt (List.map (fun (a, b) -> rg a b) s)
+  Set (List.fold_left Cset.union [] sl)
 
 let alpha =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.alphabetic)
+  Set Unicode_groups.alphabetic
 
 let blank =
-  let s = Cset.add 0x9 Unicode_groups.space_separator in
-  alt (List.map (fun (a, b) -> rg a b) s)
+  Set (Cset.add 0x9 Unicode_groups.space_separator)
 
 let cntrl =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.control)
+  Set Unicode_groups.control
 
 let digit =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.decimal_number)
+  Set Unicode_groups.decimal_number
 
 let graph =
   let sl =
@@ -199,14 +197,13 @@ let graph =
       Unicode_groups.surrogate;
       Unicode_groups.unassigned ]
   in
-  let s = List.fold_left Cset.diff [0, 0x10ffff] sl in
-  alt (List.map (fun (a, b) -> rg a b) s)
+  Set (List.fold_left Cset.diff cany sl)
 
 let upper =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.uppercase)
+  Set Unicode_groups.uppercase
 
 let lower =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.lowercase)
+  Set Unicode_groups.lowercase
 
 let print =
   let sl =
@@ -217,20 +214,13 @@ let print =
       Unicode_groups.white_space;
       [0x9, 0x9] ]
   in
-  let s = List.fold_left Cset.diff [0, 0x10ffff] sl in
-  alt (List.map (fun (a, b) -> rg a b) s)
+  Set (List.fold_left Cset.diff cany sl)
 
 let punct =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.punctuation)
+  Set Unicode_groups.punctuation
 
 let space =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.white_space)
+  Set Unicode_groups.white_space
 
 let xdigit =
-  alt (List.map (fun (a, b) -> rg a b) Unicode_groups.hex_digit)
-
-(* val case : t -> t *)
-(* (\** Case sensitive matching *\) *)
-
-(* val no_case : t -> t *)
-(** Case insensitive matching *)
+  Set Unicode_groups.hex_digit
