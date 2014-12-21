@@ -96,8 +96,56 @@ let rec handle_unicode r =
   | Case _ | No_case _ | Intersection _ | Complement _ | Difference _ ->
       assert false
 
+(* Binary search in the array [a].  It is assumed that [a] (which has elements
+   of type int * int * int, is sorted so that if i < j, and [a1, b1, _ =
+   a.(i)], [a2, b2, _ = a.(j)], then [a1 <= b1 < a2 < b2].  It returns the
+   unique triple [a, b, d] as above such that [a <= c <= b] (if one exists),
+   or if none exists, the smallest such interval with [c < a], or if none
+   exists, raises [Not_found]. *)
+let find_foldcase c a =
+  assert (Array.length a > 0);
+  let rec loop imin imax =
+    let imid = imin + (imax - imin) / 2 in
+    let (lo, hi, _) = a.(imid) in
+    if c < lo then
+      if imid = imin then
+        a.(imid)
+      else
+        loop imin (imid - 1)
+    else if hi < c then
+      if imid = imax then
+        raise Not_found
+      else
+        loop (imid + 1) imax
+    else
+      a.(imid)
+  in
+  loop 0 (Array.length a - 1)
+
+(* Closes the characters set [s] under the equivalent relation of unicode
+   simple folding. *)
 let case_insens s =
-  s (* FIXME *)
+  let s = ref s in
+  let rec add c1 c2 =
+    if c1 <= c2 then
+      match try `Ok (find_foldcase c1 Unicode_groups.foldcase) with Not_found -> `Not_found with
+        | `Ok (a, b, d) ->
+            if c1 < a then
+              add a c2
+            else
+              let cx = min c2 b in
+              let c1d = c1 + d in
+              let c2d = cx + d in
+              if not (Cset.mem_range (c1d, c2d) !s) then begin
+                s := Cset.union (Cset.seq c1d c2d) !s;
+                add c1d c2d
+              end;
+              add (cx + 1) c2
+        | `Not_found ->
+            ()
+  in
+  List.iter (fun (c1, c2) -> add c1 c2) !s;
+  !s
 
 let compile r =
   let r = if anchored r then group r else seq [shortest (rep any); group r] in
