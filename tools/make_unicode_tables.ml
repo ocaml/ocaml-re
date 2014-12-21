@@ -90,6 +90,54 @@ let out ppf name cs =
   List.iter (fun (a, b) -> Format.fprintf ppf "(%i, %i);@ " a b) cs;
   Format.fprintf ppf "]@."
 
+let collect_foldcases r =
+  let h = Hashtbl.create 0 in
+  let k = ref Cpset.empty in
+  Cpmap.iter (fun cp ps ->
+      match find ps simple_case_folding with
+      | None | Some `Self -> ()
+      | Some (`Cp cp') -> k := Cpset.add cp' !k; Hashtbl.add h cp' cp) r;
+  Cpset.fold (fun cp l -> List.sort compare (cp :: Hashtbl.find_all h cp) :: l) !k []
+
+let make_foldranges ll =
+  let l = List.sort (fun (a, _) (a', _) -> a - a') ll in
+  let rec loop = function
+    | (a, b) :: rest ->
+        let rec loop1 i = function
+          | ((a', b') :: rest) as r ->
+              if b' - a' = b - a && a' = a + i + 1 then
+                loop1 (i + 1) rest
+              else
+                (a, a + i, b - a) :: loop r
+          | [] ->
+              []
+        in
+        loop1 0 rest
+    | [] ->
+        []
+  in
+  loop l
+
+let out_foldcase ppf r =
+  let ll = collect_foldcases r in
+ let aux = function
+    | x :: rest ->
+        let rec loop a = function
+          | b :: rest ->
+              (a, b) :: loop b rest
+          | [] ->
+              (a, x) :: []
+        in
+        loop x rest
+    | [] ->
+        assert false
+  in
+  let ll = List.concat (List.map aux ll) in
+  let ll = make_foldranges ll in
+  Format.fprintf ppf "@\n@[<hov 2>let foldcase = [@\n";
+  List.iter (fun (a, b, d) -> Format.fprintf ppf "(%i, %i, %i);@ " a b d) ll;
+  Format.fprintf ppf "]@]@\n"
+
 let ucd = "http://www.unicode.org/Public/7.0.0/ucdxml/ucd.all.grouped.zip"
 let in_name = Filename.chop_extension (Filename.basename ucd) ^ ".xml"
 
@@ -125,6 +173,7 @@ let main () =
   out ppf "mark" (mark r);
   out ppf "connector_punctuation" (connector_punctuation r);
   out ppf "join_control" (join_control r);
+  out_foldcase ppf r;
   Format.fprintf ppf "@]@."
 
 let _ =
