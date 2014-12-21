@@ -184,7 +184,7 @@ val notnl : t
 val alnum : t
 val wordc : t
 val alpha : t
-(* val ascii : t *)
+val ascii : t
 val blank : t
 val cntrl : t
 val digit : t

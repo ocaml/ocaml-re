@@ -181,6 +181,9 @@ let wordc =
 let alpha =
   Set Unicode_groups.alphabetic
 
+let ascii =
+  Set [0, 127]
+
 let blank =
   Set (Cset.add 0x9 Unicode_groups.space_separator)
 
