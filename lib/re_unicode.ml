@@ -24,6 +24,12 @@ include Re_core
 
 type uchar = int
 
+let rg a b =
+  if a <= b then Set [a, b] else Set [b, a]
+
+let any =
+  rg 0 0x10ffff
+
 let unicode_rg (a, b) =
   let lo x i = 0x80 lor ((x lsr (6 * i)) land 0x3f) in
   let rg a b = Set (cseq a b) in
@@ -92,12 +98,10 @@ let rec handle_unicode r =
 let case_insens s =
   Set s
 
-let any_byte = Set [0, 255]
-
 let compile r =
   let r = handle_case case_insens [0, 0x10ffff] false r in
   let r = handle_unicode r in
-  compile_1 (if anchored r then group r else seq [shortest (rep any_byte); group r])
+  compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
 
 let char c =
   Set (Cset.single c)
@@ -120,12 +124,6 @@ let char c =
 (*       assert false *)
 (*   in *)
 (*   loop () *)
-
-let rg a b =
-  if a <= b then Set [a, b] else Set [b, a]
-
-let any =
-  rg 0 0x10ffff
 
 let all r s =
   all r s
