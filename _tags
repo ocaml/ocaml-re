@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: e50e2e86ba7444d00de73a2b492ea21c)
+# DO NOT EDIT (digest: 45f2fad38355fa95d4c80c83d128ac5c)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -65,7 +65,6 @@ true: annot, bin_annot
 <lib_test/test_str.{native,byte}>: use_fort_unit
 <lib_test/test_str.{native,byte}>: use_re
 <lib_test/*.ml{,i,y}>: pkg_str
-<lib_test/*.ml{,i,y}>: use_fort_unit
 <lib_test/test_str.{native,byte}>: custom
 # Executable test_pcre
 <lib_test/test_pcre.{native,byte}>: pkg_bytes
@@ -76,10 +75,19 @@ true: annot, bin_annot
 <lib_test/test_easy.{native,byte}>: pkg_bytes
 <lib_test/test_easy.{native,byte}>: pkg_oUnit
 <lib_test/test_easy.{native,byte}>: use_re
+<lib_test/test_easy.{native,byte}>: custom
+# Executable test_unicode
+<lib_test/test_unicode.{native,byte}>: pkg_bytes
+<lib_test/test_unicode.{native,byte}>: pkg_oUnit
+<lib_test/test_unicode.{native,byte}>: use_fort_unit
+<lib_test/test_unicode.{native,byte}>: use_re
+<lib_test/test_unicode.{native,byte}>: use_re_unicode
 <lib_test/*.ml{,i,y}>: pkg_bytes
 <lib_test/*.ml{,i,y}>: pkg_oUnit
+<lib_test/*.ml{,i,y}>: use_fort_unit
 <lib_test/*.ml{,i,y}>: use_re
-<lib_test/test_easy.{native,byte}>: custom
+<lib_test/*.ml{,i,y}>: use_re_unicode
+<lib_test/test_unicode.{native,byte}>: custom
 # Executable make_unicode_tables
 "tools/make_unicode_tables.byte": pkg_bytes
 "tools/make_unicode_tables.byte": pkg_uucd

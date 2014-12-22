@@ -33,47 +33,40 @@ let any = Set cany
 
 let unicode_rg (a, b) =
   let lo x i = 0x80 lor ((x lsr (6 * i)) land 0x3f) in
-  let rg a b = Set (cseq a b) in
   let r = ref [] in
   let a, b = if a <= b then a, b else b, a in
   if a <= 0x7f then begin
     let b = min b 0x7f in
-    r := [rg (Char.chr a) (Char.chr b)]
+    r := [rg a b]
   end;
   if a <= 0x7ff then begin
     let b = min b 0x7ff in
     let hi x = 0xc0 lor ((x lsr 6) land 0x1f) in
     let a0 = lo a 0 and a1 = hi a in
     let b0 = lo b 0 and b1 = hi b in
-    r := Sequence [rg (Char.chr a1) (Char.chr b1);
-                   rg (Char.chr a0) (Char.chr b0)] :: !r
+    r := seq [rg a1 b1; rg a0 b0] :: !r
   end;
   if a <= 0xffff then begin
     let b = min b 0xffff in
     let hi x = 0xe0 lor ((x lsr 12) land 0xf) in
     let a0 = lo a 0 and a1 = lo a 1 and a2 = hi a in
     let b0 = lo b 0 and b1 = lo b 1 and b2 = hi b in
-    r := Sequence [rg (Char.chr a2) (Char.chr b2);
-                   rg (Char.chr a1) (Char.chr b1);
-                   rg (Char.chr a0) (Char.chr b0)] :: !r
+    r := seq [rg a2 b2; rg a1 b1; rg a0 b0] :: !r
   end;
   if a <= 0x1fffff then begin
     let b = min b 0x1fffff in
     let hi x = 0xf0 lor ((x lsr 16) land 0x7) in
     let a0 = lo a 0 and a1 = lo a 1 and a2 = lo a 2 and a3 = hi a in
     let b0 = lo b 0 and b1 = lo b 1 and b2 = lo b 2 and b3 = hi b in
-    r := Sequence [rg (Char.chr a3) (Char.chr b3);
-                   rg (Char.chr a2) (Char.chr b2);
-                   rg (Char.chr a1) (Char.chr b1);
-                   rg (Char.chr a0) (Char.chr b0)] :: !r
+    r := seq [rg a3 b3; rg a2 b2; rg a1 b1; rg a0 b0] :: !r
   end;
-  alt !r
+  !r
 
 let rec handle_unicode r =
   match r with
     Set s ->
       let s = Cset.diff s (Cset.seq 0xd800 0xdbff) in (* remove surrogates *)
-      alt (List.map unicode_rg s)
+      alt (List.concat (List.map unicode_rg s))
   | Sequence l ->
       Sequence (List.map handle_unicode l)
   | Alternative l ->

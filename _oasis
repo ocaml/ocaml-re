@@ -21,7 +21,7 @@ Library re
 Library re_unicode
   Path:            lib
   Build$:          flag(unicode)
-  InternalModules: Unicode_groups, Re_core
+  InternalModules: Unicode_groups
   Modules:         Re_unicode
   FindlibName:     unicode
   FindlibParent:   re
@@ -180,6 +180,20 @@ Test test_pcre
   Command:          $test_pcre
   WorkingDirectory: lib_test
 
+Executable test_unicode
+  Path:             lib_test
+  MainIs:           test_unicode.ml
+  Build$:           flag(tests)
+  Custom:           true
+  CompiledObject:   best
+  Install:          false
+  BuildDepends:     re.unicode, fort_unit
+
+Test test_unicode
+  Run$:             flag(tests)
+  Command:          $test_unicode
+  WorkingDirectory: lib_test
+
 Document "re-api"
   Title: API reference for Re
   Type: ocamlbuild (0.3)
@@ -187,7 +201,7 @@ Document "re-api"
   InstallDir: $htmldir/api
   BuildTools: ocamldoc
   XOCamlbuildPath: ./lib
-  XOCamlbuildLibraries: re, re.emacs, re.glob, re.posix, re.perl, re.str, re.pcre
+  XOCamlbuildLibraries: re, re.unicode, re.emacs, re.glob, re.posix, re.perl, re.str, re.pcre
 
 Executable make_unicode_tables
   Path:             tools

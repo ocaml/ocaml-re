@@ -165,6 +165,25 @@ val repn : t -> int -> int option -> t
 val opt : t -> t
 (** 0 or 1 matches *)
 
+(** {2 Match semantics} *)
+
+val longest : t -> t
+(** Longest match *)
+
+val shortest : t -> t
+(** Shortest match *)
+
+val first : t -> t
+(** First match *)
+
+(** {2 Repeated match modifiers} *)
+
+val greedy : t -> t
+(** Greedy *)
+
+val non_greedy : t -> t
+(** Non-greedy *)
+
 (** {2 Groups (or submatches)} *)
 
 val group : t -> t
