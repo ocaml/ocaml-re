@@ -32,9 +32,9 @@ let rg a b =
 let any = Set cany
 
 let unicode_rg (a, b) =
+  assert (0 <= a && a <= b);
   let lo x i = 0x80 lor ((x lsr (6 * i)) land 0x3f) in
   let r = ref [] in
-  let a, b = if a <= b then a, b else b, a in
   if a <= 0x7f then begin
     let b = min b 0x7f in
     r := [rg a b]
@@ -65,7 +65,7 @@ let unicode_rg (a, b) =
 let rec handle_unicode r =
   match r with
     Set s ->
-      let s = Cset.diff s (Cset.seq 0xd800 0xdbff) in (* remove surrogates *)
+      (* let s = Cset.diff s (Cset.seq 0xd800 0xdfff) in (\* remove surrogates *\) *)
       alt (List.concat (List.map unicode_rg s))
   | Sequence l ->
       Sequence (List.map handle_unicode l)
