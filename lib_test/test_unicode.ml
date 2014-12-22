@@ -398,23 +398,23 @@ Unicode: U+1E4A, UTF-8: E1 B9 8A
   (*   re_fail  (rep1 (compl [rg '0' '9'; rg 'a' 'z'])) "a"; *)
   (* ); *)
 
-  (* (\* Predefined character sets - should these be tested exhaustively? *\) *)
+  (* Predefined character sets - should these be tested exhaustively? *)
 
-  (* (\* Case modifiers *\) *)
+  (* Case modifiers *)
 
-  (* expect_pass "case" (fun () -> *)
-  (*   re_match (case (str "abc"))           "abc" [|(0,3)|]; *)
-  (*   re_match (no_case (case (str "abc"))) "abc" [|(0,3)|]; *)
-  (*   re_fail  (case (str "abc"))           "ABC"; *)
-  (*   re_fail  (no_case (case (str "abc"))) "ABC"; *)
-  (* ); *)
+  expect_pass "case" (fun () ->
+    re_match (case (str "ÑṐṏ"))           "ÑṐṏ" [|(0,8)|];
+    re_match (no_case (case (str "ÑṐṏ"))) "ÑṐṏ" [|(0,8)|];
+    re_fail  (case (str "ÑṐṏ"))           "ñṑṎ";
+    re_fail  (no_case (case (str "ÑṐṏ"))) "ñṑṎ";
+  );
 
-  (* expect_pass "no_case" (fun () -> *)
-  (*   re_match (no_case (str "abc"))        "abc" [|(0,3)|]; *)
-  (*   re_match (no_case (str "abc"))        "ABC" [|(0,3)|]; *)
-  (*   re_match (case (no_case (str "abc"))) "abc" [|(0,3)|]; *)
-  (*   re_match (case (no_case (str "abc"))) "ABC" [|(0,3)|]; *)
-  (* ); *)
+  expect_pass "no_case" (fun () ->
+    re_match (no_case (str "ÑṐṏ"))        "ÑṐṏ" [|(0,8)|];
+    re_match (no_case (str "ÑṐṏ"))        "ñṑṎ" [|(0,8)|];
+    re_match (case (no_case (str "ÑṐṏ"))) "ÑṐṏ" [|(0,8)|];
+    re_match (case (no_case (str "ÑṐṏ"))) "ñṑṎ" [|(0,8)|];
+  );
 
   (* (\* Fixed bugs *\) *)
 
