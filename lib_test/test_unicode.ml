@@ -307,16 +307,16 @@ let _ =
       [|(0,4); (2,4)|];
   );
 
-  (* expect_pass "match semantics" (fun () -> *)
-  (*   let r = rep (group (alt [str "aaa"; str "aa"])) in *)
-  (*   re_match (longest r)            "aaaaaaa" [|(0,7); (5, 7)|]; *)
-  (*   re_match (first r)              "aaaaaaa" [|(0,6); (3, 6)|]; *)
-  (*   re_match (first (non_greedy r)) "aaaaaaa" [|(0,0); (-1, -1)|]; *)
-  (*   re_match (shortest r)           "aaaaaaa" [|(0,0); (-1, -1)|]; *)
-  (*   let r' = rep (group (shortest (alt [str "aaa"; str "aa"]))) in *)
-  (*   re_match (longest r')           "aaaaaaa" [|(0,7); (4, 7)|]; *)
-  (*   re_match (first r')             "aaaaaaa" [|(0,6); (4, 6)|]; *)
-  (* ); *)
+  expect_pass "match semantics" (fun () ->
+    let r = rep (group (alt [str "ÑÑÑ"; str "ÑÑ"])) in
+    re_match (longest r)            "ÑÑÑÑÑÑÑ" [|(0,14); (10, 14)|];
+    re_match (first r)              "ÑÑÑÑÑÑÑ" [|(0,12); (6, 12)|];
+    re_match (first (non_greedy r)) "ÑÑÑÑÑÑÑ" [|(0,0); (-1, -1)|];
+    re_match (shortest r)           "ÑÑÑÑÑÑÑ" [|(0,0); (-1, -1)|];
+    let r' = rep (group (shortest (alt [str "ÑÑÑ"; str "ÑÑ"]))) in
+    re_match (longest r')           "ÑÑÑÑÑÑÑ" [|(0,14); (8, 14)|];
+    re_match (first r')             "ÑÑÑÑÑÑÑ" [|(0,12); (8, 12)|];
+  );
 
   (* Group (or submatch) *)
 
@@ -354,15 +354,32 @@ let _ =
 
   (* Character set *)
 
-  (* expect_pass "set" (fun () -> *)
-  (*   re_match (rep1 (set "abcd")) "bcbadbabcdba" [|(0,12)|]; *)
-  (*   re_fail  (set "abcd") "e"; *)
-  (* ); *)
+(*
+  ṋ
 
-  (* expect_pass "rg" (fun () -> *)
-  (*   re_match (rep1 (rg '0' '9')) "0123456789" [|(0,10)|]; *)
-  (*   re_fail  (rep1 (rg '0' '9')) "a"; *)
-  (* ); *)
+LATIN SMALL LETTER N WITH CIRCUMFLEX BELOW
+Unicode: U+1E4B, UTF-8: E1 B9 8B
+
+  ṏ
+
+LATIN SMALL LETTER O WITH TILDE AND DIAERESIS
+Unicode: U+1E4F, UTF-8: E1 B9 8F
+
+  Ṋ
+
+LATIN CAPITAL LETTER N WITH CIRCUMFLEX BELOW
+Unicode: U+1E4A, UTF-8: E1 B9 8A
+*)
+
+  expect_pass "set" (fun () ->
+    re_match (rep1 (set "ÑṐṏṋ")) "ṐṏṐÑṋṐÑṐṏṋṐÑ" [|(0,33)|];
+    re_fail  (set "ÑṐṏṋ") "Ṋ";
+  );
+
+  expect_pass "rg" (fun () ->
+    re_match (rep1 digit) "0123456789" [|(0,10)|];
+    re_fail  (rep1 digit) "a";
+  );
 
   (* expect_pass "inter" (fun () -> *)
   (*   re_match (rep1 (inter [rg '0' '9'; rg '4' '6']))  "456"   [|(0,3)|]; *)

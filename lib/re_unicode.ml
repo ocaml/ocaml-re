@@ -146,26 +146,26 @@ let compile r =
   let r = handle_unicode r in
   compile_1 r
 
+let str str =
+  let l =
+    Uutf.String.fold_utf_8 (fun l i ch ->
+        match ch with
+        | `Uchar ch -> Set (Cset.single ch) :: l
+        | `Malformed _ -> invalid_arg "Re_unicode.str") [] str
+  in
+  Sequence (List.rev l)
 let char c = Set (Cset.single c)
 
 (** {2 Character sets} *)
 
-(* let set str = *)
-(*   let s = ref [] in *)
-(*   let d = Uutf.decoder ~encoding:`UTF_8 (`String str) in *)
-(*   let rec loop () = *)
-(*     match Uutf.decode d with *)
-(*     | `Uchar c -> *)
-(*       s := c :: !s; *)
-(*       loop () *)
-(*     | `End -> *)
-(*       alt (List.rev_map uchar !s) *)
-(*     | `Malformed _ -> *)
-(*       invalid_arg "Re_utf8.set" *)
-(*     | `Await -> *)
-(*       assert false *)
-(*   in *)
-(*   loop () *)
+let set str =
+  let s =
+    Uutf.String.fold_utf_8 (fun s i ch ->
+        match ch with
+        | `Uchar ch -> Cset.add ch s
+        | `Malformed _ -> invalid_arg "Re_unicode.set") [] str
+  in
+  Set s
 
 let all r s =
   all r s

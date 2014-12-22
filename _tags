@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 45f2fad38355fa95d4c80c83d128ac5c)
+# DO NOT EDIT (digest: 0521fcac02db174edf7e56f829492f1c)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,6 +18,7 @@ true: annot, bin_annot
 "lib/re.cmxs": use_re
 # Library re_unicode
 "lib/re_unicode.cmxs": use_re_unicode
+<lib/*.ml{,i,y}>: pkg_uutf
 # Library re_emacs
 "lib/re_emacs.cmxs": use_re_emacs
 # Library re_str
@@ -79,11 +80,13 @@ true: annot, bin_annot
 # Executable test_unicode
 <lib_test/test_unicode.{native,byte}>: pkg_bytes
 <lib_test/test_unicode.{native,byte}>: pkg_oUnit
+<lib_test/test_unicode.{native,byte}>: pkg_uutf
 <lib_test/test_unicode.{native,byte}>: use_fort_unit
 <lib_test/test_unicode.{native,byte}>: use_re
 <lib_test/test_unicode.{native,byte}>: use_re_unicode
 <lib_test/*.ml{,i,y}>: pkg_bytes
 <lib_test/*.ml{,i,y}>: pkg_oUnit
+<lib_test/*.ml{,i,y}>: pkg_uutf
 <lib_test/*.ml{,i,y}>: use_fort_unit
 <lib_test/*.ml{,i,y}>: use_re
 <lib_test/*.ml{,i,y}>: use_re_unicode

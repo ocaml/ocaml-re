@@ -130,7 +130,7 @@ type uchar = int
 
 (** {2 String expressions (literal match)} *)
 
-(* val str : string -> t *)
+val str : string -> t
 val char : uchar -> t
 
 (** {2 Basic operations on regular expressions} *)
