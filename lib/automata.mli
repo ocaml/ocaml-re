@@ -40,6 +40,7 @@ type def =
   | Before of category
   | After of category
 val def : expr -> def
+val print_kind : Format.formatter -> sem -> unit
 val print_expr : Format.formatter -> expr -> unit
 
 type ids

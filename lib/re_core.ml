@@ -415,6 +415,44 @@ type regexp =
   | Complement of regexp list
   | Difference of regexp * regexp
 
+let rec print_regexp ch = function
+    Set s ->
+      Format.fprintf ch "@[<2>(set@ %a)@]" Cset.print s
+  | Sequence l ->
+      let aux ppf l = List.iter (fun r -> Format.fprintf ch "@ %a" print_regexp r) l in
+      Format.fprintf ch "@[<hv 2>(seq%a)@]" aux l
+  | Alternative l ->
+      let aux ppf l = List.iter (fun r -> Format.fprintf ch "@ %a" print_regexp r) l in
+      Format.fprintf ch "@[<hv 2>(alt%a)@]" aux l
+  | Repeat (r, i, j) ->
+      let aux ppf = function None -> () | Some j -> Format.fprintf ppf "@ %i" j in
+      Format.fprintf ch "@[<2>(rep@ %a@ %i%a)@]" print_regexp r i aux j
+  | Beg_of_line       -> Format.fprintf ch "(bol)"
+  | End_of_line       -> Format.fprintf ch "(eol)"
+  | Beg_of_word       -> Format.fprintf ch "(bow)"
+  | End_of_word       -> Format.fprintf ch "(eow)"
+  | Not_bound         -> Format.fprintf ch "(nb)"
+  | Beg_of_str        -> Format.fprintf ch "(bos)"
+  | End_of_str        -> Format.fprintf ch "(eos)"
+  | Last_end_of_line  -> Format.fprintf ch "(leol)"
+  | Start             -> Format.fprintf ch "(start)"
+  | Stop              -> Format.fprintf ch "(stop)"
+  | Sem (k, r)        -> Format.fprintf ch "@[<2>(sem@ %a@ %a)@]" Automata.print_kind k print_regexp r
+  | Sem_greedy (k, r) -> Format.fprintf ch "@[<2>(sem-greedy@ %a)@]" print_regexp r
+  | Group r           -> Format.fprintf ch "@[<2>(group@ %a)@]" print_regexp r
+  | No_group r        -> Format.fprintf ch "@[<2>(no-group@ %a)@]" print_regexp r
+  | Nest r            -> Format.fprintf ch "@[<2>(nest@ %a)@]" print_regexp r
+  | Case r            -> Format.fprintf ch "@[<2>(case@ %a)@]" print_regexp r
+  | No_case r         -> Format.fprintf ch "@[<2>(no-case@ %a)@]" print_regexp r
+  | Intersection l ->
+      let aux ppf l = List.iter (fun r -> Format.fprintf ch "@ %a" print_regexp r) l in
+      Format.fprintf ch "@[<hv 2>(inter%a)@]" aux l
+  | Complement l ->
+      let aux ppf l = List.iter (fun r -> Format.fprintf ch "@ %a" print_regexp r) l in
+      Format.fprintf ch "@[<hv 2>(compl%a)@]" aux l
+  | Difference (r1, r2) ->
+      Format.fprintf ch "@[<2>(diff@ %a@ %a)@]" print_regexp r1 print_regexp r2
+
 let rec is_charset r =
   match r with
     Set _ ->
