@@ -25,6 +25,8 @@ val get_substring_ofs : substrings -> int -> int * int
 
 val pmatch : rex:regexp -> string -> bool
 
+val substitute : rex:Re.re -> subst:(string -> string) -> string -> string
+
 val full_split : ?max:int -> rex:regexp -> string -> split_result list
 
 val split : rex:regexp -> string -> string list
