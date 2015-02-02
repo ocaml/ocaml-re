@@ -70,11 +70,20 @@ let test_replace () =
     (Re.replace ~all:false re ~f " allo maman, bobo");
   ()
 
+let test_replace_string () =
+  let re = Re_posix.compile_pat "_[a-zA-Z]+_" in
+  assert_equal ~printer:pp_str "goodbye world"
+    (Re.replace_string re ~by:"goodbye" "_hello_ world");
+  assert_equal ~printer:pp_str "The quick brown fox"
+    (Re.replace_string ~all:false re ~by:"brown" "The quick _XXX_ fox");
+  ()
+
 let suite = "easy" >:::
   [ "iter" >:: test_iter
   ; "split" >:: test_split
   ; "split_full" >:: test_split_full
   ; "replace" >:: test_replace
+  ; "replace_string" >:: test_replace_string
   ]
 
 let () =
