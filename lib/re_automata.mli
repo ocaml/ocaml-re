@@ -30,7 +30,7 @@ type rep_kind = [ `Greedy | `Non_greedy ]
 
 type expr
 type def =
-    Cst of Cset.t
+    Cst of Re_cset.t
   | Alt of expr list
   | Seq of sem * expr * expr
   | Eps
@@ -45,7 +45,7 @@ val print_expr : Format.formatter -> expr -> unit
 type ids
 val create_ids : unit -> ids
 
-val cst : ids -> Cset.t -> expr
+val cst : ids -> Re_cset.t -> expr
 val empty : ids -> expr
 val alt : ids -> expr list -> expr
 val seq : ids -> sem -> expr -> expr -> expr
@@ -89,10 +89,10 @@ type working_area
 val create_working_area : unit -> working_area
 val index_count : working_area -> int
 
-val delta : working_area -> category -> Cset.c -> state -> state
+val delta : working_area -> category -> Re_cset.c -> state -> state
 val deriv :
-  working_area -> Cset.t -> (category * Cset.t) list -> state ->
-  (Cset.t * state) list
+  working_area -> Re_cset.t -> (category * Re_cset.t) list -> state ->
+  (Re_cset.t * state) list
 
 (****)
 

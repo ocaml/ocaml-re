@@ -10,7 +10,7 @@ BuildTools: ocamlbuild
 
 Library re
   Path:       lib
-  InternalModules: Cset, Automata
+  InternalModules: Re_cset, Re_automata
   Modules: Re
   Findlibname: re
   BuildDepends: bytes

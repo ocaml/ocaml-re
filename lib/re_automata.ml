@@ -20,6 +20,8 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
+module Cset = Re_cset
+
 type sem = [ `Longest | `Shortest | `First ]
 
 type rep_kind = [ `Greedy | `Non_greedy ]

@@ -20,6 +20,9 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
+module Cset = Re_cset
+module Automata = Re_automata
+
 let rec first f l =
   match l with
     []     -> None
