@@ -78,12 +78,21 @@ let test_replace_string () =
     (Re.replace_string ~all:false re ~by:"brown" "The quick _XXX_ fox");
   ()
 
+let test_bug_55 () =
+  let re = Re.(compile bol) in
+  let res = Re.replace_string re ~by:"z" "abc" in
+  assert_equal ~printer:pp_str "zabc" res;
+  let re = Re.(compile eow) in
+  let res = Re.replace_string re ~by:"X" "one two three" in
+  assert_equal ~printer:pp_str "oneX twoX threeX" res
+
 let suite = "easy" >:::
   [ "iter" >:: test_iter
   ; "split" >:: test_split
   ; "split_full" >:: test_split_full
   ; "replace" >:: test_replace
   ; "replace_string" >:: test_replace_string
+  ; "test sub 0 length matches" >:: test_bug_55
   ]
 
 let () =
