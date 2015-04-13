@@ -1113,8 +1113,15 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
           let replacing = f substr in
           Buffer.add_string buf replacing;
           if all
-            then iter (if p1=p2 then p2+1 else p2)
-            else Buffer.add_substring buf s p2 (limit-p2)
+          (* if we matched a non-char e.g. ^ we must manually advance by 1 *)
+          then iter
+                 (if p1=p2
+                  then (
+                    (* a non char could be past the end of string. e.g. $ *)
+                    if p2 < limit then Buffer.add_char buf s.[p2];
+                    p2+1)
+                  else p2)
+          else Buffer.add_substring buf s p2 (limit-p2)
       | `Running -> ()
       | `Failed ->
           Buffer.add_substring buf s pos (limit-pos)
