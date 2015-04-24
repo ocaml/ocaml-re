@@ -22,6 +22,7 @@
 
 module Cset = Re_cset
 module Automata = Re_automata
+module MarkSet = Automata.PmarkSet
 
 let rec first f l =
   match l with
@@ -41,6 +42,7 @@ let break = -3
 type substrings = {
   s : string ;
   marks : Automata.mark_infos ;
+  pmarks : MarkSet.t ;
   gpos : int array ;
   gcount : int
 }
@@ -49,6 +51,8 @@ type match_info =
   | Match of substrings
   | Failed
   | Running
+
+type markid = MarkSet.elt
 
 type state =
   { idx : int;
@@ -351,8 +355,8 @@ let match_str groups partial re s pos len =
       res
   in
   match res with
-    Automata.Match marks ->
-      Match { s ; marks; gpos = info.positions; gcount = re.group_count}
+    Automata.Match (marks, pmarks) ->
+      Match { s ; marks; pmarks ; gpos = info.positions; gcount = re.group_count}
   | Automata.Failed -> Failed
   | Automata.Running -> Running
 
@@ -428,6 +432,7 @@ type regexp =
   | Intersection of regexp list
   | Complement of regexp list
   | Difference of regexp * regexp
+  | Pmark of markid * regexp
 
 let rec is_charset r =
   match r with
@@ -442,7 +447,8 @@ let rec is_charset r =
       is_charset r
   | Sequence _ | Repeat _ | Beg_of_line | End_of_line
   | Beg_of_word | End_of_word | Beg_of_str | End_of_str
-  | Not_bound | Last_end_of_line | Start | Stop | Group _ | Nest _ ->
+  | Not_bound | Last_end_of_line | Start | Stop
+  | Group _ | Nest _ | Pmark (_,_)->
       false
 
 (**** Colormap ****)
@@ -481,7 +487,7 @@ let colorize c regexp =
     | Sem (_, r)
     | Sem_greedy (_, r)
     | Group r | No_group r
-    | Nest r                    -> colorize r
+    | Nest r | Pmark (_,r)     -> colorize r
     | Case _ | No_case _
     | Intersection _
     | Complement _
@@ -548,6 +554,8 @@ let rec equal x1 x2 =
       eq_list l1 l2
   | Difference (x1', x1''), Difference (x2', x2'') ->
       equal x1' x2' && equal x1'' x2''
+  | Pmark (m1, r1), Pmark (m2, r2) ->
+      Automata.Pmark.equal m1 m2 && equal r1 r2
   | _ ->
       false
 
@@ -699,6 +707,10 @@ let rec translate ids kind ign_group ign_case greedy pos cache (c:Bytes.t) r =
         (A.seq ids `First (A.erase ids b e) cr, kind')
   | Difference _ | Complement _ | Intersection _ | No_case _ | Case _ ->
       assert false
+  | Pmark (i, r') ->
+    let (cr, kind') =
+      translate ids kind ign_group ign_case greedy pos cache c r' in
+    (A.seq ids `First (A.pmark ids i) cr, kind')
 
 and trans_seq ids kind ign_group ign_case greedy pos cache c l =
   match l with
@@ -784,6 +796,7 @@ let rec handle_case ign_case r =
   | Difference (r, r') ->
       Set (Cset.inter (as_set (handle_case ign_case r))
              (Cset.diff cany (as_set (handle_case ign_case r'))))
+  | Pmark (i,r) -> Pmark (i,handle_case ign_case r)
 
 (****)
 
@@ -820,7 +833,7 @@ let rec anchored r =
   | Beg_of_str | Start ->
       true
   | Sem (_, r) | Sem_greedy (_, r) | Group r | No_group r | Nest r
-  | Case r | No_case r ->
+  | Case r | No_case r | Pmark (_, r) ->
       anchored r
 
 (****)
@@ -872,6 +885,7 @@ let non_greedy r = Sem_greedy (`Non_greedy, r)
 let group r = Group r
 let no_group r = No_group r
 let nest r = Nest r
+let mark r = let i = Automata.Pmark.gen () in (i,Pmark (i,r))
 
 let set str =
   let s = ref [] in
@@ -1171,6 +1185,11 @@ let get_all {s ; marks ; gpos ; gcount } =
     end
   done;
   res
+
+let marked {pmarks} p =
+  Automata.PmarkSet.mem p pmarks
+
+let get_mark_set s = s.pmarks
 
 (**********************************)
 

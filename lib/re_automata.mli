@@ -28,6 +28,13 @@ type mark = int
 type sem = [ `Longest | `Shortest | `First ]
 type rep_kind = [ `Greedy | `Non_greedy ]
 
+module Pmark : sig
+  type t = private int
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val gen : unit -> t
+end
+
 type expr
 type def =
     Cst of Re_cset.t
@@ -39,6 +46,7 @@ type def =
   | Erase of mark * mark
   | Before of category
   | After of category
+  | Pmark of Pmark.t
 val def : expr -> def
 val print_expr : Format.formatter -> expr -> unit
 
@@ -52,6 +60,7 @@ val seq : ids -> sem -> expr -> expr -> expr
 val eps : ids -> expr
 val rep : ids -> rep_kind -> sem -> expr -> expr
 val mark : ids -> mark -> expr
+val pmark : ids -> Pmark.t -> expr
 val erase : ids -> mark -> mark -> expr
 val before : ids -> category -> expr
 val after : ids -> category -> expr
@@ -60,10 +69,16 @@ val rename : ids -> expr -> expr
 
 (****)
 
+module PmarkSet : Set.S with type elt = Pmark.t
+
 (* States of the automata *)
 
 type idx = int
-type mark_offsets = (mark * idx) list
+type mark_offsets = {
+  marks : (mark * idx) list ;
+  pmarks : PmarkSet.t
+}
+
 type e =
     TSeq of e list * expr * sem
   | TExp of mark_offsets * expr
@@ -73,7 +88,7 @@ val print_state : Format.formatter -> e list -> unit
 
 type hash
 type mark_infos = int array
-type status = Failed | Match of mark_infos | Running
+type status = Failed | Match of mark_infos * PmarkSet.t | Running
 type state =
   idx * category * e list * status option ref * hash
 val dummy_state : state

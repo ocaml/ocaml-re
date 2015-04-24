@@ -30,6 +30,20 @@ type category = int
 type mark = int
 type idx = int
 
+module Pmark : sig
+  type t = private int
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val gen : unit -> t
+end
+= struct
+  type t = int
+  let equal (x : int) (y : int) = x = y
+  let compare (x : int) (y : int) = compare x y
+  let r = ref 0
+  let gen () = incr r ; !r
+end
+
 type expr = { id : int; def : def }
 
 and def =
@@ -42,15 +56,21 @@ and def =
   | Erase of int * int
   | Before of category
   | After of category
+  | Pmark of Pmark.t
 
 let def e = e.def
 
-type mark_offsets = (int * int) list
+module PmarkSet = Set.Make(Pmark)
+
+type mark_offsets = { marks : (int * int) list ; pmarks : PmarkSet.t }
+
+let empty_mark = { marks = [] ; pmarks = PmarkSet.empty }
 
 type e =
     TSeq of e list * expr * sem
   | TExp of mark_offsets * expr
   | TMatch of mark_offsets
+
 
 (****)
 
@@ -78,6 +98,8 @@ let rec print_expr ch e =
       Format.fprintf ch "@[<3>(rep@ %a %a)@]" print_kind k print_expr e
   | Mark i ->
       Format.fprintf ch "@[<3>(mark@ %d)@]" i
+  | Pmark i ->
+      Format.fprintf ch "@[<3>(pmark@ %d)@]" (i :> int)
   | Erase (b, e) ->
       Format.fprintf ch "@[<3>(erase@ %d %d)@]" b e
   | Before c ->
@@ -85,8 +107,9 @@ let rec print_expr ch e =
   | After c ->
       Format.fprintf ch "@[<3>(after@ %d)@]" c
 
+
 let print_marks ch l =
-  match l with
+  match l.marks with
     [] ->
       ()
   | (a, i) :: r ->
@@ -170,6 +193,8 @@ let rep ids kind sem x = mk_expr ids (Rep (kind, sem, x))
 
 let mark ids m = mk_expr ids (Mark m)
 
+let pmark ids i = mk_expr ids (Pmark i)
+
 let erase ids m m' = mk_expr ids (Erase (m, m'))
 
 let before ids c = mk_expr ids (Before c)
@@ -188,7 +213,7 @@ let tseq kind x y rem =
 
 let rec rename ids x =
   match x.def with
-    Cst _ | Eps | Mark _ | Erase _ | Before _ | After _ ->
+    Cst _ | Eps | Mark _ | Pmark _ | Erase _ | Before _ | After _ ->
       mk_expr ids x.def
   | Alt l ->
       mk_expr ids (Alt (List.map (rename ids) l))
@@ -201,17 +226,20 @@ let rec rename ids x =
 
 type hash = int
 type mark_infos = int array
-type status = Failed | Match of mark_infos | Running
+type status = Failed | Match of mark_infos * PmarkSet.t | Running
 type state = int * category * e list * status option ref * hash
 
 let dummy_state = (-1, -1, [], ref None, -1)
 
 let hash_combine h accu = accu * 65599 + h
 
-let rec hash_marks l accu =
+let rec hash_marks_offset l accu =
   match l with
     []          -> accu
-  | (a, i) :: r -> hash_marks r (hash_combine a (hash_combine i accu))
+  | (a, i) :: r -> hash_marks_offset r (hash_combine a (hash_combine i accu))
+
+let hash_marks m accu =
+  hash_marks_offset m.marks (hash_combine (Hashtbl.hash m.pmarks) accu)
 
 let rec hash_e l accu =
   match l with
@@ -230,7 +258,7 @@ let hash_state idx cat desc =
 
 let mk_state idx cat desc = (idx, cat, desc, ref None, hash_state idx cat desc)
 
-let create_state cat e = mk_state 0 cat [TExp ([], e)]
+let create_state cat e = mk_state 0 cat [TExp (empty_mark, e)]
 
 let rec equal_e l1 l2 =
   match l1, l2 with
@@ -281,9 +309,9 @@ let rec mark_used_indices tbl l =
          TSeq (l, _, _) ->
            mark_used_indices tbl l
        | TExp (marks, _) ->
-           List.iter (fun (_, i) -> if i >= 0 then tbl.(i) <- true) marks
+           List.iter (fun (_, i) -> if i >= 0 then tbl.(i) <- true) marks.marks
        | TMatch marks ->
-           List.iter (fun (_, i) -> if i >= 0 then tbl.(i) <- true) marks)
+           List.iter (fun (_, i) -> if i >= 0 then tbl.(i) <- true) marks.marks)
     l
 
 let rec find_free tbl idx len =
@@ -347,14 +375,14 @@ let rec set_idx used idx l =
     [] ->
       []
   | TMatch marks :: r ->
-      TMatch (marks_set_idx used idx marks) :: set_idx used idx r
+      TMatch {marks with marks = marks_set_idx used idx marks.marks} :: set_idx used idx r
   | TSeq (l', x, kind) :: r ->
       TSeq (set_idx used idx l', x, kind) :: set_idx used idx r
   | TExp (marks, x) :: r ->
-      TExp (marks_set_idx used idx marks, x) :: set_idx used idx r
+      TExp ({marks with marks = marks_set_idx used idx marks.marks}, x) :: set_idx used idx r
 
 let filter_marks b e marks =
-  List.filter (fun (i, _) -> i < b || i > e) marks
+  {marks with marks = List.filter (fun (i, _) -> i < b || i > e) marks.marks }
 
 let rec delta_1 marks c cat' cat x rem =
 (*Format.eprintf "%d@." x.id;*)
@@ -383,7 +411,11 @@ let rec delta_1 marks c cat' cat x rem =
   | Eps ->
       TMatch marks :: rem
   | Mark i ->
-      TMatch ((i, -1) :: List.remove_assq i marks) :: rem
+      let marks = { marks with marks = (i, -1) :: List.remove_assq i marks.marks } in
+      TMatch marks :: rem
+  | Pmark i ->
+      let marks = { marks with pmarks = PmarkSet.add i marks.pmarks } in
+      TMatch marks :: rem
   | Erase (b, e) ->
       TMatch (filter_marks b e marks) :: rem
   | Before cat'' ->
@@ -493,16 +525,21 @@ let rec restrict s l =
 let rec remove_marks b e rem =
   if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
 
-let rec merge_marks old nw =
+let rec merge_marks_offset old nw =
   match nw with
     [] ->
       old
   | (i, v) :: rem ->
-      let nw' = merge_marks (List.remove_assq i old) rem in
+      let nw' = merge_marks_offset (List.remove_assq i old) rem in
       if v = -2 then
         nw'
       else
         (i, v) :: nw'
+
+let merge_marks old nw =
+  { marks = merge_marks_offset old.marks nw.marks ;
+    pmarks = PmarkSet.union old.pmarks nw.pmarks }
+
 
 let rec prepend_marks_expr m e =
   match e with
@@ -547,10 +584,12 @@ let rec deriv_1 all_chars categories marks cat x rem =
   | Eps ->
       prepend all_chars [TMatch marks] rem
   | Mark i ->
-      prepend all_chars [TMatch ((i, -1) :: List.remove_assq i marks)] rem
+      prepend all_chars [TMatch {marks with marks = ((i, -1) :: List.remove_assq i marks.marks)}] rem
+  | Pmark _ ->
+      prepend all_chars [TMatch marks] rem
   | Erase (b, e) ->
       prepend all_chars
-        [TMatch (remove_marks b e (filter_marks b e marks))] rem
+        [TMatch {marks with marks = (remove_marks b e (filter_marks b e marks).marks)}] rem
   | Before cat' ->
       prepend (List.assq cat' categories) [TMatch marks] rem
   | After cat' ->
@@ -569,7 +608,7 @@ and deriv_seq all_chars categories cat kind y z rem =
          List.exists (fun x -> match x with TMatch _ -> true | _ -> false) xl)
       y
   then
-    let z' = deriv_1 all_chars categories [] cat z [(all_chars, [])] in
+    let z' = deriv_1 all_chars categories empty_mark cat z [(all_chars, [])] in
     List.fold_right
       (fun (s, y) rem ->
          match
@@ -649,7 +688,7 @@ let status (_, _, desc, status, _) =
       let st =
         match desc with
           []            -> Failed
-        | TMatch m :: _ -> Match (flatten_match m)
+        | TMatch m :: _ -> Match (flatten_match m.marks, m.pmarks)
         | _             -> Running
       in
       status := Some st;
