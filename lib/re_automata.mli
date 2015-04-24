@@ -73,7 +73,7 @@ val print_state : Format.formatter -> e list -> unit
 
 type hash
 type mark_infos = int array
-type status = [`Failed | `Match of mark_infos | `Running]
+type status = Failed | Match of mark_infos | Running
 type state =
   idx * category * e list * status option ref * hash
 val dummy_state : state

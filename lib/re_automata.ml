@@ -201,7 +201,7 @@ let rec rename ids x =
 
 type hash = int
 type mark_infos = int array
-type status = [`Failed | `Match of mark_infos | `Running]
+type status = Failed | Match of mark_infos | Running
 type state = int * category * e list * status option ref * hash
 
 let dummy_state = (-1, -1, [], ref None, -1)
@@ -648,9 +648,9 @@ let status (_, _, desc, status, _) =
   | None ->
       let st =
         match desc with
-          []            -> `Failed
-        | TMatch m :: _ -> `Match (flatten_match m)
-        | _             -> `Running
+          []            -> Failed
+        | TMatch m :: _ -> Match (flatten_match m)
+        | _             -> Running
       in
       status := Some st;
       st
