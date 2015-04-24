@@ -31,14 +31,14 @@ let correct_mark ?pos ?len r s il1 il2 =
 
 (* Substring Extraction *)
 
-let _ = 
+let _ =
   let r =
-     seq [group (char 'a'); 
-          opt   (group (char 'a')); 
+     seq [group (char 'a');
+          opt   (group (char 'a'));
           group (char 'b')]
   in
   let m = exec (compile r) "ab" in
-  
+
   expect_pass "get" (fun () ->
     expect_eq_str id        "ab" (get m) 0;
     expect_eq_str id        "a"  (get m) 1;
@@ -322,8 +322,8 @@ let _ =
 
   expect_pass "group" (fun () ->
     let r =
-       seq [group (char 'a'); 
-            opt   (group (char 'a')); 
+       seq [group (char 'a');
+            opt   (group (char 'a'));
             group (char 'b')]
     in
     expect_eq_arr_ofs
@@ -334,8 +334,8 @@ let _ =
   expect_pass "no_group" (fun () ->
     let r =
        no_group (
-         seq [group (char 'a'); 
-              opt   (group (char 'a')); 
+         seq [group (char 'a');
+              opt   (group (char 'a'));
               group (char 'b')]
        )
     in
