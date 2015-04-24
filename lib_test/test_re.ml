@@ -17,6 +17,18 @@ let re_fail ?pos ?len r s =
     (fun () -> get_all_ofs (exec ?pos ?len (compile r) s)) ()
 ;;
 
+let correct_mark ?pos ?len r s il1 il2 =
+  expect_equal_app
+    ~msg:(str_printer s)
+    ~printer:bool_printer
+    id true
+    (fun () ->
+       let subs = exec ?pos ?len (compile r) s in
+       List.for_all (marked subs) il1 &&
+       List.for_all (fun x -> not @@ marked subs x) il2
+    ) ()
+;;
+
 (* Substring Extraction *)
 
 let _ = 
@@ -338,6 +350,33 @@ let _ =
     in
     re_match r "ab" [|(0,2); (-1, -1)|];
     re_match r "ba" [|(0,2); (1, 2)|];
+  );
+
+  expect_pass "mark" (fun () ->
+    let i, r = mark digit in
+    correct_mark r "0" [i] [];
+  );
+
+  expect_pass "mark seq" (fun () ->
+    let i, r = mark digit in
+    let r = seq [r; r] in
+    correct_mark r "02" [i] [] ;
+  );
+
+  expect_pass "mark rep" (fun () ->
+    let i, r = mark digit in
+    let r = rep r in
+    correct_mark r "02" [i] [];
+  );
+
+  expect_pass "mark alt" (fun () ->
+    let ia, ra = mark @@ char 'a' in
+    let ib, rb = mark @@ char 'b' in
+    let r = alt [ra ; rb] in
+    correct_mark r "a" [ia] [ib];
+    correct_mark r "b" [ib] [ia];
+    let r = rep r in
+    correct_mark r "ab" [ia; ib] [] ;
   );
 
   (* Character set *)
