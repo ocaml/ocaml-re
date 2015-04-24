@@ -102,6 +102,15 @@ type info =
     mutable last : int
         (* Position where the match should stop *) }
 
+(* Result of a successful match. *)
+type substrings = {
+  s : string ;
+  marks : Automata.mark_infos ;
+  gpos : int array ;
+  gcount : int
+}
+
+
 (****)
 
 let cat_inexistant = 1
@@ -342,8 +351,8 @@ let match_str groups partial re s pos len =
       res
   in
   match res with
-    `Match m ->
-      `Match (s, m, info.positions, re.group_count)
+    `Match marks ->
+      `Match { s ; marks; gpos = info.positions; gcount = re.group_count}
   | (`Failed | `Running) as res ->
       res
 
@@ -914,8 +923,6 @@ let no_case r = No_case r
 
 (****)
 
-type substrings = (string * Automata.mark_infos * int array * int)
-
 let compile r =
   compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
 
@@ -948,20 +955,20 @@ let rec find_mark (i : int) l =
   | (j, idx) :: r ->
       if i = j then idx else find_mark i r
 
-let get (s, marks, pos, _) i =
+let get {s ; marks ; gpos} i =
   if 2 * i + 1 >= Array.length marks then raise Not_found;
   let m1 = marks.(2 * i) in
   if m1 = -1 then raise Not_found;
-  let p1 = pos.(m1) - 1 in
-  let p2 = pos.(marks.(2 * i + 1)) - 1 in
+  let p1 = gpos.(m1) - 1 in
+  let p2 = gpos.(marks.(2 * i + 1)) - 1 in
   String.sub s p1 (p2 - p1)
 
-let get_ofs (s, marks, pos, _) i =
+let get_ofs {s ; marks ; gpos} i =
   if 2 * i + 1 >= Array.length marks then raise Not_found;
   let m1 = marks.(2 * i) in
   if m1 = -1 then raise Not_found;
-  let p1 = pos.(m1) - 1 in
-  let p2 = pos.(marks.(2 * i + 1)) - 1 in
+  let p1 = gpos.(m1) - 1 in
+  let p2 = gpos.(marks.(2 * i + 1)) - 1 in
   (p1, p2)
 
 type 'a gen = unit -> 'a option
@@ -1132,20 +1139,20 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
 let replace_string ?pos ?len ?all re ~by s =
   replace ?pos ?len ?all re s ~f:(fun _ -> by)
 
-let test (s, marks, pos, _) i =
+let test { s ; marks } i =
   if 2 * i >= Array.length marks then false else
   let idx = marks.(2 * i) in
   idx <> -1
 
 let dummy_offset = (-1, -1)
 
-let get_all_ofs (s, marks, pos, count) =
-  let res = Array.make count dummy_offset in
+let get_all_ofs {s ; marks ; gpos ; gcount } =
+  let res = Array.make gcount dummy_offset in
   for i = 0 to Array.length marks / 2 - 1 do
     let m1 = marks.(2 * i) in
     if m1 <> -1 then begin
-      let p1 = pos.(m1) in
-      let p2 = pos.(marks.(2 * i + 1)) in
+      let p1 = gpos.(m1) in
+      let p2 = gpos.(marks.(2 * i + 1)) in
       res.(i) <- (p1 - 1, p2 - 1)
     end
   done;
@@ -1153,13 +1160,13 @@ let get_all_ofs (s, marks, pos, count) =
 
 let dummy_string = ""
 
-let get_all (s, marks, pos, count) =
-  let res = Array.make count dummy_string in
+let get_all {s ; marks ; gpos ; gcount } =
+  let res = Array.make gcount dummy_string in
   for i = 0 to Array.length marks / 2 - 1 do
     let m1 = marks.(2 * i) in
     if m1 <> -1 then begin
-      let p1 = pos.(m1) in
-      let p2 = pos.(marks.(2 * i + 1)) in
+      let p1 = gpos.(m1) in
+      let p2 = gpos.(marks.(2 * i + 1)) in
       res.(i) <- String.sub s (p1 - 1) (p2 - p1)
     end
   done;
