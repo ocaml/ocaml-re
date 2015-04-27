@@ -89,7 +89,7 @@ module MarkSet : Set.S with type elt = markid
 val marked : substrings -> markid -> bool
 (** Tell if a mark was matched. *)
 
-val get_mark_set : substrings -> MarkSet.t
+val mark_set : substrings -> MarkSet.t
 
 (** {2 High Level Operations} *)
 

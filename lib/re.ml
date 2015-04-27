@@ -1189,7 +1189,7 @@ let get_all {s ; marks ; gpos ; gcount } =
 let marked {pmarks} p =
   Automata.PmarkSet.mem p pmarks
 
-let get_mark_set s = s.pmarks
+let mark_set s = s.pmarks
 
 (**********************************)
 
