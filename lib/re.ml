@@ -22,6 +22,7 @@
 
 module Cset = Re_cset
 module Automata = Re_automata
+module MarkSet = Automata.PmarkSet
 
 let rec first f l =
   match l with
@@ -37,10 +38,21 @@ let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
 let unknown = -2
 let break = -3
 
-type 'a match_info =
-  [ `Match of 'a
-  | `Failed
-  | `Running ]
+(* Result of a successful match. *)
+type substrings = {
+  s : string ;
+  marks : Automata.mark_infos ;
+  pmarks : MarkSet.t ;
+  gpos : int array ;
+  gcount : int
+}
+
+type match_info =
+  | Match of substrings
+  | Failed
+  | Running
+
+type markid = MarkSet.elt
 
 type state =
   { idx : int;
@@ -55,7 +67,7 @@ type state =
         (* Transition table, indexed by color *)
     mutable final :
       (Automata.category *
-       (Automata.idx * Automata.mark_infos match_info)) list;
+       (Automata.idx * Automata.status)) list;
         (* Mapping from the category of the next character to
            - the index where the next position should be saved
            - possibly, the list of marks (and the corresponding indices)
@@ -102,6 +114,7 @@ type info =
     mutable last : int
         (* Position where the match should stop *) }
 
+
 (****)
 
 let cat_inexistant = 1
@@ -138,8 +151,8 @@ let count = ref 0
 let mk_state ncol ((idx, _, _, _, _) as desc) =
   let break_state =
     match Automata.status desc with
-      `Running -> false
-    | _        -> true
+      Automata.Running -> false
+    | _       -> true
   in
   { idx = if break_state then break else idx;
     real_idx = idx;
@@ -342,10 +355,10 @@ let match_str groups partial re s pos len =
       res
   in
   match res with
-    `Match m ->
-      `Match (s, m, info.positions, re.group_count)
-  | (`Failed | `Running) as res ->
-      res
+    Automata.Match (marks, pmarks) ->
+      Match { s ; marks; pmarks ; gpos = info.positions; gcount = re.group_count}
+  | Automata.Failed -> Failed
+  | Automata.Running -> Running
 
 let mk_re init cols col_repr ncol lnl group_count =
   { initial = init;
@@ -419,6 +432,7 @@ type regexp =
   | Intersection of regexp list
   | Complement of regexp list
   | Difference of regexp * regexp
+  | Pmark of markid * regexp
 
 let rec is_charset r =
   match r with
@@ -433,7 +447,8 @@ let rec is_charset r =
       is_charset r
   | Sequence _ | Repeat _ | Beg_of_line | End_of_line
   | Beg_of_word | End_of_word | Beg_of_str | End_of_str
-  | Not_bound | Last_end_of_line | Start | Stop | Group _ | Nest _ ->
+  | Not_bound | Last_end_of_line | Start | Stop
+  | Group _ | Nest _ | Pmark (_,_)->
       false
 
 (**** Colormap ****)
@@ -472,7 +487,7 @@ let colorize c regexp =
     | Sem (_, r)
     | Sem_greedy (_, r)
     | Group r | No_group r
-    | Nest r                    -> colorize r
+    | Nest r | Pmark (_,r)     -> colorize r
     | Case _ | No_case _
     | Intersection _
     | Complement _
@@ -539,6 +554,8 @@ let rec equal x1 x2 =
       eq_list l1 l2
   | Difference (x1', x1''), Difference (x2', x2'') ->
       equal x1' x2' && equal x1'' x2''
+  | Pmark (m1, r1), Pmark (m2, r2) ->
+      Automata.Pmark.equal m1 m2 && equal r1 r2
   | _ ->
       false
 
@@ -690,6 +707,10 @@ let rec translate ids kind ign_group ign_case greedy pos cache (c:Bytes.t) r =
         (A.seq ids `First (A.erase ids b e) cr, kind')
   | Difference _ | Complement _ | Intersection _ | No_case _ | Case _ ->
       assert false
+  | Pmark (i, r') ->
+    let (cr, kind') =
+      translate ids kind ign_group ign_case greedy pos cache c r' in
+    (A.seq ids `First (A.pmark ids i) cr, kind')
 
 and trans_seq ids kind ign_group ign_case greedy pos cache c l =
   match l with
@@ -775,6 +796,7 @@ let rec handle_case ign_case r =
   | Difference (r, r') ->
       Set (Cset.inter (as_set (handle_case ign_case r))
              (Cset.diff cany (as_set (handle_case ign_case r'))))
+  | Pmark (i,r) -> Pmark (i,handle_case ign_case r)
 
 (****)
 
@@ -811,7 +833,7 @@ let rec anchored r =
   | Beg_of_str | Start ->
       true
   | Sem (_, r) | Sem_greedy (_, r) | Group r | No_group r | Nest r
-  | Case r | No_case r ->
+  | Case r | No_case r | Pmark (_, r) ->
       anchored r
 
 (****)
@@ -863,6 +885,7 @@ let non_greedy r = Sem_greedy (`Non_greedy, r)
 let group r = Group r
 let no_group r = No_group r
 let nest r = Nest r
+let mark r = let i = Automata.Pmark.gen () in (i,Pmark (i,r))
 
 let set str =
   let s = ref [] in
@@ -914,8 +937,6 @@ let no_case r = No_case r
 
 (****)
 
-type substrings = (string * Automata.mark_infos * int array * int)
-
 let compile r =
   compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
 
@@ -923,23 +944,23 @@ let exec ?(pos = 0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg "Re.exec";
   match match_str true false re s pos len with
-    `Match substr -> substr
-  | _             -> raise Not_found
+    Match substr -> substr
+  | _            -> raise Not_found
 
 let execp ?(pos = 0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg "Re.execp";
   match match_str false false re s pos len with
-    `Match substr -> true
+    Match substr -> true
   | _             -> false
 
 let exec_partial ?(pos = 0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg "Re.exec_partial";
   match match_str false true re s pos len with
-    `Match _ -> `Full
-  | `Running -> `Partial
-  | `Failed  -> `Mismatch
+    Match _ -> `Full
+  | Running -> `Partial
+  | Failed  -> `Mismatch
 
 let rec find_mark (i : int) l =
   match l with
@@ -948,20 +969,20 @@ let rec find_mark (i : int) l =
   | (j, idx) :: r ->
       if i = j then idx else find_mark i r
 
-let get (s, marks, pos, _) i =
+let get {s ; marks ; gpos} i =
   if 2 * i + 1 >= Array.length marks then raise Not_found;
   let m1 = marks.(2 * i) in
   if m1 = -1 then raise Not_found;
-  let p1 = pos.(m1) - 1 in
-  let p2 = pos.(marks.(2 * i + 1)) - 1 in
+  let p1 = gpos.(m1) - 1 in
+  let p2 = gpos.(marks.(2 * i + 1)) - 1 in
   String.sub s p1 (p2 - p1)
 
-let get_ofs (s, marks, pos, _) i =
+let get_ofs {s ; marks ; gpos} i =
   if 2 * i + 1 >= Array.length marks then raise Not_found;
   let m1 = marks.(2 * i) in
   if m1 = -1 then raise Not_found;
-  let p1 = pos.(m1) - 1 in
-  let p2 = pos.(marks.(2 * i + 1)) - 1 in
+  let p1 = gpos.(m1) - 1 in
+  let p2 = gpos.(marks.(2 * i + 1)) - 1 in
   (p1, p2)
 
 type 'a gen = unit -> 'a option
@@ -983,12 +1004,12 @@ let all_gen ?(pos=0) ?len re s =
     if !pos >= limit
     then None  (* no more matches *)
     else match match_str true false re s !pos (limit - !pos) with
-      | `Match substr ->
+      | Match substr ->
           let p1, p2 = get_ofs substr 0 in
           pos := if p1=p2 then p2+1 else p2;
           Some substr
-      | `Running
-      | `Failed -> None
+      | Running
+      | Failed -> None
 
 let all ?pos ?len re s =
   let l = ref [] in
@@ -1041,7 +1062,7 @@ let split_full_gen ?(pos=0) ?len re s =
       ) else None
   | `Idle ->
     begin match match_str true false re s !pos (limit - !pos) with
-      | `Match substr ->
+      | Match substr ->
           let p1, p2 = get_ofs substr 0 in
           pos := if p1=p2 then p2+1 else p2;
           let old_i = !i in
@@ -1052,8 +1073,8 @@ let split_full_gen ?(pos=0) ?len re s =
             state := `Yield (`Delim substr);
             Some (`Text text)
           ) else Some (`Delim substr)
-      | `Running -> None
-      | `Failed ->
+      | Running -> None
+      | Failed ->
           if !i < limit
           then (
             let text = String.sub s !i (limit - !i) in
@@ -1105,7 +1126,7 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
   let rec iter pos =
     if pos < limit
     then match match_str true false re s pos (limit-pos) with
-      | `Match substr ->
+      | Match substr ->
           let p1, p2 = get_ofs substr 0 in
           (* add string between previous match and current match *)
           Buffer.add_substring buf s pos (p1-pos);
@@ -1122,8 +1143,8 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
                     p2+1)
                   else p2)
           else Buffer.add_substring buf s p2 (limit-p2)
-      | `Running -> ()
-      | `Failed ->
+      | Running -> ()
+      | Failed ->
           Buffer.add_substring buf s pos (limit-pos)
   in
   iter pos;
@@ -1132,20 +1153,20 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
 let replace_string ?pos ?len ?all re ~by s =
   replace ?pos ?len ?all re s ~f:(fun _ -> by)
 
-let test (s, marks, pos, _) i =
+let test { s ; marks } i =
   if 2 * i >= Array.length marks then false else
   let idx = marks.(2 * i) in
   idx <> -1
 
 let dummy_offset = (-1, -1)
 
-let get_all_ofs (s, marks, pos, count) =
-  let res = Array.make count dummy_offset in
+let get_all_ofs {s ; marks ; gpos ; gcount } =
+  let res = Array.make gcount dummy_offset in
   for i = 0 to Array.length marks / 2 - 1 do
     let m1 = marks.(2 * i) in
     if m1 <> -1 then begin
-      let p1 = pos.(m1) in
-      let p2 = pos.(marks.(2 * i + 1)) in
+      let p1 = gpos.(m1) in
+      let p2 = gpos.(marks.(2 * i + 1)) in
       res.(i) <- (p1 - 1, p2 - 1)
     end
   done;
@@ -1153,17 +1174,22 @@ let get_all_ofs (s, marks, pos, count) =
 
 let dummy_string = ""
 
-let get_all (s, marks, pos, count) =
-  let res = Array.make count dummy_string in
+let get_all {s ; marks ; gpos ; gcount } =
+  let res = Array.make gcount dummy_string in
   for i = 0 to Array.length marks / 2 - 1 do
     let m1 = marks.(2 * i) in
     if m1 <> -1 then begin
-      let p1 = pos.(m1) in
-      let p2 = pos.(marks.(2 * i + 1)) in
+      let p1 = gpos.(m1) in
+      let p2 = gpos.(marks.(2 * i + 1)) in
       res.(i) <- String.sub s (p1 - 1) (p2 - p1)
     end
   done;
   res
+
+let marked {pmarks} p =
+  Automata.PmarkSet.mem p pmarks
+
+let mark_set s = s.pmarks
 
 (**********************************)
 

@@ -21,6 +21,8 @@ let collected_tests = ref []
 let id x = x
 let not_found () = raise Not_found
 
+let bool_printer i = Printf.sprintf "%b" i
+let int_printer i = Printf.sprintf "%d" i
 let str_printer s = "\"" ^ String.escaped s ^ "\""
 let ofs_printer (i0,i1) = Printf.sprintf "(%d,%d)" i0 i1
 let list_printer f l =

@@ -79,6 +79,18 @@ val get_all_ofs : substrings -> (int * int) array
 val test : substrings -> int -> bool
 (** Test whether a group matched *)
 
+(** {2 Marks} *)
+
+type markid
+(** Mark id *)
+
+module MarkSet : Set.S with type elt = markid
+
+val marked : substrings -> markid -> bool
+(** Tell if a mark was matched. *)
+
+val mark_set : substrings -> MarkSet.t
+
 (** {2 High Level Operations} *)
 
 type 'a gen = unit -> 'a option
@@ -261,6 +273,11 @@ val no_group : t -> t
 val nest : t -> t
 (** when matching against [nest e], only the group matching in the
        last match of e will be considered as matching *)
+
+
+
+val mark : t -> markid * t
+(** Mark a regexp. the markid can then be used to know if this regexp was used. *)
 
 (** {2 Character sets} *)
 
