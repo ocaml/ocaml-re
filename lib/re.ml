@@ -940,24 +940,28 @@ let no_case r = No_case r
 let compile r =
   compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
 
-let exec ?(pos = 0) ?(len = -1) re s =
+let exec_internal name ?(pos=0) ?(len = -1) re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
-    invalid_arg "Re.exec";
-  match match_str true false re s pos len with
+    invalid_arg name;
+  match_str true false re s pos len
+
+let exec ?pos ?len re s =
+  match exec_internal "Re.exec" ?pos ?len re s with
     Match substr -> substr
   | _            -> raise Not_found
 
-let execp ?(pos = 0) ?(len = -1) re s =
-  if pos < 0 || len < -1 || pos + len > String.length s then
-    invalid_arg "Re.execp";
-  match match_str false false re s pos len with
-    Match substr -> true
-  | _             -> false
+let exec_opt ?pos ?len re s =
+  match exec_internal "Re.exec_opt" ?pos ?len re s with
+    Match substr -> Some substr
+  | _            -> None
 
-let exec_partial ?(pos = 0) ?(len = -1) re s =
-  if pos < 0 || len < -1 || pos + len > String.length s then
-    invalid_arg "Re.exec_partial";
-  match match_str false true re s pos len with
+let execp ?pos ?len re s =
+  match exec_internal "Re.execp" ?pos ?len re s with
+    Match substr -> true
+  | _            -> false
+
+let exec_partial ?pos ?len re s =
+  match exec_internal "Re.exec_partial" ?pos ?len re s with
     Match _ -> `Full
   | Running -> `Partial
   | Failed  -> `Mismatch

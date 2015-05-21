@@ -49,6 +49,12 @@ val exec :
     @raise Not_found if the regular expression can't be found in [str]
 *)
 
+val exec_opt :
+  ?pos:int ->    (* Default: 0 *)
+  ?len:int ->    (* Default: -1 (until end of string) *)
+  re -> string -> substrings option
+(** Similar to {!exec}, but returns an option instead of using an exception. *)
+
 val execp :
   ?pos:int ->    (* Default: 0 *)
   ?len:int ->    (* Default: -1 (until end of string) *)
