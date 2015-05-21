@@ -39,7 +39,7 @@ let unknown = -2
 let break = -3
 
 (* Result of a successful match. *)
-type substrings = {
+type groups = {
   s : string ;
   marks : Automata.mark_infos ;
   pmarks : MarkSet.t ;
@@ -48,7 +48,7 @@ type substrings = {
 }
 
 type match_info =
-  | Match of substrings
+  | Match of groups
   | Failed
   | Running
 
@@ -973,21 +973,64 @@ let rec find_mark (i : int) l =
   | (j, idx) :: r ->
       if i = j then idx else find_mark i r
 
-let get {s ; marks ; gpos} i =
-  if 2 * i + 1 >= Array.length marks then raise Not_found;
-  let m1 = marks.(2 * i) in
-  if m1 = -1 then raise Not_found;
-  let p1 = gpos.(m1) - 1 in
-  let p2 = gpos.(marks.(2 * i + 1)) - 1 in
-  String.sub s p1 (p2 - p1)
+module Group = struct
 
-let get_ofs {s ; marks ; gpos} i =
-  if 2 * i + 1 >= Array.length marks then raise Not_found;
-  let m1 = marks.(2 * i) in
-  if m1 = -1 then raise Not_found;
-  let p1 = gpos.(m1) - 1 in
-  let p2 = gpos.(marks.(2 * i + 1)) - 1 in
-  (p1, p2)
+  type t = groups
+
+  let get {s ; marks ; gpos} i =
+    if 2 * i + 1 >= Array.length marks then raise Not_found;
+    let m1 = marks.(2 * i) in
+    if m1 = -1 then raise Not_found;
+    let p1 = gpos.(m1) - 1 in
+    let p2 = gpos.(marks.(2 * i + 1)) - 1 in
+    String.sub s p1 (p2 - p1)
+
+  let offset {s ; marks ; gpos} i =
+    if 2 * i + 1 >= Array.length marks then raise Not_found;
+    let m1 = marks.(2 * i) in
+    if m1 = -1 then raise Not_found;
+    let p1 = gpos.(m1) - 1 in
+    let p2 = gpos.(marks.(2 * i + 1)) - 1 in
+    (p1, p2)
+
+  let start subs i = fst (offset subs i)
+
+  let stop subs i = snd (offset subs i)
+
+  let test { s ; marks } i =
+    if 2 * i >= Array.length marks then false else
+      let idx = marks.(2 * i) in
+      idx <> -1
+
+  let dummy_offset = (-1, -1)
+
+  let all_offset {s ; marks ; gpos ; gcount } =
+    let res = Array.make gcount dummy_offset in
+    for i = 0 to Array.length marks / 2 - 1 do
+      let m1 = marks.(2 * i) in
+      if m1 <> -1 then begin
+        let p1 = gpos.(m1) in
+        let p2 = gpos.(marks.(2 * i + 1)) in
+        res.(i) <- (p1 - 1, p2 - 1)
+      end
+    done;
+    res
+
+  let dummy_string = ""
+
+  let all {s ; marks ; gpos ; gcount } =
+    let res = Array.make gcount dummy_string in
+    for i = 0 to Array.length marks / 2 - 1 do
+      let m1 = marks.(2 * i) in
+      if m1 <> -1 then begin
+        let p1 = gpos.(m1) in
+        let p2 = gpos.(marks.(2 * i + 1)) in
+        res.(i) <- String.sub s (p1 - 1) (p2 - p1)
+      end
+    done;
+    res
+
+end
 
 type 'a gen = unit -> 'a option
 
@@ -1009,7 +1052,7 @@ let all_gen ?(pos=0) ?len re s =
     then None  (* no more matches *)
     else match match_str true false re s !pos (limit - !pos) with
       | Match substr ->
-          let p1, p2 = get_ofs substr 0 in
+          let p1, p2 = Group.offset substr 0 in
           pos := if p1=p2 then p2+1 else p2;
           Some substr
       | Running
@@ -1028,19 +1071,19 @@ let matches_gen ?pos ?len re s =
   fun () ->
     match g() with
     | None -> None
-    | Some sub -> Some (get sub 0)
+    | Some sub -> Some (Group.get sub 0)
 
 let matches ?pos ?len re s =
   let l = ref [] in
   let g = all_gen ?pos ?len re s in
   let rec iter () = match g() with
     | None -> List.rev !l
-    | Some sub -> l := get sub 0 :: !l; iter ()
+    | Some sub -> l := Group.get sub 0 :: !l; iter ()
   in iter ()
 
 type split_token =
   [ `Text of string  (** Text between delimiters *)
-  | `Delim of substrings (** Delimiter *)
+  | `Delim of groups (** Delimiter *)
   ]
 
 let split_full_gen ?(pos=0) ?len re s =
@@ -1067,7 +1110,7 @@ let split_full_gen ?(pos=0) ?len re s =
   | `Idle ->
     begin match match_str true false re s !pos (limit - !pos) with
       | Match substr ->
-          let p1, p2 = get_ofs substr 0 in
+          let p1, p2 = Group.offset substr 0 in
           pos := if p1=p2 then p2+1 else p2;
           let old_i = !i in
           i := p2;
@@ -1131,7 +1174,7 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
     if pos < limit
     then match match_str true false re s pos (limit-pos) with
       | Match substr ->
-          let p1, p2 = get_ofs substr 0 in
+          let p1, p2 = Group.offset substr 0 in
           (* add string between previous match and current match *)
           Buffer.add_substring buf s pos (p1-pos);
           (* what should we replace the matched group with? *)
@@ -1157,43 +1200,23 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
 let replace_string ?pos ?len ?all re ~by s =
   replace ?pos ?len ?all re s ~f:(fun _ -> by)
 
-let test { s ; marks } i =
-  if 2 * i >= Array.length marks then false else
-  let idx = marks.(2 * i) in
-  idx <> -1
-
-let dummy_offset = (-1, -1)
-
-let get_all_ofs {s ; marks ; gpos ; gcount } =
-  let res = Array.make gcount dummy_offset in
-  for i = 0 to Array.length marks / 2 - 1 do
-    let m1 = marks.(2 * i) in
-    if m1 <> -1 then begin
-      let p1 = gpos.(m1) in
-      let p2 = gpos.(marks.(2 * i + 1)) in
-      res.(i) <- (p1 - 1, p2 - 1)
-    end
-  done;
-  res
-
-let dummy_string = ""
-
-let get_all {s ; marks ; gpos ; gcount } =
-  let res = Array.make gcount dummy_string in
-  for i = 0 to Array.length marks / 2 - 1 do
-    let m1 = marks.(2 * i) in
-    if m1 <> -1 then begin
-      let p1 = gpos.(m1) in
-      let p2 = gpos.(marks.(2 * i + 1)) in
-      res.(i) <- String.sub s (p1 - 1) (p2 - p1)
-    end
-  done;
-  res
 
 let marked {pmarks} p =
   Automata.PmarkSet.mem p pmarks
 
 let mark_set s = s.pmarks
+
+
+(** {2 Deprecated functions} *)
+
+type substrings = groups
+
+let get = Group.get
+let get_ofs = Group.offset
+let get_all = Group.all
+let get_all_ofs = Group.all_offset
+let test = Group.test
+
 
 (**********************************)
 

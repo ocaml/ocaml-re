@@ -28,8 +28,8 @@ type t
 type re
 (** Compiled regular expression *)
 
-type substrings
-(** Match informations *)
+type groups
+(** Information about groups in a match. *)
 
 (** {2 Compilation and execution of a regular expression} *)
 
@@ -40,7 +40,7 @@ val compile : t -> re
 val exec :
   ?pos:int ->    (* Default: 0 *)
   ?len:int ->    (* Default: -1 (until end of string) *)
-  re -> string -> substrings
+  re -> string -> groups
 (** [exec re str] matches [str] against the compiled expression [re],
     and returns the matched groups if any.
     @param pos optional beginning of the string (default 0)
@@ -52,7 +52,7 @@ val exec :
 val exec_opt :
   ?pos:int ->    (* Default: 0 *)
   ?len:int ->    (* Default: -1 (until end of string) *)
-  re -> string -> substrings option
+  re -> string -> groups option
 (** Similar to {!exec}, but returns an option instead of using an exception. *)
 
 val execp :
@@ -66,24 +66,36 @@ val exec_partial :
   ?pos:int ->    (* Default: 0 *)
   ?len:int ->    (* Default: -1 (until end of string) *)
   re -> string -> [ `Full | `Partial | `Mismatch ]
-(* More detailed version of {!exec_p} *)
+(** More detailed version of {!exec_p} *)
 
-(** {2 Substring extraction} *)
+(** Manipulate matching groups. *)
+module Group : sig
 
-val get : substrings -> int -> string
-(** Raise [Not_found] if the group did not match *)
+  type t = groups
+  (** Information about groups in a match. *)
 
-val get_ofs : substrings -> int -> int * int
-(** Raise [Not_found] if the group did not match *)
+  val get : t -> int -> string
+  (** Raise [Not_found] if the group did not match *)
 
-val get_all : substrings -> string array
-(** Return the empty string for each group which did not match *)
+  val offset : t -> int -> int * int
+  (** Raise [Not_found] if the group did not match *)
 
-val get_all_ofs : substrings -> (int * int) array
-(** Return [(-1,-1)] for each group which did not match *)
+  val start : t -> int -> int
+  (** Return the start of the match. Raise [Not_found] if the group did not match. *)
 
-val test : substrings -> int -> bool
-(** Test whether a group matched *)
+  val stop : t -> int -> int
+  (** Return the end of the match. Raise [Not_found] if the group did not match. *)
+
+  val all : t -> string array
+  (** Return the empty string for each group which did not match *)
+
+  val all_offset : t -> (int * int) array
+  (** Return [(-1,-1)] for each group which did not match *)
+
+  val test : t -> int -> bool
+  (** Test whether a group matched *)
+
+end
 
 (** {2 Marks} *)
 
@@ -92,10 +104,10 @@ type markid
 
 module MarkSet : Set.S with type elt = markid
 
-val marked : substrings -> markid -> bool
+val marked : Group.t -> markid -> bool
 (** Tell if a mark was matched. *)
 
-val mark_set : substrings -> MarkSet.t
+val mark_set : Group.t -> MarkSet.t
 
 (** {2 High Level Operations} *)
 
@@ -104,14 +116,14 @@ type 'a gen = unit -> 'a option
 val all :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
-  re -> string -> substrings list
+  re -> string -> Group.t list
 (** Repeatedly calls {!exec} on the given string, starting at given
     position and length.*)
 
 val all_gen :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
-  re -> string -> substrings gen
+  re -> string -> Group.t gen
 (** Same as {!all} but returns a generator *)
 
 val matches :
@@ -143,7 +155,7 @@ val split_gen :
 
 type split_token =
   [ `Text of string  (** Text between delimiters *)
-  | `Delim of substrings (** Delimiter *)
+  | `Delim of Group.t (** Delimiter *)
   ]
 
 val split_full :
@@ -161,7 +173,7 @@ val replace :
   ?len:int ->
   ?all:bool ->   (** Default: true. Otherwise only replace first occurrence *)
   re ->          (** matched groups *)
-  f:(substrings -> string) ->  (* how to replace *)
+  f:(Group.t -> string) ->  (* how to replace *)
   string ->     (** string to replace in *)
   string
 (** [replace ~all re ~f s] iterates on [s], and replaces every occurrence
@@ -338,3 +350,24 @@ val no_case : t -> t
 (** {2 Internal debugging}  *)
 
 val print_re : Format.formatter -> re -> unit
+
+
+(** {2 Deprecated functions} *)
+
+type substrings = Group.t
+(** Alias for {!Group.t}. Deprecated *)
+
+val get : Group.t -> int -> string
+(** Same as {!Group.get}. Deprecated *)
+
+val get_ofs : Group.t -> int -> int * int
+(** Same as {!Group.offset}. Deprecated *)
+
+val get_all : Group.t -> string array
+(** Same as {!Group.all}. Deprecated *)
+
+val get_all_ofs : Group.t -> (int * int) array
+(** Same as {!Group.all_offset}. Deprecated *)
+
+val test : Group.t -> int -> bool
+(** Same as {!Group.test}. Deprecated *)
