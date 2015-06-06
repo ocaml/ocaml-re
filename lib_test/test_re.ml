@@ -25,7 +25,7 @@ let correct_mark ?pos ?len r s il1 il2 =
     (fun () ->
        let subs = exec ?pos ?len (compile r) s in
        List.for_all (marked subs) il1 &&
-       List.for_all (fun x -> not @@ marked subs x) il2
+       List.for_all (fun x -> not (marked subs x)) il2
     ) ()
 ;;
 
@@ -370,8 +370,8 @@ let _ =
   );
 
   expect_pass "mark alt" (fun () ->
-    let ia, ra = mark @@ char 'a' in
-    let ib, rb = mark @@ char 'b' in
+    let ia, ra = mark (char 'a') in
+    let ib, rb = mark (char 'b') in
     let r = alt [ra ; rb] in
     correct_mark r "a" [ia] [ib];
     correct_mark r "b" [ib] [ia];

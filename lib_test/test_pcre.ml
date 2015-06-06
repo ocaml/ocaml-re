@@ -9,18 +9,18 @@ let string_of_group = function
   | Group (x, s) -> sp "Group (%d %s)" x s
   | NoGroup      -> "NoGroup"
 
-let list_printer f xs = xs |> List.map f |> String.concat " ; "
+let list_printer f xs = String.concat " ; " (List.map f xs)
 
 let test_blank_class _ =
   let re = Re_perl.compile_pat "\\d[[:blank:]]\\d[[:blank:]]+[a-z]" in
   let successes = ["1 2  a"; "2\t3 z"; "9\t0 \t a"] in
   let failures = [""; "123"; "  "; "1 3z"] in
-  successes |> List.iter (fun s ->
+  List.iter (fun s ->
     assert_bool ("String " ^ s ^ " should match") (Re.execp re s)
-  );
-  failures |> List.iter (fun s ->
+  ) successes;
+  List.iter (fun s ->
     assert_bool ("String " ^ s ^ " should not match") (not (Re.execp re s))
-  )
+  ) failures
 
 let rex = regexp "[:_]"
 
