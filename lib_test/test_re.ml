@@ -24,8 +24,8 @@ let correct_mark ?pos ?len r s il1 il2 =
     id true
     (fun () ->
        let subs = exec ?pos ?len (compile r) s in
-       List.for_all (marked subs) il1 &&
-       List.for_all (fun x -> not (marked subs x)) il2
+       List.for_all (Mark.test subs) il1 &&
+       List.for_all (fun x -> not (Mark.test subs x)) il2
     ) ()
 ;;
 

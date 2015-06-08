@@ -103,12 +103,12 @@ module Mark : sig
   type t
   (** Mark id *)
 
-  val test : Match.t -> t -> bool
+  val test : Group.t -> t -> bool
   (** Tell if a mark was matched. *)
 
   module Set : Set.S with type elt = t
 
-  val all : Match.t -> Set.t
+  val all : Group.t -> Set.t
   (** Return all the mark matched. *)
 
   val equal : t -> t -> bool
