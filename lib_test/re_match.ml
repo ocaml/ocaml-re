@@ -38,7 +38,7 @@ let check_phone cnt must_print line =
   try
     let matches = Re.exec rex line in
     let num = String.copy "(...) ...-...."
-    and (pos, _) = Re.get_ofs matches 1 in
+    and (pos, _) = Re.Group.offset matches 1 in
     let ofs = if line.[pos] = '(' then 1 else 0 in
     let pos = pos + ofs in
     String.blit line pos num 1 3;

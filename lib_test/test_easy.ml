@@ -33,7 +33,7 @@ let map_split_delim =
   List.map
     (function
       | `Text x -> `T x
-      | `Delim s -> `D (Re.get s 0)
+      | `Delim s -> `D (Re.Group.get s 0)
     )
 
 let pp_list' l =
@@ -63,7 +63,7 @@ let test_split_full () =
 
 let test_replace () =
   let re = Re_posix.compile_pat "[a-zA-Z]+" in
-  let f sub = String.capitalize (Re.get sub 0) in
+  let f sub = String.capitalize (Re.Group.get sub 0) in
   assert_equal ~printer:pp_str  " Hello World; I Love Chips!"
     (Re.replace re ~f " hello world; I love chips!");
   assert_equal ~printer:pp_str " Allo maman, bobo"

@@ -6,7 +6,7 @@ let re_match ?pos ?len r s res =
     ~msg:(str_printer s)
     ~printer:arr_ofs_printer
     id res
-    (fun () -> get_all_ofs (exec ?pos ?len (compile r) s)) ()
+    (fun () -> Group.all_offset (exec ?pos ?len (compile r) s)) ()
 ;;
 
 let re_fail ?pos ?len r s =
@@ -14,7 +14,7 @@ let re_fail ?pos ?len r s =
     ~msg:(str_printer s)
     ~printer:arr_ofs_printer
     not_found ()
-    (fun () -> get_all_ofs (exec ?pos ?len (compile r) s)) ()
+    (fun () -> Group.all_offset (exec ?pos ?len (compile r) s)) ()
 ;;
 
 let correct_mark ?pos ?len r s il1 il2 =
@@ -39,40 +39,40 @@ let _ =
   in
   let m = exec (compile r) "ab" in
 
-  expect_pass "get" (fun () ->
-    expect_eq_str id        "ab" (get m) 0;
-    expect_eq_str id        "a"  (get m) 1;
-    expect_eq_str not_found ()   (get m) 2;
-    expect_eq_str id        "b"  (get m) 3;
-    expect_eq_str not_found ()   (get m) 4;
+  expect_pass "Group.get" (fun () ->
+    expect_eq_str id        "ab" (Group.get m) 0;
+    expect_eq_str id        "a"  (Group.get m) 1;
+    expect_eq_str not_found ()   (Group.get m) 2;
+    expect_eq_str id        "b"  (Group.get m) 3;
+    expect_eq_str not_found ()   (Group.get m) 4;
   );
 
-  expect_pass "get_ofs" (fun () ->
-    expect_eq_ofs id        (0,2) (get_ofs m) 0;
-    expect_eq_ofs id        (0,1) (get_ofs m) 1;
-    expect_eq_ofs not_found ()    (get_ofs m) 2;
-    expect_eq_ofs id        (1,2) (get_ofs m) 3;
-    expect_eq_ofs not_found ()    (get_ofs m) 4;
+  expect_pass "Group.offset" (fun () ->
+    expect_eq_ofs id        (0,2) (Group.offset m) 0;
+    expect_eq_ofs id        (0,1) (Group.offset m) 1;
+    expect_eq_ofs not_found ()    (Group.offset m) 2;
+    expect_eq_ofs id        (1,2) (Group.offset m) 3;
+    expect_eq_ofs not_found ()    (Group.offset m) 4;
   );
 
-  expect_pass "get_all" (fun () ->
+  expect_pass "Group.all" (fun () ->
     expect_eq_arr_str
       id [|"ab";"a";"";"b"|]
-      get_all m
+      Group.all m
   );
 
-  expect_pass "get_all_ofs" (fun () ->
+  expect_pass "Group.all_offset" (fun () ->
     expect_eq_arr_ofs
       id [|(0,2);(0,1);(-1,-1);(1,2)|]
-      get_all_ofs m
+      Group.all_offset m
   );
 
-  expect_pass "test" (fun () ->
-    expect_eq_bool id true (test m) 0;
-    expect_eq_bool id true (test m) 1;
-    expect_eq_bool id false (test m) 2;
-    expect_eq_bool id true (test m) 3;
-    expect_eq_bool id false (test m) 4;
+  expect_pass "Group.test" (fun () ->
+    expect_eq_bool id true (Group.test m) 0;
+    expect_eq_bool id true (Group.test m) 1;
+    expect_eq_bool id false (Group.test m) 2;
+    expect_eq_bool id true (Group.test m) 3;
+    expect_eq_bool id false (Group.test m) 4;
   );
 
   (* Literal Match *)
@@ -328,7 +328,7 @@ let _ =
     in
     expect_eq_arr_ofs
       id [|(0,2);(0,1);(-1,-1);(1,2)|]
-      (fun () -> get_all_ofs (exec (compile r) "ab")) ()
+      (fun () -> Group.all_offset (exec (compile r) "ab")) ()
   );
 
   expect_pass "no_group" (fun () ->
@@ -341,7 +341,7 @@ let _ =
     in
     expect_eq_arr_ofs
       id [|(0,2)|]
-      (fun () -> get_all_ofs (exec (compile r) "ab")) ()
+      (fun () -> Group.all_offset (exec (compile r) "ab")) ()
   );
 
   expect_pass "nest" (fun () ->

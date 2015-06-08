@@ -14,7 +14,7 @@ let eq_match ?pos ?len ?(case = true) r s =
        let n_groups =
          try
            let m = Re.exec ~pos ?len (Re.compile (Re_emacs.re ~case r)) s in
-           Array.length (Re.get_all_ofs m)
+           Array.length (Re.Group.all_offset m)
          with _ -> 0
        in
 
@@ -29,7 +29,7 @@ let eq_match ?pos ?len ?(case = true) r s =
        get_all_ofs 0 []
     ) ()
     (fun () ->
-       Re.get_all_ofs (
+       Re.Group.all_offset (
          Re.exec ?pos ?len (Re_emacs.compile (Re_emacs.re ~case r)) s
        )
     ) ()
@@ -166,4 +166,3 @@ let _ =
   );
 
   run_test_suite "test_str"
-
