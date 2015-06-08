@@ -97,17 +97,24 @@ module Group : sig
 
 end
 
-(** {2 Marks} *)
+(** Marks *)
+module Mark : sig
 
-type markid
-(** Mark id *)
+  type t
+  (** Mark id *)
 
-module MarkSet : Set.S with type elt = markid
+  val test : Match.t -> t -> bool
+  (** Tell if a mark was matched. *)
 
-val marked : Group.t -> markid -> bool
-(** Tell if a mark was matched. *)
+  module Set : Set.S with type elt = t
 
-val mark_set : Group.t -> MarkSet.t
+  val all : Match.t -> Set.t
+  (** Return all the mark matched. *)
+
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+
+end
 
 (** {2 High Level Operations} *)
 
@@ -294,7 +301,7 @@ val nest : t -> t
 
 
 
-val mark : t -> markid * t
+val mark : t -> Mark.t * t
 (** Mark a regexp. the markid can then be used to know if this regexp was used. *)
 
 (** {2 Character sets} *)
@@ -371,3 +378,12 @@ val get_all_ofs : Group.t -> (int * int) array
 
 val test : Group.t -> int -> bool
 (** Same as {!Group.test}. Deprecated *)
+
+type markid = Mark.t
+(** Alias for {!Mark.t}. Deprecated *)
+
+val marked : Group.t -> Mark.t -> bool
+(** Same as {!Mark.test}. Deprecated *)
+
+val mark_set : Group.t -> Mark.Set.t
+(** Same as {!Mark.all}. Deprecated *)

@@ -52,8 +52,6 @@ type match_info =
   | Failed
   | Running
 
-type markid = MarkSet.elt
-
 type state =
   { idx : int;
         (* Index of the current position in the position table.
@@ -432,7 +430,7 @@ type regexp =
   | Intersection of regexp list
   | Complement of regexp list
   | Difference of regexp * regexp
-  | Pmark of markid * regexp
+  | Pmark of Automata.Pmark.t * regexp
 
 let rec is_charset r =
   match r with
@@ -1032,6 +1030,23 @@ module Group = struct
 
 end
 
+module Mark = struct
+
+  type t = Automata.Pmark.t
+
+  let test {pmarks} p =
+    Automata.PmarkSet.mem p pmarks
+
+  let all s = s.pmarks
+
+  module Set = MarkSet
+
+  let equal = Automata.Pmark.equal
+
+  let compare = Automata.Pmark.compare
+
+end
+
 type 'a gen = unit -> 'a option
 
 let all_gen ?(pos=0) ?len re s =
@@ -1201,11 +1216,6 @@ let replace_string ?pos ?len ?all re ~by s =
   replace ?pos ?len ?all re s ~f:(fun _ -> by)
 
 
-let marked {pmarks} p =
-  Automata.PmarkSet.mem p pmarks
-
-let mark_set s = s.pmarks
-
 
 (** {2 Deprecated functions} *)
 
@@ -1217,6 +1227,10 @@ let get_all = Group.all
 let get_all_ofs = Group.all_offset
 let test = Group.test
 
+type markid = Mark.t
+
+let marked = Mark.test
+let mark_set = Mark.all
 
 (**********************************)
 
