@@ -2,7 +2,7 @@ type regexp = Re.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
 
-type substrings = Re.substrings
+type groups = Re.groups
 
 (** Result of a {!Pcre.full_split} *)
 type split_result =
@@ -17,11 +17,11 @@ val regexp : ?flags:(flag list) -> string -> regexp
 
 val extract : rex:regexp -> string -> string array
 
-val exec : rex:regexp -> ?pos:int -> string -> substrings
+val exec : rex:regexp -> ?pos:int -> string -> groups
 
-val get_substring : substrings -> int -> string
+val get_substring : groups -> int -> string
 
-val get_substring_ofs : substrings -> int -> int * int
+val get_substring_ofs : groups -> int -> int * int
 
 val pmatch : rex:regexp -> string -> bool
 
@@ -32,3 +32,7 @@ val full_split : ?max:int -> rex:regexp -> string -> split_result list
 val split : rex:regexp -> string -> string list
 
 val quote : string -> string
+
+(** {2 Deprecated} *)
+
+type substrings = Re.groups

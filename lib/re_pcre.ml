@@ -8,7 +8,7 @@ type split_result =
   | Group of int * string
   | NoGroup
 
-type substrings = Re.substrings
+type groups = Re.groups
 
 let re ?(flags = []) pat =
   let opts = List.map (function
@@ -21,16 +21,16 @@ let re ?(flags = []) pat =
 let regexp ?flags pat = Re.compile (re ?flags pat)
 
 let extract ~rex s =
-  Re.get_all (Re.exec rex s)
+  Re.Group.all (Re.exec rex s)
 
 let exec ~rex ?pos s =
   Re.exec rex ?pos s
 
 let get_substring s i =
-  Re.get s i
+  Re.Group.get s i
 
 let get_substring_ofs s i =
-  Re.get_ofs s i
+  Re.Group.offset s i
 
 let pmatch ~rex s =
   Re.execp rex s
@@ -42,8 +42,8 @@ let substitute ~rex ~subst str =
       Buffer.contents b
     else if Re.execp ~pos rex str then (
       let ss = Re.exec ~pos rex str in
-      let start, fin = Re.get_ofs ss 0 in
-      let pat = Re.get ss 0 in
+      let start, fin = Re.Group.offset ss 0 in
+      let pat = Re.Group.get ss 0 in
       Buffer.add_substring b str pos (start - pos);
       Buffer.add_string b (subst pat);
       loop fin
@@ -60,7 +60,7 @@ let split ~rex str =
       List.rev accu
     else if Re.execp ~pos rex str then (
       let ss = Re.exec ~pos rex str in
-      let start, fin = Re.get_ofs ss 0 in
+      let start, fin = Re.Group.offset ss 0 in
       let s = String.sub str pos (start - pos) in
       loop (s :: accu) fin
     ) else (
@@ -99,16 +99,19 @@ let full_split ?(max=0) ~rex s =
       List.map (function
         | `Text s -> [Text s]
         | `Delim d ->
-          let matches = Re.get_all_ofs d in
-          let delim = Re.get d 0 in
+          let matches = Re.Group.all_offset d in
+          let delim = Re.Group.get d 0 in
           (Delim delim)::(
             let l = ref [] in
             for i = 1 to Array.length matches - 1 do
               l :=
                 (if matches.(i) = (-1, -1)
                  then NoGroup
-                 else Group (i, Re.get d i))
+                 else Group (i, Re.Group.get d i))
                 ::(!l)
             done;
             List.rev !l)) results in
     List.concat matches
+
+
+type substrings = Re.groups

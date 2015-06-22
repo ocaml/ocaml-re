@@ -59,7 +59,7 @@ let search_forward re s p =
   try
     let res = Re.exec ~pos:p (get_srch re) s in
     state := Some res;
-    fst (Re.get_ofs res 0)
+    fst (Re.Group.offset res 0)
   with Not_found ->
     state := None;
     raise Not_found
@@ -76,12 +76,12 @@ let rec search_backward re s p =
 
 let beginning_group i =
   match !state with
-    Some m -> fst (Re.get_ofs m i)
+    Some m -> fst (Re.Group.offset m i)
   | None   -> raise Not_found
 
 let end_group i =
   match !state with
-    Some m -> snd (Re.get_ofs m i)
+    Some m -> snd (Re.Group.offset m i)
   | None   -> raise Not_found
 
 let get_len i =
@@ -89,7 +89,7 @@ let get_len i =
     None   -> 0
   | Some m ->
       try
-        let (b, e) = Re.get_ofs m i in
+        let (b, e) = Re.Group.offset m i in
         e - b
       with Not_found ->
         0
@@ -131,7 +131,7 @@ let rec replace orig repl p res q len =
                 None ->
                   raise Not_found
               | Some m ->
-                  let (b, e) = Re.get_ofs m (Char.code c - Char.code '0') in
+                  let (b, e) = Re.Group.offset m (Char.code c - Char.code '0') in
                   let d = e - b in
                   if d > 0 then String.blit orig b res q d;
                   d
