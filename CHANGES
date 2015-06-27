@@ -1,3 +1,7 @@
+1.5.0 (27-Jun-2015)
+
+* Add Re.Group and Re.Mark modules (#65)
+
 1.4.1 (06-Jun-2015)
 
 * Fix 4.00.1 compatibilty with tests.
