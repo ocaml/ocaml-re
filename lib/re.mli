@@ -225,7 +225,10 @@ val rep1 : t -> t
 (** 1 or more matches *)
 
 val repn : t -> int -> int option -> t
-(** Repeated matches *)
+(** [repn re i j] matches [re] at least [i] times
+    and at most [j] times, bounds included.
+    [j = None] means no upper bound.
+*)
 
 val opt : t -> t
 (** 0 or 1 matches *)
