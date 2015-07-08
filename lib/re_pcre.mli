@@ -12,18 +12,25 @@ type split_result =
   | NoGroup               (** Unmatched subgroup *)
 
 val re : ?flags:(flag list) -> string -> Re.t
+(** [re ~flags s] creates the regexp [s] using the pcre syntax. *)
 
 val regexp : ?flags:(flag list) -> string -> regexp
+(** [re ~flags s] compiles the regexp [s] using the pcre syntax. *)
 
 val extract : rex:regexp -> string -> string array
+(** [extract ~rex s] executes [rex] on [s] and returns the matching groups. *)
 
 val exec : rex:regexp -> ?pos:int -> string -> groups
+(** Equivalent to {!Re.exec}. *)
 
 val get_substring : groups -> int -> string
+(** Equivalent to {!Re.Group.get}. *)
 
 val get_substring_ofs : groups -> int -> int * int
+(** Equivalent to {!Re.Group.offset}. *)
 
 val pmatch : rex:regexp -> string -> bool
+(** Equivalent to {!Re.exec}. *)
 
 val substitute : rex:Re.re -> subst:(string -> string) -> string -> string
 
