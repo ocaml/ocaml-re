@@ -30,7 +30,7 @@ val get_substring_ofs : groups -> int -> int * int
 (** Equivalent to {!Re.Group.offset}. *)
 
 val pmatch : rex:regexp -> string -> bool
-(** Equivalent to {!Re.exec}. *)
+(** Equivalent to {!Re.execp}. *)
 
 val substitute : rex:Re.re -> subst:(string -> string) -> string -> string
 
