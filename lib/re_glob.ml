@@ -105,7 +105,7 @@ let glob_parse ?(anchored=false) init s =
   let res = expr () in
   if anchored then Re.whole_string res else res
 
-let rec mul l l' =
+let mul l l' =
   List.flatten (List.map (fun s -> List.map (fun s' -> s ^ s') l') l)
 
 let explode str =
@@ -131,9 +131,20 @@ let explode str =
   in
   List.rev (fst (expl false 0 0 [] [""]))
 
-let glob' ?anchored nodot s =
-  glob_parse ?anchored (if nodot then Beg else Mid) s
-let glob ?anchored s = glob' ?anchored true s
-let globx' ?anchored nodot s =
-  Re.alt (List.map (glob' ?anchored nodot) (explode s))
-let globx ?anchored s = globx' ?anchored true s
+let glob ?anchored ?(period = true) ?(expand_braces = false) s =
+  let init_state =
+    if period
+    then Beg
+    else Mid
+  in
+  let parse s = glob_parse ?anchored init_state s in
+  if expand_braces
+  then Re.alt (List.map parse (explode s))
+  else parse s
+;;
+
+let glob' ?anchored period s = glob ?anchored ~period s
+
+let globx ?anchored s = glob ?anchored ~expand_braces:true s
+
+let globx' ?anchored period s = glob ?anchored ~period ~expand_braces:true s
