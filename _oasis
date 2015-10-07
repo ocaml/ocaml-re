@@ -106,6 +106,15 @@ Executable re_test_emacs
   Install:            false
   BuildDepends:       re, fort_unit
 
+Executable re_test_glob
+  Path:               lib_test
+  MainIs:             test_glob.ml
+  Build$:             flag(tests)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       re, fort_unit
+
 Executable re_test_str
   Path:               lib_test
   MainIs:             test_str.ml
@@ -142,6 +151,11 @@ Test re_test_emacs
 Test re_test_easy
   Run$: flag(tests)
   Command: $test_easy
+  WorkingDirectory: lib_test
+
+Test re_test_glob
+  Run$: flag(tests)
+  Command: $re_test_glob
   WorkingDirectory: lib_test
 
 # Test re_test_str
