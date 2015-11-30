@@ -90,11 +90,9 @@ let of_string s : t =
   in
 
   loop []
-;;
 
 let mul l l' =
   List.flatten (List.map (fun s -> List.map (fun s' -> s ^ s') l') l)
-;;
 
 let explode str =
   let l = String.length str in
@@ -118,7 +116,6 @@ let explode str =
         expl inner s (i + 1) acc beg
   in
   List.rev (fst (expl false 0 0 [] [""]))
-;;
 
 module To_re = struct
   module State = struct
@@ -136,20 +133,17 @@ module To_re = struct
         explicit_matching;
         remaining;
       }
-    ;;
 
     let explicit_matching t =
       match t.am_at_start_of_component, t.explicit_matching with
       | false, `Slashes_and_leading_dots -> `Slashes
       | _, other -> other
-    ;;
 
     let append ?(am_at_start_of_component=false) t piece =
       { t with
         re_pieces = piece :: t.re_pieces;
         am_at_start_of_component;
       }
-    ;;
 
     let to_re t = Re.seq (List.rev t.re_pieces)
 
@@ -157,7 +151,6 @@ module To_re = struct
       match t.remaining with
       | [] -> None
       | piece :: remaining -> Some (piece, { t with remaining })
-    ;;
   end
 
   let one ~explicit_matching =
@@ -165,13 +158,11 @@ module To_re = struct
     | `None -> Re.any
     | `Slashes -> Re.(compl [char '/'])
     | `Slashes_and_leading_dots -> Re.(compl [char '/'; char '.'])
-  ;;
 
   let enclosed enclosed =
     match enclosed with
     | Char c -> Re.char c
     | Range (low, high) -> Re.rg low high
-  ;;
 
   let enclosed_set ~explicit_matching kind set =
     let set = List.map enclosed set in
@@ -181,11 +172,9 @@ module To_re = struct
       | `AnyBut -> Re.compl set
     in
     Re.inter [enclosure; one ~explicit_matching]
-  ;;
 
   let exactly state c =
     State.append state (Re.char c) ~am_at_start_of_component:(c = '/')
-  ;;
 
   let many (state : State.t) =
     match State.explicit_matching state with
@@ -229,7 +218,6 @@ module To_re = struct
         | Some (Any_but enclosed, state) -> enclosed_set state `AnyBut enclosed
       in
       lookahead state
-  ;;
 
   let piece state piece =
     let explicit_matching = State.explicit_matching state in
@@ -241,7 +229,6 @@ module To_re = struct
     | Any_but enclosed ->
       State.append state (enclosed_set `AnyBut ~explicit_matching enclosed)
     | Exactly c -> exactly state c
-  ;;
 
   let glob ~explicit_matching glob =
     let rec loop state =
@@ -250,7 +237,6 @@ module To_re = struct
       | Some (p, state) -> loop (piece state p)
     in
     loop (State.create ~explicit_matching glob)
-  ;;
 end
 
 let glob
