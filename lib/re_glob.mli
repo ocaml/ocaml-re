@@ -34,13 +34,13 @@ val glob :
     expression is unanchored by default.
 
     [anchored] controls whether the regular expression will only match entire
-    strings.
+    strings. It defaults to false.
 
     [period] controls whether a dot at the beginning of a file
-    name must be explicitly matched.
+    name must be explicitly matched. It's true by default.
 
     If [expand_braces] is true, braced sets will expand into multiple globs,
-    e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2.
+    e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2. It defaults to false.
 
     Character '/' must be explicitly matched.
     Character '*' matches any sequence of characters and character
