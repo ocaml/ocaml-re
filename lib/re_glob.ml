@@ -22,91 +22,79 @@
 
 exception Parse_error
 
-let gany = Re.compl [Re.char '/']
-let notdot = Re.compl [Re.char '.'; Re.char '/']
-let dot = Re.char '.'
+type enclosed =
+  | Char of char
+  | Range of char * char
 
-type loc = Beg | BegAny | Mid
+type piece =
+  | Exactly of char
+  | Any_of of enclosed list
+  | Any_but of enclosed list
+  | One
+  | Many
 
-let beg_start =
-  Re.opt (Re.seq [notdot; Re.rep gany])
+type t = piece list
 
-let beg_start' =
-  Re.seq [notdot; Re.rep gany]
-
-let glob_parse ?(anchored=false) init s =
+let of_string s : t =
   let i = ref 0 in
   let l = String.length s in
   let eos () = !i = l in
-  let test c = not (eos ()) && s.[!i] = c in
-  let accept c = let r = test c in if r then incr i; r in
-  let get () = let r = s.[!i] in incr i; r in
-
-  let rec expr () = expr' init []
-  and expr' beg left =
-    if eos () then
-      match beg with
-        Mid | Beg -> Re.seq (List.rev left)
-      | BegAny -> Re.seq (List.rev (beg_start :: left))
-    else
-      let (piec, beg) = piece beg in expr' beg (piec :: left)
-  and piece beg =
-    if accept '*' then begin
-      if beg <> Mid then
-        (Re.seq [], BegAny)
-      else
-        (Re.rep gany, Mid)
-    end else if accept '?' then
-      (begin match beg with
-         Beg    -> notdot
-       | BegAny -> Re.seq [notdot; Re.rep gany]
-       | Mid    -> gany
-       end,
-       Mid)
-    else if accept '[' then begin
-      let set =
-        if accept '^' || accept '!' then
-          Re.compl (bracket [])
-        else
-          Re.alt (bracket [])
-      in
-      (begin match beg with
-         Beg    -> Re.inter [notdot; set]
-       | BegAny -> Re.alt [Re.seq [beg_start; Re.inter [notdot; set]];
-                           Re.seq [beg_start'; Re.inter [dot; set]]]
-       | Mid    -> Re.inter [gany; set]
-       end,
-       Mid)
-    end else
-      let c = char () in
-      ((if beg <> BegAny then
-          Re.char c
-        else if c = '.' then
-          Re.seq [beg_start'; Re.char c]
-        else
-          Re.seq [beg_start; Re.char c]),
-       if c = '/' then init else Mid)
-  and bracket s =
-    if s <> [] && accept ']' then s else begin
-      let c = char () in
-      if accept '-' then begin
-        if accept ']' then Re.char c :: Re.char '-' :: s else begin
-          let c' = char () in
-          bracket (Re.rg c c' :: s)
-        end
-      end else
-        bracket (Re.char c :: s)
-    end
-  and char () =
-    ignore (accept '\\');
-    if eos () then raise Parse_error;
-    get ()
+  let read c =
+    let r = not (eos ()) && s.[!i] = c in
+    if r then incr i;
+    r
   in
-  let res = expr () in
-  if anchored then Re.whole_string res else res
+
+  let char () =
+    ignore (read '\\' : bool);
+    if eos () then raise Parse_error;
+    let r = s.[!i] in
+    incr i;
+    r
+  in
+
+  let enclosed () : enclosed list =
+    let rec loop s =
+      (* This returns the list in reverse order, but order isn't important anyway *)
+      if s <> [] && read ']'
+      then s
+      else
+        let c = char () in
+        if not (read '-')
+        then loop (Char c :: s)
+        else if read ']'
+        then Char c :: Char '-' :: s
+        else
+          let c' = char () in
+          loop (Range (c, c') :: s)
+    in
+    loop []
+  in
+
+  let piece () =
+    if read '*'
+    then Many
+    else if read '?'
+    then One
+    else if not (read '[')
+    then Exactly (char ())
+    else if read '^' || read '!'
+    then Any_but (enclosed ())
+    else Any_of (enclosed ())
+  in
+
+  let rec loop pieces =
+    if eos ()
+    then List.rev pieces
+    else loop (piece () :: pieces)
+  in
+
+  loop []
+;;
 
 let mul l l' =
   List.flatten (List.map (fun s -> List.map (fun s' -> s ^ s') l') l)
+;;
 
 let explode str =
   let l = String.length str in
@@ -116,7 +104,7 @@ let explode str =
       (mul beg [String.sub str s (i - s)], i)
     end else
     match str.[i] with
-      '\\' -> expl inner s (i + 2) acc beg
+    | '\\' -> expl inner s (i + 2) acc beg
     | '{' ->
         let (t, i') = expl true (i + 1) (i + 1) [] [""] in
         expl inner i' i' acc
@@ -130,21 +118,163 @@ let explode str =
         expl inner s (i + 1) acc beg
   in
   List.rev (fst (expl false 0 0 [] [""]))
-
-let glob ?anchored ?(period = true) ?(expand_braces = false) s =
-  let init_state =
-    if period
-    then Beg
-    else Mid
-  in
-  let parse s = glob_parse ?anchored init_state s in
-  if expand_braces
-  then Re.alt (List.map parse (explode s))
-  else parse s
 ;;
 
-let glob' ?anchored period s = glob ?anchored ~period s
+module To_re = struct
+  module State = struct
+    type t = {
+      re_pieces : Re.t list;  (* last piece at head of list. *)
+      remaining : piece list; (* last piece at tail of list. *)
+      am_at_start_of_component : bool;  (* true at start of pattern or right after / *)
+      explicit_matching : [ `None | `Slashes | `Slashes_and_leading_dots ];
+    }
+
+    let create ~explicit_matching remaining =
+      {
+        re_pieces = [];
+        am_at_start_of_component = true;
+        explicit_matching;
+        remaining;
+      }
+    ;;
+
+    let explicit_matching t =
+      match t.am_at_start_of_component, t.explicit_matching with
+      | false, `Slashes_and_leading_dots -> `Slashes
+      | _, other -> other
+    ;;
+
+    let append ?(am_at_start_of_component=false) t piece =
+      { t with
+        re_pieces = piece :: t.re_pieces;
+        am_at_start_of_component;
+      }
+    ;;
+
+    let to_re t = Re.seq (List.rev t.re_pieces)
+
+    let next t =
+      match t.remaining with
+      | [] -> None
+      | piece :: remaining -> Some (piece, { t with remaining })
+    ;;
+  end
+
+  let one ~explicit_matching =
+    match explicit_matching with
+    | `None -> Re.any
+    | `Slashes -> Re.(compl [char '/'])
+    | `Slashes_and_leading_dots -> Re.(compl [char '/'; char '.'])
+  ;;
+
+  let enclosed enclosed =
+    match enclosed with
+    | Char c -> Re.char c
+    | Range (low, high) -> Re.rg low high
+  ;;
+
+  let enclosed_set ~explicit_matching kind set =
+    let set = List.map enclosed set in
+    let enclosure =
+      match kind with
+      | `AnyOf -> Re.alt set
+      | `AnyBut -> Re.compl set
+    in
+    Re.inter [enclosure; one ~explicit_matching]
+  ;;
+
+  let exactly state c =
+    State.append state (Re.char c) ~am_at_start_of_component:(c = '/')
+  ;;
+
+  let many (state : State.t) =
+    match State.explicit_matching state with
+    | (`None | `Slashes) as explicit_matching ->
+      State.append state (Re.rep (one ~explicit_matching))
+    | `Slashes_and_leading_dots ->
+      let not_empty =
+        Re.seq [
+          one ~explicit_matching:`Slashes_and_leading_dots;
+          Re.rep (one ~explicit_matching:`Slashes);
+        ]
+      in
+      (* [maybe_empty] is the default translation of Many, except in some special cases. *)
+      let maybe_empty = Re.opt not_empty in
+      let enclosed_set state kind set =
+        State.append state (Re.alt [
+          enclosed_set kind set ~explicit_matching:`Slashes_and_leading_dots;
+          Re.seq [
+            not_empty;
+            (* Since [not_empty] matched, subsequent dots are not leading. *)
+            enclosed_set kind set ~explicit_matching:`Slashes;
+          ];
+        ])
+      in
+      let rec lookahead state =
+        match State.next state with
+        | None -> State.append state maybe_empty
+        (* glob ** === glob * . *)
+        | Some (Many, state) -> lookahead state
+        | Some (Exactly c, state) ->
+          let state =
+            State.append state
+              (if c = '.'
+               then not_empty
+               else maybe_empty)
+          in
+          exactly state c
+        (* glob *? === glob ?* *)
+        | Some (One, state) -> State.append state not_empty
+        | Some (Any_of enclosed, state) -> enclosed_set state `AnyOf enclosed
+        | Some (Any_but enclosed, state) -> enclosed_set state `AnyBut enclosed
+      in
+      lookahead state
+  ;;
+
+  let piece state piece =
+    let explicit_matching = State.explicit_matching state in
+    match piece with
+    | One -> State.append state (one ~explicit_matching)
+    | Many -> many state
+    | Any_of enclosed ->
+      State.append state (enclosed_set `AnyOf ~explicit_matching enclosed)
+    | Any_but enclosed ->
+      State.append state (enclosed_set `AnyBut ~explicit_matching enclosed)
+    | Exactly c -> exactly state c
+  ;;
+
+  let glob ~explicit_matching glob =
+    let rec loop state =
+      match State.next state with
+      | None -> State.to_re state
+      | Some (p, state) -> loop (piece state p)
+    in
+    loop (State.create ~explicit_matching glob)
+  ;;
+end
+
+let glob
+      ?(anchored = false)
+      ?(explicit_matching = `Slashes_and_leading_dots)
+      ?(expand_braces = false)
+      s
+  =
+  let to_re s =
+    let re = To_re.glob ~explicit_matching (of_string s) in
+    if anchored
+    then Re.whole_string re
+    else re
+  in
+  if expand_braces
+  then Re.alt (List.map to_re (explode s))
+  else to_re s
+
+let glob' ?anchored period s =
+  glob ?anchored s
+    ~explicit_matching:(if period then `Slashes_and_leading_dots else `Slashes)
 
 let globx ?anchored s = glob ?anchored ~expand_braces:true s
 
-let globx' ?anchored period s = glob ?anchored ~period ~expand_braces:true s
+let globx' ?anchored period s =
+  glob ?anchored ~expand_braces:true s
+    ~explicit_matching:(if period then `Slashes_and_leading_dots else `Slashes)

@@ -49,9 +49,28 @@ let _ =
   assert (re_match    (glob "{foo,bar}bar") "{foo,bar}bar");
   assert (re_mismatch (glob "foo?bar"     ) "foo/bar"     );
 
-  assert (re_mismatch (glob ~period:true  "?oobar") ".oobar");
-  assert (re_mismatch (glob               "?oobar") ".oobar");
-  assert (re_match    (glob ~period:false "?oobar") ".oobar");
+  let explicit_matching = `Slashes_and_leading_dots in
+  assert (re_mismatch (glob ~explicit_matching  "?oobar") ".oobar");
+  assert (re_mismatch (glob ~explicit_matching  "?oobar") "/oobar");
+  assert (re_mismatch (glob ~explicit_matching  "f?obar") "f/obar");
+  assert (re_match    (glob ~explicit_matching  "f?obar") "f.obar");
+  assert (re_match    (glob ~explicit_matching  "f*.bar") "f.bar");
+  assert (re_match    (glob ~explicit_matching  "f?.bar") "fo.bar");
+  assert (re_mismatch (glob ~explicit_matching  "*.bar")  ".bar");
+  assert (re_mismatch (glob ~explicit_matching  "?")      ".");
+
+  assert (re_mismatch (glob                     "?oobar") ".oobar");
+  assert (re_mismatch (glob                     "?oobar") "/oobar");
+
+  let explicit_matching = `Slashes in
+  assert (re_mismatch (glob ~explicit_matching  "?oobar") "/oobar");
+  assert (re_match    (glob ~explicit_matching  "?oobar") ".oobar");
+  assert (re_mismatch (glob ~explicit_matching  "f?obar") "f/obar");
+  assert (re_match    (glob ~explicit_matching  "f?obar") "f.obar");
+
+  let explicit_matching = `None in
+  assert (re_match    (glob ~explicit_matching  "?oobar") ".oobar");
+  assert (re_match    (glob ~explicit_matching  "?oobar") "/oobar");
 
   assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "foobar"      );
   assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "farbar"      );

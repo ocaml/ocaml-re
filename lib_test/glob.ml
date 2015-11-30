@@ -13,7 +13,7 @@ let printf      = Printf.printf
 let (@@) f x    = f x
 
 let glob pattern str =
-    let rx = R.compile @@ R.whole_string @@ G.globx pattern in
+    let rx = R.compile @@ R.whole_string @@ G.glob ~expand_braces:true pattern in
     (* let () = R.print_re Format.std_formatter rx in *)
     if R.execp rx str
     then printf "%s matches:       %s\n" pattern str
@@ -21,13 +21,13 @@ let glob pattern str =
 
 let main () =
     let argv = Array.to_list Sys.argv in
-    let this = List.hd argv in 
+    let this = List.hd argv in
     let args = List.tl argv in
         match args with
         | [] | [_]   -> error "usage: %s pattern string .." this
         | p :: strs  -> List.iter (glob p) strs
 
-let () = 
+let () =
     try
         main (); exit 0
     with
