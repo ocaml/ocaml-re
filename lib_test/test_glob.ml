@@ -1,4 +1,5 @@
 open Re_glob
+open Fort_unit
 
 let re_match ?pos ?len re s =
   Re.execp ?pos ?len (Re.compile re) s
@@ -48,10 +49,12 @@ let _ =
   assert (re_match    (glob "{foo,bar}bar") "{foo,bar}bar");
   assert (re_mismatch (glob "foo?bar"     ) "foo/bar"     );
 
-  assert (re_mismatch (glob' true  "?oobar") ".oobar");
-  assert (re_mismatch (glob        "?oobar") ".oobar");
-  assert (re_match    (glob' false "?oobar") ".oobar");
+  assert (re_mismatch (glob ~period:true  "?oobar") ".oobar");
+  assert (re_mismatch (glob               "?oobar") ".oobar");
+  assert (re_match    (glob ~period:false "?oobar") ".oobar");
 
-  assert (re_match    (globx "{foo,far}bar") "foobar"      );
-  assert (re_match    (globx "{foo,far}bar") "farbar"      );
-  assert (re_mismatch (globx "{foo,far}bar") "{foo,far}bar");
+  assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "foobar"      );
+  assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "farbar"      );
+  assert (re_mismatch (glob ~expand_braces:true "{foo,far}bar") "{foo,far}bar");
+
+  run_test_suite "test_re";

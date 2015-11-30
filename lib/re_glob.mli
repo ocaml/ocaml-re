@@ -24,23 +24,47 @@
 
 exception Parse_error
 
-val glob : ?anchored:bool -> string -> Re.t
+val glob :
+  ?anchored:bool ->
+  ?period:bool ->
+  ?expand_braces:bool ->
+  string ->
+  Re.t
 (** Implements the semantics of shells patterns. The returned regular
-    expression is unanchored by default. If the [anchored] parameter
-    is provided, the regular expression will only matches whole strings.
+    expression is unanchored by default.
 
-    Character '/' must be explicitely matched.  A dot at the
-    beginning of a file name must be explicitely matched as well.
+    [anchored] controls whether the regular expression will only match entire
+    strings. It defaults to false.
+
+    [period] controls whether a dot at the beginning of a file
+    name must be explicitly matched. It's true by default.
+
+    If [expand_braces] is true, braced sets will expand into multiple globs,
+    e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2. It defaults to false.
+
+    Character '/' must be explicitly matched.
     Character '*' matches any sequence of characters and character
     '?' matches a single character, provided these restrictions are
-    satisfied,
+    satisfied.
     A sequence '[...]' matches any of the enclosed characters.
-    A backslash escapes the following character. *)
+    A backslash escapes the following character.
+*)
 
 val glob' : ?anchored:bool -> bool -> string -> Re.t
 (** Same, but allows to choose whether dots at the beginning of a
-    file name need to be explicitly matched (true) or not (false) *)
+    file name need to be explicitly matched (true) or not (false)
+
+    @deprecated Use [glob] with the optional [period] parameter.
+*)
 
 val globx : ?anchored:bool -> string -> Re.t
+(** This version of [glob] also recognizes the pattern \{..,..\}
+
+    @deprecated Prefer [glob ~expand_braces:true].
+*)
+
 val globx' : ?anchored:bool -> bool -> string -> Re.t
-(** These two functions also recognize the pattern \{..,..\} *)
+(** This version of [glob'] also recognizes the pattern \{..,..\}
+
+    @deprecated Prefer [glob ~expand_braces:true ?period].
+*)
