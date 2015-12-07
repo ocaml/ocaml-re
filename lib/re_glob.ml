@@ -120,28 +120,37 @@ let explode str =
 module To_re = struct
   module State = struct
     type t = {
-      re_pieces : Re.t list;  (* last piece at head of list. *)
-      remaining : piece list; (* last piece at tail of list. *)
-      am_at_start_of_component : bool;  (* true at start of pattern or right after / *)
-      explicit_matching : [ `None | `Slashes | `Slashes_and_leading_dots ];
+      re_pieces                : Re.t list;  (* last piece at head of list. *)
+      remaining                : piece list; (* last piece at tail of list. *)
+      am_at_start_of_pattern   : bool;       (* true at start of pattern *)
+      am_at_start_of_component : bool;       (* true at start of pattern or immediately
+                                                after '/' *)
+      pathname                 : bool;
+      period                   : bool;
     }
 
-    let create ~explicit_matching remaining =
+    let create ~period ~pathname remaining =
       {
         re_pieces = [];
+        am_at_start_of_pattern = true;
         am_at_start_of_component = true;
-        explicit_matching;
+        pathname;
+        period;
         remaining;
       }
 
-    let explicit_matching t =
-      match t.am_at_start_of_component, t.explicit_matching with
-      | false, `Slashes_and_leading_dots -> `Slashes
-      | _, other -> other
+    let explicit_period t =
+      t.period && (
+        t.am_at_start_of_pattern ||
+        (t.am_at_start_of_component && t.pathname)
+      )
+
+    let explicit_slash t = t.pathname
 
     let append ?(am_at_start_of_component=false) t piece =
       { t with
         re_pieces = piece :: t.re_pieces;
+        am_at_start_of_pattern = false;
         am_at_start_of_component;
       }
 
@@ -153,49 +162,65 @@ module To_re = struct
       | piece :: remaining -> Some (piece, { t with remaining })
   end
 
-  let one ~explicit_matching =
-    match explicit_matching with
-    | `None -> Re.any
-    | `Slashes -> Re.(compl [char '/'])
-    | `Slashes_and_leading_dots -> Re.(compl [char '/'; char '.'])
+  let one ~explicit_slash ~explicit_period =
+    Re.(compl (
+      List.concat [
+        if explicit_slash  then [char '/'] else [];
+        if explicit_period then [char '.'] else [];
+      ]
+    ))
 
   let enclosed enclosed =
     match enclosed with
     | Char c -> Re.char c
     | Range (low, high) -> Re.rg low high
 
-  let enclosed_set ~explicit_matching kind set =
+  let enclosed_set ~explicit_slash ~explicit_period kind set =
     let set = List.map enclosed set in
     let enclosure =
       match kind with
       | `Any_of -> Re.alt set
       | `Any_but -> Re.compl set
     in
-    Re.inter [enclosure; one ~explicit_matching]
+    Re.inter [enclosure; one ~explicit_slash ~explicit_period]
 
   let exactly state c =
     State.append state (Re.char c) ~am_at_start_of_component:(c = '/')
 
   let many (state : State.t) =
-    match State.explicit_matching state with
-    | (`None | `Slashes) as explicit_matching ->
-      State.append state (Re.rep (one ~explicit_matching))
-    | `Slashes_and_leading_dots ->
+    let explicit_slash = State.explicit_slash state in
+    let explicit_period = State.explicit_period state in
+    (* Whether we must explicitly match period depends on the surrounding characters, but
+       slashes are easy to explicit match. This conditional splits out some simple cases.
+    *)
+    if not explicit_period then begin
+      State.append state (Re.rep (one ~explicit_slash ~explicit_period))
+    end else if not explicit_slash then begin
+      (* In this state, we explicitly match periods only at the very beginning *)
+      Re.opt (
+        Re.seq [
+          one         ~explicit_slash:false ~explicit_period;
+          Re.rep (one ~explicit_slash:false ~explicit_period:false);
+        ]
+      )
+      |> State.append state
+    end else begin
       let not_empty =
         Re.seq [
-          one ~explicit_matching:`Slashes_and_leading_dots;
-          Re.rep (one ~explicit_matching:`Slashes);
+          one         ~explicit_slash:true ~explicit_period:true;
+          Re.rep (one ~explicit_slash:true ~explicit_period:false);
         ]
       in
-      (* [maybe_empty] is the default translation of Many, except in some special cases. *)
+      (* [maybe_empty] is the default translation of Many, except in some special cases.
+      *)
       let maybe_empty = Re.opt not_empty in
       let enclosed_set state kind set =
         State.append state (Re.alt [
-          enclosed_set kind set ~explicit_matching:`Slashes_and_leading_dots;
+          enclosed_set kind set ~explicit_slash:true ~explicit_period:true;
           Re.seq [
             not_empty;
             (* Since [not_empty] matched, subsequent dots are not leading. *)
-            enclosed_set kind set ~explicit_matching:`Slashes;
+            enclosed_set kind set ~explicit_slash:true ~explicit_period:false;
           ];
         ])
       in
@@ -218,35 +243,38 @@ module To_re = struct
         | Some (Any_but enclosed, state) -> enclosed_set state `Any_but enclosed
       in
       lookahead state
+    end
 
   let piece state piece =
-    let explicit_matching = State.explicit_matching state in
+    let explicit_slash = State.explicit_slash state in
+    let explicit_period = State.explicit_period state in
     match piece with
-    | One -> State.append state (one ~explicit_matching)
+    | One -> State.append state (one ~explicit_slash ~explicit_period)
     | Many -> many state
     | Any_of enclosed ->
-      State.append state (enclosed_set `Any_of ~explicit_matching enclosed)
+      State.append state (enclosed_set `Any_of ~explicit_slash ~explicit_period enclosed)
     | Any_but enclosed ->
-      State.append state (enclosed_set `Any_but ~explicit_matching enclosed)
+      State.append state (enclosed_set `Any_but ~explicit_slash ~explicit_period enclosed)
     | Exactly c -> exactly state c
 
-  let glob ~explicit_matching glob =
+  let glob ~pathname ~period glob =
     let rec loop state =
       match State.next state with
       | None -> State.to_re state
       | Some (p, state) -> loop (piece state p)
     in
-    loop (State.create ~explicit_matching glob)
+    loop (State.create ~pathname ~period glob)
 end
 
 let glob
       ?(anchored = false)
-      ?(explicit_matching = `Slashes_and_leading_dots)
+      ?(pathname = true)
+      ?(period = true)
       ?(expand_braces = false)
       s
   =
   let to_re s =
-    let re = To_re.glob ~explicit_matching (of_string s) in
+    let re = To_re.glob ~pathname ~period (of_string s) in
     if anchored
     then Re.whole_string re
     else re
@@ -255,12 +283,8 @@ let glob
   then Re.alt (List.map to_re (explode s))
   else to_re s
 
-let glob' ?anchored period s =
-  glob ?anchored s
-    ~explicit_matching:(if period then `Slashes_and_leading_dots else `Slashes)
+let glob' ?anchored period s = glob ?anchored ~period s
 
 let globx ?anchored s = glob ?anchored ~expand_braces:true s
 
-let globx' ?anchored period s =
-  glob ?anchored ~expand_braces:true s
-    ~explicit_matching:(if period then `Slashes_and_leading_dots else `Slashes)
+let globx' ?anchored period s = glob ?anchored ~expand_braces:true ~period s

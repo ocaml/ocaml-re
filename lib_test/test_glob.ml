@@ -49,28 +49,33 @@ let _ =
   assert (re_match    (glob "{foo,bar}bar") "{foo,bar}bar");
   assert (re_mismatch (glob "foo?bar"     ) "foo/bar"     );
 
-  let explicit_matching = `Slashes_and_leading_dots in
-  assert (re_mismatch (glob ~explicit_matching  "?oobar") ".oobar");
-  assert (re_mismatch (glob ~explicit_matching  "?oobar") "/oobar");
-  assert (re_mismatch (glob ~explicit_matching  "f?obar") "f/obar");
-  assert (re_match    (glob ~explicit_matching  "f?obar") "f.obar");
-  assert (re_match    (glob ~explicit_matching  "f*.bar") "f.bar");
-  assert (re_match    (glob ~explicit_matching  "f?.bar") "fo.bar");
-  assert (re_mismatch (glob ~explicit_matching  "*.bar")  ".bar");
-  assert (re_mismatch (glob ~explicit_matching  "?")      ".");
+  let pathname = true in
+  let period = true in
+  assert (re_mismatch (glob ~pathname ~period  "?oobar") ".oobar");
+  assert (re_mismatch (glob ~pathname ~period  "?oobar") "/oobar");
+  assert (re_mismatch (glob ~pathname ~period  "f?obar") "f/obar");
+  assert (re_match    (glob ~pathname ~period  "f?obar") "f.obar");
+  assert (re_match    (glob ~pathname ~period  "f*.bar") "f.bar");
+  assert (re_match    (glob ~pathname ~period  "f?.bar") "fo.bar");
+  assert (re_match    (glob ~pathname ~period  "/.bar")  "/.bar");
+  assert (re_mismatch (glob ~pathname ~period  "*.bar")  ".bar");
+  assert (re_mismatch (glob ~pathname ~period  "?")      ".");
+  assert (re_mismatch (glob ~pathname ~period  "/*bar")  "/.bar");
 
   assert (re_mismatch (glob                     "?oobar") ".oobar");
   assert (re_mismatch (glob                     "?oobar") "/oobar");
 
-  let explicit_matching = `Slashes in
-  assert (re_mismatch (glob ~explicit_matching  "?oobar") "/oobar");
-  assert (re_match    (glob ~explicit_matching  "?oobar") ".oobar");
-  assert (re_mismatch (glob ~explicit_matching  "f?obar") "f/obar");
-  assert (re_match    (glob ~explicit_matching  "f?obar") "f.obar");
+  let pathname = true in
+  let period = false in
+  assert (re_mismatch (glob ~pathname ~period  "?oobar") "/oobar");
+  assert (re_match    (glob ~pathname ~period  "?oobar") ".oobar");
+  assert (re_mismatch (glob ~pathname ~period  "f?obar") "f/obar");
+  assert (re_match    (glob ~pathname ~period  "f?obar") "f.obar");
 
-  let explicit_matching = `None in
-  assert (re_match    (glob ~explicit_matching  "?oobar") ".oobar");
-  assert (re_match    (glob ~explicit_matching  "?oobar") "/oobar");
+  let pathname = false in
+  let period = false in
+  assert (re_match    (glob ~pathname ~period  "?oobar") ".oobar");
+  assert (re_match    (glob ~pathname ~period  "?oobar") "/oobar");
 
   assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "foobar"      );
   assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "farbar"      );
