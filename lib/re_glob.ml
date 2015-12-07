@@ -168,8 +168,8 @@ module To_re = struct
     let set = List.map enclosed set in
     let enclosure =
       match kind with
-      | `AnyOf -> Re.alt set
-      | `AnyBut -> Re.compl set
+      | `Any_of -> Re.alt set
+      | `Any_but -> Re.compl set
     in
     Re.inter [enclosure; one ~explicit_matching]
 
@@ -214,8 +214,8 @@ module To_re = struct
           exactly state c
         (* glob *? === glob ?* *)
         | Some (One, state) -> State.append state not_empty
-        | Some (Any_of enclosed, state) -> enclosed_set state `AnyOf enclosed
-        | Some (Any_but enclosed, state) -> enclosed_set state `AnyBut enclosed
+        | Some (Any_of enclosed, state) -> enclosed_set state `Any_of enclosed
+        | Some (Any_but enclosed, state) -> enclosed_set state `Any_but enclosed
       in
       lookahead state
 
@@ -225,9 +225,9 @@ module To_re = struct
     | One -> State.append state (one ~explicit_matching)
     | Many -> many state
     | Any_of enclosed ->
-      State.append state (enclosed_set `AnyOf ~explicit_matching enclosed)
+      State.append state (enclosed_set `Any_of ~explicit_matching enclosed)
     | Any_but enclosed ->
-      State.append state (enclosed_set `AnyBut ~explicit_matching enclosed)
+      State.append state (enclosed_set `Any_but ~explicit_matching enclosed)
     | Exactly c -> exactly state c
 
   let glob ~explicit_matching glob =
