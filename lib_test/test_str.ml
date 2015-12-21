@@ -7,7 +7,7 @@ let eq_match ?pos ?len ?(case = true) r s =
     (fun () ->
        let pos = match pos with None -> 0 | Some p -> p in
        let pat = if case then Str.regexp r else Str.regexp_case_fold r in
-       let s_start = Str.search_forward pat s pos in
+       let _s_start = Str.search_forward pat s pos in
 
        (* need a better way to determine group count -
           maybe parse the regular expression ? *)
