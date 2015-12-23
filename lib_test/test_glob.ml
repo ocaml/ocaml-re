@@ -32,6 +32,10 @@ let _ =
   assert (re_match    (glob ~anchored:true "*/foo") "/foo");
   assert (re_match    (glob ~anchored:true "foo/*") "foo/");
 
+  assert (re_mismatch (glob                "/[^f]") "/foo");
+  assert (re_match    (glob                "/[^f]") "/bar");
+  assert (re_mismatch (glob ~anchored:true "/[^f]") "/bar");
+
   assert (re_mismatch (glob ~anchored:true "*") ".bar");
 
   assert (re_match    (glob "foo[.]bar") "foo.bar");
