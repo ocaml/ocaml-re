@@ -26,6 +26,7 @@ exception Parse_error
 
 val glob :
   ?anchored:bool ->
+  ?pathname:bool ->
   ?period:bool ->
   ?expand_braces:bool ->
   string ->
@@ -33,28 +34,34 @@ val glob :
 (** Implements the semantics of shells patterns. The returned regular
     expression is unanchored by default.
 
-    [anchored] controls whether the regular expression will only match entire
-    strings. It defaults to false.
+    Character '*' matches any sequence of characters and character
+    '?' matches a single character.
+    A sequence '[...]' matches any one of the enclosed characters.
+    A sequence '[^...]' or '[!...]' matches any character *but* the enclosed characters.
+    A backslash escapes the following character.  The last character of the string cannot
+    be a backslash.
 
-    [period] controls whether a dot at the beginning of a file
-    name must be explicitly matched. It's true by default.
+    [anchored] controls whether the regular expression will only match entire
+    strings. Defaults to false.
+
+    [pathname]: If this flag is set, match a slash in string only with a slash in pattern
+    and not by an asterisk ('*') or a question mark ('?') metacharacter, nor by a bracket
+    expression ('[]') containing a slash. Defaults to true.
+
+    [period]: If this flag is set, a leading period in string has to be matched exactly by
+    a period in pattern. A period is considered to be leading if it is the first
+    character in string, or if both [pathname] is set and the period immediately follows a
+    slash. Defaults to true.
 
     If [expand_braces] is true, braced sets will expand into multiple globs,
-    e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2. It defaults to false.
-
-    Character '/' must be explicitly matched.
-    Character '*' matches any sequence of characters and character
-    '?' matches a single character, provided these restrictions are
-    satisfied.
-    A sequence '[...]' matches any of the enclosed characters.
-    A backslash escapes the following character.
-*)
+    e.g. a{x,y}b{1,2} matches axb1, axb2, ayb1, ayb2.  As specified for bash, brace
+    expansion is purely textual and can be nested. Defaults to false. *)
 
 val glob' : ?anchored:bool -> bool -> string -> Re.t
 (** Same, but allows to choose whether dots at the beginning of a
     file name need to be explicitly matched (true) or not (false)
 
-    @deprecated Use [glob] with the optional [period] parameter.
+    @deprecated Use [glob ~period].
 *)
 
 val globx : ?anchored:bool -> string -> Re.t
@@ -66,5 +73,5 @@ val globx : ?anchored:bool -> string -> Re.t
 val globx' : ?anchored:bool -> bool -> string -> Re.t
 (** This version of [glob'] also recognizes the pattern \{..,..\}
 
-    @deprecated Prefer [glob ~expand_braces:true ?period].
+    @deprecated Prefer [glob ~expand_braces:true ~period].
 *)

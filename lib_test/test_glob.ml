@@ -32,6 +32,10 @@ let _ =
   assert (re_match    (glob ~anchored:true "*/foo") "/foo");
   assert (re_match    (glob ~anchored:true "foo/*") "foo/");
 
+  assert (re_mismatch (glob                "/[^f]") "/foo");
+  assert (re_match    (glob                "/[^f]") "/bar");
+  assert (re_mismatch (glob ~anchored:true "/[^f]") "/bar");
+
   assert (re_mismatch (glob ~anchored:true "*") ".bar");
 
   assert (re_match    (glob "foo[.]bar") "foo.bar");
@@ -49,9 +53,33 @@ let _ =
   assert (re_match    (glob "{foo,bar}bar") "{foo,bar}bar");
   assert (re_mismatch (glob "foo?bar"     ) "foo/bar"     );
 
-  assert (re_mismatch (glob ~period:true  "?oobar") ".oobar");
-  assert (re_mismatch (glob               "?oobar") ".oobar");
-  assert (re_match    (glob ~period:false "?oobar") ".oobar");
+  let pathname = true in
+  let period = true in
+  assert (re_mismatch (glob ~pathname ~period  "?oobar") ".oobar");
+  assert (re_mismatch (glob ~pathname ~period  "?oobar") "/oobar");
+  assert (re_mismatch (glob ~pathname ~period  "f?obar") "f/obar");
+  assert (re_match    (glob ~pathname ~period  "f?obar") "f.obar");
+  assert (re_match    (glob ~pathname ~period  "f*.bar") "f.bar");
+  assert (re_match    (glob ~pathname ~period  "f?.bar") "fo.bar");
+  assert (re_match    (glob ~pathname ~period  "/.bar")  "/.bar");
+  assert (re_mismatch (glob ~pathname ~period  "*.bar")  ".bar");
+  assert (re_mismatch (glob ~pathname ~period  "?")      ".");
+  assert (re_mismatch (glob ~pathname ~period  "/*bar")  "/.bar");
+
+  assert (re_mismatch (glob                     "?oobar") ".oobar");
+  assert (re_mismatch (glob                     "?oobar") "/oobar");
+
+  let pathname = true in
+  let period = false in
+  assert (re_mismatch (glob ~pathname ~period  "?oobar") "/oobar");
+  assert (re_match    (glob ~pathname ~period  "?oobar") ".oobar");
+  assert (re_mismatch (glob ~pathname ~period  "f?obar") "f/obar");
+  assert (re_match    (glob ~pathname ~period  "f?obar") "f.obar");
+
+  let pathname = false in
+  let period = false in
+  assert (re_match    (glob ~pathname ~period  "?oobar") ".oobar");
+  assert (re_match    (glob ~pathname ~period  "?oobar") "/oobar");
 
   assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "foobar"      );
   assert (re_match    (glob ~expand_braces:true "{foo,far}bar") "farbar"      );

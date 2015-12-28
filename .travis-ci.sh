@@ -1,3 +1,5 @@
+set -e
+
 OPAM_DEPENDS="ounit"
 
 case "$OCAML_VERSION,$OPAM_VERSION" in
@@ -33,3 +35,6 @@ opam pin add re .
 # run tests
 ./configure --enable-tests
 make test
+
+# Check that there's no new diff
+git status
