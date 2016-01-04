@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 2dd16160b3df1fd1cca5ed887a253007)
-version = "1.4.1"
+# DO NOT EDIT (digest: 16cf6121c8ebd6199b65b6f8ddd610a5)
+version = "1.5.0"
 description = "Pure OCaml regular expression library"
 requires = "oUnit"
 archive(byte) = "fort_unit.cma"

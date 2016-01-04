@@ -1,3 +1,16 @@
+1.5.0 (04-Jan-2016)
+
+* Add Re.exec_opt. Like exec but doesn't raise
+* Add Match module. Old match accessors are deprecated.
+* Add Mark module
+* Improve docs of Re.repn
+* Improve docs of Re_pcre
+* Fix doc of Re_pcre.match
+* Consolidate variants of Re.glob that takes options to modify its behavior
+  (?period, ?expand_braces). Old variants are deprecated.
+* New option ?pathname added for Re_glob.glob. Controls how the `/` character
+  is matched
+
 1.4.1 (06-Jun-2015)
 
 * Fix 4.00.1 compatibilty with tests.
