@@ -196,13 +196,12 @@ let many (state : State.t) =
     State.append state (Re.rep (one ~explicit_slash ~explicit_period))
   end else if not explicit_slash then begin
     (* In this state, we explicitly match periods only at the very beginning *)
-    Re.opt (
+    State.append state (Re.opt (
       Re.seq [
         one         ~explicit_slash:false ~explicit_period;
         Re.rep (one ~explicit_slash:false ~explicit_period:false);
       ]
-    )
-    |> State.append state
+    ))
   end else begin
     let not_empty =
       Re.seq [
