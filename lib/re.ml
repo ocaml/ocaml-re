@@ -24,13 +24,6 @@ module Cset = Re_cset
 module Automata = Re_automata
 module MarkSet = Automata.PmarkSet
 
-let rec first f l =
-  match l with
-    []     -> None
-  | x :: r -> match f x with
-                None          -> first f r
-              | Some _ as res -> res
-
 let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
 
 (****)
@@ -145,7 +138,6 @@ let unknown_state =
     next = dummy_next; final = [];
     desc = Automata.dummy_state }
 
-let count = ref 0
 let mk_state ncol ((idx, _, _, _, _) as desc) =
   let break_state =
     match Automata.status desc with
@@ -268,8 +260,6 @@ let find_initial_state re cat =
     re.initial_states <- (cat, st) :: re.initial_states;
     st
 
-let dummy_substrings = `Match ("", [], [||], 0)
-
 let get_color re (s:string) pos =
   if pos < 0 then -1 else
   let slen = String.length s in
@@ -377,13 +367,10 @@ let cseq c c' = Cset.seq (Char.code c) (Char.code c')
 let cadd c s = Cset.add (Char.code c) s
 let csingle c = Cset.single (Char.code c)
 
-let rec interval i j = if i > j then [] else i :: interval (i + 1) j
-
 let rec cset_hash_rec l =
   match l with
     []        -> 0
   | (i, j)::r -> i + 13 * j + 257 * cset_hash_rec r
-let cset_hash l = (cset_hash_rec l) land 0x3FFFFFFF
 
 module CSetMap =
   Map.Make
@@ -608,7 +595,7 @@ let rec translate ids kind ign_group ign_case greedy pos cache (c:Bytes.t) r =
           let (cr, kind') =
             translate ids kind ign_group ign_case greedy pos cache c r' in
           (enforce_kind ids kind kind' cr, kind)
-      | l' ->
+      | _ ->
           (A.alt ids
              (List.map
                 (fun r' ->
@@ -955,8 +942,8 @@ let exec_opt ?pos ?len re s =
 
 let execp ?pos ?len re s =
   match exec_internal "Re.execp" ?pos ?len re s with
-    Match substr -> true
-  | _            -> false
+    Match _substr -> true
+  | _             -> false
 
 let exec_partial ?pos ?len re s =
   match exec_internal "Re.exec_partial" ?pos ?len re s with
@@ -964,18 +951,11 @@ let exec_partial ?pos ?len re s =
   | Running -> `Partial
   | Failed  -> `Mismatch
 
-let rec find_mark (i : int) l =
-  match l with
-    [] ->
-      raise Not_found
-  | (j, idx) :: r ->
-      if i = j then idx else find_mark i r
-
 module Group = struct
 
   type t = groups
 
-  let get {s ; marks ; gpos} i =
+  let get {s ; marks ; gpos ; _} i =
     if 2 * i + 1 >= Array.length marks then raise Not_found;
     let m1 = marks.(2 * i) in
     if m1 = -1 then raise Not_found;
@@ -983,7 +963,7 @@ module Group = struct
     let p2 = gpos.(marks.(2 * i + 1)) - 1 in
     String.sub s p1 (p2 - p1)
 
-  let offset {s ; marks ; gpos} i =
+  let offset {marks ; gpos ; _} i =
     if 2 * i + 1 >= Array.length marks then raise Not_found;
     let m1 = marks.(2 * i) in
     if m1 = -1 then raise Not_found;
@@ -995,14 +975,14 @@ module Group = struct
 
   let stop subs i = snd (offset subs i)
 
-  let test { s ; marks } i =
+  let test { marks ; _ } i =
     if 2 * i >= Array.length marks then false else
       let idx = marks.(2 * i) in
       idx <> -1
 
   let dummy_offset = (-1, -1)
 
-  let all_offset {s ; marks ; gpos ; gcount } =
+  let all_offset {marks ; gpos ; gcount ; _} =
     let res = Array.make gcount dummy_offset in
     for i = 0 to Array.length marks / 2 - 1 do
       let m1 = marks.(2 * i) in
@@ -1016,7 +996,7 @@ module Group = struct
 
   let dummy_string = ""
 
-  let all {s ; marks ; gpos ; gcount } =
+  let all {s ; marks ; gpos ; gcount ; _ } =
     let res = Array.make gcount dummy_string in
     for i = 0 to Array.length marks / 2 - 1 do
       let m1 = marks.(2 * i) in
@@ -1034,7 +1014,7 @@ module Mark = struct
 
   type t = Automata.Pmark.t
 
-  let test {pmarks} p =
+  let test {pmarks ; _} p =
     Automata.PmarkSet.mem p pmarks
 
   let all s = s.pmarks
