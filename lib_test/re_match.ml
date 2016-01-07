@@ -50,7 +50,7 @@ let check_phone cnt must_print line =
   with Not_found -> ()
 
 let n = if Array.length Sys.argv > 1 then int_of_string Sys.argv.(1) else 1;;
-for i = 2 to n do
+for _ = 2 to n do
   List.iter (check_phone (ref 1) false) phones
 done;
 List.iter (check_phone (ref 1) true) phones

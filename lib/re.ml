@@ -141,8 +141,8 @@ let unknown_state =
 let mk_state ncol ((idx, _, _, _, _) as desc) =
   let break_state =
     match Automata.status desc with
-      Automata.Running -> false
-    | _       -> true
+    | Running          -> false
+    | Failed | Match _ -> true
   in
   { idx = if break_state then break else idx;
     real_idx = idx;
@@ -398,8 +398,6 @@ let trans_set cache cm s =
         l
 
 (****)
-
-type sem_status = Compulsory | Indicative
 
 type regexp =
     Set of Cset.t
@@ -1095,7 +1093,7 @@ let split_full_gen ?(pos=0) ?len re s =
   let pos0 = pos in
   let state = ref `Idle in
   let i = ref pos and pos = ref pos in
-  let rec next () = match !state with
+  let next () = match !state with
   | `Idle when !pos >= limit ->
       if !i < limit then (
         let sub = String.sub s !i (limit - !i) in
