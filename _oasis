@@ -7,7 +7,7 @@ License:     LGPL-2.0 with OCaml linking exception
 Plugins:     META (0.4), DevFiles (0.4)
 AlphaFeatures: compiled_setup_ml, ocamlbuild_more_args
 BuildTools: ocamlbuild
-XOCamlbuildExtraArgs: "-cflags '-w +a-40-42-44-3-50-4-48 -warn-error +1..49-40-42-44-3-4-48'"
+XOCamlbuildExtraArgs: "-cflags '-w +a-40-42-44-3-4-48 -warn-error +1..49'"
 
 Library re
   Path:       lib
