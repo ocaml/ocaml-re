@@ -54,7 +54,7 @@ val glob :
     slash. Defaults to true.
 
     If [expand_braces] is true, braced sets will expand into multiple globs,
-    e.g. a{x,y}b{1,2} matches axb1, axb2, ayb1, ayb2.  As specified for bash, brace
+    e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2.  As specified for bash, brace
     expansion is purely textual and can be nested. Defaults to false. *)
 
 val glob' : ?anchored:bool -> bool -> string -> Re.t
