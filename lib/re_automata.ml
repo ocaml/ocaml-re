@@ -94,7 +94,7 @@ let rec print_expr ch e =
         print_kind k print_expr e print_expr e'
   | Eps ->
       Format.fprintf ch "eps"
-  | Rep (rk, k, e) ->
+  | Rep (_rk, k, e) ->
       Format.fprintf ch "@[<3>(rep@ %a %a)@]" print_kind k print_expr e
   | Mark i ->
       Format.fprintf ch "@[<3>(mark@ %d)@]" i
@@ -120,7 +120,7 @@ let rec print_state_rec ch e y =
   match e with
     TMatch marks ->
       Format.fprintf ch "@[<2>(Match@ %a)@]" print_marks marks
-  | TSeq (l', x, kind) ->
+  | TSeq (l', x, _kind) ->
       Format.fprintf ch "@[<2>(Seq@ ";
       print_state_lst ch l' x;
       Format.fprintf ch " %a)@]" print_expr x
@@ -206,7 +206,7 @@ let texp marks x = TExp (marks, x)
 let tseq kind x y rem =
   match x with
     []                          -> rem
-  | [TExp (marks, {def = Eps})] -> TExp (marks, y) :: rem
+  | [TExp (marks, {def = Eps ; _})] -> TExp (marks, y) :: rem
   | _                           -> TSeq (x, y, kind) :: rem
 
 (****)
@@ -277,7 +277,7 @@ let equal_state (idx1, cat1, desc1, _, h1) (idx2, cat2, desc2, _, h2) =
   (h1 : int) = h2 && (idx1 : int) = idx2 &&
   (cat1 : int) = cat2 && equal_e desc1 desc2
 
-let compare_state (idx1, cat1, desc1, _, h1) (idx2, cat2, desc2, _, h2) =
+let compare_state (_idx1, cat1, desc1, _, h1) (_idx2, cat2, desc2, _, h2) =
   let c = compare (h1 : int) h2 in
   if c <> 0 then c else
   let c = compare (cat1 : int) cat2 in
@@ -343,19 +343,19 @@ let rec remove_duplicates prev l y =
   match l with
     [] ->
       ([], prev)
-  | TMatch _ as x :: r -> (* Truncate after first match *)
+  | TMatch _ as x :: _ -> (* Truncate after first match *)
       ([x], prev)
   | TSeq (l', x, kind) :: r ->
       let (l'', prev') = remove_duplicates prev l' x in
       let (r', prev'') = remove_duplicates prev' r y in
       (tseq kind l'' x r', prev'')
-  | TExp (marks, {def = Eps; _}) as e :: r ->
+  | TExp (_marks, {def = Eps; _}) as e :: r ->
       if List.memq y.id prev then
         remove_duplicates prev r y
       else
         let (r', prev') = remove_duplicates (y.id :: prev) r y in
         (e :: r', prev')
-  | TExp (marks, x) as e :: r ->
+  | TExp (_marks, x) as e :: r ->
       if List.memq x.id prev then
         remove_duplicates prev r y
       else
@@ -490,9 +490,9 @@ let rec prepend s x l =
   match s, l with
     [], _ ->
       l
-  | _, [] ->
+  | _r, [] ->
       []
-  | (c, c') :: r, ([d, d'], x') :: r' when c' < d ->
+  | (_c, c') :: r, ([d, _d'], _x') :: _r' when c' < d ->
       prepend r x l
   | (c, c') :: r, ([d, d'], x') :: r' ->
       if c <= d then begin
@@ -604,7 +604,7 @@ and deriv_2 all_chars categories marks cat l rem =
 and deriv_seq all_chars categories cat kind y z rem =
   if
     List.exists
-      (fun (s, xl) ->
+      (fun (_s, xl) ->
          List.exists (fun x -> match x with TMatch _ -> true | _ -> false) xl)
       y
   then
