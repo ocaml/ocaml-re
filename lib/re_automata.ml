@@ -490,7 +490,7 @@ let rec prepend s x l =
   match s, l with
     [], _ ->
       l
-  | _r, [] ->
+  | _, [] ->
       []
   | (_c, c') :: r, ([d, _d'], _x') :: _r' when c' < d ->
       prepend r x l
