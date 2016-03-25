@@ -25,6 +25,7 @@ build-test: [
 remove: [["ocamlfind" "remove" "re"]]
 depends: [
   "ocamlfind" {build}
+  "ocamlbuild" {build}
   "base-bytes"
   "ounit" {test}
 ]
