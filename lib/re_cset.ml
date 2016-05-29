@@ -103,7 +103,7 @@ let print_one ch c1 c2 =
   else
     Format.fprintf ch "@ %d-%d" c1 c2
 
-let print ch l =
+let pp ch l =
   match l with
     [] ->
       ()
@@ -111,3 +111,5 @@ let print ch l =
       print_one ch c1 c2;
       List.iter
         (fun (c1, c2) -> Format.fprintf ch "@ "; print_one ch c1 c2) rem
+
+let print = pp

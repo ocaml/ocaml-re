@@ -35,6 +35,7 @@ module Pmark : sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val gen : unit -> t
+  val pp : Format.formatter -> t -> unit
 end
 = struct
   type t = int
@@ -42,6 +43,8 @@ end
   let compare (x : int) (y : int) = compare x y
   let r = ref 0
   let gen () = incr r ; !r
+
+  let pp = Format.pp_print_int
 end
 
 type expr = { id : int; def : def }
@@ -80,6 +83,11 @@ let print_kind ch k =
        `Shortest -> "short"
      | `Longest  -> "long"
      | `First    -> "first")
+
+let pp_sem = print_kind
+let pp_rep_kind fmt = function
+  | `Greedy -> Format.pp_print_string fmt "Greedy"
+  | `Non_greedy -> Format.pp_print_string fmt "Non_greedy"
 
 let rec print_expr ch e =
   match e.def with

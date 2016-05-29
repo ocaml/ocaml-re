@@ -88,7 +88,9 @@ type re =
     group_count : int
         (* Number of groups in the regular expression *) }
 
-let print_re ch re = Automata.print_expr ch re.initial
+let pp_re ch re = Automata.print_expr ch re.initial
+
+let print_re = pp_re
 
 (* Information used during matching *)
 type info =

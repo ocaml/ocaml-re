@@ -28,11 +28,15 @@ type mark = int
 type sem = [ `Longest | `Shortest | `First ]
 type rep_kind = [ `Greedy | `Non_greedy ]
 
+val pp_sem : Format.formatter -> sem -> unit
+val pp_rep_kind : Format.formatter -> rep_kind -> unit
+
 module Pmark : sig
   type t = private int
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val gen : unit -> t
+  val pp : Format.formatter -> t -> unit
 end
 
 type expr
