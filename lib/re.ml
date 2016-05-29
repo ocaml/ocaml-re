@@ -143,8 +143,9 @@ let unknown_state =
 let mk_state ncol ((idx, _, _, _, _) as desc) =
   let break_state =
     match Automata.status desc with
-    | Running          -> false
-    | Failed | Match _ -> true
+    | Automata.Running -> false
+    | Automata.Failed
+    | Automata.Match _ -> true
   in
   { idx = if break_state then break else idx;
     real_idx = idx;
