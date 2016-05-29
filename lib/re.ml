@@ -420,6 +420,49 @@ type regexp =
   | Difference of regexp * regexp
   | Pmark of Automata.Pmark.t * regexp
 
+let rec pp fmt t =
+  let open Format in
+  let seq name elems =
+    pp_open_hovbox fmt 2;
+    pp_print_string fmt ("(" ^ name ^ " ");
+    pp_print_list ~pp_sep:pp_print_space pp fmt elems;
+    pp_print_string fmt ")";
+    pp_close_box fmt () in
+  let var name e = printf "@[(%s %a)]" name pp e in
+  match t with
+  | Set s -> printf "@[(Set%a)@]" Cset.print s
+  | Sequence sq -> seq "Sequence" sq
+  | Alternative alt -> seq "Alternative" alt
+  | Repeat (re, start, stop) ->
+    pp_print_string fmt "(Repeat ";
+    printf "%a %d" pp re start;
+    (match stop with
+     | None -> ()
+     | Some i -> printf " %d" i);
+    pp_print_string fmt ")";
+  | Beg_of_line      -> pp_print_string fmt "Beg_of_line"
+  | End_of_line      -> pp_print_string fmt "End_of_line"
+  | Beg_of_word      -> pp_print_string fmt "Beg_of_word"
+  | End_of_word      -> pp_print_string fmt "End_of_word"
+  | Not_bound        -> pp_print_string fmt "Not_bound"
+  | Beg_of_str       -> pp_print_string fmt "Beg_of_str"
+  | End_of_str       -> pp_print_string fmt "End_of_str"
+  | Last_end_of_line -> pp_print_string fmt "Last_end_of_line"
+  | Start            -> pp_print_string fmt "Start"
+  | Stop             -> pp_print_string fmt "Stop"
+  | Sem (sem, re)    -> printf "@[(Sem %a %a)@]" Automata.pp_sem sem pp re
+  | Sem_greedy (k, re) ->
+    printf "@[(Sem_greedy %a %a)@]" Automata.pp_rep_kind k pp re
+  | Group c        -> var "Group" c
+  | No_group c     -> var "No_group" c
+  | Nest c         -> var "Nest" c
+  | Case c         -> var "Case" c
+  | No_case c      -> var "No_case" c
+  | Intersection c -> seq "Intersection" c
+  | Complement c   -> seq "Complement" c
+  | Difference (a, b) -> printf "@[(Difference %a %a)@]" pp a pp b
+  | Pmark (m, r)       -> printf "@[Pmark %a %a@]" Automata.Pmark.pp m pp r
+
 let rec is_charset r =
   match r with
     Set _ ->
@@ -1078,8 +1121,8 @@ let matches ?pos ?len re s =
   in iter ()
 
 type split_token =
-  [ `Text of string  (** Text between delimiters *)
-  | `Delim of groups (** Delimiter *)
+  [ `Text of string
+  | `Delim of groups
   ]
 
 let split_full_gen ?(pos=0) ?len re s =
