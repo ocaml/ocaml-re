@@ -88,7 +88,7 @@ type re =
     group_count : int
         (* Number of groups in the regular expression *) }
 
-let pp_re ch re = Automata.print_expr ch re.initial
+let pp_re ch re = Automata.pp ch re.initial
 
 let print_re = pp_re
 
@@ -421,38 +421,30 @@ type regexp =
   | Pmark of Automata.Pmark.t * regexp
 
 let rec pp fmt t =
-  let open Format in
-  let seq name elems =
-    pp_open_hovbox fmt 2;
-    pp_print_string fmt ("(" ^ name ^ " ");
-    pp_print_list ~pp_sep:pp_print_space pp fmt elems;
-    pp_print_string fmt ")";
-    pp_close_box fmt () in
-  let var name e = printf "@[(%s %a)]" name pp e in
+  let open Re_fmt in
+  let var s re = sexp fmt s pp re in
+  let seq s rel = sexp fmt s (list pp) rel in
   match t with
-  | Set s -> printf "@[(Set%a)@]" Cset.print s
+  | Set s ->  sexp fmt "Set" Cset.pp s
   | Sequence sq -> seq "Sequence" sq
   | Alternative alt -> seq "Alternative" alt
   | Repeat (re, start, stop) ->
-    pp_print_string fmt "(Repeat ";
-    printf "%a %d" pp re start;
-    (match stop with
-     | None -> ()
-     | Some i -> printf " %d" i);
-    pp_print_string fmt ")";
-  | Beg_of_line      -> pp_print_string fmt "Beg_of_line"
-  | End_of_line      -> pp_print_string fmt "End_of_line"
-  | Beg_of_word      -> pp_print_string fmt "Beg_of_word"
-  | End_of_word      -> pp_print_string fmt "End_of_word"
-  | Not_bound        -> pp_print_string fmt "Not_bound"
-  | Beg_of_str       -> pp_print_string fmt "Beg_of_str"
-  | End_of_str       -> pp_print_string fmt "End_of_str"
-  | Last_end_of_line -> pp_print_string fmt "Last_end_of_line"
-  | Start            -> pp_print_string fmt "Start"
-  | Stop             -> pp_print_string fmt "Stop"
-  | Sem (sem, re)    -> printf "@[(Sem %a %a)@]" Automata.pp_sem sem pp re
+    let pp' fmt () = fprintf fmt "%a@ %d%a" pp re   start   optint stop in
+    sexp fmt "Repeat" pp' ()
+  | Beg_of_line      -> str fmt "Beg_of_line"
+  | End_of_line      -> str fmt "End_of_line"
+  | Beg_of_word      -> str fmt "Beg_of_word"
+  | End_of_word      -> str fmt "End_of_word"
+  | Not_bound        -> str fmt "Not_bound"
+  | Beg_of_str       -> str fmt "Beg_of_str"
+  | End_of_str       -> str fmt "End_of_str"
+  | Last_end_of_line -> str fmt "Last_end_of_line"
+  | Start            -> str fmt "Start"
+  | Stop             -> str fmt "Stop"
+  | Sem (sem, re)    ->
+    sexp fmt "Sem" (pair Automata.pp_sem pp) (sem, re)
   | Sem_greedy (k, re) ->
-    printf "@[(Sem_greedy %a %a)@]" Automata.pp_rep_kind k pp re
+    sexp fmt "Sem_greedy" (pair Automata.pp_rep_kind pp) (k, re)
   | Group c        -> var "Group" c
   | No_group c     -> var "No_group" c
   | Nest c         -> var "Nest" c
@@ -460,8 +452,8 @@ let rec pp fmt t =
   | No_case c      -> var "No_case" c
   | Intersection c -> seq "Intersection" c
   | Complement c   -> seq "Complement" c
-  | Difference (a, b) -> printf "@[(Difference %a %a)@]" pp a pp b
-  | Pmark (m, r)       -> printf "@[Pmark %a %a@]" Automata.Pmark.pp m pp r
+  | Difference (a, b) -> sexp fmt "Difference" (pair pp pp) (a, b)
+  | Pmark (m, r)      -> sexp fmt "Pmark" (pair Automata.Pmark.pp pp) (m, r)
 
 let rec is_charset r =
   match r with

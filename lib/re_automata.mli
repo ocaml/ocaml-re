@@ -52,7 +52,7 @@ type def =
   | After of category
   | Pmark of Pmark.t
 val def : expr -> def
-val print_expr : Format.formatter -> expr -> unit
+val pp : Format.formatter -> expr -> unit
 
 type ids
 val create_ids : unit -> ids
