@@ -104,4 +104,3 @@ let print_one ch (c1, c2) =
     Format.fprintf ch "%d-%d" c1 c2
 
 let pp = Re_fmt.list print_one
-let print = pp

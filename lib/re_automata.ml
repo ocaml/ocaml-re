@@ -93,7 +93,7 @@ let rec pp ch e =
   let open Re_fmt in
   match e.def with
     Cst l ->
-      sexp ch "cst" Cset.print l;
+      sexp ch "cst" Cset.pp l;
   | Alt l ->
       sexp ch "alt" (list pp) l
   | Seq (k, e, e') ->
