@@ -40,4 +40,4 @@ val mem : c -> t -> bool
 type hash
 val hash : t -> hash
 
-val print : Format.formatter -> t -> unit
+val pp : Format.formatter -> t -> unit

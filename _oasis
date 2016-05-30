@@ -11,7 +11,7 @@ XOCamlbuildExtraArgs: "-cflags '-w +a-40-42-44-3-4-48 -warn-error +1..49'"
 
 Library re
   Path:       lib
-  InternalModules: Re_cset, Re_automata
+  InternalModules: Re_fmt, Re_cset, Re_automata
   Modules: Re
   Findlibname: re
   BuildDepends: bytes

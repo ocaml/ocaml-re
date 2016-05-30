@@ -97,17 +97,10 @@ let hash l = (hash_rec l) land 0x3FFFFFFF
 
 (****)
 
-let print_one ch c1 c2 =
+let print_one ch (c1, c2) =
   if c1 = c2 then
-    Format.fprintf ch "@ %d" c1
+    Format.fprintf ch "%d" c1
   else
-    Format.fprintf ch "@ %d-%d" c1 c2
+    Format.fprintf ch "%d-%d" c1 c2
 
-let print ch l =
-  match l with
-    [] ->
-      ()
-  | (c1, c2) :: rem ->
-      print_one ch c1 c2;
-      List.iter
-        (fun (c1, c2) -> Format.fprintf ch "@ "; print_one ch c1 c2) rem
+let pp = Re_fmt.list print_one

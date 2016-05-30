@@ -35,6 +35,7 @@ module Pmark : sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val gen : unit -> t
+  val pp : Format.formatter -> t -> unit
 end
 = struct
   type t = int
@@ -42,6 +43,8 @@ end
   let compare (x : int) (y : int) = compare x y
   let r = ref 0
   let gen () = incr r ; !r
+
+  let pp = Format.pp_print_int
 end
 
 type expr = { id : int; def : def }
@@ -74,38 +77,41 @@ type e =
 
 (****)
 
-let print_kind ch k =
-  Format.fprintf ch "%s"
+let pp_sem ch k =
+  Format.pp_print_string ch
     (match k with
        `Shortest -> "short"
      | `Longest  -> "long"
      | `First    -> "first")
 
-let rec print_expr ch e =
+
+let pp_rep_kind fmt = function
+  | `Greedy -> Format.pp_print_string fmt "Greedy"
+  | `Non_greedy -> Format.pp_print_string fmt "Non_greedy"
+
+let rec pp ch e =
+  let open Re_fmt in
   match e.def with
     Cst l ->
-      Format.fprintf ch "@[<3>(cst@ %a)@]" Cset.print l;
+      sexp ch "cst" Cset.pp l;
   | Alt l ->
-      Format.fprintf ch "@[<3>(alt";
-      List.iter (fun e -> Format.fprintf ch "@ %a" print_expr e) l;
-      Format.fprintf ch ")@]"
+      sexp ch "alt" (list pp) l
   | Seq (k, e, e') ->
-      Format.fprintf ch "@[<3>(seq %a@ %a@ %a)@]"
-        print_kind k print_expr e print_expr e'
+      sexp ch "seq" (triple pp_sem pp pp) (k, e, e')
   | Eps ->
-      Format.fprintf ch "eps"
+      str ch "eps"
   | Rep (_rk, k, e) ->
-      Format.fprintf ch "@[<3>(rep@ %a %a)@]" print_kind k print_expr e
+      sexp ch "rep" (pair pp_sem pp) (k, e)
   | Mark i ->
-      Format.fprintf ch "@[<3>(mark@ %d)@]" i
+      sexp ch "mark" int i
   | Pmark i ->
-      Format.fprintf ch "@[<3>(pmark@ %d)@]" (i :> int)
+      sexp ch "pmark" int (i :> int)
   | Erase (b, e) ->
-      Format.fprintf ch "@[<3>(erase@ %d %d)@]" b e
+      sexp ch "erase" (pair int int) (b, e)
   | Before c ->
-      Format.fprintf ch "@[<3>(before@ %d)@]" c
+      sexp ch "before" int c
   | After c ->
-      Format.fprintf ch "@[<3>(after@ %d)@]" c
+      sexp ch "after" int c
 
 
 let print_marks ch l =
@@ -123,11 +129,11 @@ let rec print_state_rec ch e y =
   | TSeq (l', x, _kind) ->
       Format.fprintf ch "@[<2>(Seq@ ";
       print_state_lst ch l' x;
-      Format.fprintf ch " %a)@]" print_expr x
+      Format.fprintf ch " %a)@]" pp x
   | TExp (marks, {def = Eps; _}) ->
       Format.fprintf ch "(Exp %d (%a) (eps))" y.id print_marks marks
   | TExp (marks, x) ->
-      Format.fprintf ch "(Exp %d (%a) %a)" x.id print_marks marks print_expr x
+      Format.fprintf ch "(Exp %d (%a) %a)" x.id print_marks marks pp x
 
 and print_state_lst ch l y =
   match l with
