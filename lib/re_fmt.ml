@@ -12,7 +12,7 @@ let rec list pp ppf = function
     list pp ppf vs
 
 let str = pp_print_string
-let sexp fmt s pp x = fprintf fmt "@[<3>(%s@ %a@)]" s pp x
+let sexp fmt s pp x = fprintf fmt "@[<3>(%s@ %a)@]" s pp x
 let pair pp1 pp2 fmt (v1,v2) =
   pp1 fmt v1; pp_print_space fmt () ; pp2 fmt v2
 let triple pp1 pp2 pp3 fmt (v1, v2, v3) =
