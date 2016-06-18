@@ -95,6 +95,7 @@ module Group : sig
   val test : t -> int -> bool
   (** Test whether a group matched *)
 
+  val pp : Format.formatter -> t -> unit
 end
 
 (** Marks *)
