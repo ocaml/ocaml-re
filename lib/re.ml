@@ -1048,8 +1048,9 @@ module Group = struct
     let matches =
       let offsets = all_offset t in
       let strs = all t in
-      Array.init (Array.length strs) (fun i -> strs.(i), offsets.(i))
-      |> Array.to_list in
+      Array.to_list (
+        Array.init (Array.length strs) (fun i -> strs.(i), offsets.(i))
+      ) in
     let open Re_fmt in
     let pp_match fmt (str, (start, stop)) =
       fprintf fmt "@[(%s (%d %d))@]" str start stop in
