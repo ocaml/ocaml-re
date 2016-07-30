@@ -9,6 +9,10 @@ AlphaFeatures: compiled_setup_ml, ocamlbuild_more_args
 BuildTools: ocamlbuild
 XOCamlbuildExtraArgs: "-cflags '-w +a-40-42-44-3-4-48 -warn-error +1..49'"
 
+Flag benchmarks
+  Description: Enable building benchmarks
+  Default: false
+  
 Library re
   Path:       lib
   InternalModules: Re_fmt, Re_cset, Re_automata
@@ -133,6 +137,15 @@ Executable test_pcre
   CompiledObject:     best
   Install:            false
   BuildDepends:       re, oUnit
+
+Executable benchmark
+  Path:               benchmarks
+  MainIs:             benchmark.ml
+  Build$:             flag(benchmarks)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       re, threads, core_bench
 
 Test re_test_re
   Run$:             flag(tests)
