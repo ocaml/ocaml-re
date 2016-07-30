@@ -310,7 +310,7 @@ let rec scan_str info (s:string) initial_state groups =
   else
     loop_no_mark info s pos last initial_state
 
-let match_str groups partial re s pos len =
+let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
@@ -949,7 +949,7 @@ let compile r =
 let exec_internal name ?(pos=0) ?(len = -1) ~groups re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg name;
-  match_str groups false re s pos len
+  match_str ~groups ~partial:false re s ~pos ~len
 
 let exec ?pos ?len re s =
   match exec_internal "Re.exec" ?pos ?len ~groups:true re s with
@@ -1077,7 +1077,9 @@ let all_gen ?(pos=0) ?len re s =
   fun () ->
     if !pos >= limit
     then None  (* no more matches *)
-    else match match_str true false re s !pos (limit - !pos) with
+    else
+      match match_str ~groups:true ~partial:false re s
+              ~pos:!pos ~len:(limit - !pos) with
       | Match substr ->
           let p1, p2 = Group.offset substr 0 in
           pos := if p1=p2 then p2+1 else p2;
@@ -1118,45 +1120,46 @@ let split_full_gen ?(pos=0) ?len re s =
   let limit = match len with
     | None -> String.length s
     | Some l ->
-        if l<0 || pos+l > String.length s then invalid_arg "Re.split";
-        pos+l
+      if l<0 || pos+l > String.length s then invalid_arg "Re.split";
+      pos+l
   in
   (* i: start of delimited string
-    pos: first position after last match of [re]
-    limit: first index we ignore (!pos < limit is an invariant) *)
+     pos: first position after last match of [re]
+     limit: first index we ignore (!pos < limit is an invariant) *)
   let pos0 = pos in
   let state = ref `Idle in
   let i = ref pos and pos = ref pos in
   let next () = match !state with
-  | `Idle when !pos >= limit ->
+    | `Idle when !pos >= limit ->
       if !i < limit then (
         let sub = String.sub s !i (limit - !i) in
         incr i;
         Some (`Text sub)
       ) else None
-  | `Idle ->
-    begin match match_str true false re s !pos (limit - !pos) with
+    | `Idle ->
+      begin match match_str ~groups:true ~partial:false re s ~pos:!pos
+                    ~len:(limit - !pos) with
       | Match substr ->
-          let p1, p2 = Group.offset substr 0 in
-          pos := if p1=p2 then p2+1 else p2;
-          let old_i = !i in
-          i := p2;
-          if p1 > pos0 then (
-            (* string does not start by a delimiter *)
-            let text = String.sub s old_i (p1 - old_i) in
-            state := `Yield (`Delim substr);
-            Some (`Text text)
-          ) else Some (`Delim substr)
+        let p1, p2 = Group.offset substr 0 in
+        pos := if p1=p2 then p2+1 else p2;
+        let old_i = !i in
+        i := p2;
+        if p1 > pos0 then (
+          (* string does not start by a delimiter *)
+          let text = String.sub s old_i (p1 - old_i) in
+          state := `Yield (`Delim substr);
+          Some (`Text text)
+        ) else Some (`Delim substr)
       | Running -> None
       | Failed ->
-          if !i < limit
-          then (
-            let text = String.sub s !i (limit - !i) in
-            i := limit;
-            Some (`Text text)  (* yield last string *)
-          ) else None
-    end
-  | `Yield x ->
+        if !i < limit
+        then (
+          let text = String.sub s !i (limit - !i) in
+          i := limit;
+          Some (`Text text)  (* yield last string *)
+        ) else None
+      end
+    | `Yield x ->
       state := `Idle;
       Some x
   in next
@@ -1191,35 +1194,36 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
   let limit = match len with
     | None -> String.length s
     | Some l ->
-        if l<0 || pos+l > String.length s then invalid_arg "Re.replace";
-        pos+l
+      if l<0 || pos+l > String.length s then invalid_arg "Re.replace";
+      pos+l
   in
   (* buffer into which we write the result *)
   let buf = Buffer.create (String.length s) in
   (* iterate on matched substrings. *)
   let rec iter pos =
     if pos < limit
-    then match match_str true false re s pos (limit-pos) with
+    then
+      match match_str ~groups:true ~partial:false re s ~pos ~len:(limit-pos) with
       | Match substr ->
-          let p1, p2 = Group.offset substr 0 in
-          (* add string between previous match and current match *)
-          Buffer.add_substring buf s pos (p1-pos);
-          (* what should we replace the matched group with? *)
-          let replacing = f substr in
-          Buffer.add_string buf replacing;
-          if all
-          (* if we matched a non-char e.g. ^ we must manually advance by 1 *)
-          then iter
-                 (if p1=p2
-                  then (
-                    (* a non char could be past the end of string. e.g. $ *)
-                    if p2 < limit then Buffer.add_char buf s.[p2];
-                    p2+1)
-                  else p2)
-          else Buffer.add_substring buf s p2 (limit-p2)
+        let p1, p2 = Group.offset substr 0 in
+        (* add string between previous match and current match *)
+        Buffer.add_substring buf s pos (p1-pos);
+        (* what should we replace the matched group with? *)
+        let replacing = f substr in
+        Buffer.add_string buf replacing;
+        if all
+        (* if we matched a non-char e.g. ^ we must manually advance by 1 *)
+        then iter
+            (if p1=p2
+             then (
+               (* a non char could be past the end of string. e.g. $ *)
+               if p2 < limit then Buffer.add_char buf s.[p2];
+               p2+1)
+             else p2)
+        else Buffer.add_substring buf s p2 (limit-p2)
       | Running -> ()
       | Failed ->
-          Buffer.add_substring buf s pos (limit-pos)
+        Buffer.add_substring buf s pos (limit-pos)
   in
   iter pos;
   Buffer.contents buf
