@@ -174,10 +174,9 @@ let mk_expr ids def =
 let empty ids = mk_expr ids (Alt [])
 
 let cst ids s =
-  if s = [] then
-    empty ids
-  else
-    mk_expr ids (Cst s)
+  if Re_cset.is_empty s
+  then empty ids
+  else mk_expr ids (Cst s)
 
 let alt ids l =
   match l with
@@ -492,41 +491,15 @@ let simpl_tr l =
 
 (****)
 
-let rec prepend s x l =
-  match s, l with
-    [], _ ->
-      l
-  | _r, [] ->
-      []
-  | (_c, c') :: r, ([d, _d'], _x') :: _r' when c' < d ->
-      prepend r x l
-  | (c, c') :: r, ([d, d'], x') :: r' ->
-      if c <= d then begin
-        if c' < d' then
-          ([d, c'], x @ x') :: prepend r x (([c' + 1, d'], x') :: r')
-        else
-          ([d, d'], x @ x') :: prepend s x r'
-      end else begin
-        if c > d' then
-          ([d, d'], x') :: prepend s x r'
-        else
-          ([d, c - 1], x') :: prepend s x (([c, d'], x') :: r')
-      end
-  | _ ->
-      assert false
+let prepend_deriv d l = List.fold_right (fun (s, x) l -> Cset.prepend s x l) d l
 
-let prepend_deriv d l = List.fold_right (fun (s, x) l -> prepend s x l) d l
-
-let rec restrict s l =
-  match l with
-    [] ->
-      []
+let rec restrict s = function
+  | [] -> []
   | (s', x') :: rem ->
-      let s'' = Cset.inter s s' in
-      if s'' = [] then
-        restrict s rem
-      else
-        (s'', x') :: restrict s rem
+    let s'' = Cset.inter s s' in
+    if Cset.is_empty s''
+    then restrict s rem
+    else (s'', x') :: restrict s rem
 
 let rec remove_marks b e rem =
   if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
@@ -562,7 +535,7 @@ let prepend_marks (m : mark_offsets) l =
 let rec deriv_1 all_chars categories marks cat x rem =
   match x.def with
     Cst s ->
-      prepend s [texp marks eps_expr] rem
+      Cset.prepend s [texp marks eps_expr] rem
   | Alt l ->
       deriv_2 all_chars categories marks cat l rem
   | Seq (kind, y, z) ->
@@ -581,25 +554,25 @@ let rec deriv_1 all_chars categories marks cat x rem =
                None        -> (z, marks)
              | Some marks' -> (remove_matches z, marks')
            in
-           prepend s
+           Cset.prepend s
              (match rep_kind with
                 `Greedy     -> tseq kind z' x [TMatch marks']
               | `Non_greedy -> TMatch marks :: tseq kind z' x [])
              rem)
         y' rem
   | Eps ->
-      prepend all_chars [TMatch marks] rem
+      Cset.prepend all_chars [TMatch marks] rem
   | Mark i ->
-      prepend all_chars [TMatch {marks with marks = ((i, -1) :: List.remove_assq i marks.marks)}] rem
+      Cset.prepend all_chars [TMatch {marks with marks = ((i, -1) :: List.remove_assq i marks.marks)}] rem
   | Pmark _ ->
-      prepend all_chars [TMatch marks] rem
+      Cset.prepend all_chars [TMatch marks] rem
   | Erase (b, e) ->
-      prepend all_chars
+      Cset.prepend all_chars
         [TMatch {marks with marks = (remove_marks b e (filter_marks b e marks).marks)}] rem
   | Before cat' ->
-      prepend (List.assq cat' categories) [TMatch marks] rem
+      Cset.prepend (List.assq cat' categories) [TMatch marks] rem
   | After cat' ->
-      if cat land cat' <> 0 then prepend all_chars [TMatch marks] rem else rem
+      if cat land cat' <> 0 then Cset.prepend all_chars [TMatch marks] rem else rem
 
 and deriv_2 all_chars categories marks cat l rem =
   match l with
@@ -622,25 +595,25 @@ and deriv_seq all_chars categories cat kind y z rem =
              y
          with
            None ->
-             prepend s (tseq kind y z []) rem
+             Cset.prepend s (tseq kind y z []) rem
          | Some marks ->
              let z'' = prepend_marks marks z' in
              match kind with
                `Longest ->
-                 prepend s (tseq kind (remove_matches y) z []) (
+                 Cset.prepend s (tseq kind (remove_matches y) z []) (
                  prepend_deriv (restrict s z'') rem)
              | `Shortest ->
                  prepend_deriv (restrict s z'') (
-                 prepend s (tseq kind (remove_matches y) z []) rem)
+                 Cset.prepend s (tseq kind (remove_matches y) z []) rem)
              | `First ->
                  let (y', y'') = split_at_match y in
-                 prepend s (tseq kind y' z []) (
+                 Cset.prepend s (tseq kind y' z []) (
                  prepend_deriv (restrict s z'') (
-                 prepend s (tseq kind y'' z []) rem)))
+                 Cset.prepend s (tseq kind y'' z []) rem)))
       y rem
   else
     List.fold_right
-      (fun (s, xl) rem -> prepend s (tseq kind xl z []) rem) y rem
+      (fun (s, xl) rem -> Cset.prepend s (tseq kind xl z []) rem) y rem
 
 let rec deriv_3 all_chars categories cat x rem =
   match x with
@@ -650,7 +623,7 @@ let rec deriv_3 all_chars categories cat x rem =
   | TExp (marks, e) ->
       deriv_1 all_chars categories marks cat e rem
   | TMatch _ ->
-      prepend all_chars [x] rem
+      Cset.prepend all_chars [x] rem
 
 and deriv_4 all_chars categories cat l rem =
   match l with
@@ -673,8 +646,9 @@ Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_st
           List.fold_right
             (fun (cat', s') rem ->
                let s'' = Cset.inter s s' in
-               if s'' = [] then rem else
-               (s'', mk_state idx cat' expr'') :: rem)
+               if Cset.is_empty s''
+               then rem
+               else (s'', mk_state idx cat' expr'') :: rem)
             categories rem)
        der [])
 

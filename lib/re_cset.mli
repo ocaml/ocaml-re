@@ -23,7 +23,9 @@
 (* Character sets, represented as sorted list of intervals *)
 
 type c = int
-type t = (c * c) list
+type t
+
+val iter : t -> f:(c -> c -> unit) -> unit
 
 val union : t -> t -> t
 val inter : t -> t -> t
@@ -41,3 +43,19 @@ type hash
 val hash : t -> hash
 
 val pp : Format.formatter -> t -> unit
+
+val one_char : t -> c option
+
+val fold_right : t -> init:'acc -> f:(c * c -> 'acc ->  'acc) -> 'acc
+
+val hash_rec : t -> int
+
+module CSetMap : Map.S with type key = int * t
+
+val cany : t
+
+val csingle : char -> t
+
+val is_empty : t -> bool
+
+val prepend : t -> 'a list -> (t * 'a list) list -> (t * 'a list) list

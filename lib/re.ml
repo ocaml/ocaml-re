@@ -364,41 +364,25 @@ let mk_re init cols col_repr ncol lnl group_count =
 
 (**** Character sets ****)
 
-let cany = [0, 255]
-
 let cseq c c' = Cset.seq (Char.code c) (Char.code c')
 let cadd c s = Cset.add (Char.code c) s
-let csingle c = Cset.single (Char.code c)
-
-let rec cset_hash_rec l =
-  match l with
-    []        -> 0
-  | (i, j)::r -> i + 13 * j + 257 * cset_hash_rec r
-
-module CSetMap =
-  Map.Make
-  (struct
-    type t = int * (int * int) list
-    let compare (i, u) (j, v) =
-      let c = compare i j in if c <> 0 then c else compare u v
-   end)
 
 let trans_set cache cm s =
-  match s with
-    [i, j] when i = j ->
-      csingle (Bytes.get cm i)
-  | _ ->
-      let v = (cset_hash_rec s, s) in
-      try
-        CSetMap.find v !cache
-      with Not_found ->
-        let l =
-          List.fold_right
-            (fun (i, j) l -> Cset.union (cseq (Bytes.get cm i) (Bytes.get cm j)) l)
-            s Cset.empty
-        in
-        cache := CSetMap.add v l !cache;
-        l
+  match Cset.one_char s with
+  | Some i -> Cset.csingle (Bytes.get cm i)
+  | None ->
+    let v = (Cset.hash_rec s, s) in
+    try
+      Cset.CSetMap.find v !cache
+    with Not_found ->
+      let l =
+        Cset.fold_right
+          s
+          ~f:(fun (i, j) l -> Cset.union (cseq (Bytes.get cm i) (Bytes.get cm j)) l)
+          ~init:Cset.empty
+      in
+      cache := Cset.CSetMap.add v l !cache;
+      l
 
 (****)
 
@@ -475,10 +459,11 @@ let rec is_charset r =
 (**** Colormap ****)
 
 (*XXX Use a better algorithm allowing non-contiguous regions? *)
-let rec split s cm =
-  match s with
-    []    -> ()
-  | (i, j)::r -> Bytes.set cm i '\001'; Bytes.set cm (j + 1) '\001'; split r cm
+let split s cm =
+  Re_cset.iter s ~f:(fun i j ->
+      Bytes.set cm i '\001';
+      Bytes.set cm (j + 1) '\001';
+    )
 
 let cupper =
   Cset.union (cseq 'A' 'Z')
@@ -499,7 +484,7 @@ let colorize c regexp =
     | Sequence l                -> List.iter colorize l
     | Alternative l             -> List.iter colorize l
     | Repeat (r, _, _)          -> colorize r
-    | Beg_of_line | End_of_line -> split (csingle '\n') c
+    | Beg_of_line | End_of_line -> split (Cset.csingle '\n') c
     | Beg_of_word | End_of_word
     | Not_bound                 -> split cword c
     | Beg_of_str | End_of_str
@@ -808,15 +793,15 @@ let rec handle_case ign_case r =
       handle_case true r
   | Intersection l ->
       let l' = List.map (fun r -> handle_case ign_case r) l in
-      Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) cany l')
+      Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) Cset.cany l')
   | Complement l ->
       let l' = List.map (fun r -> handle_case ign_case r) l in
-      Set (Cset.diff cany
+      Set (Cset.diff Cset.cany
              (List.fold_left (fun s r -> Cset.union s (as_set r))
                 Cset.empty l'))
   | Difference (r, r') ->
       Set (Cset.inter (as_set (handle_case ign_case r))
-             (Cset.diff cany (as_set (handle_case ign_case r'))))
+             (Cset.diff Cset.cany (as_set (handle_case ign_case r'))))
   | Pmark (i,r) -> Pmark (i,handle_case ign_case r)
 
 (****)
@@ -832,7 +817,7 @@ let compile_1 regexp =
   let pos = ref 0 in
   let (r, kind) =
     translate ids
-      `First false false `Greedy pos (ref CSetMap.empty) col regexp in
+      `First false false `Greedy pos (ref Cset.CSetMap.empty) col regexp in
   let r = enforce_kind ids `First kind r in
 (*Format.eprintf "<%d %d>@." !ids ncol;*)
   mk_re r col col_repr ncol lnl (!pos / 2)
@@ -864,10 +849,10 @@ type t = regexp
 let str s =
   let l = ref [] in
   for i = String.length s - 1 downto 0 do
-    l := Set (csingle s.[i]) :: !l
+    l := Set (Cset.csingle s.[i]) :: !l
   done;
   Sequence !l
-let char c = Set (csingle c)
+let char c = Set (Cset.csingle c)
 
 let alt l =
   match l with
@@ -909,9 +894,9 @@ let nest r = Nest r
 let mark r = let i = Automata.Pmark.gen () in (i,Pmark (i,r))
 
 let set str =
-  let s = ref [] in
+  let s = ref Cset.empty in
   for i = 0 to String.length str - 1 do
-    s := Cset.union (csingle str.[i]) !s
+    s := Cset.union (Cset.csingle str.[i]) !s
   done;
   Set !s
 
@@ -932,8 +917,8 @@ let diff r r' =
   if is_charset r'' then r'' else
   invalid_arg "Re.diff"
 
-let any = Set cany
-let notnl = Set (Cset.diff cany (csingle '\n'))
+let any = Set Cset.cany
+let notnl = Set (Cset.diff Cset.cany (Cset.csingle '\n'))
 
 let lower = alt [rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255']
 let upper = alt [rg 'A' 'Z'; rg '\192' '\214'; rg '\216' '\222']
