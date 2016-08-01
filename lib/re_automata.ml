@@ -61,8 +61,6 @@ and def =
   | After of category
   | Pmark of Pmark.t
 
-let def e = e.def
-
 module PmarkSet = Set.Make(Pmark)
 
 let hash_combine h accu = accu * 65599 + h
@@ -105,7 +103,7 @@ module Marks = struct
     | _ ->
       marks
 
-  let marks_set_idx marks used idx = 
+  let marks_set_idx marks used idx =
     { marks with marks = marks_set_idx used idx marks.marks }
 
   let pp_marks ch t =
@@ -198,6 +196,11 @@ let seq ids kind x y =
   | Eps, _                    -> y
   | _, Eps when kind = `First -> x
   | _                         -> mk_expr ids (Seq (kind, x, y))
+
+let is_eps expr =
+  match expr.def with
+  | Eps -> true
+  | _ -> false
 
 let eps ids = mk_expr ids Eps
 

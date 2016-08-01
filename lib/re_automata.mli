@@ -40,18 +40,7 @@ module Pmark : sig
 end
 
 type expr
-type def =
-    Cst of Re_cset.t
-  | Alt of expr list
-  | Seq of sem * expr * expr
-  | Eps
-  | Rep of rep_kind * sem * expr
-  | Mark of mark
-  | Erase of mark * mark
-  | Before of category
-  | After of category
-  | Pmark of Pmark.t
-val def : expr -> def
+val is_eps : expr -> bool
 val pp : Format.formatter -> expr -> unit
 
 type ids

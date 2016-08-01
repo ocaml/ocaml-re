@@ -731,9 +731,9 @@ and trans_seq ids kind ign_group ign_case greedy pos cache c l =
         translate ids kind ign_group ign_case greedy pos cache c r in
       let cr'' =
         trans_seq ids kind ign_group ign_case greedy pos cache c rem in
-      if A.def cr'' = A.Eps then
+      if A.is_eps cr'' then
         cr'
-      else if A.def cr' = A.Eps then
+      else if A.is_eps cr' then
         cr''
       else
         A.seq ids kind' cr' cr''
