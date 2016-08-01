@@ -63,7 +63,7 @@ type state =
            - the index where the next position should be saved
            - possibly, the list of marks (and the corresponding indices)
              corresponding to the best match *)
-    desc : Automata.state
+    desc : Automata.State.t
         (* Description of this state of the automata *) }
 
 (* Automata (compiled regular expression) *)
@@ -83,7 +83,7 @@ type re =
     mutable tbl : Automata.working_area;
         (* Temporary table used to compute the first available index
            when computing a new state *)
-    states : state Automata.States.t;
+    states : state Automata.State.Table.t;
         (* States of the deterministic automata *)
     group_count : int
         (* Number of groups in the regular expression *) }
@@ -138,7 +138,7 @@ let dummy_next = [||]
 let unknown_state =
   { idx = unknown; real_idx = 0;
     next = dummy_next; final = [];
-    desc = Automata.dummy_state }
+    desc = Automata.State.dummy }
 
 let mk_state ncol ((idx, _, _, _, _) as desc) =
   let break_state =
@@ -155,10 +155,10 @@ let mk_state ncol ((idx, _, _, _, _) as desc) =
 
 let find_state re desc =
   try
-    Automata.States.find re.states desc
+    Automata.State.Table.find re.states desc
   with Not_found ->
     let st = mk_state re.ncol desc in
-    Automata.States.add re.states desc st;
+    Automata.State.Table.add re.states desc st;
     st
 
 (**** Match with marks ****)
@@ -258,7 +258,7 @@ let find_initial_state re cat =
     List.assq cat re.initial_states
   with Not_found ->
     let st =
-      find_state re (Automata.create_state cat re.initial)
+      find_state re (Automata.State.create cat re.initial)
     in
     re.initial_states <- (cat, st) :: re.initial_states;
     st
@@ -359,7 +359,7 @@ let mk_re init cols col_repr ncol lnl group_count =
     ncol = ncol;
     lnl = lnl;
     tbl = Automata.create_working_area ();
-    states = Automata.States.create 97;
+    states = Automata.State.Table.create 97;
     group_count = group_count }
 
 (**** Character sets ****)

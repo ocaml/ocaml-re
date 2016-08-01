@@ -232,9 +232,19 @@ let rec rename ids x =
 type hash = int
 type mark_infos = int array
 type status = Failed | Match of mark_infos * PmarkSet.t | Running
-type state = int * category * e list * status option ref * hash
 
-let dummy_state = (-1, -1, [], ref None, -1)
+let rec equal_e l1 l2 =
+  match l1, l2 with
+    [], [] ->
+      true
+  | TSeq (l1', e1, _) :: r1, TSeq (l2', e2, _) :: r2 ->
+      e1.id = e2.id && equal_e l1' l2' && equal_e r1 r2
+  | TExp (marks1, e1) :: r1, TExp (marks2, e2) :: r2 ->
+      e1.id = e2.id && marks1 = marks2 && equal_e r1 r2
+  | TMatch marks1 :: r1, TMatch marks2 :: r2 ->
+      marks1 = marks2 && equal_e r1 r2
+  | _ ->
+      false
 
 let hash_combine h accu = accu * 65599 + h
 
@@ -258,44 +268,37 @@ let rec hash_e l accu =
   | TMatch marks :: r ->
       hash_e r (hash_combine 0x1c205ad5 (hash_marks marks accu))
 
-let hash_state idx cat desc =
-  hash_e desc (hash_combine idx (hash_combine cat 0)) land 0x3FFFFFFF
+module State = struct
+  type t = int * category * e list * status option ref * hash
+  let dummy = (-1, -1, [], ref None, -1)
 
-let mk_state idx cat desc = (idx, cat, desc, ref None, hash_state idx cat desc)
+  let hash idx cat desc =
+    hash_e desc (hash_combine idx (hash_combine cat 0)) land 0x3FFFFFFF
 
-let create_state cat e = mk_state 0 cat [TExp (empty_mark, e)]
+  let mk idx cat desc = (idx, cat, desc, ref None, hash idx cat desc)
 
-let rec equal_e l1 l2 =
-  match l1, l2 with
-    [], [] ->
-      true
-  | TSeq (l1', e1, _) :: r1, TSeq (l2', e2, _) :: r2 ->
-      e1.id = e2.id && equal_e l1' l2' && equal_e r1 r2
-  | TExp (marks1, e1) :: r1, TExp (marks2, e2) :: r2 ->
-      e1.id = e2.id && marks1 = marks2 && equal_e r1 r2
-  | TMatch marks1 :: r1, TMatch marks2 :: r2 ->
-      marks1 = marks2 && equal_e r1 r2
-  | _ ->
-      false
+  let create cat e = mk 0 cat [TExp (empty_mark, e)]
 
-let equal_state (idx1, cat1, desc1, _, h1) (idx2, cat2, desc2, _, h2) =
-  (h1 : int) = h2 && (idx1 : int) = idx2 &&
-  (cat1 : int) = cat2 && equal_e desc1 desc2
+  let equal (idx1, cat1, desc1, _, h1) (idx2, cat2, desc2, _, h2) =
+    (h1 : int) = h2 && (idx1 : int) = idx2 &&
+    (cat1 : int) = cat2 && equal_e desc1 desc2
 
-let compare_state (_idx1, cat1, desc1, _, h1) (_idx2, cat2, desc2, _, h2) =
-  let c = compare (h1 : int) h2 in
-  if c <> 0 then c else
-  let c = compare (cat1 : int) cat2 in
-  if c <> 0 then c else
-  compare desc1 desc2
+  let compare (_idx1, cat1, desc1, _, h1) (_idx2, cat2, desc2, _, h2) =
+    let c = compare (h1 : int) h2 in
+    if c <> 0 then c else
+      let c = compare (cat1 : int) cat2 in
+      if c <> 0 then c else
+        compare desc1 desc2
 
-module States =
-  Hashtbl.Make
-    (struct
-       type t = state
-       let equal = equal_state
-       let hash (_, _, _, _, h) = h
-     end)
+  type t' = t
+  module Table = Hashtbl.Make(
+    struct
+      type t = t'
+      let equal = equal
+      let hash (_, _, _, _, h) = h
+    end)
+end
+
 
 (**** Find a free index ****)
 
@@ -470,7 +473,7 @@ let delta tbl_ref cat' char (_, cat, expr, _, _) =
   let idx = free_index tbl_ref expr' in
   let used = ref false in
   let expr'' = set_idx used idx expr' in
-  mk_state idx cat' expr''
+  State.mk idx cat' expr''
 
 (****)
 
@@ -479,7 +482,7 @@ let rec red_tr l =
     [] | [_] ->
       l
   | ((s1, st1) as tr1) :: ((s2, st2) as tr2) :: rem ->
-      if equal_state st1 st2 then
+      if State.equal st1 st2 then
         red_tr ((Cset.union s1 s2, st1) :: rem)
       else
         tr1 :: red_tr (tr2 :: rem)
@@ -487,7 +490,7 @@ let rec red_tr l =
 let simpl_tr l =
   List.sort
     (fun (s1, _) (s2, _) -> compare s1 s2)
-  (red_tr (List.sort (fun (_, st1) (_, st2) -> compare_state st1 st2) l))
+  (red_tr (List.sort (fun (_, st1) (_, st2) -> State.compare st1 st2) l))
 
 (****)
 
@@ -648,7 +651,7 @@ Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_st
                let s'' = Cset.inter s s' in
                if Cset.is_empty s''
                then rem
-               else (s'', mk_state idx cat' expr'') :: rem)
+               else (s'', State.mk idx cat' expr'') :: rem)
             categories rem)
        der [])
 

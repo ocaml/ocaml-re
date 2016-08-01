@@ -90,12 +90,13 @@ val print_state : Format.formatter -> e list -> unit
 type hash
 type mark_infos = int array
 type status = Failed | Match of mark_infos * PmarkSet.t | Running
-type state =
-  idx * category * e list * status option ref * hash
-val dummy_state : state
-val mk_state : idx -> category -> e list -> state
-val create_state : category -> expr -> state
-module States : Hashtbl.S with type key = state
+
+module State : sig
+  type t = idx * category * e list * status option ref * hash
+  val dummy : t
+  val create : category -> expr -> t
+  module Table : Hashtbl.S with type key = t
+end
 
 (****)
 
@@ -105,11 +106,11 @@ type working_area
 val create_working_area : unit -> working_area
 val index_count : working_area -> int
 
-val delta : working_area -> category -> Re_cset.c -> state -> state
+val delta : working_area -> category -> Re_cset.c -> State.t -> State.t
 val deriv :
-  working_area -> Re_cset.t -> (category * Re_cset.t) list -> state ->
-  (Re_cset.t * state) list
+  working_area -> Re_cset.t -> (category * Re_cset.t) list -> State.t ->
+  (Re_cset.t * State.t) list
 
 (****)
 
-val status : state -> status
+val status : State.t -> status
