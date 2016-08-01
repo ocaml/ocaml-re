@@ -604,14 +604,14 @@ and deriv_seq all_chars categories cat kind y z rem =
              match kind with
                `Longest ->
                  Cset.prepend s (E.tseq kind (remove_matches y) z []) (
-                 Cset.prepend_deriv (restrict s z'') rem)
+                 prepend_deriv (restrict s z'') rem)
              | `Shortest ->
-                 Cset.prepend_deriv (restrict s z'') (
+                 prepend_deriv (restrict s z'') (
                  Cset.prepend s (E.tseq kind (remove_matches y) z []) rem)
              | `First ->
                  let (y', y'') = split_at_match y in
                  Cset.prepend s (E.tseq kind y' z []) (
-                 Cset.prepend_deriv (restrict s z'') (
+                 prepend_deriv (restrict s z'') (
                  Cset.prepend s (E.tseq kind y'' z []) rem)))
       y rem
   else
