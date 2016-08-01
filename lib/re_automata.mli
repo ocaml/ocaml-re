@@ -83,10 +83,7 @@ type mark_offsets = {
   pmarks : PmarkSet.t
 }
 
-type e =
-    TSeq of e list * expr * sem
-  | TExp of mark_offsets * expr
-  | TMatch of mark_offsets
+type e
 
 val print_state : Format.formatter -> e list -> unit
 
