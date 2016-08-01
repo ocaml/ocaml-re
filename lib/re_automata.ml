@@ -240,6 +240,33 @@ module E = struct
       []                              -> rem
     | [TExp (marks, {def = Eps ; _})] -> TExp (marks, y) :: rem
     | _                               -> TSeq (x, y, kind) :: rem
+
+  let rec print_state_rec ch e y =
+    match e with
+    | TMatch marks ->
+      Format.fprintf ch "@[<2>(Match@ %a)@]" print_marks marks
+    | TSeq (l', x, _kind) ->
+      Format.fprintf ch "@[<2>(Seq@ ";
+      print_state_lst ch l' x;
+      Format.fprintf ch " %a)@]" pp x
+    | TExp (marks, {def = Eps; _}) ->
+      Format.fprintf ch "(Exp %d (%a) (eps))" y.id print_marks marks
+    | TExp (marks, x) ->
+      Format.fprintf ch "(Exp %d (%a) %a)" x.id print_marks marks pp x
+
+  and print_state_lst ch l y =
+    match l with
+      [] ->
+      Format.fprintf ch "()"
+    | e :: rem ->
+      print_state_rec ch e y;
+      List.iter
+        (fun e ->
+           Format.fprintf ch " | ";
+           print_state_rec ch e y)
+        rem
+
+  let pp ch t = print_state_lst ch [t] { id = 0; def = Eps }
 end
 
 module State = struct
@@ -272,34 +299,6 @@ module State = struct
       let hash (_, _, _, _, h) = h
     end)
 end
-
-let rec print_state_rec ch e y =
-  match e with
-  | E.TMatch marks ->
-    Format.fprintf ch "@[<2>(Match@ %a)@]" print_marks marks
-  | E.TSeq (l', x, _kind) ->
-    Format.fprintf ch "@[<2>(Seq@ ";
-    print_state_lst ch l' x;
-    Format.fprintf ch " %a)@]" pp x
-  | E.TExp (marks, {def = Eps; _}) ->
-    Format.fprintf ch "(Exp %d (%a) (eps))" y.id print_marks marks
-  | E.TExp (marks, x) ->
-    Format.fprintf ch "(Exp %d (%a) %a)" x.id print_marks marks pp x
-
-and print_state_lst ch l y =
-  match l with
-    [] ->
-      Format.fprintf ch "()"
-  | e :: rem ->
-      print_state_rec ch e y;
-      List.iter
-        (fun e ->
-           Format.fprintf ch " | ";
-           print_state_rec ch e y)
-        rem
-
-let print_state ch l = print_state_lst ch l { id = 0; def = Eps }
-
 
 (**** Find a free index ****)
 

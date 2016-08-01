@@ -85,9 +85,8 @@ type mark_offsets = {
 
 module E : sig
   type t
+  val pp : Format.formatter -> t -> unit
 end
-
-val print_state : Format.formatter -> E.t list -> unit
 
 type hash
 type mark_infos = int array
