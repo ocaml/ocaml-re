@@ -78,10 +78,11 @@ module PmarkSet : Set.S with type elt = Pmark.t
 (* States of the automata *)
 
 type idx = int
-type mark_offsets = {
-  marks : (mark * idx) list ;
-  pmarks : PmarkSet.t
-}
+module Marks : sig
+  type t =
+    { marks: (mark * idx) list
+    ; pmarks: PmarkSet.t }
+end
 
 module E : sig
   type t
