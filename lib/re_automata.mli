@@ -83,16 +83,18 @@ type mark_offsets = {
   pmarks : PmarkSet.t
 }
 
-type e
+module E : sig
+  type t
+end
 
-val print_state : Format.formatter -> e list -> unit
+val print_state : Format.formatter -> E.t list -> unit
 
 type hash
 type mark_infos = int array
 type status = Failed | Match of mark_infos * PmarkSet.t | Running
 
 module State : sig
-  type t = idx * category * e list * status option ref * hash
+  type t = idx * category * E.t list * status option ref * hash
   val dummy : t
   val create : category -> expr -> t
   module Table : Hashtbl.S with type key = t
