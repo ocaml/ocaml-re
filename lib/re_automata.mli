@@ -93,7 +93,12 @@ type mark_infos = int array
 type status = Failed | Match of mark_infos * PmarkSet.t | Running
 
 module State : sig
-  type t = idx * category * E.t list * status option ref * hash
+  type t =
+    { idx: idx
+    ; category: category
+    ; desc: E.t list
+    ; mutable status: status option
+    ; hash: hash }
   val dummy : t
   val create : category -> expr -> t
   module Table : Hashtbl.S with type key = t

@@ -270,33 +270,49 @@ module E = struct
 end
 
 module State = struct
-  type t = int * category * E.t list * status option ref * hash
-  let dummy = (-1, -1, [], ref None, -1)
+  type t =
+    { idx: idx
+    ; category: category
+    ; desc: E.t list
+    ; mutable status: status option
+    ; hash: hash }
+
+  let dummy =
+    { idx = -1
+    ; category = -1
+    ; desc = []
+    ; status = None
+    ; hash = -1 }
 
   let hash idx cat desc =
     E.hash desc (hash_combine idx (hash_combine cat 0)) land 0x3FFFFFFF
 
-  let mk idx cat desc = (idx, cat, desc, ref None, hash idx cat desc)
+  let mk idx cat desc = 
+    { idx
+    ; category = cat
+    ; desc
+    ; status = None
+    ; hash = hash idx cat desc}
 
   let create cat e = mk 0 cat [E.TExp (empty_mark, e)]
 
-  let equal (idx1, cat1, desc1, _, h1) (idx2, cat2, desc2, _, h2) =
-    (h1 : int) = h2 && (idx1 : int) = idx2 &&
-    (cat1 : int) = cat2 && E.equal desc1 desc2
+  let equal x y =
+    (x.hash : int) = y.hash && (x.idx : int) = y.idx &&
+    (x.category : int) = y.category && E.equal x.desc y.desc
 
-  let compare (_idx1, cat1, desc1, _, h1) (_idx2, cat2, desc2, _, h2) =
-    let c = compare (h1 : int) h2 in
+  let compare x y =
+    let c = compare (x.hash : int) y.hash in
     if c <> 0 then c else
-      let c = compare (cat1 : int) cat2 in
+      let c = compare (x.category : int) y.category in
       if c <> 0 then c else
-        compare desc1 desc2
+        compare x.desc y.desc
 
   type t' = t
   module Table = Hashtbl.Make(
     struct
       type t = t'
       let equal = equal
-      let hash (_, _, _, _, h) = h
+      let hash t = t.hash
     end)
 end
 
@@ -467,9 +483,10 @@ and delta_4 c cat' cat l rem =
     []     -> rem
   | y :: r -> delta_3 c cat' cat y (delta_4 c cat' cat r rem)
 
-let delta tbl_ref cat' char (_, cat, expr, _, _) =
+let delta tbl_ref cat' char st =
   let (expr', _) =
-    remove_duplicates [] (delta_4 char cat cat' expr []) eps_expr in
+    remove_duplicates [] (delta_4 char st.State.category cat' st.State.desc [])
+      eps_expr in
   let idx = free_index tbl_ref expr' in
   let used = ref false in
   let expr'' = set_idx used idx expr' in
@@ -634,8 +651,9 @@ and deriv_4 all_chars categories cat l rem =
   | y :: r -> deriv_3 all_chars categories cat y
                 (deriv_4 all_chars categories cat r rem)
 
-let deriv tbl_ref all_chars categories (_, cat, expr, _, _) =
-  let der = deriv_4 all_chars categories cat expr [(all_chars, [])] in
+let deriv tbl_ref all_chars categories st =
+  let der = deriv_4 all_chars categories st.State.category st.State.desc
+      [(all_chars, [])] in
   simpl_tr
     (List.fold_right
        (fun (s, expr) rem ->
@@ -663,16 +681,16 @@ let flatten_match m =
   List.iter (fun (i, v) -> res.(i) <- v) m;
   res
 
-let status (_, _, desc, status, _) =
-  match !status with
+let status s =
+  match s.State.status with
     Some st ->
       st
   | None ->
       let st =
-        match desc with
+        match s.State.desc with
           []              -> Failed
         | E.TMatch m :: _ -> Match (flatten_match m.marks, m.pmarks)
         | _               -> Running
       in
-      status := Some st;
+      s.State.status <- Some st;
       st

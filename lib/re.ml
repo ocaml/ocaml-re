@@ -140,15 +140,15 @@ let unknown_state =
     next = dummy_next; final = [];
     desc = Automata.State.dummy }
 
-let mk_state ncol ((idx, _, _, _, _) as desc) =
+let mk_state ncol desc =
   let break_state =
     match Automata.status desc with
     | Automata.Running -> false
     | Automata.Failed
     | Automata.Match _ -> true
   in
-  { idx = if break_state then break else idx;
-    real_idx = idx;
+  { idx = if break_state then break else desc.Automata.State.idx;
+    real_idx = desc.Automata.State.idx;
     next = if break_state then dummy_next else Array.make ncol unknown_state;
     final = [];
     desc = desc }
@@ -164,9 +164,9 @@ let find_state re desc =
 (**** Match with marks ****)
 
 let delta info cat c st =
-  let (idx, _, _, _, _) as desc = Automata.delta info.re.tbl cat c st.desc in
+  let desc = Automata.delta info.re.tbl cat c st.desc in
   let len = Array.length info.positions in
-  if idx = len && len > 0 then begin
+  if desc.Automata.State.idx = len && len > 0 then begin
     let pos = info.positions in
     info.positions <- Array.make (2 * len) 0;
     Array.blit pos 0 info.positions 0 len
@@ -248,8 +248,8 @@ let final info st cat =
   try
     List.assq cat st.final
   with Not_found ->
-    let (idx, _, _, _, _) as st' = delta info cat (-1) st in
-    let res = (idx, Automata.status st') in
+    let st' = delta info cat (-1) st in
+    let res = (st'.Automata.State.idx, Automata.status st') in
     st.final <- (cat, res) :: st.final;
     res
 
