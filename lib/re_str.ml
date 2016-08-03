@@ -74,6 +74,13 @@ let rec search_backward re s p =
     if p = 0 then raise Not_found else
     search_backward re s (p - 1)
 
+let valid_group n =
+  n >= 0 && n < 10 && (
+    match !state with
+    | None -> false
+    | Some m -> n < Re.Group.length m
+  )
+
 let beginning_group i =
   match !state with
     Some m -> fst (Re.Group.offset m i)
@@ -181,12 +188,12 @@ let regexp_string s = compile_regexp (quote s) false
 let regexp_string_case_fold s = compile_regexp (quote s) true
 
 let group_beginning n =
-  if n < 0 || n >= 10 then invalid_arg "Str.group_beginning" else
+  if not (valid_group n) then invalid_arg "Str.group_beginning" else
   let pos = beginning_group n in
   if pos = -1 then raise Not_found else pos
 
 let group_end n =
-  if n < 0 || n >= 10 then invalid_arg "Str.group_end" else
+  if not (valid_group n) then invalid_arg "Str.group_end" else
   let pos = end_group n in
   if pos = -1 then raise Not_found else pos
 
