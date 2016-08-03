@@ -172,10 +172,10 @@ Test re_test_glob
   Command: $re_test_glob
   WorkingDirectory: lib_test
 
-# Test re_test_str
-#   Run$:             flag(tests)
-#   Command:          $re_test_str
-#   WorkingDirectory: lib_test
+Test re_test_str
+  Run$:             flag(tests)
+  Command:          $re_test_str
+  WorkingDirectory: lib_test
 
 Executable test_easy
   Path:               lib_test
