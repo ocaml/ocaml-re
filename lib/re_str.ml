@@ -235,6 +235,12 @@ let global_replace expr repl text =
 and replace_first expr repl text =
   substitute_first expr (replacement_text repl) text
 
+let search_forward_progress re s p =
+  let pos = search_forward re s p in
+  if match_end () > p then pos
+  else if p < String.length s then search_forward re s (p + 1)
+  else raise Not_found
+
 let bounded_split expr text num =
   let start =
     if string_match expr text 0 then match_end() else 0 in
@@ -242,7 +248,7 @@ let bounded_split expr text num =
     if start >= String.length text then [] else
     if n = 1 then [string_after text start] else
       try
-        let pos = search_forward expr text start in
+        let pos = search_forward_progress expr text start in
         String.sub text start (pos-start) :: split (match_end()) (n-1)
       with Not_found ->
         [string_after text start] in
@@ -255,7 +261,7 @@ let bounded_split_delim expr text num =
     if start > String.length text then [] else
     if n = 1 then [string_after text start] else
       try
-        let pos = search_forward expr text start in
+        let pos = search_forward_progress expr text start in
         String.sub text start (pos-start) :: split (match_end()) (n-1)
       with Not_found ->
         [string_after text start] in
@@ -270,7 +276,7 @@ let bounded_full_split expr text num =
     if start >= String.length text then [] else
     if n = 1 then [Text(string_after text start)] else
       try
-        let pos = search_forward expr text start in
+        let pos = search_forward_progress expr text start in
         let s = matched_string text in
         if pos > start then
           Text(String.sub text start (pos-start)) ::
