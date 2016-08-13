@@ -1041,7 +1041,7 @@ module Group = struct
       fprintf fmt "@[(%s (%d %d))@]" str start stop in
     sexp fmt "Group" (list pp_match) matches
 
-  let length { marks ; _ } = Array.length marks / 2
+  let nb_groups { marks ; _ } = Array.length marks / 2
 end
 
 module Mark = struct

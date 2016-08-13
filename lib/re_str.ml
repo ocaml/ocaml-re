@@ -78,7 +78,7 @@ let valid_group n =
   n >= 0 && n < 10 && (
     match !state with
     | None -> false
-    | Some m -> n < Re.Group.length m
+    | Some m -> n < Re.Group.nb_groups m
   )
 
 let beginning_group i =
