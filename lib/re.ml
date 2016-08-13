@@ -63,7 +63,7 @@ type state =
            - the index where the next position should be saved
            - possibly, the list of marks (and the corresponding indices)
              corresponding to the best match *)
-    desc : Automata.state
+    desc : Automata.State.t
         (* Description of this state of the automata *) }
 
 (* Automata (compiled regular expression) *)
@@ -83,7 +83,7 @@ type re =
     mutable tbl : Automata.working_area;
         (* Temporary table used to compute the first available index
            when computing a new state *)
-    states : state Automata.States.t;
+    states : state Automata.State.Table.t;
         (* States of the deterministic automata *)
     group_count : int
         (* Number of groups in the regular expression *) }
@@ -138,35 +138,35 @@ let dummy_next = [||]
 let unknown_state =
   { idx = unknown; real_idx = 0;
     next = dummy_next; final = [];
-    desc = Automata.dummy_state }
+    desc = Automata.State.dummy }
 
-let mk_state ncol ((idx, _, _, _, _) as desc) =
+let mk_state ncol desc =
   let break_state =
     match Automata.status desc with
     | Automata.Running -> false
     | Automata.Failed
     | Automata.Match _ -> true
   in
-  { idx = if break_state then break else idx;
-    real_idx = idx;
+  { idx = if break_state then break else desc.Automata.State.idx;
+    real_idx = desc.Automata.State.idx;
     next = if break_state then dummy_next else Array.make ncol unknown_state;
     final = [];
     desc = desc }
 
 let find_state re desc =
   try
-    Automata.States.find re.states desc
+    Automata.State.Table.find re.states desc
   with Not_found ->
     let st = mk_state re.ncol desc in
-    Automata.States.add re.states desc st;
+    Automata.State.Table.add re.states desc st;
     st
 
 (**** Match with marks ****)
 
 let delta info cat c st =
-  let (idx, _, _, _, _) as desc = Automata.delta info.re.tbl cat c st.desc in
+  let desc = Automata.delta info.re.tbl cat c st.desc in
   let len = Array.length info.positions in
-  if idx = len && len > 0 then begin
+  if desc.Automata.State.idx = len && len > 0 then begin
     let pos = info.positions in
     info.positions <- Array.make (2 * len) 0;
     Array.blit pos 0 info.positions 0 len
@@ -248,8 +248,8 @@ let final info st cat =
   try
     List.assq cat st.final
   with Not_found ->
-    let (idx, _, _, _, _) as st' = delta info cat (-1) st in
-    let res = (idx, Automata.status st') in
+    let st' = delta info cat (-1) st in
+    let res = (st'.Automata.State.idx, Automata.status st') in
     st.final <- (cat, res) :: st.final;
     res
 
@@ -258,7 +258,7 @@ let find_initial_state re cat =
     List.assq cat re.initial_states
   with Not_found ->
     let st =
-      find_state re (Automata.create_state cat re.initial)
+      find_state re (Automata.State.create cat re.initial)
     in
     re.initial_states <- (cat, st) :: re.initial_states;
     st
@@ -359,46 +359,30 @@ let mk_re init cols col_repr ncol lnl group_count =
     ncol = ncol;
     lnl = lnl;
     tbl = Automata.create_working_area ();
-    states = Automata.States.create 97;
+    states = Automata.State.Table.create 97;
     group_count = group_count }
 
 (**** Character sets ****)
 
-let cany = [0, 255]
-
 let cseq c c' = Cset.seq (Char.code c) (Char.code c')
 let cadd c s = Cset.add (Char.code c) s
-let csingle c = Cset.single (Char.code c)
-
-let rec cset_hash_rec l =
-  match l with
-    []        -> 0
-  | (i, j)::r -> i + 13 * j + 257 * cset_hash_rec r
-
-module CSetMap =
-  Map.Make
-  (struct
-    type t = int * (int * int) list
-    let compare (i, u) (j, v) =
-      let c = compare i j in if c <> 0 then c else compare u v
-   end)
 
 let trans_set cache cm s =
-  match s with
-    [i, j] when i = j ->
-      csingle (Bytes.get cm i)
-  | _ ->
-      let v = (cset_hash_rec s, s) in
-      try
-        CSetMap.find v !cache
-      with Not_found ->
-        let l =
-          List.fold_right
-            (fun (i, j) l -> Cset.union (cseq (Bytes.get cm i) (Bytes.get cm j)) l)
-            s Cset.empty
-        in
-        cache := CSetMap.add v l !cache;
-        l
+  match Cset.one_char s with
+  | Some i -> Cset.csingle (Bytes.get cm i)
+  | None ->
+    let v = (Cset.hash_rec s, s) in
+    try
+      Cset.CSetMap.find v !cache
+    with Not_found ->
+      let l =
+        Cset.fold_right
+          s
+          ~f:(fun (i, j) l -> Cset.union (cseq (Bytes.get cm i) (Bytes.get cm j)) l)
+          ~init:Cset.empty
+      in
+      cache := Cset.CSetMap.add v l !cache;
+      l
 
 (****)
 
@@ -475,10 +459,11 @@ let rec is_charset r =
 (**** Colormap ****)
 
 (*XXX Use a better algorithm allowing non-contiguous regions? *)
-let rec split s cm =
-  match s with
-    []    -> ()
-  | (i, j)::r -> Bytes.set cm i '\001'; Bytes.set cm (j + 1) '\001'; split r cm
+let split s cm =
+  Re_cset.iter s ~f:(fun i j ->
+      Bytes.set cm i '\001';
+      Bytes.set cm (j + 1) '\001';
+    )
 
 let cupper =
   Cset.union (cseq 'A' 'Z')
@@ -499,7 +484,7 @@ let colorize c regexp =
     | Sequence l                -> List.iter colorize l
     | Alternative l             -> List.iter colorize l
     | Repeat (r, _, _)          -> colorize r
-    | Beg_of_line | End_of_line -> split (csingle '\n') c
+    | Beg_of_line | End_of_line -> split (Cset.csingle '\n') c
     | Beg_of_word | End_of_word
     | Not_bound                 -> split cword c
     | Beg_of_str | End_of_str
@@ -746,9 +731,9 @@ and trans_seq ids kind ign_group ign_case greedy pos cache c l =
         translate ids kind ign_group ign_case greedy pos cache c r in
       let cr'' =
         trans_seq ids kind ign_group ign_case greedy pos cache c rem in
-      if A.def cr'' = A.Eps then
+      if A.is_eps cr'' then
         cr'
-      else if A.def cr' = A.Eps then
+      else if A.is_eps cr' then
         cr''
       else
         A.seq ids kind' cr' cr''
@@ -808,15 +793,15 @@ let rec handle_case ign_case r =
       handle_case true r
   | Intersection l ->
       let l' = List.map (fun r -> handle_case ign_case r) l in
-      Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) cany l')
+      Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) Cset.cany l')
   | Complement l ->
       let l' = List.map (fun r -> handle_case ign_case r) l in
-      Set (Cset.diff cany
+      Set (Cset.diff Cset.cany
              (List.fold_left (fun s r -> Cset.union s (as_set r))
                 Cset.empty l'))
   | Difference (r, r') ->
       Set (Cset.inter (as_set (handle_case ign_case r))
-             (Cset.diff cany (as_set (handle_case ign_case r'))))
+             (Cset.diff Cset.cany (as_set (handle_case ign_case r'))))
   | Pmark (i,r) -> Pmark (i,handle_case ign_case r)
 
 (****)
@@ -832,7 +817,7 @@ let compile_1 regexp =
   let pos = ref 0 in
   let (r, kind) =
     translate ids
-      `First false false `Greedy pos (ref CSetMap.empty) col regexp in
+      `First false false `Greedy pos (ref Cset.CSetMap.empty) col regexp in
   let r = enforce_kind ids `First kind r in
 (*Format.eprintf "<%d %d>@." !ids ncol;*)
   mk_re r col col_repr ncol lnl (!pos / 2)
@@ -864,10 +849,10 @@ type t = regexp
 let str s =
   let l = ref [] in
   for i = String.length s - 1 downto 0 do
-    l := Set (csingle s.[i]) :: !l
+    l := Set (Cset.csingle s.[i]) :: !l
   done;
   Sequence !l
-let char c = Set (csingle c)
+let char c = Set (Cset.csingle c)
 
 let alt l =
   match l with
@@ -909,9 +894,9 @@ let nest r = Nest r
 let mark r = let i = Automata.Pmark.gen () in (i,Pmark (i,r))
 
 let set str =
-  let s = ref [] in
+  let s = ref Cset.empty in
   for i = 0 to String.length str - 1 do
-    s := Cset.union (csingle str.[i]) !s
+    s := Cset.union (Cset.csingle str.[i]) !s
   done;
   Set !s
 
@@ -932,8 +917,8 @@ let diff r r' =
   if is_charset r'' then r'' else
   invalid_arg "Re.diff"
 
-let any = Set cany
-let notnl = Set (Cset.diff cany (csingle '\n'))
+let any = Set Cset.cany
+let notnl = Set (Cset.diff Cset.cany (Cset.csingle '\n'))
 
 let lower = alt [rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255']
 let upper = alt [rg 'A' 'Z'; rg '\192' '\214'; rg '\216' '\222']

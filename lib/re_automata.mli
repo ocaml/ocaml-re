@@ -40,18 +40,7 @@ module Pmark : sig
 end
 
 type expr
-type def =
-    Cst of Re_cset.t
-  | Alt of expr list
-  | Seq of sem * expr * expr
-  | Eps
-  | Rep of rep_kind * sem * expr
-  | Mark of mark
-  | Erase of mark * mark
-  | Before of category
-  | After of category
-  | Pmark of Pmark.t
-val def : expr -> def
+val is_eps : expr -> bool
 val pp : Format.formatter -> expr -> unit
 
 type ids
@@ -78,27 +67,32 @@ module PmarkSet : Set.S with type elt = Pmark.t
 (* States of the automata *)
 
 type idx = int
-type mark_offsets = {
-  marks : (mark * idx) list ;
-  pmarks : PmarkSet.t
-}
+module Marks : sig
+  type t =
+    { marks: (mark * idx) list
+    ; pmarks: PmarkSet.t }
+end
 
-type e =
-    TSeq of e list * expr * sem
-  | TExp of mark_offsets * expr
-  | TMatch of mark_offsets
-
-val print_state : Format.formatter -> e list -> unit
+module E : sig
+  type t
+  val pp : Format.formatter -> t -> unit
+end
 
 type hash
 type mark_infos = int array
 type status = Failed | Match of mark_infos * PmarkSet.t | Running
-type state =
-  idx * category * e list * status option ref * hash
-val dummy_state : state
-val mk_state : idx -> category -> e list -> state
-val create_state : category -> expr -> state
-module States : Hashtbl.S with type key = state
+
+module State : sig
+  type t =
+    { idx: idx
+    ; category: category
+    ; desc: E.t list
+    ; mutable status: status option
+    ; hash: hash }
+  val dummy : t
+  val create : category -> expr -> t
+  module Table : Hashtbl.S with type key = t
+end
 
 (****)
 
@@ -108,11 +102,11 @@ type working_area
 val create_working_area : unit -> working_area
 val index_count : working_area -> int
 
-val delta : working_area -> category -> Re_cset.c -> state -> state
+val delta : working_area -> category -> Re_cset.c -> State.t -> State.t
 val deriv :
-  working_area -> Re_cset.t -> (category * Re_cset.t) list -> state ->
-  (Re_cset.t * state) list
+  working_area -> Re_cset.t -> (category * Re_cset.t) list -> State.t ->
+  (Re_cset.t * State.t) list
 
 (****)
 
-val status : state -> status
+val status : State.t -> status
