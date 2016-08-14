@@ -1,38 +1,38 @@
 open Fort_unit
 
-let eq_match ?pos ?len ?(case = true) r s =
+module type Str_intf = module type of Str
+
+module Test_matches (R : Str_intf) = struct
+  let groups () =
+    let group i =
+      try `Found (R.group_beginning i)
+      with
+      | Not_found -> `Not_found
+      | Invalid_argument _ -> `Not_exists in
+    let rec loop acc i =
+      match group i with
+      | `Found p -> loop ((p, R.group_end i)::acc) (i + 1)
+      | `Not_found -> loop ((-1, -1)::acc) (i + 1)
+      | `Not_exists -> List.rev acc in
+    loop [] 0
+
+  let eq_match ?(pos=0) ?(case=true) r s =
+    let pat = if case then R.regexp r else R.regexp_case_fold r in
+    try
+      ignore (R.search_forward pat s pos);
+      Some (groups ())
+    with Not_found -> None
+end
+
+module T_str = Test_matches(Str)
+module T_re = Test_matches(Re_str)
+
+let eq_match ?pos ?case r s =
   expect_equal_app
     ~msg:(str_printer s)
-    ~printer:arr_ofs_printer
-    (fun () ->
-       let pos = match pos with None -> 0 | Some p -> p in
-       let pat = if case then Str.regexp r else Str.regexp_case_fold r in
-       let _s_start = Str.search_forward pat s pos in
-
-       (* need a better way to determine group count -
-          maybe parse the regular expression ? *)
-       let n_groups =
-         try
-           let m = Re.exec ~pos ?len (Re.compile (Re_emacs.re ~case r)) s in
-           Array.length (Re.Group.all_offset m)
-         with _ -> 0
-       in
-
-       (* extract all offset information *)
-       let rec get_all_ofs i acc =
-         if i >= n_groups then Array.of_list (List.rev acc)
-         else
-           let g_begin = try Str.group_beginning i with _ -> -1 in
-           let g_end   = try Str.group_end i with _ -> -1 in
-           get_all_ofs (i + 1) ((g_begin, g_end) :: acc)
-       in
-       get_all_ofs 0 []
-    ) ()
-    (fun () ->
-       Re.Group.all_offset (
-         Re.exec ?pos ?len (Re_emacs.compile (Re_emacs.re ~case r)) s
-       )
-    ) ()
+    ~printer:(opt_printer (list_printer ofs_printer))
+    (fun () -> T_str.eq_match ?pos ?case r s) ()
+    (fun () -> T_re.eq_match ?pos ?case r s) ()
 ;;
 
 let _ =
@@ -94,41 +94,10 @@ let _ =
     eq_match  "a$"                "ab";
   );
 
-  expect_pass "bow" (fun () ->
-    eq_match  "\\<a"               "a";
-    eq_match  "\\<a"               "bb aa";
-    eq_match  "\\<a"               "ba ba";
-  );
-
-  expect_pass "eow" (fun () ->
-    eq_match  "\\>a"               "a";
-    eq_match  "\\>a"               "bb aa";
-    eq_match  "\\>a"               "ab ab";
-  );
-
-  expect_pass "bos" (fun () ->
-    eq_match  "\\`a"               "ab";
-    eq_match  "\\`a"               "b\na";
-    eq_match  "\\`a"               "ba";
-  );
-
-  expect_pass "eos" (fun () ->
-    eq_match  "a\'"               "ba";
-    eq_match  "a\'"               "a\nb";
-    eq_match  "a\'"               "ba\n";
-    eq_match  "a\'"               "ab";
-  );
-
   expect_pass "start" (fun () ->
-    eq_match ~pos:1 "\\=a"         "xab";
-    eq_match ~pos:1 "\\=a"         "xb\na";
-    eq_match ~pos:1 "\\=a"         "xba";
-  );
-
-  expect_pass "not_boundary" (fun () ->
-    eq_match "\\Bb\\B"              "abc";
-    eq_match "\\Ba"                "abc";
-    eq_match "c\\B"                "abc";
+    eq_match ~pos:1 "Za"         "xab";
+    eq_match ~pos:1 "Za"         "xb\na";
+    eq_match ~pos:1 "Za"         "xba";
   );
 
   (* Match semantics *)
@@ -141,6 +110,7 @@ let _ =
 
   (* Group (or submatch) *)
 
+  (* TODO: infinite loop *)
   expect_pass "group" (fun () ->
     eq_match "\\(a\\)\\(a\\)?\\(b\\)"   "ab";
   );
