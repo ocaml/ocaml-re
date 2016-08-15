@@ -67,11 +67,6 @@ module PmarkSet : Set.S with type elt = Pmark.t
 (* States of the automata *)
 
 type idx = int
-module Marks : sig
-  type t =
-    { marks: (mark * idx) list
-    ; pmarks: PmarkSet.t }
-end
 
 module E : sig
   type t
@@ -103,9 +98,6 @@ val create_working_area : unit -> working_area
 val index_count : working_area -> int
 
 val delta : working_area -> category -> Re_cset.c -> State.t -> State.t
-val deriv :
-  working_area -> Re_cset.t -> (category * Re_cset.t) list -> State.t ->
-  (Re_cset.t * State.t) list
 
 (****)
 
