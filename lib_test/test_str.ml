@@ -1,4 +1,5 @@
 open Fort_unit
+open OUnit2
 
 module type Str_intf = module type of Str
 
@@ -26,6 +27,10 @@ end
 
 module T_str = Test_matches(Str)
 module T_re = Test_matches(Re_str)
+
+let split_convert = List.map (function
+    | Str.Text s -> Re_str.Text s
+    | Str.Delim s -> Re_str.Delim s)
 
 let eq_match ?pos ?case r s =
   expect_equal_app
@@ -134,5 +139,30 @@ let _ =
     eq_match ~case:false "abc"    "abc";
     eq_match ~case:false "abc"    "ABC";
   );
+
+  expect_pass "split tests" (fun () ->
+      let printer = list_printer (fun x -> x) in
+      let split_printer =
+        list_printer (function
+            | Re_str.Delim s -> "Delim " ^ s
+            | Re_str.Text s -> "Text " ^ s) in
+      List.iter (fun (re, s) ->
+          let re1 = Str.regexp re in
+          let re2 = Re_str.regexp re in
+          assert_equal ~printer:split_printer
+            (split_convert (Str.full_split re1 s))
+            (Re_str.full_split re2 s);
+          assert_equal ~printer
+            (Str.split_delim re1 s)
+            (Re_str.split_delim re2 s);
+          assert_equal ~printer
+            (Str.split re1 s)
+            (Re_str.split re2 s)
+        )
+        [ "re", ""
+        ; " ", "foo bar"
+        ; "\b", "one-two three"
+        ; "[0-9]", "One3TwoFive"]
+    );
 
   run_test_suite "test_str"
