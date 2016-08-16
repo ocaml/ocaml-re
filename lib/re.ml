@@ -142,7 +142,7 @@ let unknown_state =
 
 let mk_state ncol desc =
   let break_state =
-    match Automata.status desc with
+    match Automata.State.status desc with
     | Automata.Running -> false
     | Automata.Failed
     | Automata.Match _ -> true
@@ -249,7 +249,7 @@ let final info st cat =
     List.assq cat st.final
   with Not_found ->
     let st' = delta info cat (-1) st in
-    let res = (st'.Automata.State.idx, Automata.status st') in
+    let res = (st'.Automata.State.idx, Automata.State.status st') in
     st.final <- (cat, res) :: st.final;
     res
 
@@ -334,7 +334,7 @@ let match_str ~groups ~partial re s ~pos ~len =
   let st = scan_str info s initial_state groups in
   let res =
     if st.idx = break || partial then
-      Automata.status st.desc
+      Automata.State.status st.desc
     else
       let final_cat =
         if last = slen then

@@ -87,10 +87,11 @@ module State : sig
     { idx: idx
     ; category: category
     ; desc: E.t list
-    ; mutable status: status option
+    ; status: status Lazy.t
     ; hash: hash }
   val dummy : t
   val create : category -> expr -> t
+  val status : t -> status
   module Table : Hashtbl.S with type key = t
 end
 
@@ -106,7 +107,3 @@ val delta : working_area -> category -> Re_cset.c -> State.t -> State.t
 val deriv :
   working_area -> Re_cset.t -> (category * Re_cset.t) list -> State.t ->
   (Re_cset.t * State.t) list
-
-(****)
-
-val status : State.t -> status
