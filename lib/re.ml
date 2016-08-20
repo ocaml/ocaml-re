@@ -616,7 +616,7 @@ let rec translate ids kind ign_group ign_case greedy pos cache (c:Bytes.t) r =
           let (cr, kind') =
             translate ids kind ign_group ign_case greedy pos cache c r' in
           (enforce_kind ids kind kind' cr, kind)
-      | _ ->
+      | merged_sequences ->
           (A.alt ids
              (List.map
                 (fun r' ->
@@ -624,7 +624,7 @@ let rec translate ids kind ign_group ign_case greedy pos cache (c:Bytes.t) r =
                      translate ids kind ign_group ign_case greedy
                        pos cache c r' in
                    enforce_kind ids kind kind' cr)
-                (merge_sequences l)),
+                merged_sequences),
            kind)
       end
   | Repeat (r', i, j) ->
