@@ -1,6 +1,54 @@
 open Core.Std
 open Core_bench.Std
 
+module Http = struct
+  open Re
+
+  let space = rep blank
+
+  let crlf = str "\r\n"
+
+  let token =
+    rep1 @@ compl [
+      rg '\000' '\031' ;
+      set "\127)(<>@,;:\\/[]?={}"
+    ]
+
+  let meth = token
+  let version =
+    let digits = rep1 digit in
+    let decimal = seq [digits ; opt (seq [char '.' ; digits])] in
+    seq [str "HTTP/" ; decimal]
+
+  let uri = rep1 (compl [char '\n'])
+
+  let request_line =
+    [ space
+    ; group meth
+    ; space
+    ; group uri
+    ; group version
+    ; space]
+    |> seq
+
+  let header =
+    let key = group (rep1 (Re.compl [char ':'])) in
+    let value = group (rep1 (Re.compl [char '\n'])) in
+    seq [space ; key ; space ; char ':' ; space ; value ; space ; crlf]
+
+  let request' = seq [request_line ; crlf ; rep header ; crlf ]
+
+  module Export = struct
+    let request = request' |> compile
+    let request_g = request' |> no_group |> compile
+
+    let requests = request' |> rep1 |> compile
+    let requests_g = request' |> no_group |> rep1 |> compile
+  end
+end
+
+let http_requests = In_channel.read_all "benchmarks/http-requests.txt"
+
 let str_20_zeroes = String.make 20 '0'
 let re_20_zeroes = Re.(compile (str str_20_zeroes))
 
@@ -63,6 +111,19 @@ let exec_bench_many exec name re cases =
       cases |> List.iter ~f:(fun x -> ignore (exec re x))
     )
 
+let rec read_all_http pos re reqs =
+  if pos >= String.length reqs
+  then ()
+  else
+    let g = Re.exec ~pos re reqs in
+    let (_, pos) = Re.Group.offset g 0 in
+    read_all_http (pos + 1) re reqs
+
+let rec drain_gen gen =
+  match gen () with
+  | None -> ()
+  | Some _ -> drain_gen gen
+
 let benchmarks =
   let benches =
     benchmarks
@@ -72,12 +133,32 @@ let benchmarks =
           ; exec_bench Re.execp "execp" re cases
           ; exec_bench Re.exec_opt "exec_opt" re cases ]
       ) in
+  let http_benches =
+    let open Bench in
+    let open Http.Export in
+    let manual =
+      [ request, "no group" ; request_g, "group" ]
+      |> List.map ~f:(fun (re, name) ->
+          Test.create ~name (fun () -> read_all_http 0 re http_requests)
+        )
+      |> Test.create_group ~name:"manual" in
+    let many =
+      [ Test.create ~name:"execp no group" (fun () ->
+            ignore (Re.execp requests http_requests)
+          )
+      ; Test.create ~name:"all_gen group" (fun () ->
+            http_requests
+            |> Re.all_gen requests_g
+            |> drain_gen
+          )
+      ] |> Test.create_group ~name:"auto" in
+    Test.create_group ~name:"http" [manual ; many] in
   benches @ [
     [ exec_bench_many Re.execp "execp"
     ; exec_bench_many Re.exec_opt "exec_opt" ]
     |> List.map ~f:(fun f ->
         f tex_ignore_re tex_ignore_filesnames)
     |> Bench.Test.create_group ~name:"tex gitignore"
-  ]
+  ] @ [http_benches]
 
 let () = Command.run (Bench.make_command benchmarks)
