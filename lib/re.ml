@@ -80,7 +80,7 @@ type re =
         (* Number of colors *)
     lnl : int;
         (* Color of the last newline *)
-    mutable tbl : Automata.working_area;
+    tbl : Automata.working_area;
         (* Temporary table used to compute the first available index
            when computing a new state *)
     states : state Automata.State.Table.t;
@@ -102,9 +102,9 @@ type info =
     mutable positions : int array;
         (* Array of mark positions
            The mark are off by one for performance reasons *)
-    mutable pos : int;
+    pos : int;
         (* Position where the match is started *)
-    mutable last : int
+    last : int
         (* Position where the match should stop *) }
 
 
@@ -299,7 +299,7 @@ let rec scan_str info (s:string) initial_state groups =
     last > pos &&
     String.get s (last - 1) = '\n'
   then begin
-    info.last <- last - 1;
+    let info = { info with last = last - 1 } in
     let st = scan_str info s initial_state groups in
     if st.idx = break then
       st
