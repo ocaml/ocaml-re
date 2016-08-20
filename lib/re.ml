@@ -439,22 +439,21 @@ let rec pp fmt t =
   | Difference (a, b) -> sexp fmt "Difference" (pair pp pp) (a, b)
   | Pmark (m, r)      -> sexp fmt "Pmark" (pair Automata.Pmark.pp pp) (m, r)
 
-let rec is_charset r =
-  match r with
-    Set _ ->
-      true
+let rec is_charset = function
+  | Set _ ->
+    true
   | Alternative l | Intersection l | Complement l ->
-      List.for_all is_charset l
+    List.for_all is_charset l
   | Difference (r, r') ->
-      is_charset r && is_charset r'
+    is_charset r && is_charset r'
   | Sem (_, r) | Sem_greedy (_, r)
   | No_group r | Case r | No_case r ->
-      is_charset r
+    is_charset r
   | Sequence _ | Repeat _ | Beg_of_line | End_of_line
   | Beg_of_word | End_of_word | Beg_of_str | End_of_str
   | Not_bound | Last_end_of_line | Start | Stop
   | Group _ | Nest _ | Pmark (_,_)->
-      false
+    false
 
 (**** Colormap ****)
 
@@ -574,26 +573,24 @@ and eq_list l1 l2 =
   | _ ->
       false
 
-let sequence l =
-  match l with
-    [x] -> x
+let sequence = function
+  | [x] -> x
   | l   -> Sequence l
 
-let rec merge_sequences l =
-  match l with
-    [] ->
-      l
+let rec merge_sequences = function
+  | [] ->
+    []
   | Alternative l' :: r ->
-      merge_sequences (l' @ r)
+    merge_sequences (l' @ r)
   | Sequence (x :: y) :: r ->
-      begin match merge_sequences r with
+    begin match merge_sequences r with
         Sequence (x' :: y') :: r' when equal x x' ->
-          Sequence [x; Alternative [sequence y; sequence y']] :: r'
+        Sequence [x; Alternative [sequence y; sequence y']] :: r'
       | r' ->
-          Sequence (x :: y) :: r'
-      end
+        Sequence (x :: y) :: r'
+    end
   | x :: r ->
-      x :: merge_sequences r
+    x :: merge_sequences r
 
 module A = Automata
 
@@ -604,139 +601,137 @@ let enforce_kind ids kind kind' cr =
   |  _               -> cr
 
 (* XXX should probably compute a category mask *)
-let rec translate ids kind ign_group ign_case greedy pos cache (c:Bytes.t) r =
-  match r with
-    Set s ->
-      (A.cst ids (trans_set cache c s), kind)
+let rec translate ids kind ign_group ign_case greedy pos cache c = function
+  | Set s ->
+    (A.cst ids (trans_set cache c s), kind)
   | Sequence l ->
-      (trans_seq ids kind ign_group ign_case greedy pos cache c l, kind)
+    (trans_seq ids kind ign_group ign_case greedy pos cache c l, kind)
   | Alternative l ->
-      begin match merge_sequences l with
+    begin match merge_sequences l with
         [r'] ->
-          let (cr, kind') =
-            translate ids kind ign_group ign_case greedy pos cache c r' in
-          (enforce_kind ids kind kind' cr, kind)
-      | _ ->
-          (A.alt ids
-             (List.map
-                (fun r' ->
-                   let (cr, kind') =
-                     translate ids kind ign_group ign_case greedy
-                       pos cache c r' in
-                   enforce_kind ids kind kind' cr)
-                (merge_sequences l)),
-           kind)
-      end
-  | Repeat (r', i, j) ->
-      let (cr, kind') =
-        translate ids kind ign_group ign_case greedy pos cache c r' in
-      let rem =
-        match j with
-          None ->
-            A.rep ids greedy kind' cr
-        | Some j ->
-            let f =
-              match greedy with
-                `Greedy ->
-                  fun rem ->
-                    A.alt ids
-                      [A.seq ids kind' (A.rename ids cr) rem; A.eps ids]
-              | `Non_greedy ->
-                  fun rem ->
-                    A.alt ids
-                      [A.eps ids; A.seq ids kind' (A.rename ids cr) rem]
-            in
-            iter (j - i) f (A.eps ids)
-      in
-      (iter i (fun rem -> A.seq ids kind' (A.rename ids cr) rem) rem, kind)
-  | Beg_of_line ->
-      (A.after ids (cat_inexistant lor cat_newline), kind)
-  | End_of_line ->
-      (A.before ids (cat_inexistant lor cat_newline), kind)
-  | Beg_of_word ->
-      (A.seq ids `First
-           (A.after ids (cat_inexistant lor cat_not_letter))
-           (A.before ids (cat_inexistant lor cat_letter)),
-       kind)
-  | End_of_word ->
-      (A.seq ids `First
-           (A.after ids (cat_inexistant lor cat_letter))
-           (A.before ids (cat_inexistant lor cat_not_letter)),
-       kind)
-  | Not_bound ->
-      (A.alt ids [A.seq ids `First
-                    (A.after ids cat_letter)
-                    (A.before ids cat_letter);
-                  A.seq ids `First
-                    (A.after ids cat_letter)
-                    (A.before ids cat_letter)],
-       kind)
-  | Beg_of_str ->
-      (A.after ids cat_inexistant, kind)
-  | End_of_str ->
-      (A.before ids cat_inexistant, kind)
-  | Last_end_of_line ->
-      (A.before ids (cat_inexistant lor cat_lastnewline), kind)
-  | Start ->
-      (A.after ids cat_search_boundary, kind)
-  | Stop ->
-      (A.before ids cat_search_boundary, kind)
-  | Sem (kind', r') ->
-      let (cr, kind'') =
-        translate ids kind' ign_group ign_case greedy pos cache c r' in
-      (enforce_kind ids kind' kind'' cr,
-       kind')
-  | Sem_greedy (greedy', r') ->
-      translate ids kind ign_group ign_case greedy' pos cache c r'
-  | Group r' ->
-      if ign_group then
-        translate ids kind ign_group ign_case greedy pos cache c r'
-      else
-        let p = !pos in
-        pos := !pos + 2;
         let (cr, kind') =
           translate ids kind ign_group ign_case greedy pos cache c r' in
-        (A.seq ids `First (A.mark ids p) (
-         A.seq ids `First cr (A.mark ids (p + 1))),
-         kind')
-  | No_group r' ->
-      translate ids kind true ign_case greedy pos cache c r'
-  | Nest r' ->
-      let b = !pos in
+        (enforce_kind ids kind kind' cr, kind)
+      | merged_sequences ->
+        (A.alt ids
+           (List.map
+              (fun r' ->
+                 let (cr, kind') =
+                   translate ids kind ign_group ign_case greedy
+                     pos cache c r' in
+                 enforce_kind ids kind kind' cr)
+              merged_sequences),
+         kind)
+    end
+  | Repeat (r', i, j) ->
+    let (cr, kind') =
+      translate ids kind ign_group ign_case greedy pos cache c r' in
+    let rem =
+      match j with
+        None ->
+        A.rep ids greedy kind' cr
+      | Some j ->
+        let f =
+          match greedy with
+            `Greedy ->
+            fun rem ->
+              A.alt ids
+                [A.seq ids kind' (A.rename ids cr) rem; A.eps ids]
+          | `Non_greedy ->
+            fun rem ->
+              A.alt ids
+                [A.eps ids; A.seq ids kind' (A.rename ids cr) rem]
+        in
+        iter (j - i) f (A.eps ids)
+    in
+    (iter i (fun rem -> A.seq ids kind' (A.rename ids cr) rem) rem, kind)
+  | Beg_of_line ->
+    (A.after ids (cat_inexistant lor cat_newline), kind)
+  | End_of_line ->
+    (A.before ids (cat_inexistant lor cat_newline), kind)
+  | Beg_of_word ->
+    (A.seq ids `First
+       (A.after ids (cat_inexistant lor cat_not_letter))
+       (A.before ids (cat_inexistant lor cat_letter)),
+     kind)
+  | End_of_word ->
+    (A.seq ids `First
+       (A.after ids (cat_inexistant lor cat_letter))
+       (A.before ids (cat_inexistant lor cat_not_letter)),
+     kind)
+  | Not_bound ->
+    (A.alt ids [A.seq ids `First
+                  (A.after ids cat_letter)
+                  (A.before ids cat_letter);
+                A.seq ids `First
+                  (A.after ids cat_letter)
+                  (A.before ids cat_letter)],
+     kind)
+  | Beg_of_str ->
+    (A.after ids cat_inexistant, kind)
+  | End_of_str ->
+    (A.before ids cat_inexistant, kind)
+  | Last_end_of_line ->
+    (A.before ids (cat_inexistant lor cat_lastnewline), kind)
+  | Start ->
+    (A.after ids cat_search_boundary, kind)
+  | Stop ->
+    (A.before ids cat_search_boundary, kind)
+  | Sem (kind', r') ->
+    let (cr, kind'') =
+      translate ids kind' ign_group ign_case greedy pos cache c r' in
+    (enforce_kind ids kind' kind'' cr,
+     kind')
+  | Sem_greedy (greedy', r') ->
+    translate ids kind ign_group ign_case greedy' pos cache c r'
+  | Group r' ->
+    if ign_group then
+      translate ids kind ign_group ign_case greedy pos cache c r'
+    else
+      let p = !pos in
+      pos := !pos + 2;
       let (cr, kind') =
-        translate ids kind ign_group ign_case greedy pos cache c r'
-      in
-      let e = !pos - 1 in
-      if e < b then
-        (cr, kind')
-      else
-        (A.seq ids `First (A.erase ids b e) cr, kind')
+        translate ids kind ign_group ign_case greedy pos cache c r' in
+      (A.seq ids `First (A.mark ids p) (
+          A.seq ids `First cr (A.mark ids (p + 1))),
+       kind')
+  | No_group r' ->
+    translate ids kind true ign_case greedy pos cache c r'
+  | Nest r' ->
+    let b = !pos in
+    let (cr, kind') =
+      translate ids kind ign_group ign_case greedy pos cache c r'
+    in
+    let e = !pos - 1 in
+    if e < b then
+      (cr, kind')
+    else
+      (A.seq ids `First (A.erase ids b e) cr, kind')
   | Difference _ | Complement _ | Intersection _ | No_case _ | Case _ ->
-      assert false
+    assert false
   | Pmark (i, r') ->
     let (cr, kind') =
       translate ids kind ign_group ign_case greedy pos cache c r' in
     (A.seq ids `First (A.pmark ids i) cr, kind')
 
-and trans_seq ids kind ign_group ign_case greedy pos cache c l =
-  match l with
-    [] ->
-      A.eps ids
+and trans_seq ids kind ign_group ign_case greedy pos cache c = function
+  | [] ->
+    A.eps ids
   | [r] ->
-      let (cr', kind') =
-        translate ids kind ign_group ign_case greedy pos cache c r in
-      enforce_kind ids kind kind' cr'
+    let (cr', kind') =
+      translate ids kind ign_group ign_case greedy pos cache c r in
+    enforce_kind ids kind kind' cr'
   | r :: rem ->
-      let (cr', kind') =
-        translate ids kind ign_group ign_case greedy pos cache c r in
-      let cr'' =
-        trans_seq ids kind ign_group ign_case greedy pos cache c rem in
-      if A.is_eps cr'' then
-        cr'
-      else if A.is_eps cr' then
-        cr''
-      else
-        A.seq ids kind' cr' cr''
+    let (cr', kind') =
+      translate ids kind ign_group ign_case greedy pos cache c r in
+    let cr'' =
+      trans_seq ids kind ign_group ign_case greedy pos cache c rem in
+    if A.is_eps cr'' then
+      cr'
+    else if A.is_eps cr' then
+      cr''
+    else
+      A.seq ids kind' cr' cr''
 
 (**** Case ****)
 
@@ -744,64 +739,62 @@ let case_insens s =
   Cset.union s (Cset.union (Cset.offset 32 (Cset.inter s cupper))
                    (Cset.offset (-32) (Cset.inter s clower)))
 
-let as_set r =
-  match r with
-    Set s -> s
+let as_set = function
+  | Set s -> s
   | _     -> assert false
 
 (* XXX Should split alternatives into (1) charsets and (2) more
    complex regular expressions; alternative should therefore probably
    be flatten here *)
-let rec handle_case ign_case r =
-  match r with
-    Set s ->
-      Set (if ign_case then case_insens s else s)
+let rec handle_case ign_case = function
+  | Set s ->
+    Set (if ign_case then case_insens s else s)
   | Sequence l ->
-      Sequence (List.map (handle_case ign_case) l)
+    Sequence (List.map (handle_case ign_case) l)
   | Alternative l ->
-      let l' = List.map (handle_case ign_case) l in
-      if is_charset (Alternative l') then
-        Set (List.fold_left (fun s r -> Cset.union s (as_set r)) Cset.empty l')
-      else
-        Alternative l'
+    let l' = List.map (handle_case ign_case) l in
+    if is_charset (Alternative l') then
+      Set (List.fold_left (fun s r -> Cset.union s (as_set r)) Cset.empty l')
+    else
+      Alternative l'
   | Repeat (r, i, j) ->
-      Repeat (handle_case ign_case r, i, j)
+    Repeat (handle_case ign_case r, i, j)
   | Beg_of_line | End_of_line | Beg_of_word | End_of_word | Not_bound
-  | Beg_of_str | End_of_str | Last_end_of_line | Start | Stop ->
-      r
+  | Beg_of_str | End_of_str | Last_end_of_line | Start | Stop as r ->
+    r
   | Sem (k, r) ->
-      let r' = handle_case ign_case r in
-      if is_charset r' then r' else
+    let r' = handle_case ign_case r in
+    if is_charset r' then r' else
       Sem (k, r')
   | Sem_greedy (k, r) ->
-      let r' = handle_case ign_case r in
-      if is_charset r' then r' else
+    let r' = handle_case ign_case r in
+    if is_charset r' then r' else
       Sem_greedy (k, r')
   | Group r ->
-      Group (handle_case ign_case r)
+    Group (handle_case ign_case r)
   | No_group r ->
-      let r' = handle_case ign_case r in
-      if is_charset r' then r' else
+    let r' = handle_case ign_case r in
+    if is_charset r' then r' else
       No_group r'
   | Nest r ->
-      let r' = handle_case ign_case r in
-      if is_charset r' then r' else
+    let r' = handle_case ign_case r in
+    if is_charset r' then r' else
       Nest r'
   | Case r ->
-      handle_case false r
+    handle_case false r
   | No_case r ->
-      handle_case true r
+    handle_case true r
   | Intersection l ->
-      let l' = List.map (fun r -> handle_case ign_case r) l in
-      Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) Cset.cany l')
+    let l' = List.map (fun r -> handle_case ign_case r) l in
+    Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) Cset.cany l')
   | Complement l ->
-      let l' = List.map (fun r -> handle_case ign_case r) l in
-      Set (Cset.diff Cset.cany
-             (List.fold_left (fun s r -> Cset.union s (as_set r))
-                Cset.empty l'))
+    let l' = List.map (fun r -> handle_case ign_case r) l in
+    Set (Cset.diff Cset.cany
+           (List.fold_left (fun s r -> Cset.union s (as_set r))
+              Cset.empty l'))
   | Difference (r, r') ->
-      Set (Cset.inter (as_set (handle_case ign_case r))
-             (Cset.diff Cset.cany (as_set (handle_case ign_case r'))))
+    Set (Cset.inter (as_set (handle_case ign_case r))
+           (Cset.diff Cset.cany (as_set (handle_case ign_case r'))))
   | Pmark (i,r) -> Pmark (i,handle_case ign_case r)
 
 (****)
@@ -824,23 +817,22 @@ let compile_1 regexp =
 
 (****)
 
-let rec anchored r =
-  match r with
+let rec anchored = function
   | Sequence l ->
-      List.exists anchored l
+    List.exists anchored l
   | Alternative l ->
-      List.for_all anchored l
+    List.for_all anchored l
   | Repeat (r, i, _) ->
-      i > 0 && anchored r
+    i > 0 && anchored r
   | Set _ | Beg_of_line | End_of_line | Beg_of_word | End_of_word
   | Not_bound | End_of_str | Last_end_of_line | Stop
   | Intersection _ | Complement _ | Difference _ ->
-      false
+    false
   | Beg_of_str | Start ->
-      true
+    true
   | Sem (_, r) | Sem_greedy (_, r) | Group r | No_group r | Nest r
   | Case r | No_case r | Pmark (_, r) ->
-      anchored r
+    anchored r
 
 (****)
 
@@ -854,14 +846,13 @@ let str s =
   Sequence !l
 let char c = Set (Cset.csingle c)
 
-let alt l =
-  match l with
-    [r] -> r
-  | _   -> Alternative l
-let seq l =
-  match l with
-    [r] -> r
-  | _   -> Sequence l
+let alt = function
+  | [r] -> r
+  | l   -> Alternative l
+let seq = function
+  | [r] -> r
+  | l   -> Sequence l
+
 let empty = alt []
 let epsilon = seq []
 let repn r i j =
