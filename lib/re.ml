@@ -207,21 +207,20 @@ let rec loop info (s:string) pos st =
     st
 
 and loop2 info s pos st st' =
-  let idx = st'.idx in
-  if idx >= 0 then begin
+  if st'.idx >= 0 then begin
     let pos = pos + 1 in
     if pos < info.last then begin
       (* It is important to place these reads before the write *)
       (* But then, we don't have enough registers left to store the
          right position.  So, we store the position plus one. *)
       let st'' = st'.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
-      info.positions.(idx) <- pos;
+      info.positions.(st'.idx) <- pos;
       loop2 info s pos st' st''
     end else begin
-      info.positions.(idx) <- pos;
+      info.positions.(st'.idx) <- pos;
       st'
     end
-  end else if idx = break then begin
+  end else if st'.idx = break then begin
     info.positions.(st'.real_idx) <- pos + 1;
     st'
   end else begin (* Unknown *)
@@ -232,10 +231,9 @@ and loop2 info s pos st st' =
 let rec loop_no_mark info s pos last st =
   if pos < last then
     let st' = st.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
-    let idx = st'.idx in
-    if idx >= 0 then
+    if st'.idx >= 0 then
       loop_no_mark info s (pos + 1) last st'
-    else if idx = break then
+    else if st'.idx = break then
       st'
     else begin (* Unknown *)
       validate info s pos st;
@@ -273,11 +271,10 @@ let get_color re (s:string) pos =
 
 let rec handle_last_newline info pos st groups =
   let st' = st.next.(info.re.lnl) in
-  let idx = st'.idx in
-  if idx >= 0 then begin
-    if groups then info.positions.(idx) <- pos + 1;
+  if st'.idx >= 0 then begin
+    if groups then info.positions.(st'.idx) <- pos + 1;
     st'
-  end else if idx = break then begin
+  end else if st'.idx = break then begin
     if groups then info.positions.(st'.real_idx) <- pos + 1;
     st'
   end else begin (* Unknown *)
