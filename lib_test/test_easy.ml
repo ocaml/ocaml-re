@@ -3,10 +3,18 @@
 open OUnit
 
 let pp_str x = x
-let pp_list l = "[" ^ String.concat ", " l ^ "]"
+let quote = Printf.sprintf "'%s'"
+let pp_list l =
+  l
+  |> List.map quote
+  |> String.concat ", "
+  |> Printf.sprintf "[ %s ]"
 
 let re_whitespace = Re_posix.compile_pat "[\t ]+"
 let re_empty = Re_posix.compile_pat ""
+let re_eol = Re.compile Re.eol
+let re_bow = Re.compile Re.bow
+let re_eow = Re.compile Re.eow
 
 let test_iter () =
   let re = Re_posix.compile_pat "(ab)+" in
@@ -27,6 +35,12 @@ let test_split () =
     ["a"; "full_word"; "bc"] (Re.split re_whitespace " a full_word bc   ");
   assert_equal ~printer:pp_list
     ["a"; "b"; "c"; "d"] (Re.split re_empty "abcd");
+  assert_equal ~printer:pp_list
+    ["a"; "\nb"] (Re.split re_eol "a\nb");
+  assert_equal ~printer:pp_list
+    ["a "; "b"] (Re.split re_bow "a b");
+  assert_equal ~printer:pp_list
+    ["a"; " b"] (Re.split re_eow "a b");
   ()
 
 let map_split_delim =
