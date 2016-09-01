@@ -2,6 +2,8 @@
 
 open OUnit
 
+let (|>) x f = f x
+
 let pp_str x = x
 let quote = Printf.sprintf "'%s'"
 let pp_list l =
@@ -57,8 +59,6 @@ let pp_list' l =
       | `D s -> "delim '" ^ s ^ "'"
       ) l
     )
-
-let (|>) x f = f x
 
 let test_split_full () =
   assert_equal ~printer:pp_list'
