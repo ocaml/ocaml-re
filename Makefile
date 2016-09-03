@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 46f8bd9984975bd4727bed22d0876cd2)
+# DO NOT EDIT (digest: 0ea630b0d23ed49c1bf5c457a3a51866)
 
 SETUP = ./setup.exe
 
@@ -38,7 +38,7 @@ configure: $(SETUP)
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
 setup.exe: setup.ml
-	ocamlfind ocamlopt -o $@ $< || ocamlfind ocamlc -o $@ $< || true
+	ocamlfind ocamlopt -o $@ setup.ml || ocamlfind ocamlc -o $@ setup.ml || true
 	$(RM) setup.cmi setup.cmo setup.cmx setup.o
 
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
