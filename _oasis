@@ -12,7 +12,7 @@ XOCamlbuildExtraArgs: "-cflags '-w +a-40-42-44-3-4-48 -warn-error +1..49'"
 Flag benchmarks
   Description: Enable building benchmarks
   Default: false
-  
+
 Library re
   Path:       lib
   InternalModules: Re_fmt, Re_cset, Re_automata
