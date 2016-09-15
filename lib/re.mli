@@ -371,6 +371,11 @@ val pp_re : Format.formatter -> re -> unit
 (** Alias for {!pp_re}. Deprecated *)
 val print_re : Format.formatter -> re -> unit
 
+(** {2 Experimental functions}. *)
+
+val witness : t -> string
+(** [witness r] generates a string [s] such that [execp (compile r) s] is
+    true *)
 
 (** {2 Deprecated functions} *)
 

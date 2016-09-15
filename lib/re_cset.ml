@@ -151,3 +151,7 @@ let rec prepend s x l =
       else ([d, c - 1], x') :: prepend s x (([c, d'], x') :: r')
     end
   | _ -> assert false
+
+let pick = function
+  | [] -> invalid_arg "Re_cset.pick"
+  | (x, _)::_ -> x

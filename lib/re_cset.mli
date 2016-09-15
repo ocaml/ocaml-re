@@ -59,3 +59,5 @@ val csingle : char -> t
 val is_empty : t -> bool
 
 val prepend : t -> 'a list -> (t * 'a list) list -> (t * 'a list) list
+
+val pick : t -> c

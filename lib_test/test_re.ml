@@ -1,4 +1,5 @@
 open Re
+open OUnit2
 open Fort_unit
 
 let re_match ?pos ?len r s res =
@@ -425,6 +426,16 @@ let _ =
     re_match (case (no_case (str "abc"))) "abc" [|(0,3)|];
     re_match (case (no_case (str "abc"))) "ABC" [|(0,3)|];
   );
+
+  expect_pass "witness" (fun () ->
+      let t r e = assert_equal ~printer:(fun x -> x) (witness r) e in
+
+      t (set "ac") "a";
+      t (repn (str "foo") 3 None) "foofoofoo";
+      t (alt [char 'c' ; char 'd']) "c";
+      t (no_case (str "test")) "TEST";
+      t eol ""
+    );
 
   (* Fixed bugs *)
 
