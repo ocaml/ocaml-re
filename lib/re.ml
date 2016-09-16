@@ -987,11 +987,7 @@ module Group = struct
     (p1, p2)
 
   let get t i =
-    if 2 * i + 1 >= Array.length t.marks then raise Not_found;
-    let m1 = t.marks.(2 * i) in
-    if m1 = -1 then raise Not_found;
-    let p1 = t.gpos.(m1) - 1 in
-    let p2 = t.gpos.(t.marks.(2 * i + 1)) - 1 in
+    let (p1, p2) = offset t i in
     String.sub t.s p1 (p2 - p1)
 
   let start subs i = fst (offset subs i)
