@@ -32,13 +32,27 @@ let unknown = -2
 let break = -3
 
 (* Result of a successful match. *)
-type groups = {
-  s : string ;
-  marks : Automata.mark_infos ;
-  pmarks : MarkSet.t ;
-  gpos : int array ;
-  gcount : int
-}
+type groups =
+  { s : string
+  (* Input string. Matched strings are substrings of s *)
+
+  ; marks : Automata.mark_infos
+  (* Mapping from group indices to positions in gpos. group i has positions 2*i
+     - 1, 2*i + 1 in gpos. If the group wasn't matched, then its corresponding
+     values in marks will be -1,-1 *)
+
+  ; pmarks : MarkSet.t
+  (* Marks positions. i.e. those marks created with Re.marks *)
+
+  ; gpos : int array
+  (* Group positions. Adjacent elements are (start, stop) of group match.
+     indexed by the values in marks. So group i in an re would be the substring:
+
+     start = t.gpos.(marks.(2*i)) - 1
+     stop = t.gpos.(marks.(2*i + 1)) - 1 *)
+
+  ; gcount : int
+  (* Number of groups the regular expression contains. Matched or not *) }
 
 type match_info =
   | Match of groups
