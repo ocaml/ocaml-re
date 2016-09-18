@@ -978,40 +978,36 @@ module Group = struct
 
   type t = groups
 
-  let get {s ; marks ; gpos ; _} i =
-    if 2 * i + 1 >= Array.length marks then raise Not_found;
-    let m1 = marks.(2 * i) in
+  let offset t i =
+    if 2 * i + 1 >= Array.length t.marks then raise Not_found;
+    let m1 = t.marks.(2 * i) in
     if m1 = -1 then raise Not_found;
-    let p1 = gpos.(m1) - 1 in
-    let p2 = gpos.(marks.(2 * i + 1)) - 1 in
-    String.sub s p1 (p2 - p1)
-
-  let offset {marks ; gpos ; _} i =
-    if 2 * i + 1 >= Array.length marks then raise Not_found;
-    let m1 = marks.(2 * i) in
-    if m1 = -1 then raise Not_found;
-    let p1 = gpos.(m1) - 1 in
-    let p2 = gpos.(marks.(2 * i + 1)) - 1 in
+    let p1 = t.gpos.(m1) - 1 in
+    let p2 = t.gpos.(t.marks.(2 * i + 1)) - 1 in
     (p1, p2)
+
+  let get t i =
+    let (p1, p2) = offset t i in
+    String.sub t.s p1 (p2 - p1)
 
   let start subs i = fst (offset subs i)
 
   let stop subs i = snd (offset subs i)
 
-  let test { marks ; _ } i =
-    if 2 * i >= Array.length marks then false else
-      let idx = marks.(2 * i) in
+  let test t i =
+    if 2 * i >= Array.length t.marks then false else
+      let idx = t.marks.(2 * i) in
       idx <> -1
 
   let dummy_offset = (-1, -1)
 
-  let all_offset {marks ; gpos ; gcount ; _} =
-    let res = Array.make gcount dummy_offset in
-    for i = 0 to Array.length marks / 2 - 1 do
-      let m1 = marks.(2 * i) in
+  let all_offset t =
+    let res = Array.make t.gcount dummy_offset in
+    for i = 0 to Array.length t.marks / 2 - 1 do
+      let m1 = t.marks.(2 * i) in
       if m1 <> -1 then begin
-        let p1 = gpos.(m1) in
-        let p2 = gpos.(marks.(2 * i + 1)) in
+        let p1 = t.gpos.(m1) in
+        let p2 = t.gpos.(t.marks.(2 * i + 1)) in
         res.(i) <- (p1 - 1, p2 - 1)
       end
     done;
@@ -1019,14 +1015,14 @@ module Group = struct
 
   let dummy_string = ""
 
-  let all {s ; marks ; gpos ; gcount ; _ } =
-    let res = Array.make gcount dummy_string in
-    for i = 0 to Array.length marks / 2 - 1 do
-      let m1 = marks.(2 * i) in
+  let all t =
+    let res = Array.make t.gcount dummy_string in
+    for i = 0 to Array.length t.marks / 2 - 1 do
+      let m1 = t.marks.(2 * i) in
       if m1 <> -1 then begin
-        let p1 = gpos.(m1) in
-        let p2 = gpos.(marks.(2 * i + 1)) in
-        res.(i) <- String.sub s (p1 - 1) (p2 - p1)
+        let p1 = t.gpos.(m1) in
+        let p2 = t.gpos.(t.marks.(2 * i + 1)) in
+        res.(i) <- String.sub t.s (p1 - 1) (p2 - p1)
       end
     done;
     res
@@ -1043,7 +1039,7 @@ module Group = struct
       fprintf fmt "@[(%s (%d %d))@]" str start stop in
     sexp fmt "Group" (list pp_match) matches
 
-  let nb_groups { marks ; _ } = Array.length marks / 2
+  let nb_groups t = t.gcount
 end
 
 module Mark = struct
