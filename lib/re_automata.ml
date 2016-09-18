@@ -307,25 +307,38 @@ module State = struct
     { idx: idx
     ; category: category
     ; desc: E.t list
-    ; mutable status: status option
+    ; status: status Lazy.t
     ; hash: hash }
+
+  let flatten_match m =
+    let ma = List.fold_left (fun ma (i, _) -> max ma i) (-1) m in
+    let res = Array.make (ma + 1) (-1) in
+    List.iter (fun (i, v) -> res.(i) <- v) m;
+    res
+
+  let mk_status = function
+    | []              -> Failed
+    | E.TMatch m :: _ -> Match (flatten_match m.Marks.marks, m.Marks.pmarks)
+    | _               -> Running
 
   let dummy =
     { idx = -1
     ; category = -1
     ; desc = []
-    ; status = None
+    ; status = lazy (mk_status [])
     ; hash = -1 }
 
   let hash idx cat desc =
     E.hash desc (hash_combine idx (hash_combine cat 0)) land 0x3FFFFFFF
 
-  let mk idx cat desc = 
+  let mk idx category desc =
     { idx
-    ; category = cat
+    ; category
     ; desc
-    ; status = None
-    ; hash = hash idx cat desc}
+    ; status = lazy (mk_status desc)
+    ; hash = hash idx category desc}
+
+  let status t = Lazy.force t.status
 
   let create cat e = mk 0 cat [E.TExp (Marks.empty, e)]
 
@@ -683,25 +696,3 @@ Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_st
                else (s'', State.mk idx cat' expr'') :: rem)
             categories rem)
        der [])
-
-(****)
-
-let flatten_match m =
-  let ma = List.fold_left (fun ma (i, _) -> max ma i) (-1) m in
-  let res = Array.make (ma + 1) (-1) in
-  List.iter (fun (i, v) -> res.(i) <- v) m;
-  res
-
-let status s =
-  match s.State.status with
-    Some st ->
-      st
-  | None ->
-      let st =
-        match s.State.desc with
-          []              -> Failed
-        | E.TMatch m :: _ -> Match (flatten_match m.Marks.marks, m.Marks.pmarks)
-        | _               -> Running
-      in
-      s.State.status <- Some st;
-      st
