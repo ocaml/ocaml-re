@@ -1,3 +1,10 @@
+1.7.0 (18-Sep-2016)
+
+* Fix stack overflow in Re_str.full_split
+* Use correct exceptions in Re_str group functions
+* Add experimental Re.witness
+* Add experimental Re.Group.nb_groups
+
 1.6.1 (20-Jun-2016)
 
 * Fix Re.pp (#101)

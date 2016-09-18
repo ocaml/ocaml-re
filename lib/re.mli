@@ -96,7 +96,8 @@ module Group : sig
   (** Test whether a group matched *)
 
   val nb_groups : t -> int
-  (** Returns the total number of groups defined - matched or not. *)
+  (** Returns the total number of groups defined - matched or not.
+      This function is experimental. *)
 
   val pp : Format.formatter -> t -> unit
 
