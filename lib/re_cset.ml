@@ -28,44 +28,44 @@ let rec union l l' =
     _, [] -> l
   | [], _ -> l'
   | (c1, c2)::r, (c1', c2')::r' ->
-      if c2 + 1 < c1' then
-        (c1, c2)::union r l'
-      else if c2' + 1 < c1 then
-        (c1', c2')::union l r'
-      else if c2 < c2' then
-        union r ((min c1 c1', c2')::r')
-      else
-        union ((min c1 c1', c2)::r) r'
+    if c2 + 1 < c1' then
+      (c1, c2)::union r l'
+    else if c2' + 1 < c1 then
+      (c1', c2')::union l r'
+    else if c2 < c2' then
+      union r ((min c1 c1', c2')::r')
+    else
+      union ((min c1 c1', c2)::r) r'
 
 let rec inter l l' =
   match l, l' with
     _, [] -> []
   | [], _ -> []
   | (c1, c2)::r, (c1', c2')::r' ->
-      if c2 < c1' then
-        inter r l'
-      else if c2' < c1 then
-        inter l r'
-      else if c2 < c2' then
-        (max c1 c1', c2)::inter r l'
-      else
-        (max c1 c1', c2')::inter l r'
+    if c2 < c1' then
+      inter r l'
+    else if c2' < c1 then
+      inter l r'
+    else if c2 < c2' then
+      (max c1 c1', c2)::inter r l'
+    else
+      (max c1 c1', c2')::inter l r'
 
 let rec diff l l' =
   match l, l' with
     _, [] -> l
   | [], _ -> []
   | (c1, c2)::r, (c1', c2')::r' ->
-      if c2 < c1' then
-        (c1, c2)::diff r l'
-      else if c2' < c1 then
-        diff l r'
+    if c2 < c1' then
+      (c1, c2)::diff r l'
+    else if c2' < c1 then
+      diff l r'
+    else
+      let r'' = if c2' < c2 then (c2' + 1, c2) :: r else r in
+      if c1 < c1' then
+        (c1, c1' - 1)::diff r'' r'
       else
-        let r'' = if c2' < c2 then (c2' + 1, c2) :: r else r in
-        if c1 < c1' then
-          (c1, c1' - 1)::diff r'' r'
-        else
-          diff r'' r'
+        diff r'' r'
 
 let single c = [c, c]
 
