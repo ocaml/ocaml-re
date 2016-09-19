@@ -94,15 +94,14 @@ module Marks = struct
   let hash m accu =
     hash_marks_offset m.marks (hash_combine (Hashtbl.hash m.pmarks) accu)
 
-  let rec marks_set_idx used idx = function
+  let rec marks_set_idx idx = function
     | (a, -1) :: rem ->
-      used := true;
-      (a, idx) :: marks_set_idx used idx rem
+      (a, idx) :: marks_set_idx idx rem
     | marks ->
       marks
 
-  let marks_set_idx marks used idx =
-    { marks with marks = marks_set_idx used idx marks.marks }
+  let marks_set_idx marks idx =
+    { marks with marks = marks_set_idx idx marks.marks }
 
   let pp_marks ch t =
     match t.marks with
@@ -409,15 +408,15 @@ let rec remove_duplicates prev l y =
       let (r', prev') = remove_duplicates (x.id :: prev) r y in
       (e :: r', prev')
 
-let rec set_idx used idx = function
+let rec set_idx idx = function
   | [] ->
     []
   | E.TMatch marks :: r ->
-    E.TMatch (Marks.marks_set_idx marks used idx) :: set_idx used idx r
+    E.TMatch (Marks.marks_set_idx marks idx) :: set_idx idx r
   | E.TSeq (l', x, kind) :: r ->
-    E.TSeq (set_idx used idx l', x, kind) :: set_idx used idx r
+    E.TSeq (set_idx idx l', x, kind) :: set_idx idx r
   | E.TExp (marks, x) :: r ->
-    E.TExp ((Marks.marks_set_idx marks used idx), x) :: set_idx used idx r
+    E.TExp ((Marks.marks_set_idx marks idx), x) :: set_idx idx r
 
 let filter_marks b e marks =
   {marks with Marks.marks = List.filter (fun (i, _) -> i < b || i > e) marks.Marks.marks }
@@ -502,8 +501,7 @@ let delta tbl_ref cat' char st =
     remove_duplicates [] (delta_4 char st.State.category cat' st.State.desc [])
       eps_expr in
   let idx = free_index tbl_ref expr' in
-  let used = ref false in
-  let expr'' = set_idx used idx expr' in
+  let expr'' = set_idx idx expr' in
   State.mk idx cat' expr''
 
 (****)
@@ -657,8 +655,7 @@ let deriv tbl_ref all_chars categories st =
 Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
 *)
         let idx = free_index tbl_ref expr' in
-        let used = ref false in
-        let expr'' = set_idx used idx expr' in
+        let expr'' = set_idx idx expr' in
         List.fold_right (fun (cat', s') rem ->
             let s'' = Cset.inter s s' in
             if Cset.is_empty s''
