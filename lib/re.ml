@@ -61,46 +61,46 @@ type match_info =
 
 type state =
   { idx : int;
-        (* Index of the current position in the position table.
-           Not yet computed transitions point to a dummy state where
-           [idx] is set to [unknown];
-           If [idx] is set to [break] for states that either always
-           succeed or always fail. *)
+    (* Index of the current position in the position table.
+       Not yet computed transitions point to a dummy state where
+       [idx] is set to [unknown];
+       If [idx] is set to [break] for states that either always
+       succeed or always fail. *)
     real_idx : int;
-        (* The real index, in case [idx] is set to [break] *)
+    (* The real index, in case [idx] is set to [break] *)
     next : state array;
-        (* Transition table, indexed by color *)
+    (* Transition table, indexed by color *)
     mutable final :
       (Automata.category *
        (Automata.idx * Automata.status)) list;
-        (* Mapping from the category of the next character to
-           - the index where the next position should be saved
-           - possibly, the list of marks (and the corresponding indices)
-             corresponding to the best match *)
+    (* Mapping from the category of the next character to
+       - the index where the next position should be saved
+       - possibly, the list of marks (and the corresponding indices)
+         corresponding to the best match *)
     desc : Automata.State.t
-        (* Description of this state of the automata *) }
+    (* Description of this state of the automata *) }
 
 (* Automata (compiled regular expression) *)
 type re =
   { initial : Automata.expr;
-        (* The whole regular expression *)
+    (* The whole regular expression *)
     mutable initial_states : (int * state) list;
-        (* Initial states, indexed by initial category *)
+    (* Initial states, indexed by initial category *)
     cols : Bytes.t;
-        (* Color table *)
+    (* Color table *)
     col_repr : Bytes.t;
-        (* Table from colors to one character of this color *)
+    (* Table from colors to one character of this color *)
     ncol : int;
-        (* Number of colors *)
+    (* Number of colors *)
     lnl : int;
-        (* Color of the last newline *)
+    (* Color of the last newline *)
     tbl : Automata.working_area;
-        (* Temporary table used to compute the first available index
-           when computing a new state *)
+    (* Temporary table used to compute the first available index
+       when computing a new state *)
     states : state Automata.State.Table.t;
-        (* States of the deterministic automata *)
+    (* States of the deterministic automata *)
     group_count : int
-        (* Number of groups in the regular expression *) }
+    (* Number of groups in the regular expression *) }
 
 let pp_re ch re = Automata.pp ch re.initial
 
@@ -109,17 +109,17 @@ let print_re = pp_re
 (* Information used during matching *)
 type info =
   { re : re;
-        (* The automata *)
+    (* The automata *)
     i_cols : Bytes.t;
-        (* Color table ([x.i_cols = x.re.cols])
-           Sortcut used for performance reasons *)
+    (* Color table ([x.i_cols = x.re.cols])
+       Sortcut used for performance reasons *)
     mutable positions : int array;
-        (* Array of mark positions
-           The mark are off by one for performance reasons *)
+    (* Array of mark positions
+       The mark are off by one for performance reasons *)
     pos : int;
-        (* Position where the match is started *)
+    (* Position where the match is started *)
     last : int
-        (* Position where the match should stop *) }
+    (* Position where the match should stop *) }
 
 
 (****)
@@ -132,17 +132,20 @@ let cat_lastnewline = 16
 let cat_search_boundary = 32
 
 let category re c =
-  if c = -1 then cat_inexistant else
-  (* Special category for the last newline *)
-  if c = re.lnl then cat_lastnewline lor cat_newline lor cat_not_letter else
-  match Bytes.get re.col_repr c with
+  if c = -1 then
+    cat_inexistant
+    (* Special category for the last newline *)
+  else if c = re.lnl then
+    cat_lastnewline lor cat_newline lor cat_not_letter
+  else
+    match Bytes.get re.col_repr c with
     (* Should match [cword] definition *)
-    'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
-  | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
+      'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
+    | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
       cat_letter
-  | '\n' ->
+    | '\n' ->
       cat_not_letter lor cat_newline
-  | _ ->
+    | _ ->
       cat_not_letter
 
 (****)
@@ -269,19 +272,22 @@ let find_initial_state re cat =
   try
     List.assq cat re.initial_states
   with Not_found ->
-    let st =
-      find_state re (Automata.State.create cat re.initial)
-    in
+    let st = find_state re (Automata.State.create cat re.initial) in
     re.initial_states <- (cat, st) :: re.initial_states;
     st
 
 let get_color re (s:string) pos =
-  if pos < 0 then -1 else
-  let slen = String.length s in
-  if pos >= slen then -1 else
-  (* Special case for the last newline *)
-  if pos = slen - 1 && re.lnl <> -1 && s.[pos] = '\n' then re.lnl else
-  Char.code (Bytes.get re.cols (Char.code s.[pos]))
+  if pos < 0 then
+    -1
+  else
+    let slen = String.length s in
+    if pos >= slen then
+      -1
+    else if pos = slen - 1 && re.lnl <> -1 && s.[pos] = '\n' then
+      (* Special case for the last newline *)
+      re.lnl
+    else
+      Char.code (Bytes.get re.cols (Char.code s.[pos]))
 
 let rec handle_last_newline info pos st groups =
   let st' = st.next.(info.re.lnl) in
@@ -304,11 +310,10 @@ let rec handle_last_newline info pos st groups =
 let rec scan_str info (s:string) initial_state groups =
   let pos = info.pos in
   let last = info.last in
-  if
-    last = String.length s &&
-    info.re.lnl <> -1 &&
-    last > pos &&
-    String.get s (last - 1) = '\n'
+  if (last = String.length s
+      && info.re.lnl <> -1
+      && last > pos
+      && String.get s (last - 1) = '\n')
   then begin
     let info = { info with last = last - 1 } in
     let st = scan_str info s initial_state groups in
@@ -332,7 +337,7 @@ let match_str ~groups ~partial re s ~pos ~len =
           if n <= 10 then
             [|0;0;0;0;0;0;0;0;0;0|]
           else
-          Array.make n 0
+            Array.make n 0
         end else
           [||] }
   in
@@ -358,7 +363,7 @@ let match_str ~groups ~partial re s ~pos ~len =
   in
   match res with
     Automata.Match (marks, pmarks) ->
-      Match { s ; marks; pmarks ; gpos = info.positions; gcount = re.group_count}
+    Match { s ; marks; pmarks ; gpos = info.positions; gcount = re.group_count}
   | Automata.Failed -> Failed
   | Automata.Running -> Running
 
@@ -389,7 +394,8 @@ let trans_set cache cm s =
       let l =
         Cset.fold_right
           s
-          ~f:(fun (i, j) l -> Cset.union (cseq (Bytes.get cm i) (Bytes.get cm j)) l)
+          ~f:(fun (i, j) l -> Cset.union (cseq (Bytes.get cm i)
+                                            (Bytes.get cm j)) l)
           ~init:Cset.empty
       in
       cache := Cset.CSetMap.add v l !cache;
@@ -532,13 +538,13 @@ let flatten_cmap cm =
 let rec equal x1 x2 =
   match x1, x2 with
     Set s1, Set s2 ->
-      s1 = s2
+    s1 = s2
   | Sequence l1, Sequence l2 ->
-      eq_list l1 l2
+    eq_list l1 l2
   | Alternative l1, Alternative l2 ->
-      eq_list l1 l2
+    eq_list l1 l2
   | Repeat (x1', i1, j1), Repeat (x2', i2, j2) ->
-      i1 = i2 && j1 = j2 && equal x1' x2'
+    i1 = i2 && j1 = j2 && equal x1' x2'
   | Beg_of_line, Beg_of_line
   | End_of_line, End_of_line
   | Beg_of_word, Beg_of_word
@@ -549,40 +555,40 @@ let rec equal x1 x2 =
   | Last_end_of_line, Last_end_of_line
   | Start, Start
   | Stop, Stop ->
-      true
+    true
   | Sem (sem1, x1'), Sem (sem2, x2') ->
-      sem1 = sem2 && equal x1' x2'
+    sem1 = sem2 && equal x1' x2'
   | Sem_greedy (k1, x1'), Sem_greedy (k2, x2') ->
-      k1 = k2 && equal x1' x2'
+    k1 = k2 && equal x1' x2'
   | Group _, Group _ -> (* Do not merge groups! *)
-      false
+    false
   | No_group x1', No_group x2' ->
-      equal x1' x2'
+    equal x1' x2'
   | Nest x1', Nest x2' ->
-      equal x1' x2'
+    equal x1' x2'
   | Case x1', Case x2' ->
-      equal x1' x2'
+    equal x1' x2'
   | No_case x1', No_case x2' ->
-      equal x1' x2'
+    equal x1' x2'
   | Intersection l1, Intersection l2 ->
-      eq_list l1 l2
+    eq_list l1 l2
   | Complement l1, Complement l2 ->
-      eq_list l1 l2
+    eq_list l1 l2
   | Difference (x1', x1''), Difference (x2', x2'') ->
-      equal x1' x2' && equal x1'' x2''
+    equal x1' x2' && equal x1'' x2''
   | Pmark (m1, r1), Pmark (m2, r2) ->
-      Automata.Pmark.equal m1 m2 && equal r1 r2
+    Automata.Pmark.equal m1 m2 && equal r1 r2
   | _ ->
-      false
+    false
 
 and eq_list l1 l2 =
   match l1, l2 with
     [], [] ->
-      true
+    true
   | x1 :: r1, x2 :: r2 ->
-      equal x1 x2 && eq_list r1 r2
+    equal x1 x2 && eq_list r1 r2
   | _ ->
-      false
+    false
 
 let sequence = function
   | [x] -> x
@@ -748,7 +754,7 @@ and trans_seq ids kind ign_group ign_case greedy pos cache c = function
 
 let case_insens s =
   Cset.union s (Cset.union (Cset.offset 32 (Cset.inter s cupper))
-                   (Cset.offset (-32) (Cset.inter s clower)))
+                  (Cset.offset (-32) (Cset.inter s clower)))
 
 let as_set = function
   | Set s -> s
@@ -775,22 +781,18 @@ let rec handle_case ign_case = function
     r
   | Sem (k, r) ->
     let r' = handle_case ign_case r in
-    if is_charset r' then r' else
-      Sem (k, r')
+    if is_charset r' then r' else Sem (k, r')
   | Sem_greedy (k, r) ->
     let r' = handle_case ign_case r in
-    if is_charset r' then r' else
-      Sem_greedy (k, r')
+    if is_charset r' then r' else Sem_greedy (k, r')
   | Group r ->
     Group (handle_case ign_case r)
   | No_group r ->
     let r' = handle_case ign_case r in
-    if is_charset r' then r' else
-      No_group r'
+    if is_charset r' then r' else No_group r'
   | Nest r ->
     let r' = handle_case ign_case r in
-    if is_charset r' then r' else
-      Nest r'
+    if is_charset r' then r' else Nest r'
   | Case r ->
     handle_case false r
   | No_case r ->
@@ -823,7 +825,7 @@ let compile_1 regexp =
     translate ids
       `First false false `Greedy pos (ref Cset.CSetMap.empty) col regexp in
   let r = enforce_kind ids `First kind r in
-(*Format.eprintf "<%d %d>@." !ids ncol;*)
+  (*Format.eprintf "<%d %d>@." !ids ncol;*)
   mk_re r col col_repr ncol lnl (!pos / 2)
 
 (****)
@@ -868,7 +870,10 @@ let empty = alt []
 let epsilon = seq []
 let repn r i j =
   if i < 0 then invalid_arg "Re.repn";
-  begin match j with Some j when j < i -> invalid_arg "Re.repn" | _ -> () end;
+  begin match j with
+    | Some j when j < i -> invalid_arg "Re.repn"
+    | _ -> ()
+  end;
   Repeat (r, i, j)
 let rep r = repn r 0 None
 let rep1 r = repn r 1 None
@@ -906,18 +911,24 @@ let rg c c' = Set (cseq c c')
 
 let inter l =
   let r = Intersection l in
-  if is_charset r then r else
-  invalid_arg "Re.inter"
+  if is_charset r then
+    r
+  else
+    invalid_arg "Re.inter"
 
 let compl l =
   let r = Complement l in
-  if is_charset r then r else
-  invalid_arg "Re.compl"
+  if is_charset r then
+    r
+  else
+    invalid_arg "Re.compl"
 
 let diff r r' =
   let r'' = Difference (r, r') in
-  if is_charset r'' then r'' else
-  invalid_arg "Re.diff"
+  if is_charset r'' then
+    r''
+  else
+    invalid_arg "Re.diff"
 
 let any = Set Cset.cany
 let notnl = Set (Cset.diff Cset.cany (Cset.csingle '\n'))
@@ -946,7 +957,12 @@ let no_case r = No_case r
 (****)
 
 let compile r =
-  compile_1 (if anchored r then group r else seq [shortest (rep any); group r])
+  compile_1 (
+    if anchored r then
+      group r
+    else
+      seq [shortest (rep any); group r]
+  )
 
 let exec_internal name ?(pos=0) ?(len = -1) ~groups re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
@@ -995,7 +1011,9 @@ module Group = struct
   let stop subs i = snd (offset subs i)
 
   let test t i =
-    if 2 * i >= Array.length t.marks then false else
+    if 2 * i >= Array.length t.marks then
+      false
+    else
       let idx = t.marks.(2 * i) in
       idx <> -1
 
@@ -1064,12 +1082,12 @@ type 'a gen = unit -> 'a option
 let all_gen ?(pos=0) ?len re s =
   if pos < 0 then invalid_arg "Re.all";
   (* index of the first position we do not consider.
-    !pos < limit is an invariant *)
+     !pos < limit is an invariant *)
   let limit = match len with
     | None -> String.length s
     | Some l ->
-        if l<0 || pos+l > String.length s then invalid_arg "Re.all";
-        pos+l
+      if l<0 || pos+l > String.length s then invalid_arg "Re.all";
+      pos+l
   in
   (* iterate on matches. When a match is found, search for the next
      one just after its end *)
@@ -1081,9 +1099,9 @@ let all_gen ?(pos=0) ?len re s =
       match match_str ~groups:true ~partial:false re s
               ~pos:!pos ~len:(limit - !pos) with
       | Match substr ->
-          let p1, p2 = Group.offset substr 0 in
-          pos := if p1=p2 then p2+1 else p2;
-          Some substr
+        let p1, p2 = Group.offset substr 0 in
+        pos := if p1=p2 then p2+1 else p2;
+        Some substr
       | Running
       | Failed -> None
 
@@ -1157,7 +1175,8 @@ let split_full_gen ?(pos=0) ?len re s =
           let text = String.sub s !i (limit - !i) in
           i := limit;
           Some (`Text text)  (* yield last string *)
-        ) else None
+        ) else
+          None
       end
     | `Yield x ->
       state := `Idle;
@@ -1211,16 +1230,17 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
         (* what should we replace the matched group with? *)
         let replacing = f substr in
         Buffer.add_string buf replacing;
-        if all
-        (* if we matched a non-char e.g. ^ we must manually advance by 1 *)
-        then iter
-            (if p1=p2
-             then (
-               (* a non char could be past the end of string. e.g. $ *)
-               if p2 < limit then Buffer.add_char buf s.[p2];
-               p2+1)
-             else p2)
-        else Buffer.add_substring buf s p2 (limit-p2)
+        if all then
+          (* if we matched a non-char e.g. ^ we must manually advance by 1 *)
+          iter (
+            if p1=p2 then (
+              (* a non char could be past the end of string. e.g. $ *)
+              if p2 < limit then Buffer.add_char buf s.[p2];
+              p2+1
+            ) else
+              p2)
+        else
+          Buffer.add_substring buf s p2 (limit-p2)
       | Running -> ()
       | Failed ->
         Buffer.add_substring buf s pos (limit-pos)
