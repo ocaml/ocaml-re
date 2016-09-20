@@ -84,14 +84,14 @@ type state =
 type re =
   { initial : Automata.expr;
     (* The whole regular expression *)
-    mutable initial_states : (int * state) list;
+    mutable initial_states : (Automata.category * state) list;
     (* Initial states, indexed by initial category *)
     cols : Bytes.t;
     (* Color table *)
     col_repr : Bytes.t;
     (* Table from colors to one character of this color *)
     ncol : int;
-    (* Number of colors *)
+    (* Number of colors. *)
     lnl : int;
     (* Color of the last newline *)
     tbl : Automata.working_area;
