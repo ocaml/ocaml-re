@@ -112,7 +112,7 @@ type info =
     (* The automata *)
     i_cols : Bytes.t;
     (* Color table ([x.i_cols = x.re.cols])
-       Sortcut used for performance reasons *)
+       Shortcut used for performance reasons *)
     mutable positions : int array;
     (* Array of mark positions
        The mark are off by one for performance reasons *)
