@@ -39,18 +39,18 @@ module Http = struct
   let request' = seq [request_line ; crlf ; rep header ; crlf ]
 
   module Export = struct
-    let request = request' |> compile
-    let request_g = request' |> no_group |> compile
+    let request = request'
+    let request_g = request' |> no_group
 
-    let requests = request' |> rep1 |> compile
-    let requests_g = request' |> no_group |> rep1 |> compile
+    let requests = request' |> rep1
+    let requests_g = request' |> no_group |> rep1
   end
 end
 
 let http_requests = In_channel.read_all "benchmarks/http-requests.txt"
 
 let str_20_zeroes = String.make 20 '0'
-let re_20_zeroes = Re.(compile (str str_20_zeroes))
+let re_20_zeroes = Re.(str str_20_zeroes)
 
 let tex_ignore_re =
   "benchmarks/tex.gitignore"
@@ -65,7 +65,6 @@ let tex_ignore_re =
       | s -> Some s)
   |> List.map ~f:Re_glob.glob
   |> Re.alt
-  |> Re.compile
 
 let tex_ignore_filesnames = In_channel.read_lines "benchmarks/files"
 
@@ -76,16 +75,14 @@ let lots_of_a's =
 
 let lots_o_a's_re =
   Re.(seq [char 'a' ; opt (char 'a') ; char 'b'])
-  |> Re.compile
 
 let media_type_re =
   let re = Re_emacs.re ~case:true "[ \t]*\\([^ \t;]+\\)" in
-  Re.(compile (seq ([start; re])))
+  Re.(seq ([start; re]))
 
 (* Taken from https://github.com/rgrinberg/ocaml-uri/blob/903ef1010f9808d6f3f6d9c1fe4b4eabbd76082d/lib/uri.ml*)
 let uri_reference =
   Re_posix.re "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"
-  |> Re.compile
 
 let uris =
   [ "https://google.com"
@@ -98,7 +95,8 @@ let benchmarks =
   ; "media type match", media_type_re, [" foo/bar ; charset=UTF-8"]
   ; "uri", uri_reference, uris ]
 
-let exec_bench exec name re cases =
+let exec_bench exec name (re : Re.t) cases =
+  let re = Re.compile re in
   Bench.Test.create_group ~name (
     List.mapi cases ~f:(fun i case ->
         let name = sprintf "case %i" i in
@@ -107,6 +105,7 @@ let exec_bench exec name re cases =
   )
 
 let exec_bench_many exec name re cases =
+  let re = Re.compile re in
   Bench.Test.create ~name (fun () ->
       cases |> List.iter ~f:(fun x -> ignore (exec re x))
     )
@@ -139,10 +138,13 @@ let benchmarks =
     let manual =
       [ request, "no group" ; request_g, "group" ]
       |> List.map ~f:(fun (re, name) ->
+          let re = Re.compile re in
           Test.create ~name (fun () -> read_all_http 0 re http_requests)
         )
       |> Test.create_group ~name:"manual" in
     let many =
+      let requests = Re.compile requests in
+      let requests_g = Re.compile requests_g in
       [ Test.create ~name:"execp no group" (fun () ->
             ignore (Re.execp requests http_requests)
           )
