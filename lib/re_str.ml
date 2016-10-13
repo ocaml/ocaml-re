@@ -28,14 +28,16 @@ let compile_regexp s c =
 let rec get_mtch re =
   match re.mtch with
     Some r -> r
-  | None   -> re.mtch <- Some (Re.compile (Re.seq [Re.start; re.re]));
-              get_mtch re
+  | None   ->
+    re.mtch <- Some (Re.compile (Re.seq [Re.start; re.re]));
+    get_mtch re
 
 let rec get_srch re =
   match re.srch with
     Some r -> r
-  | None   -> re.srch <- Some (Re.compile re.re);
-              get_srch re
+  | None   ->
+    re.srch <- Some (Re.compile re.re);
+    get_srch re
 
 let state = ref None
 
@@ -71,8 +73,10 @@ let rec search_backward re s p =
     p
   with Not_found ->
     state := None;
-    if p = 0 then raise Not_found else
-    search_backward re s (p - 1)
+    if p = 0 then
+      raise Not_found
+    else
+      search_backward re s (p - 1)
 
 let valid_group n =
   n >= 0 && n < 10 && (
@@ -95,11 +99,11 @@ let get_len i =
   match !state with
     None   -> 0
   | Some m ->
-      try
-        let (b, e) = Re.Group.offset m i in
-        e - b
-      with Not_found ->
-        0
+    try
+      let (b, e) = Re.Group.offset m i in
+      e - b
+    with Not_found ->
+      0
 
 let rec repl_length repl p q len =
   if p < len then begin
@@ -108,14 +112,12 @@ let rec repl_length repl p q len =
     else begin
       let p = p + 1 in
       if p = len then failwith "Str.replace: illegal backslash sequence";
-      match repl.[p] with
-        '\\' ->
-          repl_length repl (p + 1) (q + 1) len
-      | '0' .. '9' as c ->
-          repl_length
-            repl (p + 1) (q + get_len (Char.code c - Char.code '0')) len
-      | _ ->
-          repl_length repl (p + 1) (q + 2) len
+      let q =
+        match repl.[p] with
+        | '\\' -> q + 1
+        | '0' .. '9' as c -> q + get_len (Char.code c - Char.code '0')
+        | _ -> q + 2 in
+      repl_length repl (p + 1) q len
     end
   end else
     q
@@ -129,27 +131,27 @@ let rec replace orig repl p res q len =
     end else begin
       match repl.[p + 1] with
         '\\' ->
-          Bytes.set res q '\\';
-          replace orig repl (p + 2) res (q + 1) len
+        Bytes.set res q '\\';
+        replace orig repl (p + 2) res (q + 1) len
       | '0' .. '9' as c ->
-          let d =
-            try
-              match !state with
-                None ->
-                  raise Not_found
-              | Some m ->
-                  let (b, e) = Re.Group.offset m (Char.code c - Char.code '0') in
-                  let d = e - b in
-                  if d > 0 then String.blit orig b res q d;
-                  d
-            with Not_found ->
-              0
-          in
-          replace repl orig (p + 2) res (q + d) len
+        let d =
+          try
+            match !state with
+              None ->
+              raise Not_found
+            | Some m ->
+              let (b, e) = Re.Group.offset m (Char.code c - Char.code '0') in
+              let d = e - b in
+              if d > 0 then String.blit orig b res q d;
+              d
+          with Not_found ->
+            0
+        in
+        replace repl orig (p + 2) res (q + d) len
       | c ->
-          Bytes.set res q '\\';
-          Bytes.set res (q + 1) c;
-          replace repl orig (p + 2) res (q + 2) len
+        Bytes.set res q '\\';
+        Bytes.set res (q + 1) c;
+        replace repl orig (p + 2) res (q + 2) len
     end
   end
 
@@ -188,14 +190,20 @@ let regexp_string s = compile_regexp (quote s) false
 let regexp_string_case_fold s = compile_regexp (quote s) true
 
 let group_beginning n =
-  if not (valid_group n) then invalid_arg "Str.group_beginning" else
+  if not (valid_group n) then invalid_arg "Str.group_beginning";
   let pos = beginning_group n in
-  if pos = -1 then raise Not_found else pos
+  if pos = -1 then
+    raise Not_found
+  else
+    pos
 
 let group_end n =
-  if not (valid_group n) then invalid_arg "Str.group_end" else
+  if not (valid_group n) then invalid_arg "Str.group_end";
   let pos = end_group n in
-  if pos = -1 then raise Not_found else pos
+  if pos = -1 then
+    raise Not_found
+  else
+    pos
 
 let matched_group n txt =
   let b = group_beginning n and e = group_end n in String.sub txt b (e-b)
@@ -211,7 +219,7 @@ let substitute_first expr repl_fun text =
     let pos = search_forward expr text 0 in
     String.concat "" [string_before text pos;
                       repl_fun text;
-                      string_after text (match_end())]
+                      string_after text (match_end ())]
   with Not_found ->
     text
 
@@ -221,7 +229,7 @@ let global_substitute expr repl_fun text =
       let startpos = if last_was_empty then start + 1 else start in
       if startpos > String.length text then raise Not_found;
       let pos = search_forward expr text startpos in
-      let end_pos = match_end() in
+      let end_pos = match_end () in
       let repl_text = repl_fun text in
       String.sub text start (pos-start) ::
       repl_text ::
@@ -237,19 +245,25 @@ and replace_first expr repl text =
 
 let search_forward_progress re s p =
   let pos = search_forward re s p in
-  if match_end () > p then pos
-  else if p < String.length s then search_forward re s (p + 1)
-  else raise Not_found
+  if match_end () > p then
+    pos
+  else if p < String.length s then
+    search_forward re s (p + 1)
+  else
+    raise Not_found
 
 let bounded_split expr text num =
   let start =
-    if string_match expr text 0 then match_end() else 0 in
+    if string_match expr text 0 then match_end () else 0 in
   let rec split start n =
-    if start >= String.length text then [] else
-    if n = 1 then [string_after text start] else
+    if start >= String.length text then
+      []
+    else if n = 1 then
+      [string_after text start]
+    else
       try
         let pos = search_forward_progress expr text start in
-        String.sub text start (pos-start) :: split (match_end()) (n-1)
+        String.sub text start (pos-start) :: split (match_end ()) (n - 1)
       with Not_found ->
         [string_after text start] in
   split start num
@@ -258,11 +272,14 @@ let split expr text = bounded_split expr text 0
 
 let bounded_split_delim expr text num =
   let rec split start n =
-    if start > String.length text then [] else
-    if n = 1 then [string_after text start] else
+    if start > String.length text then
+      []
+    else if n = 1 then
+      [string_after text start]
+    else
       try
         let pos = search_forward_progress expr text start in
-        String.sub text start (pos-start) :: split (match_end()) (n-1)
+        String.sub text start (pos-start) :: split (match_end ()) (n - 1)
       with Not_found ->
         [string_after text start] in
   if text = "" then [] else split 0 num
@@ -273,20 +290,23 @@ type split_result = Text of string | Delim of string
 
 let bounded_full_split expr text num =
   let rec split start n =
-    if start >= String.length text then [] else
-    if n = 1 then [Text(string_after text start)] else
+    if start >= String.length text then
+      []
+    else if n = 1 then
+      [Text (string_after text start)]
+    else
       try
         let pos = search_forward_progress expr text start in
         let s = matched_string text in
         if pos > start then
-          Text(String.sub text start (pos-start)) ::
-          Delim(s) ::
-          split (match_end()) (n-1)
+          Text (String.sub text start (pos - start)) ::
+          Delim (s) ::
+          split (match_end ()) (n - 1)
         else
-          Delim(s) ::
-          split (match_end()) (n-1)
+          Delim (s) ::
+          split (match_end ()) (n - 1)
       with Not_found ->
-        [Text(string_after text start)] in
+        [Text (string_after text start)] in
   split 0 num
 
 let full_split expr text = bounded_full_split expr text 0
