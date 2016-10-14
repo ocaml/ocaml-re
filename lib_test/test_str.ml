@@ -40,6 +40,23 @@ let eq_match ?pos ?case r s =
     (fun () -> T_re.eq_match ?pos ?case r s) ()
 ;;
 
+let global_replace re s1 s2 =
+  let r1 = Re_str.regexp re in
+  let r2 = Str.regexp re in
+  assert_equal
+    ~pp_diff:(fun fmt (expected, actual) ->
+        let q fmt s = Format.fprintf fmt "\"%s\"" s in
+        let f fmt (name, a1, a2, a3) =
+          Format.fprintf fmt "%s %a %a %a" name q a1 q a2 q a3 in
+        Format.fprintf fmt "@.%a = %s@.%a = %s@."
+          f ("Str.global_replace", re, s1, s2)
+          expected
+          f ("Re_str.global_replace", re, s1, s2)
+          actual)
+    ~printer:(fun x -> x)
+    (Re_str.global_replace r1 s1 s2)
+    (Str.global_replace r2 s1 s2)
+
 let _ =
   (* Literal Match *)
   expect_pass "str" (fun () ->
@@ -138,6 +155,16 @@ let _ =
   expect_pass "no_case" (fun () ->
     eq_match ~case:false "abc"    "abc";
     eq_match ~case:false "abc"    "ABC";
+  );
+
+  expect_pass "global_replace" (fun () ->
+    global_replace "needle" "test" "needlehaystack";
+    global_replace "needle" "" "";
+    global_replace "needle" "" "needle";
+    global_replace "xxx" "yyy" "zzz";
+
+    (* the test below fails *)
+    (* global_replace "\\(X+\\)" "A\\1YY" "XXXXXXZZZZ" *)
   );
 
   expect_pass "split tests" (fun () ->
