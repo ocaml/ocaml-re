@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name:        re
-Version:     1.7.0
+Version:     1.7.1
 Synopsis:    Pure OCaml regular expression library
 Authors:     Jerome Vouillon, Thomas Gazagnaire, Anil Madhavapeddy
 License:     LGPL-2.0 with OCaml linking exception
