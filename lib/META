@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 39d4873c6e7dc4da81f1426d7f08c2b3)
-version = "1.7.0"
+# DO NOT EDIT (digest: 027b04c34e8c51d5f728af8fe4db794c)
+version = "1.7.1"
 description = "Pure OCaml regular expression library"
 requires = "bytes"
 archive(byte) = "re.cma"
@@ -9,7 +9,7 @@ archive(native) = "re.cmxa"
 archive(native, plugin) = "re.cmxs"
 exists_if = "re.cma"
 package "str" (
- version = "1.7.0"
+ version = "1.7.1"
  description = "Str-compatible regexps"
  requires = "re re.emacs"
  archive(byte) = "re_str.cma"
@@ -20,7 +20,7 @@ package "str" (
 )
 
 package "posix" (
- version = "1.7.0"
+ version = "1.7.1"
  description = "POSIX-compatible regexps"
  requires = "re"
  archive(byte) = "re_posix.cma"
@@ -31,7 +31,7 @@ package "posix" (
 )
 
 package "perl" (
- version = "1.7.0"
+ version = "1.7.1"
  description = "Perl-compatible regexps"
  requires = "re"
  archive(byte) = "re_perl.cma"
@@ -42,7 +42,7 @@ package "perl" (
 )
 
 package "pcre" (
- version = "1.7.0"
+ version = "1.7.1"
  description = "subset of PCRE using the Re engine"
  requires = "re re.perl"
  archive(byte) = "re_pcre.cma"
@@ -53,7 +53,7 @@ package "pcre" (
 )
 
 package "glob" (
- version = "1.7.0"
+ version = "1.7.1"
  description = "Shell glob regexps"
  requires = "re"
  archive(byte) = "re_glob.cma"
@@ -64,7 +64,7 @@ package "glob" (
 )
 
 package "emacs" (
- version = "1.7.0"
+ version = "1.7.1"
  description = "Emacs-compatible regexps"
  requires = "re"
  archive(byte) = "re_emacs.cma"
