@@ -147,11 +147,11 @@ let rec replace orig repl p res q len =
           with Not_found ->
             0
         in
-        replace repl orig (p + 2) res (q + d) len
+        replace orig repl (p + 2) res (q + d) len
       | c ->
         Bytes.set res q '\\';
         Bytes.set res (q + 1) c;
-        replace repl orig (p + 2) res (q + 2) len
+        replace orig repl (p + 2) res (q + 2) len
     end
   end
 
