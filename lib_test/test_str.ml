@@ -163,8 +163,11 @@ let _ =
     global_replace "needle" "" "needle";
     global_replace "xxx" "yyy" "zzz";
 
-    (* the test below fails *)
-    (* global_replace "\\(X+\\)" "A\\1YY" "XXXXXXZZZZ" *)
+    global_replace "test\\([0-9]*\\)" "\\1-foo-\\1" "test100 test200 test";
+    global_replace "test\\([0-9]*\\)" "'\\-0'" "test100 test200 test";
+
+    (* Regrssion test for #129 *)
+    global_replace "\\(X+\\)" "A\\1YY" "XXXXXXZZZZ"
   );
 
   expect_pass "split tests" (fun () ->
