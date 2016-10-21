@@ -39,3 +39,9 @@ let pp_olist pp_elem fmt =
        pp_elem)
 
 let pp_str_list = pp_olist quote
+
+let to_to_string pp x =
+  let b = Buffer.create 16 in
+  let fmt = Format.formatter_of_buffer b in
+  pp fmt x;
+  Buffer.contents b

@@ -1,5 +1,6 @@
 open Fort_unit
 open OUnit2
+module Fmt = Re_fmt
 
 module type Str_intf = module type of Str
 
@@ -41,10 +42,10 @@ let global_replace re s1 s2 =
   let r2 = Str.regexp re in
   assert_equal
     ~pp_diff:(fun fmt (expected, actual) ->
-        let q fmt s = Format.fprintf fmt "\"%s\"" s in
+        let q fmt s = Fmt.fprintf fmt "\"%s\"" s in
         let f fmt (name, a1, a2, a3) =
-          Format.fprintf fmt "%s %a %a %a" name q a1 q a2 q a3 in
-        Format.fprintf fmt "@.%a = %s@.%a = %s@."
+          Fmt.fprintf fmt "%s %a %a %a" name q a1 q a2 q a3 in
+        Fmt.fprintf fmt "@.%a = %s@.%a = %s@."
           f ("Str.global_replace", re, s1, s2)
           expected
           f ("Re_str.global_replace", re, s1, s2)
@@ -52,8 +53,6 @@ let global_replace re s1 s2 =
     ~printer:(fun x -> x)
     (Re_str.global_replace r1 s1 s2)
     (Str.global_replace r2 s1 s2)
-
-module Fmt = Re_fmt
 
 let split_result_conv = List.map (function
     | Str.Delim x -> Re_str.Delim x
@@ -65,13 +64,13 @@ let pp_split_result_list =
         match x with
         | Re_str.Delim x -> ("Delim", x)
         | Re_str.Text x -> ("Text", x) in
-      Format.fprintf fmt "%s@ (\"%s\")" tag arg)
+      Fmt.fprintf fmt "%s@ (\"%s\")" tag arg)
 
 let pp_fs pp_args pp_out fmt (name, re, args, ex, res) =
   let f fmt (mod_, r) =
     Fmt.fprintf fmt "%s.%s %a %a = %a"
       mod_ name Fmt.quote re pp_args args pp_out r in
-  Format.fprintf fmt "@.%a@.%a"
+  Fmt.fprintf fmt "@.%a@.%a"
     f ("Str", ex)
     f ("Re_str", res)
 
@@ -84,7 +83,7 @@ type ('a, 'b) split_test =
 
 let bounded_split_t =
   { name = "bounded_split"
-  ; pp_args = (fun fmt (s, n) -> Format.fprintf fmt "%a %d" Fmt.quote s n)
+  ; pp_args = (fun fmt (s, n) -> Fmt.fprintf fmt "%a %d" Fmt.quote s n)
   ; pp_out = Fmt.pp_str_list
   ; re_str = (fun re (s, n) -> Re_str.(bounded_split re s n))
   ; str = (fun re (s, n) -> Str.(bounded_split re s n)) }
@@ -100,7 +99,7 @@ let bounded_full_split_t =
 let full_split_t =
   { bounded_full_split_t with
     name = "full_split"
-  ; pp_args = (fun fmt s -> Format.fprintf fmt "%a" Fmt.quote s)
+  ; pp_args = (fun fmt s -> Fmt.fprintf fmt "%a" Fmt.quote s)
   ; re_str = (fun re s -> Re_str.(full_split re s))
   ; str = (fun re s -> split_result_conv (Str.(full_split re s))) }
 
@@ -122,7 +121,7 @@ let test t re args =
   assert_equal
     ~pp_diff:(fun fmt (ex, act) ->
         pp_fs t.pp_args t.pp_out fmt (t.name, re, args, ex, act))
-    ~printer:(Format.asprintf "%a" t.pp_out)
+    ~printer:(Fmt.to_to_string t.pp_out)
     (t.re_str (Re_str.regexp re) args)
     (t.str (Str.regexp re) args)
 
