@@ -16,34 +16,21 @@
 (* $Id: re_str.ml,v 1.3 2002/07/03 15:47:54 vouillon Exp $ *)
 
 type regexp =
-  { re : Re.t;
-    mutable mtch : Re.re option;
-    mutable srch : Re.re option }
+  { re: Re.t
+  ; mtch: Re.re Lazy.t
+  ; srch: Re.re Lazy.t }
 
 let compile_regexp s c =
-  { re = Re_emacs.re ~case:(not c) s;
-    mtch = None;
-    srch = None }
-
-let rec get_mtch re =
-  match re.mtch with
-    Some r -> r
-  | None   ->
-    re.mtch <- Some (Re.compile (Re.seq [Re.start; re.re]));
-    get_mtch re
-
-let rec get_srch re =
-  match re.srch with
-    Some r -> r
-  | None   ->
-    re.srch <- Some (Re.compile re.re);
-    get_srch re
+  let re = Re_emacs.re ~case:(not c) s in
+  { re
+  ; mtch = lazy (Re.compile (Re.seq [Re.start; re]))
+  ; srch = lazy (Re.compile re) }
 
 let state = ref None
 
 let string_match re s p =
   try
-    state := Some (Re.exec ~pos:p (get_mtch re) s);
+    state := Some (Re.exec ~pos:p (Lazy.force re.mtch) s);
     true
   with Not_found ->
     state := None;
@@ -51,7 +38,7 @@ let string_match re s p =
 
 let string_partial_match re s p =
   match
-    Re.exec_partial ~pos:p (get_mtch re) s
+    Re.exec_partial ~pos:p (Lazy.force re.mtch) s
   with
     `Full     -> string_match re s p
   | `Partial  -> true
@@ -59,7 +46,7 @@ let string_partial_match re s p =
 
 let search_forward re s p =
   try
-    let res = Re.exec ~pos:p (get_srch re) s in
+    let res = Re.exec ~pos:p (Lazy.force re.srch) s in
     state := Some res;
     fst (Re.Group.offset res 0)
   with Not_found ->
@@ -68,7 +55,7 @@ let search_forward re s p =
 
 let rec search_backward re s p =
   try
-    let res = Re.exec ~pos:p (get_mtch re) s in
+    let res = Re.exec ~pos:p (Lazy.force re.mtch) s in
     state := Some res;
     p
   with Not_found ->
