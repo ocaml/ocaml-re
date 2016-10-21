@@ -51,8 +51,8 @@ let global_replace re s1 s2 =
           f ("Re_str.global_replace", re, s1, s2)
           actual)
     ~printer:(fun x -> x)
-    (Re_str.global_replace r1 s1 s2)
     (Str.global_replace r2 s1 s2)
+    (Re_str.global_replace r1 s1 s2)
 
 let split_result_conv = List.map (function
     | Str.Delim x -> Re_str.Delim x
