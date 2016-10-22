@@ -72,25 +72,17 @@ let valid_group n =
     | Some m -> n < Re.Group.nb_groups m
   )
 
-let beginning_group i =
+let offset_group i =
   match !state with
-    Some m -> fst (Re.Group.offset m i)
+  | Some m -> Re.Group.offset m i
   | None   -> raise Not_found
 
-let end_group i =
-  match !state with
-    Some m -> snd (Re.Group.offset m i)
-  | None   -> raise Not_found
-
-let get_len i =
-  match !state with
-    None   -> 0
-  | Some m ->
-    try
-      let (b, e) = Re.Group.offset m i in
-      e - b
-    with Not_found ->
-      0
+let group_len i =
+  try
+    let (b, e) = offset_group i in
+    e - b
+  with Not_found ->
+    0
 
 let rec repl_length repl p q len =
   if p < len then begin
@@ -102,7 +94,7 @@ let rec repl_length repl p q len =
       let q =
         match repl.[p] with
         | '\\' -> q + 1
-        | '0' .. '9' as c -> q + get_len (Char.code c - Char.code '0')
+        | '0' .. '9' as c -> q + group_len (Char.code c - Char.code '0')
         | _ -> q + 2 in
       repl_length repl (p + 1) q len
     end
@@ -123,14 +115,10 @@ let rec replace orig repl p res q len =
       | '0' .. '9' as c ->
         let d =
           try
-            match !state with
-              None ->
-              raise Not_found
-            | Some m ->
-              let (b, e) = Re.Group.offset m (Char.code c - Char.code '0') in
-              let d = e - b in
-              if d > 0 then String.blit orig b res q d;
-              d
+            let (b, e) = offset_group (Char.code c - Char.code '0') in
+            let d = e - b in
+            if d > 0 then String.blit orig b res q d;
+            d
           with Not_found ->
             0
         in
@@ -178,7 +166,7 @@ let regexp_string_case_fold s = compile_regexp (quote s) true
 
 let group_beginning n =
   if not (valid_group n) then invalid_arg "Str.group_beginning";
-  let pos = beginning_group n in
+  let pos = fst (offset_group n) in
   if pos = -1 then
     raise Not_found
   else
@@ -186,15 +174,14 @@ let group_beginning n =
 
 let group_end n =
   if not (valid_group n) then invalid_arg "Str.group_end";
-  let pos = end_group n in
+  let pos = snd (offset_group n) in
   if pos = -1 then
     raise Not_found
   else
     pos
 
 let matched_group n txt =
-  let b = group_beginning n in
-  let e = group_end n in
+  let (b, e) = offset_group n in
   String.sub txt b (e - b)
 
 let replace_matched repl matched = replacement_text repl matched
