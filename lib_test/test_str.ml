@@ -37,23 +37,6 @@ let eq_match ?pos ?case r s =
     (fun () -> T_re.eq_match ?pos ?case r s) ()
 ;;
 
-let global_replace re s1 s2 =
-  let r1 = Re_str.regexp re in
-  let r2 = Str.regexp re in
-  assert_equal
-    ~pp_diff:(fun fmt (expected, actual) ->
-        let q fmt s = Fmt.fprintf fmt "\"%s\"" s in
-        let f fmt (name, a1, a2, a3) =
-          Fmt.fprintf fmt "%s %a %a %a" name q a1 q a2 q a3 in
-        Fmt.fprintf fmt "@.%a = %s@.%a = %s@."
-          f ("Str.global_replace", re, s1, s2)
-          expected
-          f ("Re_str.global_replace", re, s1, s2)
-          actual)
-    ~printer:(fun x -> x)
-    (Str.global_replace r2 s1 s2)
-    (Re_str.global_replace r1 s1 s2)
-
 let split_result_conv = List.map (function
     | Str.Delim x -> Re_str.Delim x
     | Str.Text x -> Re_str.Text x)
@@ -74,7 +57,7 @@ let pp_fs pp_args pp_out fmt (name, re, args, ex, res) =
     f ("Str", ex)
     f ("Re_str", res)
 
-type ('a, 'b) split_test =
+type ('a, 'b) test =
   { name: string
   ; pp_args : 'a Fmt.t
   ; pp_out : 'b Fmt.t
@@ -85,37 +68,45 @@ let bounded_split_t =
   { name = "bounded_split"
   ; pp_args = (fun fmt (s, n) -> Fmt.fprintf fmt "%a %d" Fmt.quote s n)
   ; pp_out = Fmt.pp_str_list
-  ; re_str = (fun re (s, n) -> Re_str.(bounded_split re s n))
-  ; str = (fun re (s, n) -> Str.(bounded_split re s n)) }
+  ; re_str = (fun re (s, n) -> Re_str.bounded_split re s n)
+  ; str = (fun re (s, n) -> Str.bounded_split re s n) }
 
 let bounded_full_split_t =
   { bounded_split_t with
     name = "bounded_full_split"
   ; pp_out = pp_split_result_list
-  ; re_str = (fun re (s, n) -> Re_str.(bounded_full_split re s n))
+  ; re_str = (fun re (s, n) -> Re_str.bounded_full_split re s n)
   ; str = (fun re (s, n) ->
-      split_result_conv (Str.(bounded_full_split re s n))) }
+      split_result_conv (Str.bounded_full_split re s n)) }
 
 let full_split_t =
   { bounded_full_split_t with
     name = "full_split"
   ; pp_args = (fun fmt s -> Fmt.fprintf fmt "%a" Fmt.quote s)
-  ; re_str = (fun re s -> Re_str.(full_split re s))
-  ; str = (fun re s -> split_result_conv (Str.(full_split re s))) }
+  ; re_str = (fun re s -> Re_str.full_split re s)
+  ; str = (fun re s -> split_result_conv (Str.full_split re s)) }
 
 let split_delim_t =
   { full_split_t with
     name = "split_delim"
   ; pp_out = Fmt.pp_str_list
-  ; re_str = (fun re s -> Re_str.(split_delim re s))
-  ; str = (fun re s -> Str.(split_delim re s)) }
+  ; re_str = (fun re s -> Re_str.split_delim re s)
+  ; str = (fun re s -> Str.split_delim re s) }
 
 let split_t =
   { name = "split"
   ; pp_out = Fmt.pp_str_list
   ; pp_args = full_split_t.pp_args
-  ; re_str = (fun re s -> Re_str.(split re s))
-  ; str = (fun re s -> Str.(split re s)) }
+  ; re_str = (fun re s -> Re_str.split re s)
+  ; str = (fun re s -> Str.split re s) }
+
+let global_replace_t =
+  { name = "global_replace"
+  ; pp_out = Fmt.pp_print_string
+  ; pp_args = (fun fmt (r, s) -> Fmt.fprintf fmt "%a %a"
+                  Fmt.quote r Fmt.quote s)
+  ; re_str = (fun re (r, s) -> Re_str.global_replace re r s)
+  ; str = (fun re (r, s) -> Str.global_replace re r s) }
 
 let test t re args =
   assert_equal
@@ -134,6 +125,8 @@ let full_split re s = test full_split_t re s
 let bounded_split re s n = test bounded_split_t re (s, n)
 
 let bounded_full_split re s n = test bounded_full_split_t re (s, n)
+
+let global_replace re r s = test global_replace_t re (r, s)
 
 let _ =
   (* Literal Match *)
