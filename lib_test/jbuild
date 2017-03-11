@@ -1,0 +1,65 @@
+(library
+ ((name        fort_unit)
+  (modules     (fort_unit))
+  (libraries   (re oUnit))
+  (preprocess  no_preprocessing)))
+
+(executables
+ ((libraries (re re.perl fort_unit))
+  (modules (test_re))
+  (names (test_re))))
+
+(executables
+ ((libraries (re re.perl fort_unit))
+  (modules (test_perl))
+  (names (test_perl))))
+
+(executables
+ ((libraries (re re.emacs fort_unit))
+  (modules (test_emacs))
+  (names (test_emacs))))
+
+(executables
+ ((libraries (re re.glob fort_unit))
+  (modules (test_glob))
+  (names (test_glob))))
+
+(executables
+ ((libraries (re re.str str fort_unit))
+  (modules (test_str))
+  (names (test_str))))
+
+(executables
+ ((libraries (re re.pcre pcre fort_unit))
+  (modules (test_pcre))
+  (names (test_pcre))))
+
+(alias
+ ((name   runtest)
+  (deps   (test_re.exe))
+  (action (run ${<}))))
+
+(alias
+ ((name   runtest)
+  (deps   (test_perl.exe))
+  (action (run ${<}))))
+
+(alias
+ ((name   runtest)
+  (deps   (test_emacs.exe))
+  (action (run ${<}))))
+
+(alias
+ ((name   runtest)
+  (deps   (test_glob.exe))
+  (action (run ${<}))))
+
+(alias
+ ((name   runtest)
+  (deps   (test_str.exe))
+  (action (run ${<}))))
+
+(alias
+ ((name   runtest)
+  (deps   (test_pcre.exe))
+  (action (run ${<}))))

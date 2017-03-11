@@ -2,6 +2,8 @@
  ((name        re)
   (public_name re)
   (modules     (re re_fmt re_cset re_automata))
+  (wrapped     false)
+  (libraries   (bytes))
   (preprocess  no_preprocessing)))
 
 (library
