@@ -7,3 +7,5 @@ setup.exe
 *.native
 *.byte
 *.docdir
+.merlin
+*.install
