@@ -36,6 +36,7 @@ module Category : sig
 
   val intersect : t -> t -> bool
   val (++) : t -> t -> t
+  val from_char : char -> t
 
   val dummy : t
   val inexistant : t
@@ -61,6 +62,16 @@ end = struct
   let newline = 8
   let lastnewline = 16
   let search_boundary = 32
+
+  let from_char = function
+    (* Should match [cword] definition *)
+    | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
+    | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
+      letter
+    | '\n' ->
+      not_letter ++ newline
+    | _ ->
+      not_letter
 end
 
 type category = Category.t

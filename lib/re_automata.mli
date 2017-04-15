@@ -25,6 +25,7 @@
 module Category : sig
   type t
   val (++) : t -> t -> t
+  val from_char : char -> t
 
   val inexistant : t
   val letter : t

@@ -132,15 +132,7 @@ let category re c =
   else if c = re.lnl then
     Category.(lastnewline ++ newline ++ not_letter)
   else
-    match Bytes.get re.col_repr c with
-    (* Should match [cword] definition *)
-      'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
-    | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
-      Category.letter
-    | '\n' ->
-      Category.(not_letter ++ newline)
-    | _ ->
-      Category.not_letter
+    Category.from_char (Bytes.get re.col_repr c)
 
 (****)
 
