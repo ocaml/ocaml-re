@@ -74,7 +74,6 @@ end = struct
       not_letter
 end
 
-type category = Category.t
 type mark = int
 type idx = int
 
@@ -105,8 +104,8 @@ and def =
   | Rep of rep_kind * sem * expr
   | Mark of int
   | Erase of int * int
-  | Before of category
-  | After of category
+  | Before of Category.t
+  | After of Category.t
   | Pmark of Pmark.t
 
 module PmarkSet = Set.Make(Pmark)
@@ -348,7 +347,7 @@ end
 module State = struct
   type t =
     { idx: idx
-    ; category: category
+    ; category: Category.t
     ; desc: E.t list
     ; mutable status: status option
     ; hash: hash }

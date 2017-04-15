@@ -72,7 +72,7 @@ type state =
     next : state array;
     (* Transition table, indexed by color *)
     mutable final :
-      (Automata.category *
+      (Category.t *
        (Automata.idx * Automata.status)) list;
     (* Mapping from the category of the next character to
        - the index where the next position should be saved
@@ -85,7 +85,7 @@ type state =
 type re =
   { initial : Automata.expr;
     (* The whole regular expression *)
-    mutable initial_states : (Automata.category * state) list;
+    mutable initial_states : (Category.t * state) list;
     (* Initial states, indexed by initial category *)
     cols : Bytes.t;
     (* Color table *)
