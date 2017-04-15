@@ -26,7 +26,44 @@ type sem = [ `Longest | `Shortest | `First ]
 
 type rep_kind = [ `Greedy | `Non_greedy ]
 
-type category = int
+
+module Category : sig
+  type t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val pp : Format.formatter -> t -> unit
+  val to_int : t -> int
+
+  val intersect : t -> t -> bool
+  val (++) : t -> t -> t
+
+  val dummy : t
+  val inexistant : t
+  val letter : t
+  val not_letter : t
+  val newline : t
+  val lastnewline : t
+  val search_boundary : t
+end = struct
+  type t = int
+  let equal (x : int) (y : int) = x = y
+  let compare (x : int) (y : int) = compare x y
+  let to_int x = x
+  let pp = Format.pp_print_int
+
+  let intersect x y = x land y <> 0
+  let (++) x y = x lor y
+
+  let dummy = -1
+  let inexistant = 1
+  let letter = 2
+  let not_letter = 4
+  let newline = 8
+  let lastnewline = 16
+  let search_boundary = 32
+end
+
+type category = Category.t
 type mark = int
 type idx = int
 
@@ -146,9 +183,9 @@ let rec pp ch e =
   | Erase (b, e) ->
     sexp ch "erase" (pair int int) (b, e)
   | Before c ->
-    sexp ch "before" int c
+    sexp ch "before" Category.pp c
   | After c ->
-    sexp ch "after" int c
+    sexp ch "after" Category.pp c
 
 
 (****)
@@ -307,15 +344,15 @@ module State = struct
 
   let dummy =
     { idx = -1
-    ; category = -1
+    ; category = Category.dummy
     ; desc = []
     ; status = None
     ; hash = -1 }
 
   let hash idx cat desc =
-    E.hash desc (hash_combine idx (hash_combine cat 0)) land 0x3FFFFFFF
+    E.hash desc (hash_combine idx (hash_combine (Category.to_int cat) 0)) land 0x3FFFFFFF
 
-  let mk idx cat desc = 
+  let mk idx cat desc =
     { idx
     ; category = cat
     ; desc
@@ -326,12 +363,12 @@ module State = struct
 
   let equal x y =
     (x.hash : int) = y.hash && (x.idx : int) = y.idx &&
-    (x.category : int) = y.category && E.equal x.desc y.desc
+    Category.equal x.category y.category && E.equal x.desc y.desc
 
   let compare x y =
     let c = compare (x.hash : int) y.hash in
     if c <> 0 then c else
-      let c = compare (x.category : int) y.category in
+      let c = Category.compare x.category y.category in
       if c <> 0 then c else
         compare x.desc y.desc
 
@@ -456,9 +493,9 @@ let rec delta_1 marks c cat' cat x rem =
   | Erase (b, e) ->
     E.TMatch (filter_marks b e marks) :: rem
   | Before cat'' ->
-    if cat land cat'' <> 0 then E.TMatch marks :: rem else rem
+    if Category.intersect cat cat'' then E.TMatch marks :: rem else rem
   | After cat'' ->
-    if cat' land cat'' <> 0 then E.TMatch marks :: rem else rem
+    if Category.intersect cat' cat'' then E.TMatch marks :: rem else rem
 
 and delta_2 marks c cat' cat l rem =
   match l with
@@ -586,7 +623,7 @@ let rec deriv_1 all_chars categories marks cat x rem =
   | Before cat' ->
     Cset.prepend (List.assq cat' categories) [E.TMatch marks] rem
   | After cat' ->
-    if cat land cat' <> 0 then Cset.prepend all_chars [E.TMatch marks] rem else rem
+    if Category.intersect cat cat' then Cset.prepend all_chars [E.TMatch marks] rem else rem
 
 and deriv_2 all_chars categories marks cat l rem =
   match l with

@@ -23,6 +23,7 @@
 module Cset = Re_cset
 module Automata = Re_automata
 module MarkSet = Automata.PmarkSet
+module Category = Automata.Category
 
 let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
 
@@ -124,29 +125,22 @@ type info =
 
 (****)
 
-let cat_inexistant = 1
-let cat_letter = 2
-let cat_not_letter = 4
-let cat_newline = 8
-let cat_lastnewline = 16
-let cat_search_boundary = 32
-
 let category re c =
   if c = -1 then
-    cat_inexistant
+    Category.inexistant
     (* Special category for the last newline *)
   else if c = re.lnl then
-    cat_lastnewline lor cat_newline lor cat_not_letter
+    Category.(lastnewline ++ newline ++ not_letter)
   else
     match Bytes.get re.col_repr c with
     (* Should match [cword] definition *)
       'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
     | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
-      cat_letter
+      Category.letter
     | '\n' ->
-      cat_not_letter lor cat_newline
+      Category.(not_letter ++ newline)
     | _ ->
-      cat_not_letter
+      Category.not_letter
 
 (****)
 
@@ -343,9 +337,9 @@ let match_str ~groups ~partial re s ~pos ~len =
   in
   let initial_cat =
     if pos = 0 then
-      cat_search_boundary lor cat_inexistant
+      Category.(search_boundary ++ inexistant)
     else
-      cat_search_boundary lor category re (get_color re s (pos - 1)) in
+      Category.(search_boundary ++ category re (get_color re s (pos - 1))) in
   let initial_state = find_initial_state re initial_cat in
   let st = scan_str info s initial_state groups in
   let res =
@@ -354,9 +348,9 @@ let match_str ~groups ~partial re s ~pos ~len =
     else
       let final_cat =
         if last = slen then
-          cat_search_boundary lor cat_inexistant
+          Category.(search_boundary ++ inexistant)
         else
-          cat_search_boundary lor category re (get_color re s last) in
+          Category.(search_boundary ++ category re (get_color re s last)) in
       let (idx, res) = final info st final_cat in
       if groups then info.positions.(idx) <- last + 1;
       res
@@ -663,37 +657,37 @@ let rec translate ids kind ign_group ign_case greedy pos cache c = function
     in
     (iter i (fun rem -> A.seq ids kind' (A.rename ids cr) rem) rem, kind)
   | Beg_of_line ->
-    (A.after ids (cat_inexistant lor cat_newline), kind)
+    (A.after ids Category.(inexistant ++ newline), kind)
   | End_of_line ->
-    (A.before ids (cat_inexistant lor cat_newline), kind)
+    (A.before ids Category.(inexistant ++ newline), kind)
   | Beg_of_word ->
     (A.seq ids `First
-       (A.after ids (cat_inexistant lor cat_not_letter))
-       (A.before ids (cat_inexistant lor cat_letter)),
+       (A.after ids Category.(inexistant ++ not_letter))
+       (A.before ids Category.(inexistant ++ letter)),
      kind)
   | End_of_word ->
     (A.seq ids `First
-       (A.after ids (cat_inexistant lor cat_letter))
-       (A.before ids (cat_inexistant lor cat_not_letter)),
+       (A.after ids Category.(inexistant ++ letter))
+       (A.before ids Category.(inexistant ++ not_letter)),
      kind)
   | Not_bound ->
     (A.alt ids [A.seq ids `First
-                  (A.after ids cat_letter)
-                  (A.before ids cat_letter);
+                  (A.after ids Category.letter)
+                  (A.before ids Category.letter);
                 A.seq ids `First
-                  (A.after ids cat_letter)
-                  (A.before ids cat_letter)],
+                  (A.after ids Category.letter)
+                  (A.before ids Category.letter)],
      kind)
   | Beg_of_str ->
-    (A.after ids cat_inexistant, kind)
+    (A.after ids Category.inexistant, kind)
   | End_of_str ->
-    (A.before ids cat_inexistant, kind)
+    (A.before ids Category.inexistant, kind)
   | Last_end_of_line ->
-    (A.before ids (cat_inexistant lor cat_lastnewline), kind)
+    (A.before ids Category.(inexistant ++ lastnewline), kind)
   | Start ->
-    (A.after ids cat_search_boundary, kind)
+    (A.after ids Category.search_boundary, kind)
   | Stop ->
-    (A.before ids cat_search_boundary, kind)
+    (A.before ids Category.search_boundary, kind)
   | Sem (kind', r') ->
     let (cr, kind'') =
       translate ids kind' ign_group ign_case greedy pos cache c r' in

@@ -22,7 +22,19 @@
 
 (* Regular expressions *)
 
-type category = int
+module Category : sig
+  type t
+  val (++) : t -> t -> t
+
+  val inexistant : t
+  val letter : t
+  val not_letter : t
+  val newline : t
+  val lastnewline : t
+  val search_boundary : t
+end
+
+type category = Category.t
 type mark = int
 
 type sem = [ `Longest | `Shortest | `First ]
