@@ -22,7 +22,24 @@
 
 (* Regular expressions *)
 
-type category = int
+(** Categories represent the various kinds of characters that can be tested
+    by look-ahead and look-behind operations.
+
+    This is more restricted than Cset, but faster.
+*)
+module Category : sig
+  type t
+  val (++) : t -> t -> t
+  val from_char : char -> t
+
+  val inexistant : t
+  val letter : t
+  val not_letter : t
+  val newline : t
+  val lastnewline : t
+  val search_boundary : t
+end
+
 type mark = int
 
 type sem = [ `Longest | `Shortest | `First ]
@@ -55,8 +72,8 @@ val rep : ids -> rep_kind -> sem -> expr -> expr
 val mark : ids -> mark -> expr
 val pmark : ids -> Pmark.t -> expr
 val erase : ids -> mark -> mark -> expr
-val before : ids -> category -> expr
-val after : ids -> category -> expr
+val before : ids -> Category.t -> expr
+val after : ids -> Category.t -> expr
 
 val rename : ids -> expr -> expr
 
@@ -85,12 +102,12 @@ type status = Failed | Match of mark_infos * PmarkSet.t | Running
 module State : sig
   type t =
     { idx: idx
-    ; category: category
+    ; category: Category.t
     ; desc: E.t list
     ; mutable status: status option
     ; hash: hash }
   val dummy : t
-  val create : category -> expr -> t
+  val create : Category.t -> expr -> t
   module Table : Hashtbl.S with type key = t
 end
 
@@ -102,9 +119,9 @@ type working_area
 val create_working_area : unit -> working_area
 val index_count : working_area -> int
 
-val delta : working_area -> category -> Re_cset.c -> State.t -> State.t
+val delta : working_area -> Category.t -> Re_cset.c -> State.t -> State.t
 val deriv :
-  working_area -> Re_cset.t -> (category * Re_cset.t) list -> State.t ->
+  working_area -> Re_cset.t -> (Category.t * Re_cset.t) list -> State.t ->
   (Re_cset.t * State.t) list
 
 (****)
