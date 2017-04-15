@@ -22,6 +22,11 @@
 
 (* Regular expressions *)
 
+(** Categories represent the various kinds of characters that can be tested
+    by look-ahead and look-behind operations.
+
+    This is more restricted than Cset, but faster.
+*)
 module Category : sig
   type t
   val (++) : t -> t -> t
