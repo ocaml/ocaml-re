@@ -20,8 +20,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-module Cset = Re_cset
-
 type sem = [ `Longest | `Shortest | `First ]
 
 type rep_kind = [ `Greedy | `Non_greedy ]
@@ -174,7 +172,7 @@ let pp_rep_kind fmt = function
   | `Non_greedy -> Format.pp_print_string fmt "Non_greedy"
 
 let rec pp ch e =
-  let open Re_fmt in
+  let open Fmt in
   match e.def with
     Cst l ->
     sexp ch "cst" Cset.pp l;
@@ -222,7 +220,7 @@ let mk_expr ids def =
 let empty ids = mk_expr ids (Alt [])
 
 let cst ids s =
-  if Re_cset.is_empty s
+  if Cset.is_empty s
   then empty ids
   else mk_expr ids (Cst s)
 

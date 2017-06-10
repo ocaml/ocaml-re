@@ -63,7 +63,7 @@ val pp : Format.formatter -> expr -> unit
 type ids
 val create_ids : unit -> ids
 
-val cst : ids -> Re_cset.t -> expr
+val cst : ids -> Cset.t -> expr
 val empty : ids -> expr
 val alt : ids -> expr list -> expr
 val seq : ids -> sem -> expr -> expr -> expr
@@ -119,10 +119,10 @@ type working_area
 val create_working_area : unit -> working_area
 val index_count : working_area -> int
 
-val delta : working_area -> Category.t -> Re_cset.c -> State.t -> State.t
+val delta : working_area -> Category.t -> Cset.c -> State.t -> State.t
 val deriv :
-  working_area -> Re_cset.t -> (Category.t * Re_cset.t) list -> State.t ->
-  (Re_cset.t * State.t) list
+  working_area -> Cset.t -> (Category.t * Cset.t) list -> State.t ->
+  (Cset.t * State.t) list
 
 (****)
 

@@ -1,3 +1,5 @@
+module Re = Re0
+
 type regexp = Re.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
@@ -16,7 +18,7 @@ let re ?(flags = []) pat =
     | `MULTILINE -> `Multiline
     | `ANCHORED -> `Anchored
   ) flags in
-  Re_perl.re ~opts pat
+  Perl.re ~opts pat
 
 let regexp ?flags pat = Re.compile (re ?flags pat)
 

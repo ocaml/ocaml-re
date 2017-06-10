@@ -1,4 +1,4 @@
-open Re_glob
+open Re.Glob
 open Fort_unit
 
 let re_match ?pos ?len re s =

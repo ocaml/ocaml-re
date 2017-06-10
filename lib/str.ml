@@ -15,13 +15,15 @@
 
 (* $Id: re_str.ml,v 1.3 2002/07/03 15:47:54 vouillon Exp $ *)
 
+module Re = Re0
+
 type regexp =
   { re: Re.t
   ; mtch: Re.re Lazy.t
   ; srch: Re.re Lazy.t }
 
 let compile_regexp s c =
-  let re = Re_emacs.re ~case:(not c) s in
+  let re = Emacs.re ~case:(not c) s in
   { re
   ; mtch = lazy (Re.compile (Re.seq [Re.start; re]))
   ; srch = lazy (Re.compile re) }

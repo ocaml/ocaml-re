@@ -1,38 +1,43 @@
 (jbuild_version 1)
 
+(rule
+ ((targets (fmt.ml))
+  (deps (../lib/fmt.ml))
+  (action (copy ${<} ${@}))))
+
 (library
- ((name        fort_unit)
-  (modules     (fort_unit))
-  (libraries   (re oUnit))
-  (preprocess  no_preprocessing)))
+ ((name fort_unit)
+  (wrapped false)
+  (modules (fort_unit fmt))
+  (libraries (re oUnit))))
 
 (executables
- ((libraries (re re.perl fort_unit))
+ ((libraries (re fort_unit))
   (modules (test_re))
   (names (test_re))))
 
 (executables
- ((libraries (re re.perl fort_unit))
+ ((libraries (re fort_unit))
   (modules (test_perl))
   (names (test_perl))))
 
 (executables
- ((libraries (re re.emacs fort_unit))
+ ((libraries (re fort_unit))
   (modules (test_emacs))
   (names (test_emacs))))
 
 (executables
- ((libraries (re re.glob fort_unit))
+ ((libraries (re fort_unit))
   (modules (test_glob))
   (names (test_glob))))
 
 (executables
- ((libraries (re re.str str fort_unit))
+ ((libraries (re str fort_unit))
   (modules (test_str))
   (names (test_str))))
 
 (executables
- ((libraries (re re.pcre pcre fort_unit))
+ ((libraries (re fort_unit))
   (modules (test_pcre))
   (names (test_pcre))))
 

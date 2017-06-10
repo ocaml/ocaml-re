@@ -164,10 +164,10 @@ count := 0; hit := 0;
              (fun p ->
                 match p with
                   `Path s ->
-                     Re_glob.globx s
+                     Re.Glob.globx s
                 | `Name s ->
                      Re.seq [Re.no_group (Re_posix.re "(.*/)?");
-                             Re_glob.globx s])
+                             Re.Glob.globx s])
              desc);
         Re.eos ]
   in

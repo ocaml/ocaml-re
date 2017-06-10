@@ -1,5 +1,5 @@
 open Re
-open Re_perl
+open Re.Perl
 open Fort_unit
 
 let eq_re ?opts r s = expect_equal_app ~msg:s id r (re ?opts) s

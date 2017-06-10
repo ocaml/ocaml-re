@@ -20,22 +20,18 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-(** Perl-style regular expressions *)
+(** Emacs-style regular expressions *)
 
 exception Parse_error
 exception Not_supported
 (** Errors that can be raised during the parsing of the regular expression *)
 
+val re : ?case:bool -> string -> Re0.t
+(** Parsing of an Emacs-style regular expression *)
 
-type opt =
-  [ `Ungreedy | `Dotall | `Dollar_endonly
-  | `Multiline | `Anchored | `Caseless ]
-
-val re : ?opts:opt list -> string -> Re.t
-(** Parsing of a Perl-style regular expression *)
-
-val compile : Re.t -> Re.re
+val compile : Re0.t -> Re0.re
 (** Regular expression compilation *)
 
-val compile_pat : ?opts:opt list -> string -> Re.re
-(** (Same as [Re.compile]) *)
+val compile_pat : ?case:bool -> string -> Re0.re
+(** Same as [Re0.compile] *)
+

@@ -77,7 +77,7 @@ let lots_o_a's_re =
   Re.(seq [char 'a' ; opt (char 'a') ; char 'b'])
 
 let media_type_re =
-  let re = Re_emacs.re ~case:true "[ \t]*\\([^ \t;]+\\)" in
+  let re = Re.Emacs.re ~case:true "[ \t]*\\([^ \t;]+\\)" in
   Re.(seq ([start; re]))
 
 (* Taken from https://github.com/rgrinberg/ocaml-uri/blob/903ef1010f9808d6f3f6d9c1fe4b4eabbd76082d/lib/uri.ml*)
