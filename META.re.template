@@ -1,0 +1,31 @@
+# JBUILDER_GEN
+
+package "emacs" (
+  description = "Deprecated. Included in Re"
+  requires = "re"
+)
+
+package "glob" (
+  description = "Deprecated. Included in Re"
+  requires = "re"
+)
+
+package "posix" (
+  description = "Deprecated. Included in Re"
+  requires = "re"
+)
+
+package "str" (
+  description = "Deprecated. Included in Re"
+  requires = "re"
+)
+
+package "perl" (
+  description = "Deprecated. Included in Re"
+  requires = "re"
+)
+
+package "pcre" (
+  description = "Deprecated. Included in Re"
+  requires = "re"
+)
