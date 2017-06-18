@@ -35,6 +35,11 @@
   (modules (test_pcre))
   (names (test_pcre))))
 
+(executables
+ ((libraries (re oUnit))
+  (modules (test_easy))
+  (names (test_easy))))
+
 (alias
  ((name   runtest)
   (deps   (test_re.exe))
@@ -63,4 +68,9 @@
 (alias
  ((name   runtest)
   (deps   (test_pcre.exe))
+  (action (run ${<}))))
+
+(alias
+ ((name   runtest)
+  (deps   (test_easy.exe))
   (action (run ${<}))))
