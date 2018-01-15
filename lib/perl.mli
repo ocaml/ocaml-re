@@ -31,11 +31,11 @@ type opt =
   [ `Ungreedy | `Dotall | `Dollar_endonly
   | `Multiline | `Anchored | `Caseless ]
 
-val re : ?opts:opt list -> string -> Re0.t
+val re : ?opts:opt list -> string -> Core.t
 (** Parsing of a Perl-style regular expression *)
 
-val compile : Re0.t -> Re0.re
+val compile : Core.t -> Core.re
 (** Regular expression compilation *)
 
-val compile_pat : ?opts:opt list -> string -> Re0.re
+val compile_pat : ?opts:opt list -> string -> Core.re
 (** (Same as [Re.compile]) *)

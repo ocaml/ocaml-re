@@ -1,4 +1,4 @@
-include Re0
+include Core
 
 module Emacs = Emacs
 module Glob = Glob

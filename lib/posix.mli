@@ -34,13 +34,13 @@ type msg = {
   content:string;
 }
 
-let re = Re0.compile (Re_posix.re "([^:].*:[^:]*:[^:]{2})<.([^>]+)> (.+)$")
+let re = Core.compile (Re_posix.re "([^:].*:[^:]*:[^:]{2})<.([^>]+)> (.+)$")
 
 (* parse a line *)
 let match_line line =
   try
-    let substrings = Re0.exec re line in
-    let groups = Re0.get_all substrings in
+    let substrings = Core.exec re line in
+    let groups = Core.get_all substrings in
     (* groups can be obtained directly by index within [substrings] *)
     Some {time=groups.(1); author=groups.(2); content=groups.(3)}
   with Not_found ->
@@ -56,14 +56,14 @@ exception Not_supported
 
 type opt = [`ICase | `NoSub | `Newline]
 
-val re : ?opts:(opt list) -> string -> Re0.t
+val re : ?opts:(opt list) -> string -> Core.t
 (** Parsing of a Posix extended regular expression *)
 
-val compile : Re0.t -> Re0.re
+val compile : Core.t -> Core.re
 (** Regular expression compilation *)
 
-val compile_pat : ?opts:(opt list) -> string -> Re0.re
-(** [compile r] is defined as [Re0.compile (Re0.longest r)] *)
+val compile_pat : ?opts:(opt list) -> string -> Core.re
+(** [compile r] is defined as [Core.compile (Core.longest r)] *)
 
 (*
 Deviation from the standard / ambiguities in the standard

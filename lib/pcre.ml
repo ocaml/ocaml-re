@@ -1,4 +1,4 @@
-module Re = Re0
+module Re = Core
 
 type regexp = Re.re
 

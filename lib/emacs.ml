@@ -20,7 +20,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-module Re = Re0
+module Re = Core
 
 exception Parse_error
 exception Not_supported

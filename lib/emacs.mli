@@ -26,12 +26,12 @@ exception Parse_error
 exception Not_supported
 (** Errors that can be raised during the parsing of the regular expression *)
 
-val re : ?case:bool -> string -> Re0.t
+val re : ?case:bool -> string -> Core.t
 (** Parsing of an Emacs-style regular expression *)
 
-val compile : Re0.t -> Re0.re
+val compile : Core.t -> Core.re
 (** Regular expression compilation *)
 
-val compile_pat : ?case:bool -> string -> Re0.re
-(** Same as [Re0.compile] *)
+val compile_pat : ?case:bool -> string -> Core.re
+(** Same as [Core.compile] *)
 

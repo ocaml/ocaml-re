@@ -15,7 +15,7 @@
 
 (* $Id: re_str.ml,v 1.3 2002/07/03 15:47:54 vouillon Exp $ *)
 
-module Re = Re0
+module Re = Core
 
 type regexp =
   { re: Re.t

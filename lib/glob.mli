@@ -30,7 +30,7 @@ val glob :
   ?period:bool ->
   ?expand_braces:bool ->
   string ->
-  Re0.t
+  Core.t
 (** Implements the semantics of shells patterns. The returned regular
     expression is unanchored by default.
 
@@ -57,20 +57,20 @@ val glob :
     e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2.  As specified for bash, brace
     expansion is purely textual and can be nested. Defaults to false. *)
 
-val glob' : ?anchored:bool -> bool -> string -> Re0.t
+val glob' : ?anchored:bool -> bool -> string -> Core.t
 (** Same, but allows to choose whether dots at the beginning of a
     file name need to be explicitly matched (true) or not (false)
 
     @deprecated Use [glob ~period].
 *)
 
-val globx : ?anchored:bool -> string -> Re0.t
+val globx : ?anchored:bool -> string -> Core.t
 (** This version of [glob] also recognizes the pattern \{..,..\}
 
     @deprecated Prefer [glob ~expand_braces:true].
 *)
 
-val globx' : ?anchored:bool -> bool -> string -> Re0.t
+val globx' : ?anchored:bool -> bool -> string -> Core.t
 (** This version of [glob'] also recognizes the pattern \{..,..\}
 
     @deprecated Prefer [glob ~expand_braces:true ~period].
