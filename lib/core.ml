@@ -20,7 +20,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-module MarkSet = Automata.PmarkSet
 module Category = Automata.Category
 
 let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
@@ -40,7 +39,7 @@ type groups =
      - 1, 2*i + 1 in gpos. If the group wasn't matched, then its corresponding
      values in marks will be -1,-1 *)
 
-  ; pmarks : MarkSet.t
+  ; pmarks : Pmark.Set.t
   (* Marks positions. i.e. those marks created with Re.marks *)
 
   ; gpos : int array
@@ -403,7 +402,7 @@ type regexp =
   | Intersection of regexp list
   | Complement of regexp list
   | Difference of regexp * regexp
-  | Pmark of Automata.Pmark.t * regexp
+  | Pmark of Pmark.t * regexp
 
 let rec pp fmt t =
   let open Fmt in
@@ -438,7 +437,7 @@ let rec pp fmt t =
   | Intersection c -> seq "Intersection" c
   | Complement c   -> seq "Complement" c
   | Difference (a, b) -> sexp fmt "Difference" (pair pp pp) (a, b)
-  | Pmark (m, r)      -> sexp fmt "Pmark" (pair Automata.Pmark.pp pp) (m, r)
+  | Pmark (m, r)      -> sexp fmt "Pmark" (pair Pmark.pp pp) (m, r)
 
 let rec is_charset = function
   | Set _ ->
@@ -561,7 +560,7 @@ let rec equal x1 x2 =
   | Difference (x1', x1''), Difference (x2', x2'') ->
     equal x1' x2' && equal x1'' x2''
   | Pmark (m1, r1), Pmark (m2, r2) ->
-    Automata.Pmark.equal m1 m2 && equal r1 r2
+    Pmark.equal m1 m2 && equal r1 r2
   | _ ->
     false
 
@@ -882,7 +881,7 @@ let non_greedy r = Sem_greedy (`Non_greedy, r)
 let group r = Group r
 let no_group r = No_group r
 let nest r = Nest r
-let mark r = let i = Automata.Pmark.gen () in (i,Pmark (i,r))
+let mark r = let i = Pmark.gen () in (i,Pmark (i,r))
 
 let set str =
   let s = ref Cset.empty in
@@ -1046,18 +1045,18 @@ end
 
 module Mark = struct
 
-  type t = Automata.Pmark.t
+  type t = Pmark.t
 
   let test {pmarks ; _} p =
-    Automata.PmarkSet.mem p pmarks
+    Pmark.Set.mem p pmarks
 
   let all s = s.pmarks
 
-  module Set = MarkSet
+  module Set = Pmark.Set
 
-  let equal = Automata.Pmark.equal
+  let equal = Pmark.equal
 
-  let compare = Automata.Pmark.compare
+  let compare = Pmark.compare
 
 end
 

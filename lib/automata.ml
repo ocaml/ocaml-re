@@ -75,23 +75,6 @@ end
 type mark = int
 type idx = int
 
-module Pmark : sig
-  type t = private int
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val gen : unit -> t
-  val pp : Format.formatter -> t -> unit
-end
-= struct
-  type t = int
-  let equal (x : int) (y : int) = x = y
-  let compare (x : int) (y : int) = compare x y
-  let r = ref 0
-  let gen () = incr r ; !r
-
-  let pp = Format.pp_print_int
-end
-
 type expr = { id : int; def : def }
 
 and def =
@@ -106,16 +89,14 @@ and def =
   | After of Category.t
   | Pmark of Pmark.t
 
-module PmarkSet = Set.Make(Pmark)
-
 let hash_combine h accu = accu * 65599 + h
 
 module Marks = struct
   type t =
     { marks : (int * int) list
-    ; pmarks : PmarkSet.t }
+    ; pmarks : Pmark.Set.t }
 
-  let empty = { marks = [] ; pmarks = PmarkSet.empty }
+  let empty = { marks = [] ; pmarks = Pmark.Set.empty }
 
   let rec merge_marks_offset old = function
     | [] ->
@@ -129,7 +110,7 @@ module Marks = struct
 
   let merge old nw =
     { marks = merge_marks_offset old.marks nw.marks
-    ; pmarks = PmarkSet.union old.pmarks nw.pmarks }
+    ; pmarks = Pmark.Set.union old.pmarks nw.pmarks }
 
   let rec hash_marks_offset l accu =
     match l with
@@ -273,7 +254,7 @@ let rec rename ids x =
 
 type hash = int
 type mark_infos = int array
-type status = Failed | Match of mark_infos * PmarkSet.t | Running
+type status = Failed | Match of mark_infos * Pmark.Set.t | Running
 
 module E = struct
   type t =
@@ -496,7 +477,7 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
     let marks = { marks with Marks.marks = (i, -1) :: List.remove_assq i marks.Marks.marks } in
     E.TMatch marks :: rem
   | Pmark i ->
-    let marks = { marks with Marks.pmarks = PmarkSet.add i marks.Marks.pmarks } in
+    let marks = { marks with Marks.pmarks = Pmark.Set.add i marks.Marks.pmarks } in
     E.TMatch marks :: rem
   | Erase (b, e) ->
     E.TMatch (filter_marks b e marks) :: rem
