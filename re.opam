@@ -24,3 +24,5 @@ depends: [
   "base-bytes"
   "ounit" {test}
 ]
+
+available: [ocaml-version >= "4.02.3"]
