@@ -1,3 +1,10 @@
+1.7.2 (01-Mar-2018)
+-------------------
+
+* Deprecate all Re_* modules. Re_x is now available as Re.X
+* Deprecate all re.x sub libraries. Those are all available as Re.X
+* Make all function in Re.Str tail recursive.
+
 1.7.1 (19-Oct-2016)
 -------------------
 
