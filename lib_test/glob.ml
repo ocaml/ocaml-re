@@ -3,7 +3,7 @@
 *)
 
 module R = Re
-module G = Re_glob
+module G = Re.Glob
 
 exception Error of string
 let error fmt   = Printf.kprintf (fun msg -> raise (Error msg)) fmt

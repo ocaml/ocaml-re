@@ -17,9 +17,9 @@ Features
 ========
 
 The following styles of regular expressions are supported:
-- Perl-style regular expressions (module `Re_perl`);
+- Perl-style regular expressions (module `Re.Perl`);
 - Posix extended regular expressions (module `Re_posix`);
-- Emacs-style regular expressions (module `Re_emacs`);
+- Emacs-style regular expressions (module `Re.Emacs`);
 - Shell-style file globbing (module `Re_glob`).
 
 It is also possible to build regular expressions by combining simpler

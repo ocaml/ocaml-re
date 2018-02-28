@@ -1,5 +1,5 @@
 open Re
-open Re_emacs
+open Re.Emacs
 open Fort_unit
 
 let eq_re r s = expect_equal_app ~msg:s id r re s

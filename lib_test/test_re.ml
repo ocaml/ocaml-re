@@ -441,7 +441,7 @@ let _ =
 
   expect_pass "bugs" (fun () ->
     try
-      ignore (Re.compile (Re_perl.re "(.*?)(\\WPl|\\Bpl)(.*)"))
+      ignore (Re.compile (Re.Perl.re "(.*?)(\\WPl|\\Bpl)(.*)"))
     with _ ->
       fail "bug in Re.handle_case"
   );

@@ -1,6 +1,5 @@
 open Fort_unit
 open OUnit2
-module Fmt = Re_fmt
 
 module type Str_intf = module type of Str
 
@@ -27,7 +26,7 @@ module Test_matches (R : Str_intf) = struct
 end
 
 module T_str = Test_matches(Str)
-module T_re = Test_matches(Re_str)
+module T_re = Test_matches(Re.Str)
 
 let eq_match ?pos ?case r s =
   expect_equal_app
@@ -38,15 +37,15 @@ let eq_match ?pos ?case r s =
 ;;
 
 let split_result_conv = List.map (function
-    | Str.Delim x -> Re_str.Delim x
-    | Str.Text x -> Re_str.Text x)
+    | Str.Delim x -> Re.Str.Delim x
+    | Str.Text x -> Re.Str.Text x)
 
 let pp_split_result_list =
   Fmt.pp_olist (fun fmt x ->
       let (tag, arg) =
         match x with
-        | Re_str.Delim x -> ("Delim", x)
-        | Re_str.Text x -> ("Text", x) in
+        | Re.Str.Delim x -> ("Delim", x)
+        | Re.Str.Text x -> ("Text", x) in
       Fmt.fprintf fmt "%s@ (\"%s\")" tag arg)
 
 let pp_fs pp_args pp_out fmt (name, re, args, ex, res) =
@@ -55,27 +54,27 @@ let pp_fs pp_args pp_out fmt (name, re, args, ex, res) =
       mod_ name Fmt.quote re pp_args args pp_out r in
   Fmt.fprintf fmt "@.%a@.%a"
     f ("Str", ex)
-    f ("Re_str", res)
+    f ("Re.Str", res)
 
 type ('a, 'b) test =
   { name: string
   ; pp_args : 'a Fmt.t
   ; pp_out : 'b Fmt.t
-  ; re_str: Re_str.regexp -> 'a -> 'b
+  ; re_str: Re.Str.regexp -> 'a -> 'b
   ; str: Str.regexp -> 'a -> 'b }
 
 let bounded_split_t =
   { name = "bounded_split"
   ; pp_args = (fun fmt (s, n) -> Fmt.fprintf fmt "%a %d" Fmt.quote s n)
   ; pp_out = Fmt.pp_str_list
-  ; re_str = (fun re (s, n) -> Re_str.bounded_split re s n)
+  ; re_str = (fun re (s, n) -> Re.Str.bounded_split re s n)
   ; str = (fun re (s, n) -> Str.bounded_split re s n) }
 
 let bounded_full_split_t =
   { bounded_split_t with
     name = "bounded_full_split"
   ; pp_out = pp_split_result_list
-  ; re_str = (fun re (s, n) -> Re_str.bounded_full_split re s n)
+  ; re_str = (fun re (s, n) -> Re.Str.bounded_full_split re s n)
   ; str = (fun re (s, n) ->
       split_result_conv (Str.bounded_full_split re s n)) }
 
@@ -83,21 +82,21 @@ let full_split_t =
   { bounded_full_split_t with
     name = "full_split"
   ; pp_args = (fun fmt s -> Fmt.fprintf fmt "%a" Fmt.quote s)
-  ; re_str = (fun re s -> Re_str.full_split re s)
+  ; re_str = (fun re s -> Re.Str.full_split re s)
   ; str = (fun re s -> split_result_conv (Str.full_split re s)) }
 
 let split_delim_t =
   { full_split_t with
     name = "split_delim"
   ; pp_out = Fmt.pp_str_list
-  ; re_str = (fun re s -> Re_str.split_delim re s)
+  ; re_str = (fun re s -> Re.Str.split_delim re s)
   ; str = (fun re s -> Str.split_delim re s) }
 
 let split_t =
   { name = "split"
   ; pp_out = Fmt.pp_str_list
   ; pp_args = full_split_t.pp_args
-  ; re_str = (fun re s -> Re_str.split re s)
+  ; re_str = (fun re s -> Re.Str.split re s)
   ; str = (fun re s -> Str.split re s) }
 
 let global_replace_t =
@@ -105,7 +104,7 @@ let global_replace_t =
   ; pp_out = Fmt.pp_print_string
   ; pp_args = (fun fmt (r, s) -> Fmt.fprintf fmt "%a %a"
                   Fmt.quote r Fmt.quote s)
-  ; re_str = (fun re (r, s) -> Re_str.global_replace re r s)
+  ; re_str = (fun re (r, s) -> Re.Str.global_replace re r s)
   ; str = (fun re (r, s) -> Str.global_replace re r s) }
 
 let test t re args =
@@ -113,7 +112,7 @@ let test t re args =
     ~pp_diff:(fun fmt (ex, act) ->
         pp_fs t.pp_args t.pp_out fmt (t.name, re, args, ex, act))
     ~printer:(Fmt.to_to_string t.pp_out)
-    (t.re_str (Re_str.regexp re) args)
+    (t.re_str (Re.Str.regexp re) args)
     (t.str (Str.regexp re) args)
 
 let split_delim re s = test split_delim_t re s

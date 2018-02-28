@@ -1,5 +1,5 @@
 open OUnit
-open Re_pcre
+open Re.Pcre
 
 let sp = Printf.sprintf
 
@@ -12,7 +12,7 @@ let string_of_group = function
 let list_printer f xs = String.concat " ; " (List.map f xs)
 
 let test_blank_class _ =
-  let re = Re_perl.compile_pat "\\d[[:blank:]]\\d[[:blank:]]+[a-z]" in
+  let re = Re.Perl.compile_pat "\\d[[:blank:]]\\d[[:blank:]]+[a-z]" in
   let successes = ["1 2  a"; "2\t3 z"; "9\t0 \t a"] in
   let failures = [""; "123"; "  "; "1 3z"] in
   List.iter (fun s ->

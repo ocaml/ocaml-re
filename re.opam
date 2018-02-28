@@ -1,34 +1,26 @@
 opam-version: "1.2"
 
-name: "re"
-maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
-authors: ["Jerome Vouillon" "Thomas Gazagnaire" "Anil Madhavapeddy"]
+maintainer: "rudi.grinberg@gmail.com"
+authors: [
+  "Jerome Vouillon"
+  "Thomas Gazagnaire"
+  "Anil Madhavapeddy"
+  "Rudi Grinberg"
+  "Gabriel Radanne"
+]
 license: "LGPL-2.0 with OCaml linking exception"
 homepage: "https://github.com/ocaml/ocaml-re"
 bug-reports: "https://github.com/ocaml/ocaml-re/issues"
 dev-repo: "https://github.com/ocaml/ocaml-re.git"
+
 build: [
-  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
-  ["ocaml" "setup.ml" "-build"]
+  ["jbuilder" "subst" "-n" name] {pinned}
+  ["jbuilder" "build" "-p" name "-j" jobs]
 ]
-install: [
-  ["ocaml" "setup.ml" "-install"]
-]
+build-test: [["jbuilder" "runtest" "-p" name "-j" jobs]]
 
-build-doc: ["ocaml" "setup.ml" "-doc"]
-build-test: [
-  ["ocaml" "setup.ml" "-configure" "--enable-tests"]
-  ["ocaml" "setup.ml" "-build"]
-  ["ocaml" "setup.ml" "-test"]
-]
-
-remove: [["ocamlfind" "remove" "re"]]
 depends: [
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
+  "jbuilder" {build}
   "base-bytes"
   "ounit" {test}
 ]
-
-# Modify in non-dev package.
-version: "dev"
