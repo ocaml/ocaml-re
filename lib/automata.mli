@@ -22,24 +22,6 @@
 
 (* Regular expressions *)
 
-(** Categories represent the various kinds of characters that can be tested
-    by look-ahead and look-behind operations.
-
-    This is more restricted than Cset, but faster.
-*)
-module Category : sig
-  type t
-  val (++) : t -> t -> t
-  val from_char : char -> t
-
-  val inexistant : t
-  val letter : t
-  val not_letter : t
-  val newline : t
-  val lastnewline : t
-  val search_boundary : t
-end
-
 type mark = int
 
 type sem = [ `Longest | `Shortest | `First ]

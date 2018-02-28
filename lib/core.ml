@@ -20,8 +20,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-module Category = Automata.Category
-
 let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
 
 (****)
@@ -69,7 +67,7 @@ type state =
     next : state array;
     (* Transition table, indexed by color *)
     mutable final :
-      (Automata.Category.t *
+      (Category.t *
        (Automata.idx * Automata.status)) list;
     (* Mapping from the category of the next character to
        - the index where the next position should be saved
@@ -82,7 +80,7 @@ type state =
 type re =
   { initial : Automata.expr;
     (* The whole regular expression *)
-    mutable initial_states : (Automata.Category.t * state) list;
+    mutable initial_states : (Category.t * state) list;
     (* Initial states, indexed by initial category *)
     cols : Bytes.t;
     (* Color table *)
