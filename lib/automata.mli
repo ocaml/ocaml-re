@@ -22,24 +22,6 @@
 
 (* Regular expressions *)
 
-(** Categories represent the various kinds of characters that can be tested
-    by look-ahead and look-behind operations.
-
-    This is more restricted than Cset, but faster.
-*)
-module Category : sig
-  type t
-  val (++) : t -> t -> t
-  val from_char : char -> t
-
-  val inexistant : t
-  val letter : t
-  val not_letter : t
-  val newline : t
-  val lastnewline : t
-  val search_boundary : t
-end
-
 type mark = int
 
 type sem = [ `Longest | `Shortest | `First ]
@@ -47,14 +29,6 @@ type rep_kind = [ `Greedy | `Non_greedy ]
 
 val pp_sem : Format.formatter -> sem -> unit
 val pp_rep_kind : Format.formatter -> rep_kind -> unit
-
-module Pmark : sig
-  type t = private int
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val gen : unit -> t
-  val pp : Format.formatter -> t -> unit
-end
 
 type expr
 val is_eps : expr -> bool
@@ -79,15 +53,13 @@ val rename : ids -> expr -> expr
 
 (****)
 
-module PmarkSet : Set.S with type elt = Pmark.t
-
 (* States of the automata *)
 
 type idx = int
 module Marks : sig
   type t =
     { marks: (mark * idx) list
-    ; pmarks: PmarkSet.t }
+    ; pmarks: Pmark.Set.t }
 end
 
 module E : sig
@@ -97,7 +69,7 @@ end
 
 type hash
 type mark_infos = int array
-type status = Failed | Match of mark_infos * PmarkSet.t | Running
+type status = Failed | Match of mark_infos * Pmark.Set.t | Running
 
 module State : sig
   type t =

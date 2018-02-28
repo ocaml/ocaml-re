@@ -24,73 +24,8 @@ type sem = [ `Longest | `Shortest | `First ]
 
 type rep_kind = [ `Greedy | `Non_greedy ]
 
-
-module Category : sig
-  type t
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val pp : Format.formatter -> t -> unit
-  val to_int : t -> int
-
-  val intersect : t -> t -> bool
-  val (++) : t -> t -> t
-  val from_char : char -> t
-
-  val dummy : t
-  val inexistant : t
-  val letter : t
-  val not_letter : t
-  val newline : t
-  val lastnewline : t
-  val search_boundary : t
-end = struct
-  type t = int
-  let equal (x : int) (y : int) = x = y
-  let compare (x : int) (y : int) = compare x y
-  let to_int x = x
-  let pp = Format.pp_print_int
-
-  let intersect x y = x land y <> 0
-  let (++) x y = x lor y
-
-  let dummy = -1
-  let inexistant = 1
-  let letter = 2
-  let not_letter = 4
-  let newline = 8
-  let lastnewline = 16
-  let search_boundary = 32
-
-  let from_char = function
-    (* Should match [cword] definition *)
-    | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '\170' | '\181' | '\186'
-    | '\192'..'\214' | '\216'..'\246' | '\248'..'\255' ->
-      letter
-    | '\n' ->
-      not_letter ++ newline
-    | _ ->
-      not_letter
-end
-
 type mark = int
 type idx = int
-
-module Pmark : sig
-  type t = private int
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val gen : unit -> t
-  val pp : Format.formatter -> t -> unit
-end
-= struct
-  type t = int
-  let equal (x : int) (y : int) = x = y
-  let compare (x : int) (y : int) = compare x y
-  let r = ref 0
-  let gen () = incr r ; !r
-
-  let pp = Format.pp_print_int
-end
 
 type expr = { id : int; def : def }
 
@@ -106,16 +41,14 @@ and def =
   | After of Category.t
   | Pmark of Pmark.t
 
-module PmarkSet = Set.Make(Pmark)
-
 let hash_combine h accu = accu * 65599 + h
 
 module Marks = struct
   type t =
     { marks : (int * int) list
-    ; pmarks : PmarkSet.t }
+    ; pmarks : Pmark.Set.t }
 
-  let empty = { marks = [] ; pmarks = PmarkSet.empty }
+  let empty = { marks = [] ; pmarks = Pmark.Set.empty }
 
   let rec merge_marks_offset old = function
     | [] ->
@@ -129,7 +62,7 @@ module Marks = struct
 
   let merge old nw =
     { marks = merge_marks_offset old.marks nw.marks
-    ; pmarks = PmarkSet.union old.pmarks nw.pmarks }
+    ; pmarks = Pmark.Set.union old.pmarks nw.pmarks }
 
   let rec hash_marks_offset l accu =
     match l with
@@ -273,7 +206,7 @@ let rec rename ids x =
 
 type hash = int
 type mark_infos = int array
-type status = Failed | Match of mark_infos * PmarkSet.t | Running
+type status = Failed | Match of mark_infos * Pmark.Set.t | Running
 
 module E = struct
   type t =
@@ -496,7 +429,7 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
     let marks = { marks with Marks.marks = (i, -1) :: List.remove_assq i marks.Marks.marks } in
     E.TMatch marks :: rem
   | Pmark i ->
-    let marks = { marks with Marks.pmarks = PmarkSet.add i marks.Marks.pmarks } in
+    let marks = { marks with Marks.pmarks = Pmark.Set.add i marks.Marks.pmarks } in
     E.TMatch marks :: rem
   | Erase (b, e) ->
     E.TMatch (filter_marks b e marks) :: rem
