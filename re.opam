@@ -1,7 +1,13 @@
 opam-version: "1.2"
 
-maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
-authors: ["Jerome Vouillon" "Thomas Gazagnaire" "Anil Madhavapeddy"]
+maintainer: "rudi.grinberg@gmail.com"
+authors: [
+  "Jerome Vouillon"
+  "Thomas Gazagnaire"
+  "Anil Madhavapeddy"
+  "Rudi Grinberg"
+  "Gabriel Radanne"
+]
 license: "LGPL-2.0 with OCaml linking exception"
 homepage: "https://github.com/ocaml/ocaml-re"
 bug-reports: "https://github.com/ocaml/ocaml-re/issues"
