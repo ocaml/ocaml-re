@@ -1,7 +1,7 @@
 JBUILDER ?= jbuilder
 
 all:
-	@$(JBUILDER) build @install @DEFAULT
+	@$(JBUILDER) build
 
 test:
 	@$(JBUILDER) runtest
