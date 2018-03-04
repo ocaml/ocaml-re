@@ -3,5 +3,4 @@
 (library
  ((name re)
   (synopsis "Pure OCaml regular expression library")
-  (public_name re)
-  (libraries (bytes))))
+  (public_name re)))
