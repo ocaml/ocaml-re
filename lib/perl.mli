@@ -35,7 +35,7 @@ val re : ?opts:opt list -> string -> Core.t
 (** Parsing of a Perl-style regular expression *)
 
 val compile : Core.t -> Core.re
-(** Regular expression compilation *)
+(** (Same as [Re.compile]) *)
 
 val compile_pat : ?opts:opt list -> string -> Core.re
-(** (Same as [Re.compile]) *)
+(** Regular expression compilation *)
