@@ -18,20 +18,18 @@ Features
 
 The following styles of regular expressions are supported:
 - Perl-style regular expressions (module `Re.Perl`);
-- Posix extended regular expressions (module `Re_posix`);
+- Posix extended regular expressions (module `Re.Posix`);
 - Emacs-style regular expressions (module `Re.Emacs`);
-- Shell-style file globbing (module `Re_glob`).
+- Shell-style file globbing (module `Re.Glob`).
 
-It is also possible to build regular expressions by combining simpler
-regular expressions (module `Re`).
+It is also possible to build regular expressions by combining simpler regular
+expressions (module `Re`).
 
 The most notable missing features are **back-references** and
 look-ahead/look-behind **assertions**.
 
-There is also a subset of the PCRE interface available in the
-`Re.pcre` library. This makes it easier to port code from that
-library to Re without any changes beyond replacing the `pcre`
-findlib package with `re.pcre`.
+There is also a subset of the PCRE interface available in the `Re.Pcre` module.
+This makes it easier to port code from that library to Re minimal changes.
 
 Performances
 ============
