@@ -125,6 +125,7 @@ end
 (** {2 High Level Operations} *)
 
 type 'a gen = unit -> 'a option
+type 'a seq = 'a Seq.t
 
 val all :
   ?pos:int ->    (** Default: 0 *)
@@ -138,6 +139,13 @@ val all_gen :
   ?len:int ->
   re -> string -> Group.t gen
 (** Same as {!all} but returns a generator *)
+
+val all_seq :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> Group.t seq
+(** Same as {!all} but returns an iterator
+    @since NEXT_RELEASE *)
 
 val matches :
   ?pos:int ->    (** Default: 0 *)
@@ -153,6 +161,13 @@ val matches_gen :
   re -> string -> string gen
 (** Same as {!matches}, but returns a generator. *)
 
+val matches_seq :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> string seq
+(** Same as {!matches}, but returns an iterator
+    @since NEXT_RELEASE *)
+
 val split :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
@@ -165,6 +180,12 @@ val split_gen :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
   re -> string -> string gen
+
+val split_seq :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> string seq
+(** @since NEXT_RELEASE *)
 
 type split_token =
   [ `Text of string  (** Text between delimiters *)
@@ -180,6 +201,12 @@ val split_full_gen :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
   re -> string -> split_token gen
+
+val split_full_seq :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->
+  re -> string -> split_token seq
+(** @since NEXT_RELEASE *)
 
 val replace :
   ?pos:int ->    (** Default: 0 *)
