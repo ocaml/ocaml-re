@@ -221,6 +221,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
       end else
         `Char c
     end else if c = '\\' then begin
+      if eos () then raise Parse_error;
       let c = get () in
 (* XXX
    \127, ...

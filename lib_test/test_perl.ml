@@ -5,6 +5,10 @@ open Fort_unit
 let eq_re ?opts r s = expect_equal_app ~msg:s id r (re ?opts) s
 ;;
 
+let parse_error_re ?opts s =
+  try ignore (re ?opts s); OUnit2.assert_failure s with
+  | Re.Perl.Parse_error -> ()
+
 (* 
  * Tests based on description of Perl regular expressions given at
  *   http://www.perl.com/CPAN-local/doc/manual/html/pod/perlre.html
@@ -61,6 +65,7 @@ let _ =
     eq_re (alt [char '^'; char 'a'])      "[a^]";
     eq_re (compl [rg 'a' 'z'])            "[^a-z]";
     eq_re (compl [char '$'; rg 'a' 'z'])  "[^a-z$]";
+    parse_error_re                        "[\\";
   );
 
   expect_pass "greedy quantifiers" (fun () ->
