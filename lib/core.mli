@@ -125,7 +125,6 @@ end
 (** {2 High Level Operations} *)
 
 type 'a gen = unit -> 'a option
-type 'a seq = 'a Seq.t
 
 val all :
   ?pos:int ->    (** Default: 0 *)
@@ -143,7 +142,7 @@ val all_gen :
 val all_seq :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
-  re -> string -> Group.t seq
+  re -> string -> Group.t Seq.t
 (** Same as {!all} but returns an iterator
     @since NEXT_RELEASE *)
 
@@ -164,7 +163,7 @@ val matches_gen :
 val matches_seq :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
-  re -> string -> string seq
+  re -> string -> string Seq.t
 (** Same as {!matches}, but returns an iterator
     @since NEXT_RELEASE *)
 
@@ -184,7 +183,7 @@ val split_gen :
 val split_seq :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
-  re -> string -> string seq
+  re -> string -> string Seq.t
 (** @since NEXT_RELEASE *)
 
 type split_token =
@@ -205,7 +204,7 @@ val split_full_gen :
 val split_full_seq :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->
-  re -> string -> split_token seq
+  re -> string -> split_token Seq.t
 (** @since NEXT_RELEASE *)
 
 val replace :

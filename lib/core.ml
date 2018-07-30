@@ -1059,9 +1059,19 @@ module Mark = struct
 end
 
 type 'a gen = unit -> 'a option
-type 'a seq = 'a Seq.t
 
-let all_seq ?(pos=0) ?len re s : _ seq =
+let gen_of_seq (s:'a Seq.t) : 'a gen =
+  let r = ref s in
+  fun () -> match !r () with
+    | Seq.Nil -> None
+    | Seq.Cons (x, tl) ->
+      r := tl;
+      Some x
+
+let list_of_seq (s:'a Seq.t) : 'a list =
+  Seq.fold_left (fun l x -> x :: l) [] s |> List.rev
+
+let all_seq ?(pos=0) ?len re s : _ Seq.t =
   if pos < 0 then invalid_arg "Re.all";
   (* index of the first position we do not consider.
      !pos < limit is an invariant *)
@@ -1088,43 +1098,22 @@ let all_seq ?(pos=0) ?len re s : _ seq =
   in
   aux pos
 
-let all_gen ?pos ?len re s =
-  let l = ref (all_seq ?pos ?len re s) in
-  fun () ->
-    match !l () with
-      | Seq.Nil -> None
-      | Seq.Cons (x, tl) ->
-        l := tl;
-        Some x
+let all_gen ?pos ?len re s = all_seq ?pos ?len re s |> gen_of_seq
+let all ?pos ?len re s = all_seq ?pos ?len re s |> list_of_seq
 
-let all ?pos ?len re s =
-  Seq.fold_left (fun l x -> x :: l) [] (all_seq ?pos ?len re s) |> List.rev
-
-let matches_seq ?pos ?len re s : _ seq =
+let matches_seq ?pos ?len re s : _ Seq.t =
   all_seq ?pos ?len re s
   |> Seq.map (fun sub -> Group.get sub 0)
 
-let matches_gen ?pos ?len re s =
-  let g = all_gen ?pos ?len re s in
-  fun () ->
-    match g() with
-    | None -> None
-    | Some sub -> Some (Group.get sub 0)
-
-let matches ?pos ?len re s =
-  let l = ref [] in
-  let g = all_gen ?pos ?len re s in
-  let rec iter () = match g() with
-    | None -> List.rev !l
-    | Some sub -> l := Group.get sub 0 :: !l; iter ()
-  in iter ()
+let matches_gen ?pos ?len re s = matches_seq ?pos ?len re s |> gen_of_seq
+let matches ?pos ?len re s = matches_seq ?pos ?len re s |> list_of_seq
 
 type split_token =
   [ `Text of string
   | `Delim of groups
   ]
 
-let split_full_seq ?(pos=0) ?len re s : _ seq =
+let split_full_seq ?(pos=0) ?len re s : _ Seq.t =
   if pos < 0 then invalid_arg "Re.split";
   let limit = match len with
     | None -> String.length s
@@ -1171,19 +1160,10 @@ let split_full_seq ?(pos=0) ?len re s : _ seq =
   in
   aux `Idle pos pos
 
-let split_full_gen ?pos ?len re s : _ gen =
-  let seq = ref (split_full_seq ?pos ?len re s) in
-  fun () -> match !seq () with
-    | Seq.Nil -> None
-    | Seq.Cons (x, tl) ->
-      seq := tl;
-      Some x
+let split_full_gen ?pos ?len re s : _ gen = split_full_seq ?pos ?len re s |> gen_of_seq
+let split_full ?pos ?len re s = split_full_seq ?pos ?len re s |> list_of_seq
 
-let split_full ?pos ?len re s =
-  Seq.fold_left (fun l x -> x :: l) [] (split_full_seq ?pos ?len re s)
-  |> List.rev
-
-let split_seq ?pos ?len re s : _ seq =
+let split_seq ?pos ?len re s : _ Seq.t =
   let seq = split_full_seq ?pos ?len re s in
   let rec filter seq () = match seq ()  with
     | Seq.Nil -> Seq.Nil
@@ -1191,21 +1171,8 @@ let split_seq ?pos ?len re s : _ seq =
     | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter tl)
   in filter seq
 
-let split_gen ?pos ?len re s : _ gen =
-  let g = split_full_gen ?pos ?len re s in
-  let rec next() = match g()  with
-    | None -> None
-    | Some (`Delim _) -> next()
-    | Some (`Text s) -> Some s
-  in next
-
-let split ?pos ?len re s =
-  Seq.fold_left
-    (fun l x -> match x with
-       | `Delim _ -> l
-       | `Text s -> s :: l)
-    [] (split_full_seq ?pos ?len re s)
-  |> List.rev
+let split_gen ?pos ?len re s : _ gen = split_seq ?pos ?len re s |> gen_of_seq
+let split ?pos ?len re s = split_seq ?pos ?len re s |> list_of_seq
 
 let replace ?(pos=0) ?len ?(all=true) re ~f s =
   if pos < 0 then invalid_arg "Re.replace";
