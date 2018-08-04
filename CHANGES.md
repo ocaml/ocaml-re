@@ -1,3 +1,9 @@
+1.8.0 (04-Aug-2018)
+-------------------
+
+* Fix index-out-of-bounds exception in Re.Perl.re (#160)
+* Add seq based iterators (#170)
+
 1.7.3 (05-Mar-2018)
 -------------------
 
