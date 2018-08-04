@@ -1060,7 +1060,18 @@ end
 
 type 'a gen = unit -> 'a option
 
-let all_gen ?(pos=0) ?len re s =
+let gen_of_seq (s:'a Seq.t) : 'a gen =
+  let r = ref s in
+  fun () -> match !r () with
+    | Seq.Nil -> None
+    | Seq.Cons (x, tl) ->
+      r := tl;
+      Some x
+
+let list_of_seq (s:'a Seq.t) : 'a list =
+  Seq.fold_left (fun l x -> x :: l) [] s |> List.rev
+
+let all_seq ?(pos=0) ?len re s : _ Seq.t =
   if pos < 0 then invalid_arg "Re.all";
   (* index of the first position we do not consider.
      !pos < limit is an invariant *)
@@ -1072,49 +1083,37 @@ let all_gen ?(pos=0) ?len re s =
   in
   (* iterate on matches. When a match is found, search for the next
      one just after its end *)
-  let pos = ref pos in
-  fun () ->
-    if !pos >= limit
-    then None  (* no more matches *)
+  let rec aux pos () =
+    if pos >= limit
+    then Seq.Nil (* no more matches *)
     else
       match match_str ~groups:true ~partial:false re s
-              ~pos:!pos ~len:(limit - !pos) with
+              ~pos ~len:(limit - pos) with
       | Match substr ->
         let p1, p2 = Group.offset substr 0 in
-        pos := if p1=p2 then p2+1 else p2;
-        Some substr
+        let pos = if p1=p2 then p2+1 else p2 in
+        Seq.Cons (substr, aux pos)
       | Running
-      | Failed -> None
+      | Failed -> Seq.Nil
+  in
+  aux pos
 
-let all ?pos ?len re s =
-  let l = ref [] in
-  let g = all_gen ?pos ?len re s in
-  let rec iter () = match g() with
-    | None -> List.rev !l
-    | Some sub -> l := sub :: !l; iter ()
-  in iter ()
+let all_gen ?pos ?len re s = all_seq ?pos ?len re s |> gen_of_seq
+let all ?pos ?len re s = all_seq ?pos ?len re s |> list_of_seq
 
-let matches_gen ?pos ?len re s =
-  let g = all_gen ?pos ?len re s in
-  fun () ->
-    match g() with
-    | None -> None
-    | Some sub -> Some (Group.get sub 0)
+let matches_seq ?pos ?len re s : _ Seq.t =
+  all_seq ?pos ?len re s
+  |> Seq.map (fun sub -> Group.get sub 0)
 
-let matches ?pos ?len re s =
-  let l = ref [] in
-  let g = all_gen ?pos ?len re s in
-  let rec iter () = match g() with
-    | None -> List.rev !l
-    | Some sub -> l := Group.get sub 0 :: !l; iter ()
-  in iter ()
+let matches_gen ?pos ?len re s = matches_seq ?pos ?len re s |> gen_of_seq
+let matches ?pos ?len re s = matches_seq ?pos ?len re s |> list_of_seq
 
 type split_token =
   [ `Text of string
   | `Delim of groups
   ]
 
-let split_full_gen ?(pos=0) ?len re s =
+let split_full_seq ?(pos=0) ?len re s : _ Seq.t =
   if pos < 0 then invalid_arg "Re.split";
   let limit = match len with
     | None -> String.length s
@@ -1126,68 +1125,54 @@ let split_full_gen ?(pos=0) ?len re s =
      pos: first position after last match of [re]
      limit: first index we ignore (!pos < limit is an invariant) *)
   let pos0 = pos in
-  let state = ref `Idle in
-  let i = ref pos and pos = ref pos in
-  let next () = match !state with
-    | `Idle when !pos >= limit ->
-      if !i < limit then (
-        let sub = String.sub s !i (limit - !i) in
-        incr i;
-        Some (`Text sub)
-      ) else None
+  let rec aux state i pos () = match state with
+    | `Idle when pos >= limit ->
+      if i < limit then (
+        let sub = String.sub s i (limit - i) in
+        Seq.Cons (`Text sub, aux state (i+1) pos)
+      ) else Seq.Nil
     | `Idle ->
-      begin match match_str ~groups:true ~partial:false re s ~pos:!pos
-                    ~len:(limit - !pos) with
+      begin match match_str ~groups:true ~partial:false re s ~pos
+                    ~len:(limit - pos) with
       | Match substr ->
         let p1, p2 = Group.offset substr 0 in
-        pos := if p1=p2 then p2+1 else p2;
-        let old_i = !i in
-        i := p2;
+        let pos = if p1=p2 then p2+1 else p2 in
+        let old_i = i in
+        let i = p2 in
         if p1 > pos0 then (
           (* string does not start by a delimiter *)
           let text = String.sub s old_i (p1 - old_i) in
-          state := `Yield (`Delim substr);
-          Some (`Text text)
-        ) else Some (`Delim substr)
-      | Running -> None
+          let state = `Yield (`Delim substr) in
+          Seq.Cons (`Text text, aux state i pos)
+        ) else Seq.Cons (`Delim substr, aux state i pos)
+      | Running -> Seq.Nil
       | Failed ->
-        if !i < limit
+        if i < limit
         then (
-          let text = String.sub s !i (limit - !i) in
-          i := limit;
-          Some (`Text text)  (* yield last string *)
+          let text = String.sub s i (limit - i) in
+          (* yield last string *)
+          Seq.Cons (`Text text, aux state limit pos)
         ) else
-          None
+          Seq.Nil
       end
     | `Yield x ->
-      state := `Idle;
-      Some x
-  in next
+      Seq.Cons (x, aux `Idle i pos)
+  in
+  aux `Idle pos pos
 
-let split_full ?pos ?len re s =
-  let l = ref [] in
-  let g = split_full_gen ?pos ?len re s in
-  let rec iter () = match g() with
-    | None -> List.rev !l
-    | Some s -> l := s :: !l; iter ()
-  in iter ()
+let split_full_gen ?pos ?len re s : _ gen = split_full_seq ?pos ?len re s |> gen_of_seq
+let split_full ?pos ?len re s = split_full_seq ?pos ?len re s |> list_of_seq
 
-let split_gen ?pos ?len re s =
-  let g = split_full_gen ?pos ?len re s in
-  let rec next() = match g()  with
-    | None -> None
-    | Some (`Delim _) -> next()
-    | Some (`Text s) -> Some s
-  in next
+let split_seq ?pos ?len re s : _ Seq.t =
+  let seq = split_full_seq ?pos ?len re s in
+  let rec filter seq () = match seq ()  with
+    | Seq.Nil -> Seq.Nil
+    | Seq.Cons (`Delim _, tl) -> filter tl ()
+    | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter tl)
+  in filter seq
 
-let split ?pos ?len re s =
-  let l = ref [] in
-  let g = split_full_gen ?pos ?len re s in
-  let rec iter () = match g() with
-    | None -> List.rev !l
-    | Some (`Delim _) -> iter()
-    | Some (`Text s) -> l := s :: !l; iter ()
-  in iter ()
+let split_gen ?pos ?len re s : _ gen = split_seq ?pos ?len re s |> gen_of_seq
+let split ?pos ?len re s = split_seq ?pos ?len re s |> list_of_seq
 
 let replace ?(pos=0) ?len ?(all=true) re ~f s =
   if pos < 0 then invalid_arg "Re.replace";
