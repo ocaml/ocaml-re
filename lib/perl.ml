@@ -191,7 +191,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
               `Char c' ->
               bracket (Re.rg c c' :: s)
             | `Set st' ->
-              Re.char c :: Re.char '-' :: st' :: s
+              bracket (Re.char c :: Re.char '-' :: st' :: s)
           end
         end else
           bracket (Re.char c :: s)

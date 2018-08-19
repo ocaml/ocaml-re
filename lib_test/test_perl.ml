@@ -65,7 +65,10 @@ let _ =
     eq_re (alt [char '^'; char 'a'])      "[a^]";
     eq_re (compl [rg 'a' 'z'])            "[^a-z]";
     eq_re (compl [char '$'; rg 'a' 'z'])  "[^a-z$]";
+    eq_re (alt [char 'z'; char 'a'; char '-'; space])
+      "[a-\\sz]";
     parse_error_re                        "[\\";
+    parse_error_re                        "[a-\\s";
   );
 
   expect_pass "greedy quantifiers" (fun () ->
