@@ -246,6 +246,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
     end else
       `Char c
   and comment () =
+    if eos () then raise Parse_error;
     if accept ')' then Re.epsilon else begin incr i; comment () end
   in
   let res = regexp () in

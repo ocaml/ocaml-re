@@ -126,6 +126,7 @@ let _ =
   expect_pass "comments" (fun () ->
     eq_re (seq [char 'a'; epsilon; char 'b'])
       "a(?#comment)b";
+    parse_error_re "(?#";
   );
 
   expect_pass "clustering" (fun () ->
