@@ -22,7 +22,23 @@
 
 (** Module [Re]: regular expressions commons *)
 
-type t
+type t = private
+    Set of Cset.t
+  | Sequence of t list
+  | Alternative of t list
+  | Repeat of t * int * int option
+  | Beg_of_line | End_of_line
+  | Beg_of_word | End_of_word | Not_bound
+  | Beg_of_str | End_of_str
+  | Last_end_of_line | Start | Stop
+  | Sem of Automata.sem * t
+  | Sem_greedy of Automata.rep_kind * t
+  | Group of t | No_group of t | Nest of t
+  | Case of t | No_case of t
+  | Intersection of t list
+  | Complement of t list
+  | Difference of t * t
+  | Pmark of Pmark.t * t
 (** Regular expression *)
 
 type re
