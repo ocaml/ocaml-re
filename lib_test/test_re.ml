@@ -446,4 +446,30 @@ let _ =
       fail "bug in Re.handle_case"
   );
 
+  let test msg re input expected =
+    expect_pass msg (fun () ->
+      expect_equal_app id expected id (exec_partial (compile re) input) ~printer:(function
+        | `Partial -> "`Partial"
+        | `Full -> "`Full"
+        | `Mismatch -> "`Mismatch"))
+  in
+  (* I would expect `Partial in "exec_partial 1", because "hello" matches and has "he" as
+     a prefix. *)
+  test "exec_partial 1"               (str "hello")  "he"      `Mismatch;
+  (* I would expect `Partial in "exec_partial 2", because "goodbyehello" matches and has
+     "goodbye" as a prefix. *)
+  test "exec_partial 2"               (str "hello")  "goodbye" `Mismatch;
+  test "exec_partial 3"               (str "hello")  "hello"   `Full;
+  (* I would expect `Partial in "exec_partial 4", because "hello!" does not match and has
+     "hello" as a prefix. *)
+  test "exec_partial 4" (whole_string (str "hello")) "hello"   `Full;
+  test "exec_partial 5" (whole_string (str "hello")) "goodbye" `Mismatch;
+  (* I would expect `Partial in "exec_partial 6", because "hello" matches and has "" as a
+     prefix. *)
+  test "exec_partial 6"               (str "hello")  ""        `Mismatch;
+  test "exec_partial 7"               (str "")       "hello"   `Full;
+  (* I would expect `Partial in "exec_partial 8", because "hello" matches and has "" as a
+     prefix. *)
+  test "exec_partial 8" (whole_string (str "hello")) ""        `Mismatch;
+
   run_test_suite "test_re"
