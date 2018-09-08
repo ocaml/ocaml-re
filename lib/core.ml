@@ -475,14 +475,7 @@ let rec is_charset = function
   | Group _ | Nest _ | Pmark (_,_)->
     false
 
-(**** Colormap ****)
-
 (*XXX Use a better algorithm allowing non-contiguous regions? *)
-let split s cm =
-  Cset.iter s ~f:(fun i j ->
-      Bytes.set cm i '\001';
-      Bytes.set cm (j + 1) '\001';
-    )
 
 let cupper =
   Cset.union (cseq 'A' 'Z')
@@ -499,13 +492,13 @@ let colorize c regexp =
   let lnl = ref false in
   let rec colorize regexp =
     match regexp with
-      Set s                     -> split s c
+      Set s                     -> Color_map.split s c
     | Sequence l                -> List.iter colorize l
     | Alternative l             -> List.iter colorize l
     | Repeat (r, _, _)          -> colorize r
-    | Beg_of_line | End_of_line -> split (Cset.csingle '\n') c
+    | Beg_of_line | End_of_line -> Color_map.split (Cset.csingle '\n') c
     | Beg_of_word | End_of_word
-    | Not_bound                 -> split cword c
+    | Not_bound                 -> Color_map.split cword c
     | Beg_of_str | End_of_str
     | Start | Stop              -> ()
     | Last_end_of_line          -> lnl := true
@@ -520,21 +513,6 @@ let colorize c regexp =
   in
   colorize regexp;
   !lnl
-
-let make_cmap () = Bytes.make 257 '\000'
-
-let flatten_cmap cm =
-  let c = Bytes.create 256 in
-  let col_repr = Bytes.create 256 in
-  let v = ref 0 in
-  Bytes.set c 0 '\000';
-  Bytes.set col_repr 0 '\000';
-  for i = 1 to 255 do
-    if Bytes.get cm i <> '\000' then incr v;
-    Bytes.set c i (Char.chr !v);
-    Bytes.set col_repr !v (Char.chr i)
-  done;
-  (c, Bytes.sub col_repr 0 (!v + 1), !v + 1)
 
 (**** Compilation ****)
 
@@ -817,9 +795,9 @@ let rec handle_case ign_case = function
 
 let compile_1 regexp =
   let regexp = handle_case false regexp in
-  let c = make_cmap () in
+  let c = Color_map.make () in
   let need_lnl = colorize c regexp in
-  let (colors, color_repr, ncolor) = flatten_cmap c in
+  let (colors, color_repr, ncolor) = Color_map.flatten c in
   let lnl = if need_lnl then ncolor else -1 in
   let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ids = A.create_ids () in
