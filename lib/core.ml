@@ -106,8 +106,8 @@ let print_re = pp_re
 type info =
   { re : re;
     (* The automata *)
-    i_cols : Bytes.t;
-    (* Color table ([x.i_cols = x.re.cols])
+    cols : Bytes.t;
+    (* Color table ([x.cols = x.re.cols])
        Shortcut used for performance reasons *)
     mutable positions : int array;
     (* Array of mark positions
@@ -149,7 +149,7 @@ let mk_state ncol desc =
     real_idx = desc.Automata.State.idx;
     next = if break_state then dummy_next else Array.make ncol unknown_state;
     final = [];
-    desc = desc }
+    desc }
 
 let find_state re desc =
   try
@@ -172,7 +172,7 @@ let delta info cat c st =
   desc
 
 let validate info (s:string) pos st =
-  let c = Char.code (Bytes.get info.i_cols (Char.code s.[pos])) in
+  let c = Char.code (Bytes.get info.cols (Char.code s.[pos])) in
   let cat = category info.re c in
   let desc' = delta info cat c st in
   let st' = find_state info.re desc' in
@@ -181,7 +181,7 @@ let validate info (s:string) pos st =
 (*
 let rec loop info s pos st =
   if pos < info.last then
-    let st' = st.next.(Char.code info.i_cols.[Char.code s.[pos]]) in
+    let st' = st.next.(Char.code info.cols.[Char.code s.[pos]]) in
     let idx = st'.idx in
     if idx >= 0 then begin
       info.positions.(idx) <- pos;
@@ -199,7 +199,7 @@ let rec loop info s pos st =
 
 let rec loop info (s:string) pos st =
   if pos < info.last then
-    let st' = st.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
+    let st' = st.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
     loop2 info s pos st st'
   else
     st
@@ -211,7 +211,7 @@ and loop2 info s pos st st' =
       (* It is important to place these reads before the write *)
       (* But then, we don't have enough registers left to store the
          right position.  So, we store the position plus one. *)
-      let st'' = st'.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
+      let st'' = st'.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
       info.positions.(st'.idx) <- pos;
       loop2 info s pos st' st''
     end else begin
@@ -228,7 +228,7 @@ and loop2 info s pos st st' =
 
 let rec loop_no_mark info s pos last st =
   if pos < last then
-    let st' = st.next.(Char.code (Bytes.get info.i_cols (Char.code s.[pos]))) in
+    let st' = st.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
     if st'.idx >= 0 then
       loop_no_mark info s (pos + 1) last st'
     else if st'.idx = break then
@@ -280,7 +280,7 @@ let rec handle_last_newline info pos st groups =
     st'
   end else begin (* Unknown *)
     let c = info.re.lnl in
-    let real_c = Char.code (Bytes.get info.i_cols (Char.code '\n')) in
+    let real_c = Char.code (Bytes.get info.cols (Char.code '\n')) in
     let cat = category info.re c in
     let desc' = delta info cat real_c st in
     let st' = find_state info.re desc' in
@@ -311,8 +311,8 @@ let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
-    { re = re; i_cols = re.cols; pos = pos; last = last;
-      positions =
+    { re ; cols = re.cols; pos ; last
+    ; positions =
         if groups then begin
           let n = Automata.index_count re.tbl + 1 in
           if n <= 10 then
@@ -348,16 +348,16 @@ let match_str ~groups ~partial re s ~pos ~len =
   | Automata.Failed -> Failed
   | Automata.Running -> Running
 
-let mk_re init cols col_repr ncol lnl group_count =
-  { initial = init;
+let mk_re initial cols col_repr ncol lnl group_count =
+  { initial ;
     initial_states = [];
-    cols = cols;
-    col_repr = col_repr;
-    ncol = ncol;
-    lnl = lnl;
+    cols;
+    col_repr;
+    ncol;
+    lnl;
     tbl = Automata.create_working_area ();
     states = Automata.State.Table.create 97;
-    group_count = group_count }
+    group_count }
 
 (**** Character sets ****)
 
