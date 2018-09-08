@@ -82,11 +82,11 @@ type re =
     (* The whole regular expression *)
     mutable initial_states : (Category.t * state) list;
     (* Initial states, indexed by initial category *)
-    cols : Bytes.t;
+    colors : Bytes.t;
     (* Color table *)
-    col_repr : Bytes.t;
+    color_repr : Bytes.t;
     (* Table from colors to one character of this color *)
-    ncol : int;
+    ncolor : int;
     (* Number of colors. *)
     lnl : int;
     (* Color of the last newline *)
@@ -106,8 +106,8 @@ let print_re = pp_re
 type info =
   { re : re;
     (* The automata *)
-    cols : Bytes.t;
-    (* Color table ([x.cols = x.re.cols])
+    colors : Bytes.t;
+    (* Color table ([x.colors = x.re.colors])
        Shortcut used for performance reasons *)
     mutable positions : int array;
     (* Array of mark positions
@@ -127,7 +127,7 @@ let category re c =
   else if c = re.lnl then
     Category.(lastnewline ++ newline ++ not_letter)
   else
-    Category.from_char (Bytes.get re.col_repr c)
+    Category.from_char (Bytes.get re.color_repr c)
 
 (****)
 
@@ -155,7 +155,7 @@ let find_state re desc =
   try
     Automata.State.Table.find re.states desc
   with Not_found ->
-    let st = mk_state re.ncol desc in
+    let st = mk_state re.ncolor desc in
     Automata.State.Table.add re.states desc st;
     st
 
@@ -172,7 +172,7 @@ let delta info cat c st =
   desc
 
 let validate info (s:string) pos st =
-  let c = Char.code (Bytes.get info.cols (Char.code s.[pos])) in
+  let c = Char.code (Bytes.get info.colors (Char.code s.[pos])) in
   let cat = category info.re c in
   let desc' = delta info cat c st in
   let st' = find_state info.re desc' in
@@ -199,7 +199,7 @@ let rec loop info s pos st =
 
 let rec loop info (s:string) pos st =
   if pos < info.last then
-    let st' = st.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
+    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
     loop2 info s pos st st'
   else
     st
@@ -211,7 +211,7 @@ and loop2 info s pos st st' =
       (* It is important to place these reads before the write *)
       (* But then, we don't have enough registers left to store the
          right position.  So, we store the position plus one. *)
-      let st'' = st'.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
+      let st'' = st'.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
       info.positions.(st'.idx) <- pos;
       loop2 info s pos st' st''
     end else begin
@@ -228,7 +228,7 @@ and loop2 info s pos st st' =
 
 let rec loop_no_mark info s pos last st =
   if pos < last then
-    let st' = st.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
+    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
     if st'.idx >= 0 then
       loop_no_mark info s (pos + 1) last st'
     else if st'.idx = break then
@@ -268,7 +268,7 @@ let get_color re (s:string) pos =
       (* Special case for the last newline *)
       re.lnl
     else
-      Char.code (Bytes.get re.cols (Char.code s.[pos]))
+      Char.code (Bytes.get re.colors (Char.code s.[pos]))
 
 let rec handle_last_newline info pos st groups =
   let st' = st.next.(info.re.lnl) in
@@ -280,7 +280,7 @@ let rec handle_last_newline info pos st groups =
     st'
   end else begin (* Unknown *)
     let c = info.re.lnl in
-    let real_c = Char.code (Bytes.get info.cols (Char.code '\n')) in
+    let real_c = Char.code (Bytes.get info.colors (Char.code '\n')) in
     let cat = category info.re c in
     let desc' = delta info cat real_c st in
     let st' = find_state info.re desc' in
@@ -311,7 +311,7 @@ let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
-    { re ; cols = re.cols; pos ; last
+    { re ; colors = re.colors; pos ; last
     ; positions =
         if groups then begin
           let n = Automata.index_count re.tbl + 1 in
@@ -348,12 +348,12 @@ let match_str ~groups ~partial re s ~pos ~len =
   | Automata.Failed -> Failed
   | Automata.Running -> Running
 
-let mk_re initial cols col_repr ncol lnl group_count =
+let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_count =
   { initial ;
     initial_states = [];
-    cols;
-    col_repr;
-    ncol;
+    colors;
+    color_repr;
+    ncolor;
     lnl;
     tbl = Automata.create_working_area ();
     states = Automata.State.Table.create 97;
@@ -819,17 +819,17 @@ let compile_1 regexp =
   let regexp = handle_case false regexp in
   let c = make_cmap () in
   let need_lnl = colorize c regexp in
-  let (col, col_repr, ncol) = flatten_cmap c in
-  let lnl = if need_lnl then ncol else -1 in
-  let ncol = if need_lnl then ncol + 1 else ncol in
+  let (colors, color_repr, ncolor) = flatten_cmap c in
+  let lnl = if need_lnl then ncolor else -1 in
+  let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ids = A.create_ids () in
   let pos = ref 0 in
   let (r, kind) =
     translate ids
-      `First false false `Greedy pos (ref Cset.CSetMap.empty) col regexp in
+      `First false false `Greedy pos (ref Cset.CSetMap.empty) colors regexp in
   let r = enforce_kind ids `First kind r in
   (*Format.eprintf "<%d %d>@." !ids ncol;*)
-  mk_re r col col_repr ncol lnl (!pos / 2)
+  mk_re ~initial:r ~colors ~color_repr ~ncolor ~lnl ~group_count:(!pos / 2)
 
 (****)
 
