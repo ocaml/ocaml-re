@@ -89,7 +89,7 @@ type re =
     ncolor : int;
     (* Number of colors. *)
     lnl : int;
-    (* Color of the last newline *)
+    (* Color of the last newline. -1 if unnecessary *)
     tbl : Automata.working_area;
     (* Temporary table used to compute the first available index
        when computing a new state *)
@@ -120,7 +120,7 @@ type info =
 
 (****)
 
-let category re color =
+let category re ~color =
   if color = -1 then
     Category.inexistant
     (* Special category for the last newline *)
@@ -161,8 +161,8 @@ let find_state re desc =
 
 (**** Match with marks ****)
 
-let delta info cat c st =
-  let desc = Automata.delta info.re.tbl cat c st.desc in
+let delta info cat ~color st =
+  let desc = Automata.delta info.re.tbl cat color st.desc in
   let len = Array.length info.positions in
   if desc.Automata.State.idx = len && len > 0 then begin
     let pos = info.positions in
@@ -171,12 +171,12 @@ let delta info cat c st =
   end;
   desc
 
-let validate info (s:string) pos st =
-  let c = Char.code (Bytes.get info.colors (Char.code s.[pos])) in
-  let cat = category info.re c in
-  let desc' = delta info cat c st in
+let validate info (s:string) ~pos st =
+  let color = Char.code (Bytes.get info.colors (Char.code s.[pos])) in
+  let cat = category info.re ~color in
+  let desc' = delta info cat ~color st in
   let st' = find_state info.re desc' in
-  st.next.(c) <- st'
+  st.next.(color) <- st'
 
 (*
 let rec loop info s pos st =
@@ -197,23 +197,24 @@ let rec loop info s pos st =
     st
 *)
 
-let rec loop info (s:string) pos st =
+let rec loop info (s:string) ~pos st =
   if pos < info.last then
     let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
-    loop2 info s pos st st'
+    loop2 info s ~pos st st'
   else
     st
 
-and loop2 info s pos st st' =
+and loop2 info s ~pos st st' =
   if st'.idx >= 0 then begin
     let pos = pos + 1 in
     if pos < info.last then begin
       (* It is important to place these reads before the write *)
       (* But then, we don't have enough registers left to store the
          right position.  So, we store the position plus one. *)
-      let st'' = st'.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
+      let st'' =
+        st'.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
       info.positions.(st'.idx) <- pos;
-      loop2 info s pos st' st''
+      loop2 info s ~pos st' st''
     end else begin
       info.positions.(st'.idx) <- pos;
       st'
@@ -222,20 +223,20 @@ and loop2 info s pos st st' =
     info.positions.(st'.real_idx) <- pos + 1;
     st'
   end else begin (* Unknown *)
-    validate info s pos st;
-    loop info s pos st
+    validate info s ~pos st;
+    loop info s ~pos st
   end
 
-let rec loop_no_mark info s pos last st =
+let rec loop_no_mark info s ~pos ~last st =
   if pos < last then
     let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
     if st'.idx >= 0 then
-      loop_no_mark info s (pos + 1) last st'
+      loop_no_mark info s ~pos:(pos + 1) ~last st'
     else if st'.idx = break then
       st'
     else begin (* Unknown *)
-      validate info s pos st;
-      loop_no_mark info s pos last st
+      validate info s ~pos st;
+      loop_no_mark info s ~pos ~last st
     end
   else
     st
@@ -244,7 +245,7 @@ let final info st cat =
   try
     List.assq cat st.final
   with Not_found ->
-    let st' = delta info cat (-1) st in
+    let st' = delta info cat ~color:(-1) st in
     let res = (st'.Automata.State.idx, Automata.status st') in
     st.final <- (cat, res) :: st.final;
     res
@@ -270,7 +271,7 @@ let get_color re (s:string) pos =
     else
       Char.code (Bytes.get re.colors (Char.code s.[pos]))
 
-let rec handle_last_newline info pos st groups =
+let rec handle_last_newline info ~pos st ~groups =
   let st' = st.next.(info.re.lnl) in
   if st'.idx >= 0 then begin
     if groups then info.positions.(st'.idx) <- pos + 1;
@@ -279,16 +280,16 @@ let rec handle_last_newline info pos st groups =
     if groups then info.positions.(st'.real_idx) <- pos + 1;
     st'
   end else begin (* Unknown *)
-    let c = info.re.lnl in
+    let color = info.re.lnl in
     let real_c = Char.code (Bytes.get info.colors (Char.code '\n')) in
-    let cat = category info.re c in
-    let desc' = delta info cat real_c st in
+    let cat = category info.re ~color in
+    let desc' = delta info cat ~color:real_c st in
     let st' = find_state info.re desc' in
-    st.next.(c) <- st';
-    handle_last_newline info pos st groups
+    st.next.(color) <- st';
+    handle_last_newline info ~pos st ~groups
   end
 
-let rec scan_str info (s:string) initial_state groups =
+let rec scan_str info (s:string) initial_state ~groups =
   let pos = info.pos in
   let last = info.last in
   if (last = String.length s
@@ -297,15 +298,15 @@ let rec scan_str info (s:string) initial_state groups =
       && String.get s (last - 1) = '\n')
   then begin
     let info = { info with last = last - 1 } in
-    let st = scan_str info s initial_state groups in
+    let st = scan_str info s initial_state ~groups in
     if st.idx = break then
       st
     else
-      handle_last_newline info (last - 1) st groups
+      handle_last_newline info ~pos:(last - 1) st ~groups
   end else if groups then
-    loop info s pos initial_state
+    loop info s ~pos initial_state
   else
-    loop_no_mark info s pos last initial_state
+    loop_no_mark info s ~pos ~last initial_state
 
 let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
@@ -326,9 +327,11 @@ let match_str ~groups ~partial re s ~pos ~len =
     if pos = 0 then
       Category.(search_boundary ++ inexistant)
     else
-      Category.(search_boundary ++ category re (get_color re s (pos - 1))) in
+      Category.(search_boundary
+                ++ category re ~color:(get_color re s (pos - 1)))
+  in
   let initial_state = find_initial_state re initial_cat in
-  let st = scan_str info s initial_state groups in
+  let st = scan_str info s initial_state ~groups in
   let res =
     if st.idx = break || partial then
       Automata.status st.desc
@@ -337,7 +340,8 @@ let match_str ~groups ~partial re s ~pos ~len =
         if last = slen then
           Category.(search_boundary ++ inexistant)
         else
-          Category.(search_boundary ++ category re (get_color re s last)) in
+          Category.(search_boundary ++ category re ~color:(get_color re s last))
+      in
       let (idx, res) = final info st final_cat in
       if groups then info.positions.(idx) <- last + 1;
       res
