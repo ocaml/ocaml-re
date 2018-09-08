@@ -120,14 +120,14 @@ type info =
 
 (****)
 
-let category re c =
-  if c = -1 then
+let category re color =
+  if color = -1 then
     Category.inexistant
     (* Special category for the last newline *)
-  else if c = re.lnl then
+  else if color = re.lnl then
     Category.(lastnewline ++ newline ++ not_letter)
   else
-    Category.from_char (Bytes.get re.color_repr c)
+    Category.from_char (Bytes.get re.color_repr color)
 
 (****)
 
