@@ -945,28 +945,30 @@ let compile r =
       seq [shortest (rep any); group r]
   )
 
-let exec_internal name ?(pos=0) ?(len = -1) ~groups re s =
+let exec_internal name ?(pos=0) ?(len = -1) ~partial ~groups re s =
   if pos < 0 || len < -1 || pos + len > String.length s then
     invalid_arg name;
-  match_str ~groups ~partial:false re s ~pos ~len
+  match_str ~groups ~partial re s ~pos ~len
 
 let exec ?pos ?len re s =
-  match exec_internal "Re.exec" ?pos ?len ~groups:true re s with
+  match exec_internal "Re.exec" ?pos ?len ~groups:true ~partial:false re s with
     Match substr -> substr
   | _            -> raise Not_found
 
 let exec_opt ?pos ?len re s =
-  match exec_internal "Re.exec_opt" ?pos ?len ~groups:true re s with
+  match exec_internal "Re.exec_opt" ?pos ?len ~groups:true ~partial:false
+          re s with
     Match substr -> Some substr
   | _            -> None
 
 let execp ?pos ?len re s =
-  match exec_internal ~groups:false "Re.execp" ?pos ?len re s with
+  match exec_internal ~groups:false ~partial:false "Re.execp" ?pos ?len re s with
     Match _substr -> true
   | _             -> false
 
 let exec_partial ?pos ?len re s =
-  match exec_internal ~groups:false "Re.exec_partial" ?pos ?len re s with
+  match exec_internal ~groups:false ~partial:true "Re.exec_partial"
+          ?pos ?len re s with
     Match _ -> `Full
   | Running -> `Partial
   | Failed  -> `Mismatch
