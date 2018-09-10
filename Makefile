@@ -1,18 +1,18 @@
-JBUILDER ?= jbuilder
+DUNE ?= dune
 
 all:
-	@$(JBUILDER) build
+	@$(DUNE) build
 
 test:
-	@$(JBUILDER) runtest
+	@$(DUNE) runtest
 
 check: test
 
 clean:
-	@$(JBUILDER) clean
+	@$(DUNE) clean
 
 .PHONY: check test all clean
 
 .PHONY: all-supported-ocaml-versions
 all-supported-ocaml-versions:
-	jbuilder build @runtest --workspace jbuild-workspace.dev
+	dune build @runtest --workspace dune-workspace.dev
