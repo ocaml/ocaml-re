@@ -2,7 +2,15 @@
 
 open OUnit
 
-let (|>) x f = f x
+module String = struct
+  [@@@ocaml.warning "-32-3"]
+  let capitalize_ascii   = String.capitalize
+  let uncapitalize_ascii = String.uncapitalize
+  let uppercase_ascii    = String.uppercase
+  let lowercase_ascii    = String.lowercase
+
+  include String
+end
 
 let pp_str x = x
 let quote = Printf.sprintf "'%s'"
@@ -12,14 +20,14 @@ let pp_list l =
   |> String.concat ", "
   |> Printf.sprintf "[ %s ]"
 
-let re_whitespace = Re_posix.compile_pat "[\t ]+"
-let re_empty = Re_posix.compile_pat ""
+let re_whitespace = Re.Posix.compile_pat "[\t ]+"
+let re_empty = Re.Posix.compile_pat ""
 let re_eol = Re.compile Re.eol
 let re_bow = Re.compile Re.bow
 let re_eow = Re.compile Re.eow
 
 let test_iter () =
-  let re = Re_posix.compile_pat "(ab)+" in
+  let re = Re.Posix.compile_pat "(ab)+" in
   assert_equal ~printer:pp_list
     ["abab"; "ab"; "ab"] (Re.matches re "aabab aaabba  dab ");
   assert_equal ~printer:pp_list
@@ -76,8 +84,8 @@ let test_split_full () =
   ()
 
 let test_replace () =
-  let re = Re_posix.compile_pat "[a-zA-Z]+" in
-  let f sub = String.capitalize (Re.Group.get sub 0) in
+  let re = Re.Posix.compile_pat "[a-zA-Z]+" in
+  let f sub = String.capitalize_ascii (Re.Group.get sub 0) in
   assert_equal ~printer:pp_str  " Hello World; I Love Chips!"
     (Re.replace re ~f " hello world; I love chips!");
   assert_equal ~printer:pp_str " Allo maman, bobo"
@@ -85,7 +93,7 @@ let test_replace () =
   ()
 
 let test_replace_string () =
-  let re = Re_posix.compile_pat "_[a-zA-Z]+_" in
+  let re = Re.Posix.compile_pat "_[a-zA-Z]+_" in
   assert_equal ~printer:pp_str "goodbye world"
     (Re.replace_string re ~by:"goodbye" "_hello_ world");
   assert_equal ~printer:pp_str "The quick brown fox"
