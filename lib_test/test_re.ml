@@ -446,4 +446,21 @@ let _ =
       fail "bug in Re.handle_case"
   );
 
+  let test msg re input expected =
+    expect_pass msg (fun () ->
+      expect_equal_app id expected id (exec_partial (compile re) input) ~printer:(function
+        | `Partial -> "`Partial"
+        | `Full -> "`Full"
+        | `Mismatch -> "`Mismatch"))
+  in
+  test "exec_partial 1"               (str "hello")  "he"      `Partial;
+  test "exec_partial 2"               (str "hello")  "goodbye" `Partial;
+  (* exec_partial 3 shoudl be `Full *)
+  test "exec_partial 3"               (str "hello")  "hello"   `Partial;
+  test "exec_partial 4" (whole_string (str "hello")) "hello"   `Partial;
+  test "exec_partial 5" (whole_string (str "hello")) "goodbye" `Mismatch;
+  test "exec_partial 6"               (str "hello")  ""        `Partial;
+  test "exec_partial 7"               (str "")       "hello"   `Full;
+  test "exec_partial 8" (whole_string (str "hello")) ""        `Partial;
+
   run_test_suite "test_re"
