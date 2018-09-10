@@ -402,7 +402,27 @@ type regexp =
   | Difference of regexp * regexp
   | Pmark of Pmark.t * regexp
 
-let destruct t = t
+module View = struct
+  type t = regexp =
+      Set of Cset.t
+    | Sequence of regexp list
+    | Alternative of regexp list
+    | Repeat of regexp * int * int option
+    | Beg_of_line | End_of_line
+    | Beg_of_word | End_of_word | Not_bound
+    | Beg_of_str | End_of_str
+    | Last_end_of_line | Start | Stop
+    | Sem of Automata.sem * regexp
+    | Sem_greedy of Automata.rep_kind * regexp
+    | Group of regexp | No_group of regexp | Nest of regexp
+    | Case of regexp | No_case of regexp
+    | Intersection of regexp list
+    | Complement of regexp list
+    | Difference of regexp * regexp
+    | Pmark of Pmark.t * regexp
+
+  let view t = t
+end
 
 let rec pp fmt t =
   let open Fmt in
