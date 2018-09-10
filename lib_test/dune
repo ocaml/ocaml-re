@@ -1,11 +1,3 @@
-(rule (copy ../lib/fmt.ml fmt.ml))
-
-(library
- (name fort_unit)
- (wrapped false)
- (modules fort_unit fmt)
- (libraries re oUnit))
-
 (executables
  (libraries re fort_unit)
  (modules test_re)
