@@ -398,6 +398,27 @@ val pp_re : Format.formatter -> re -> unit
 (** Alias for {!pp_re}. Deprecated *)
 val print_re : Format.formatter -> re -> unit
 
+(** A view of the top-level of a regex. This type is unstable and may change *)
+type regexp =
+    Set of Ocaml_re_internal.Re_cset.t
+  | Sequence of t list
+  | Alternative of t list
+  | Repeat of t * int * int option
+  | Beg_of_line | End_of_line
+  | Beg_of_word | End_of_word | Not_bound
+  | Beg_of_str | End_of_str
+  | Last_end_of_line | Start | Stop
+  | Sem of Ocaml_re_internal.Re_automata.sem * t
+  | Sem_greedy of Ocaml_re_internal.Re_automata.rep_kind * t
+  | Group of t | No_group of t | Nest of t
+  | Case of t | No_case of t
+  | Intersection of t list
+  | Complement of t list
+  | Difference of t * t
+  | Pmark of Ocaml_re_internal.Re_automata.Pmark.t * t
+
+val destruct : t -> regexp
+
 (** {2 Experimental functions}. *)
 
 val witness : t -> string

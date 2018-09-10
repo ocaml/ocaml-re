@@ -402,6 +402,8 @@ type regexp =
   | Difference of regexp * regexp
   | Pmark of Pmark.t * regexp
 
+let destruct t = t
+
 let rec pp fmt t =
   let open Fmt in
   let var s re = sexp fmt s pp re in
