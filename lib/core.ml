@@ -384,23 +384,23 @@ let trans_set cache cm s =
 
 (****)
 
-type t =
+type regexp =
     Set of Cset.t
-  | Sequence of t list
-  | Alternative of t list
-  | Repeat of t * int * int option
+  | Sequence of regexp list
+  | Alternative of regexp list
+  | Repeat of regexp * int * int option
   | Beg_of_line | End_of_line
   | Beg_of_word | End_of_word | Not_bound
   | Beg_of_str | End_of_str
   | Last_end_of_line | Start | Stop
-  | Sem of Automata.sem * t
-  | Sem_greedy of Automata.rep_kind * t
-  | Group of t | No_group of t | Nest of t
-  | Case of t | No_case of t
-  | Intersection of t list
-  | Complement of t list
-  | Difference of t * t
-  | Pmark of Pmark.t * t
+  | Sem of Automata.sem * regexp
+  | Sem_greedy of Automata.rep_kind * regexp
+  | Group of regexp | No_group of regexp | Nest of regexp
+  | Case of regexp | No_case of regexp
+  | Intersection of regexp list
+  | Complement of regexp list
+  | Difference of regexp * regexp
+  | Pmark of Pmark.t * regexp
 
 let rec pp fmt t =
   let open Fmt in
@@ -829,6 +829,8 @@ let rec anchored = function
     anchored r
 
 (****)
+
+type t = regexp
 
 let str s =
   let l = ref [] in
