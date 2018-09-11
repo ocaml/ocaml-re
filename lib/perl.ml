@@ -191,7 +191,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
               `Char c' ->
               bracket (Re.rg c c' :: s)
             | `Set st' ->
-              Re.char c :: Re.char '-' :: st' :: s
+              bracket (Re.char c :: Re.char '-' :: st' :: s)
           end
         end else
           bracket (Re.char c :: s)
@@ -246,6 +246,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
     end else
       `Char c
   and comment () =
+    if eos () then raise Parse_error;
     if accept ')' then Re.epsilon else begin incr i; comment () end
   in
   let res = regexp () in
