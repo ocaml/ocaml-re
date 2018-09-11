@@ -120,88 +120,117 @@ end
 
 (** {2 High Level Operations} *)
 
-type 'a gen = unit -> 'a option
-
-val all :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> Group.t list
-(** Repeatedly calls {!exec} on the given string, starting at given
-    position and length.*)
-
-val all_gen :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> Group.t gen
-(** Same as {!all} but returns a generator *)
-
-val all_seq :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> Group.t Seq.t
-(** Same as {!all} but returns an iterator
-    @since NEXT_RELEASE *)
-
-val matches :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> string list
-(** Same as {!all}, but extracts the matched substring rather than
-    returning the whole group. This basically iterates over matched
-    strings *)
-
-val matches_gen :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> string gen
-(** Same as {!matches}, but returns a generator. *)
-
-val matches_seq :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> string Seq.t
-(** Same as {!matches}, but returns an iterator
-    @since NEXT_RELEASE *)
-
-val split :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> string list
-(** [split re s] splits [s] into chunks separated by [re]. It yields
-    the chunks themselves, not the separator. For instance
-    this can be used with a whitespace-matching re such as ["[\t ]+"]. *)
-
-val split_gen :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> string gen
-
-val split_seq :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> string Seq.t
-(** @since NEXT_RELEASE *)
-
 type split_token =
   [ `Text of string  (** Text between delimiters *)
   | `Delim of Group.t (** Delimiter *)
   ]
 
-val split_full :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> split_token list
+module Seq : sig
+  val all :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> Group.t Seq.t
+    (** Same as {!all} but returns an iterator
+        @since NEXT_RELEASE *)
 
-val split_full_gen :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> split_token gen
+  val matches :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string Seq.t
+    (** Same as {!matches}, but returns an iterator
+        @since NEXT_RELEASE *)
 
-val split_full_seq :
-  ?pos:int ->    (** Default: 0 *)
-  ?len:int ->
-  re -> string -> split_token Seq.t
-(** @since NEXT_RELEASE *)
+  val split :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string Seq.t
+    (** @since NEXT_RELEASE *)
+
+  val split_full :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> split_token Seq.t
+    (** @since NEXT_RELEASE *)
+end
+
+module L : sig
+  val all :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> Group.t list
+  (** Repeatedly calls {!exec} on the given string, starting at given position
+      and length.*)
+
+  val matches :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string list
+  (** Same as {!all}, but extracts the matched substring rather than returning
+      the whole group. This basically iterates over matched strings *)
+
+  val split :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string list
+  (** [split re s] splits [s] into chunks separated by [re]. It yields the
+      chunks themselves, not the separator. For instance this can be used with a
+      whitespace-matching re such as ["[\t ]+"]. *)
+
+  val split_full :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> split_token list
+end
+
+module Gen : sig
+  type 'a gen = unit -> 'a option
+
+  val all :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> Group.t gen
+  (** Same as {!all} but returns a generator *)
+
+  val matches :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string gen
+  (** Same as {!matches}, but returns a generator. *)
+
+  val split :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string gen
+
+  val split_full :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> split_token gen
+end
+
+val all : ?pos:int -> ?len:int -> re -> string -> Group.t list
+[@@ocaml.deprecated "Use L.all"]
+
+val all_gen : ?pos:int -> ?len:int -> re -> string -> Group.t Gen.gen
+[@@ocaml.deprecated "Use Gen.all"]
+
+val matches : ?pos:int -> ?len:int -> re -> string -> string list
+[@@ocaml.deprecated "Use L.matches"]
+
+val matches_gen : ?pos:int -> ?len:int -> re -> string -> string Gen.gen
+[@@ocaml.deprecated "Use Gen.matches"]
+
+val split : ?pos:int -> ?len:int -> re -> string -> string list
+[@@ocaml.deprecated "Use L.split"]
+
+val split_gen : ?pos:int -> ?len:int -> re -> string -> string Gen.gen
+[@@ocaml.deprecated "Use Gen.split"]
+
+val split_full : ?pos:int -> ?len:int -> re -> string -> split_token list
+[@@ocaml.deprecated "Use L.split_full"]
+
+val split_full_gen : ?pos:int -> ?len:int -> re -> string -> split_token Gen.gen
+[@@ocaml.deprecated "Use Gen.split_full"]
 
 val replace :
   ?pos:int ->    (** Default: 0 *)
