@@ -10,7 +10,7 @@ type split_result =
   | Group of int * string
   | NoGroup
 
-type groups = Re.groups
+type groups = Core.Group.t
 
 let re ?(flags = []) pat =
   let opts = List.map (function
@@ -116,4 +116,4 @@ let full_split ?(max=0) ~rex s =
     List.concat matches
 
 
-type substrings = Re.groups
+type substrings = Group.t

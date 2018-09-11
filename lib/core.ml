@@ -27,31 +27,8 @@ let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
 let unknown = -2
 let break = -3
 
-(* Result of a successful match. *)
-type groups =
-  { s : string
-  (* Input string. Matched strings are substrings of s *)
-
-  ; marks : Automata.mark_infos
-  (* Mapping from group indices to positions in gpos. group i has positions 2*i
-     - 1, 2*i + 1 in gpos. If the group wasn't matched, then its corresponding
-     values in marks will be -1,-1 *)
-
-  ; pmarks : Pmark.Set.t
-  (* Marks positions. i.e. those marks created with Re.marks *)
-
-  ; gpos : int array
-  (* Group positions. Adjacent elements are (start, stop) of group match.
-     indexed by the values in marks. So group i in an re would be the substring:
-
-     start = t.gpos.(marks.(2*i)) - 1
-     stop = t.gpos.(marks.(2*i + 1)) - 1 *)
-
-  ; gcount : int
-  (* Number of groups the regular expression contains. Matched or not *) }
-
 type match_info =
-  | Match of groups
+  | Match of Group.t
   | Failed
   | Running
 
@@ -977,84 +954,14 @@ let exec_partial ?pos ?len re s =
   | Running -> `Partial
   | Failed  -> `Mismatch
 
-module Group = struct
-
-  type t = groups
-
-  let offset t i =
-    if 2 * i + 1 >= Array.length t.marks then raise Not_found;
-    let m1 = t.marks.(2 * i) in
-    if m1 = -1 then raise Not_found;
-    let p1 = t.gpos.(m1) - 1 in
-    let p2 = t.gpos.(t.marks.(2 * i + 1)) - 1 in
-    (p1, p2)
-
-  let get t i =
-    let (p1, p2) = offset t i in
-    String.sub t.s p1 (p2 - p1)
-
-  let start subs i = fst (offset subs i)
-
-  let stop subs i = snd (offset subs i)
-
-  let test t i =
-    if 2 * i >= Array.length t.marks then
-      false
-    else
-      let idx = t.marks.(2 * i) in
-      idx <> -1
-
-  let dummy_offset = (-1, -1)
-
-  let all_offset t =
-    let res = Array.make t.gcount dummy_offset in
-    for i = 0 to Array.length t.marks / 2 - 1 do
-      let m1 = t.marks.(2 * i) in
-      if m1 <> -1 then begin
-        let p1 = t.gpos.(m1) in
-        let p2 = t.gpos.(t.marks.(2 * i + 1)) in
-        res.(i) <- (p1 - 1, p2 - 1)
-      end
-    done;
-    res
-
-  let dummy_string = ""
-
-  let all t =
-    let res = Array.make t.gcount dummy_string in
-    for i = 0 to Array.length t.marks / 2 - 1 do
-      let m1 = t.marks.(2 * i) in
-      if m1 <> -1 then begin
-        let p1 = t.gpos.(m1) in
-        let p2 = t.gpos.(t.marks.(2 * i + 1)) in
-        res.(i) <- String.sub t.s (p1 - 1) (p2 - p1)
-      end
-    done;
-    res
-
-  let pp fmt t =
-    let matches =
-      let offsets = all_offset t in
-      let strs = all t in
-      Array.to_list (
-        Array.init (Array.length strs) (fun i -> strs.(i), offsets.(i))
-      ) in
-    let open Fmt in
-    let pp_match fmt (str, (start, stop)) =
-      fprintf fmt "@[(%s (%d %d))@]" str start stop in
-    sexp fmt "Group" (list pp_match) matches
-
-  let nb_groups t = t.gcount
-end
-
 module Mark = struct
 
   type t = Pmark.t
 
-  let test {pmarks ; _} p =
-    Pmark.Set.mem p pmarks
+  let test (g : Group.t) p =
+    Pmark.Set.mem p g.pmarks
 
-  let all s = s.pmarks
+  let all (g : Group.t) = g.pmarks
 
   module Set = Pmark.Set
 
@@ -1116,7 +1023,7 @@ let matches ?pos ?len re s = matches_seq ?pos ?len re s |> list_of_seq
 
 type split_token =
   [ `Text of string
-  | `Delim of groups
+  | `Delim of Group.t
   ]
 
 let split_full_seq ?(pos=0) ?len re s : _ Seq.t =
@@ -1261,7 +1168,7 @@ let witness t =
 
 (** {2 Deprecated functions} *)
 
-type substrings = groups
+type substrings = Group.t
 
 let get = Group.get
 let get_ofs = Group.offset
@@ -1313,3 +1220,6 @@ Rep: e = T,e | ()
 Bounded repetition
   a{0,3} = (a,(a,a?)?)?
 *)
+
+module Group = Group
+type groups = Group.t

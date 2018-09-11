@@ -2,7 +2,7 @@ type regexp = Core.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
 
-type groups = Core.groups
+type groups = Core.Group.t
 
 (** Result of a {!Pcre.full_split} *)
 type split_result =
@@ -42,4 +42,4 @@ val quote : string -> string
 
 (** {2 Deprecated} *)
 
-type substrings = Core.groups
+type substrings = Group.t
