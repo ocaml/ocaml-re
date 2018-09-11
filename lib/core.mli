@@ -60,7 +60,7 @@ module Group : sig
 
   val pp : Format.formatter -> t -> unit
 end
-type groups = Group.t
+type groups = Group.t [@@ocaml.deprecated "Use Group.t"]
 
 (** {2 Compilation and execution of a regular expression} *)
 
@@ -430,26 +430,34 @@ val witness : t -> string
 type substrings = Group.t
 (** Alias for {!Group.t}. Deprecated *)
 
+[@@ocaml.deprecated "Use Group.get"]
 val get : Group.t -> int -> string
 (** Same as {!Group.get}. Deprecated *)
 
+[@@ocaml.deprecated "Use Group.offset"]
 val get_ofs : Group.t -> int -> int * int
 (** Same as {!Group.offset}. Deprecated *)
 
+[@@ocaml.deprecated "Use Group.all"]
 val get_all : Group.t -> string array
 (** Same as {!Group.all}. Deprecated *)
 
+[@@ocaml.deprecated "Use Group.all_offset"]
 val get_all_ofs : Group.t -> (int * int) array
 (** Same as {!Group.all_offset}. Deprecated *)
 
+[@@ocaml.deprecated "Use Group.test"]
 val test : Group.t -> int -> bool
 (** Same as {!Group.test}. Deprecated *)
 
+[@@ocaml.deprecated "Use Mark."]
 type markid = Mark.t
 (** Alias for {!Mark.t}. Deprecated *)
 
+[@@ocaml.deprecated "Use Mark.test"]
 val marked : Group.t -> Mark.t -> bool
 (** Same as {!Mark.test}. Deprecated *)
 
+[@@ocaml.deprecated "Use Mark.all"]
 val mark_set : Group.t -> Mark.Set.t
 (** Same as {!Mark.all}. Deprecated *)
