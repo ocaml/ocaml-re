@@ -182,55 +182,31 @@ module List : sig
     re -> string -> split_token list
 end
 
-module Gen : sig
-  type 'a gen = unit -> 'a option
-
-  val all :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> Group.t gen
-  (** Same as {!all} but returns a generator *)
-
-  val matches :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> string gen
-  (** Same as {!matches}, but returns a generator. *)
-
-  val split :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> string gen
-
-  val split_full :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> split_token gen
-end
-
 val all : ?pos:int -> ?len:int -> re -> string -> Group.t list
-[@@ocaml.deprecated "Use L.all"]
+[@@ocaml.deprecated "Use List.all"]
 
-val all_gen : ?pos:int -> ?len:int -> re -> string -> Group.t Gen.gen
-[@@ocaml.deprecated "Use Gen.all"]
+type 'a gen = unit -> 'a option
+
+val all_gen : ?pos:int -> ?len:int -> re -> string -> Group.t gen
+[@@ocaml.deprecated "Use Seq.all"]
 
 val matches : ?pos:int -> ?len:int -> re -> string -> string list
-[@@ocaml.deprecated "Use L.matches"]
+[@@ocaml.deprecated "Use List.matches"]
 
-val matches_gen : ?pos:int -> ?len:int -> re -> string -> string Gen.gen
-[@@ocaml.deprecated "Use Gen.matches"]
+val matches_gen : ?pos:int -> ?len:int -> re -> string -> string gen
+[@@ocaml.deprecated "Use Seq.matches"]
 
 val split : ?pos:int -> ?len:int -> re -> string -> string list
-[@@ocaml.deprecated "Use L.split"]
+[@@ocaml.deprecated "Use List.split"]
 
-val split_gen : ?pos:int -> ?len:int -> re -> string -> string Gen.gen
-[@@ocaml.deprecated "Use Gen.split"]
+val split_gen : ?pos:int -> ?len:int -> re -> string -> string gen
+[@@ocaml.deprecated "Use Seq.split"]
 
 val split_full : ?pos:int -> ?len:int -> re -> string -> split_token list
-[@@ocaml.deprecated "Use L.split_full"]
+[@@ocaml.deprecated "Use List.split_full"]
 
-val split_full_gen : ?pos:int -> ?len:int -> re -> string -> split_token Gen.gen
-[@@ocaml.deprecated "Use Gen.split_full"]
+val split_full_gen : ?pos:int -> ?len:int -> re -> string -> split_token gen
+[@@ocaml.deprecated "Use Seq.split_full"]
 
 val replace :
   ?pos:int ->    (** Default: 0 *)
@@ -457,36 +433,37 @@ val witness : t -> string
 (** {2 Deprecated functions} *)
 
 type substrings = Group.t
+[@@ocaml.deprecated "Use Group.t"]
 (** Alias for {!Group.t}. Deprecated *)
 
-[@@ocaml.deprecated "Use Group.get"]
 val get : Group.t -> int -> string
+[@@ocaml.deprecated "Use Group.get"]
 (** Same as {!Group.get}. Deprecated *)
 
-[@@ocaml.deprecated "Use Group.offset"]
 val get_ofs : Group.t -> int -> int * int
+[@@ocaml.deprecated "Use Group.offset"]
 (** Same as {!Group.offset}. Deprecated *)
 
-[@@ocaml.deprecated "Use Group.all"]
 val get_all : Group.t -> string array
+[@@ocaml.deprecated "Use Group.all"]
 (** Same as {!Group.all}. Deprecated *)
 
-[@@ocaml.deprecated "Use Group.all_offset"]
 val get_all_ofs : Group.t -> (int * int) array
+[@@ocaml.deprecated "Use Group.all_offset"]
 (** Same as {!Group.all_offset}. Deprecated *)
 
-[@@ocaml.deprecated "Use Group.test"]
 val test : Group.t -> int -> bool
+[@@ocaml.deprecated "Use Group.test"]
 (** Same as {!Group.test}. Deprecated *)
 
-[@@ocaml.deprecated "Use Mark."]
 type markid = Mark.t
+[@@ocaml.deprecated "Use Mark."]
 (** Alias for {!Mark.t}. Deprecated *)
 
-[@@ocaml.deprecated "Use Mark.test"]
 val marked : Group.t -> Mark.t -> bool
+[@@ocaml.deprecated "Use Mark.test"]
 (** Same as {!Mark.test}. Deprecated *)
 
-[@@ocaml.deprecated "Use Mark.all"]
 val mark_set : Group.t -> Mark.Set.t
+[@@ocaml.deprecated "Use Mark.all"]
 (** Same as {!Mark.all}. Deprecated *)

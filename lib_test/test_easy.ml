@@ -29,28 +29,28 @@ let re_eow = Re.compile Re.eow
 let test_iter () =
   let re = Re.Posix.compile_pat "(ab)+" in
   assert_equal ~printer:pp_list
-    ["abab"; "ab"; "ab"] (Re.matches re "aabab aaabba  dab ");
+    ["abab"; "ab"; "ab"] (Re.List.matches re "aabab aaabba  dab ");
   assert_equal ~printer:pp_list
-    ["ab"; "abab"] (Re.matches ~pos:2 ~len:7 re "abab ababab");
+    ["ab"; "abab"] (Re.List.matches ~pos:2 ~len:7 re "abab ababab");
   assert_equal ~printer:pp_list
-    [""; ""] (Re.matches re_empty "ab");
+    [""; ""] (Re.List.matches re_empty "ab");
   ()
 
 let test_split () =
   assert_equal ~printer:pp_list
-    ["aa"; "bb"; "c"; "d"] (Re.split re_whitespace "aa bb c d ");
+    ["aa"; "bb"; "c"; "d"] (Re.List.split re_whitespace "aa bb c d ");
   assert_equal ~printer:pp_list
-    ["a"; "b"] (Re.split ~pos:1 ~len:4 re_whitespace "aa b c d");
+    ["a"; "b"] (Re.List.split ~pos:1 ~len:4 re_whitespace "aa b c d");
   assert_equal ~printer:pp_list
-    ["a"; "full_word"; "bc"] (Re.split re_whitespace " a full_word bc   ");
+    ["a"; "full_word"; "bc"] (Re.List.split re_whitespace " a full_word bc   ");
   assert_equal ~printer:pp_list
-    ["a"; "b"; "c"; "d"] (Re.split re_empty "abcd");
+    ["a"; "b"; "c"; "d"] (Re.List.split re_empty "abcd");
   assert_equal ~printer:pp_list
-    ["a"; "\nb"] (Re.split re_eol "a\nb");
+    ["a"; "\nb"] (Re.List.split re_eol "a\nb");
   assert_equal ~printer:pp_list
-    ["a "; "b"] (Re.split re_bow "a b");
+    ["a "; "b"] (Re.List.split re_bow "a b");
   assert_equal ~printer:pp_list
-    ["a"; " b"] (Re.split re_eow "a b");
+    ["a"; " b"] (Re.List.split re_eow "a b");
   ()
 
 let map_split_delim =
@@ -71,16 +71,16 @@ let pp_list' l =
 let test_split_full () =
   assert_equal ~printer:pp_list'
     [`T "aa"; `D " "; `T "bb"; `D " "; `T "c"; `D " "; `T "d"; `D " "]
-    (Re.split_full re_whitespace "aa bb c d " |> map_split_delim);
+    (Re.List.split_full re_whitespace "aa bb c d " |> map_split_delim);
   assert_equal ~printer:pp_list'
     [`T "a"; `D " \t"; `T "b"; `D " "]
-    (Re.split_full ~pos:1 ~len:5 re_whitespace "aa \tb c d" |> map_split_delim);
+    (Re.List.split_full ~pos:1 ~len:5 re_whitespace "aa \tb c d" |> map_split_delim);
   assert_equal ~printer:pp_list'
     [`D " "; `T "a"; `D " "; `T "full_word"; `D " "; `T "bc"; `D "   "]
-    (Re.split_full re_whitespace " a full_word bc   " |> map_split_delim);
+    (Re.List.split_full re_whitespace " a full_word bc   " |> map_split_delim);
   assert_equal ~printer:pp_list'
     [`D ""; `T "a"; `D ""; `T  "b"] (* XXX: not trivial *)
-    (Re.split_full re_empty "ab" |> map_split_delim);
+    (Re.List.split_full re_empty "ab" |> map_split_delim);
   ()
 
 let test_replace () =

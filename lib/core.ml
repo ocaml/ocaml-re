@@ -1064,7 +1064,7 @@ module Rseq = struct
     in filter seq
 end
 
-module List = struct
+module Rlist = struct
   let list_of_seq (s:'a Seq.t) : 'a list =
     Seq.fold_left (fun l x -> x :: l) [] s |> List.rev
 
@@ -1178,17 +1178,19 @@ let witness t =
   witness (handle_case false t)
 
 module Seq = Rseq
+module List = Rlist
 module Group = Group
 
 (** {2 Deprecated functions} *)
 
-let all            = L.all
+type 'a gen        = 'a Gen.gen
+let all            = List.all
 let all_gen        = Gen.all
-let matches        = L.matches
+let matches        = List.matches
 let matches_gen    = Gen.matches
-let split          = L.split
+let split          = List.split
 let split_gen      = Gen.split
-let split_full     = L.split_full
+let split_full     = List.split_full
 let split_full_gen = Gen.split_full
 
 
