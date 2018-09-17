@@ -1064,8 +1064,7 @@ module Rseq = struct
     in filter seq
 end
 
-module L = struct
-
+module List = struct
   let list_of_seq (s:'a Seq.t) : 'a list =
     Seq.fold_left (fun l x -> x :: l) [] s |> List.rev
 

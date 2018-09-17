@@ -153,7 +153,7 @@ module Seq : sig
     (** @since NEXT_RELEASE *)
 end
 
-module L : sig
+module List : sig
   val all :
     ?pos:int ->    (** Default: 0 *)
     ?len:int ->
