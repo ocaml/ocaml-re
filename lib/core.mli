@@ -398,6 +398,31 @@ val pp_re : Format.formatter -> re -> unit
 (** Alias for {!pp_re}. Deprecated *)
 val print_re : Format.formatter -> re -> unit
 
+module View : sig
+  type outer
+
+  (** A view of the top-level of a regex. This type is unstable and may change *)
+  type t =
+      Set of Cset.t
+    | Sequence of outer list
+    | Alternative of outer list
+    | Repeat of outer * int * int option
+    | Beg_of_line | End_of_line
+    | Beg_of_word | End_of_word | Not_bound
+    | Beg_of_str | End_of_str
+    | Last_end_of_line | Start | Stop
+    | Sem of Automata.sem * outer
+    | Sem_greedy of Automata.rep_kind * outer
+    | Group of outer | No_group of outer | Nest of outer
+    | Case of outer | No_case of outer
+    | Intersection of outer list
+    | Complement of outer list
+    | Difference of outer * outer
+    | Pmark of Pmark.t * outer
+
+  val view : outer -> t
+end with type outer := t
+
 (** {2 Experimental functions}. *)
 
 val witness : t -> string
