@@ -164,12 +164,12 @@ module State = struct
 end
 
 let one ~explicit_slash ~explicit_period =
-  Re.(compl (
+  Re.compl (
     List.concat [
-      if explicit_slash  then [char '/'] else [];
-      if explicit_period then [char '.'] else [];
+      if explicit_slash  then [Re.char '/'] else [];
+      if explicit_period then [Re.char '.'] else [];
     ]
-  ))
+  )
 
 let enclosed enclosed =
   match enclosed with

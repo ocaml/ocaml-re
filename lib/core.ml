@@ -27,31 +27,8 @@ let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
 let unknown = -2
 let break = -3
 
-(* Result of a successful match. *)
-type groups =
-  { s : string
-  (* Input string. Matched strings are substrings of s *)
-
-  ; marks : Automata.mark_infos
-  (* Mapping from group indices to positions in gpos. group i has positions 2*i
-     - 1, 2*i + 1 in gpos. If the group wasn't matched, then its corresponding
-     values in marks will be -1,-1 *)
-
-  ; pmarks : Pmark.Set.t
-  (* Marks positions. i.e. those marks created with Re.marks *)
-
-  ; gpos : int array
-  (* Group positions. Adjacent elements are (start, stop) of group match.
-     indexed by the values in marks. So group i in an re would be the substring:
-
-     start = t.gpos.(marks.(2*i)) - 1
-     stop = t.gpos.(marks.(2*i + 1)) - 1 *)
-
-  ; gcount : int
-  (* Number of groups the regular expression contains. Matched or not *) }
-
 type match_info =
-  | Match of groups
+  | Match of Group.t
   | Failed
   | Running
 
@@ -82,14 +59,14 @@ type re =
     (* The whole regular expression *)
     mutable initial_states : (Category.t * state) list;
     (* Initial states, indexed by initial category *)
-    cols : Bytes.t;
+    colors : Bytes.t;
     (* Color table *)
-    col_repr : Bytes.t;
+    color_repr : Bytes.t;
     (* Table from colors to one character of this color *)
-    ncol : int;
+    ncolor : int;
     (* Number of colors. *)
     lnl : int;
-    (* Color of the last newline *)
+    (* Color of the last newline. -1 if unnecessary *)
     tbl : Automata.working_area;
     (* Temporary table used to compute the first available index
        when computing a new state *)
@@ -106,8 +83,8 @@ let print_re = pp_re
 type info =
   { re : re;
     (* The automata *)
-    cols : Bytes.t;
-    (* Color table ([x.cols = x.re.cols])
+    colors : Bytes.t;
+    (* Color table ([x.colors = x.re.colors])
        Shortcut used for performance reasons *)
     mutable positions : int array;
     (* Array of mark positions
@@ -120,14 +97,14 @@ type info =
 
 (****)
 
-let category re c =
-  if c = -1 then
+let category re ~color =
+  if color = -1 then
     Category.inexistant
     (* Special category for the last newline *)
-  else if c = re.lnl then
+  else if color = re.lnl then
     Category.(lastnewline ++ newline ++ not_letter)
   else
-    Category.from_char (Bytes.get re.col_repr c)
+    Category.from_char (Bytes.get re.color_repr color)
 
 (****)
 
@@ -155,14 +132,14 @@ let find_state re desc =
   try
     Automata.State.Table.find re.states desc
   with Not_found ->
-    let st = mk_state re.ncol desc in
+    let st = mk_state re.ncolor desc in
     Automata.State.Table.add re.states desc st;
     st
 
 (**** Match with marks ****)
 
-let delta info cat c st =
-  let desc = Automata.delta info.re.tbl cat c st.desc in
+let delta info cat ~color st =
+  let desc = Automata.delta info.re.tbl cat color st.desc in
   let len = Array.length info.positions in
   if desc.Automata.State.idx = len && len > 0 then begin
     let pos = info.positions in
@@ -171,12 +148,12 @@ let delta info cat c st =
   end;
   desc
 
-let validate info (s:string) pos st =
-  let c = Char.code (Bytes.get info.cols (Char.code s.[pos])) in
-  let cat = category info.re c in
-  let desc' = delta info cat c st in
+let validate info (s:string) ~pos st =
+  let color = Char.code (Bytes.get info.colors (Char.code s.[pos])) in
+  let cat = category info.re ~color in
+  let desc' = delta info cat ~color st in
   let st' = find_state info.re desc' in
-  st.next.(c) <- st'
+  st.next.(color) <- st'
 
 (*
 let rec loop info s pos st =
@@ -197,23 +174,24 @@ let rec loop info s pos st =
     st
 *)
 
-let rec loop info (s:string) pos st =
+let rec loop info (s:string) ~pos st =
   if pos < info.last then
-    let st' = st.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
-    loop2 info s pos st st'
+    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
+    loop2 info s ~pos st st'
   else
     st
 
-and loop2 info s pos st st' =
+and loop2 info s ~pos st st' =
   if st'.idx >= 0 then begin
     let pos = pos + 1 in
     if pos < info.last then begin
       (* It is important to place these reads before the write *)
       (* But then, we don't have enough registers left to store the
          right position.  So, we store the position plus one. *)
-      let st'' = st'.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
+      let st'' =
+        st'.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
       info.positions.(st'.idx) <- pos;
-      loop2 info s pos st' st''
+      loop2 info s ~pos st' st''
     end else begin
       info.positions.(st'.idx) <- pos;
       st'
@@ -222,20 +200,20 @@ and loop2 info s pos st st' =
     info.positions.(st'.real_idx) <- pos + 1;
     st'
   end else begin (* Unknown *)
-    validate info s pos st;
-    loop info s pos st
+    validate info s ~pos st;
+    loop info s ~pos st
   end
 
-let rec loop_no_mark info s pos last st =
+let rec loop_no_mark info s ~pos ~last st =
   if pos < last then
-    let st' = st.next.(Char.code (Bytes.get info.cols (Char.code s.[pos]))) in
+    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
     if st'.idx >= 0 then
-      loop_no_mark info s (pos + 1) last st'
+      loop_no_mark info s ~pos:(pos + 1) ~last st'
     else if st'.idx = break then
       st'
     else begin (* Unknown *)
-      validate info s pos st;
-      loop_no_mark info s pos last st
+      validate info s ~pos st;
+      loop_no_mark info s ~pos ~last st
     end
   else
     st
@@ -244,7 +222,7 @@ let final info st cat =
   try
     List.assq cat st.final
   with Not_found ->
-    let st' = delta info cat (-1) st in
+    let st' = delta info cat ~color:(-1) st in
     let res = (st'.Automata.State.idx, Automata.status st') in
     st.final <- (cat, res) :: st.final;
     res
@@ -268,9 +246,9 @@ let get_color re (s:string) pos =
       (* Special case for the last newline *)
       re.lnl
     else
-      Char.code (Bytes.get re.cols (Char.code s.[pos]))
+      Char.code (Bytes.get re.colors (Char.code s.[pos]))
 
-let rec handle_last_newline info pos st groups =
+let rec handle_last_newline info ~pos st ~groups =
   let st' = st.next.(info.re.lnl) in
   if st'.idx >= 0 then begin
     if groups then info.positions.(st'.idx) <- pos + 1;
@@ -279,16 +257,16 @@ let rec handle_last_newline info pos st groups =
     if groups then info.positions.(st'.real_idx) <- pos + 1;
     st'
   end else begin (* Unknown *)
-    let c = info.re.lnl in
-    let real_c = Char.code (Bytes.get info.cols (Char.code '\n')) in
-    let cat = category info.re c in
-    let desc' = delta info cat real_c st in
+    let color = info.re.lnl in
+    let real_c = Char.code (Bytes.get info.colors (Char.code '\n')) in
+    let cat = category info.re ~color in
+    let desc' = delta info cat ~color:real_c st in
     let st' = find_state info.re desc' in
-    st.next.(c) <- st';
-    handle_last_newline info pos st groups
+    st.next.(color) <- st';
+    handle_last_newline info ~pos st ~groups
   end
 
-let rec scan_str info (s:string) initial_state groups =
+let rec scan_str info (s:string) initial_state ~groups =
   let pos = info.pos in
   let last = info.last in
   if (last = String.length s
@@ -297,21 +275,21 @@ let rec scan_str info (s:string) initial_state groups =
       && String.get s (last - 1) = '\n')
   then begin
     let info = { info with last = last - 1 } in
-    let st = scan_str info s initial_state groups in
+    let st = scan_str info s initial_state ~groups in
     if st.idx = break then
       st
     else
-      handle_last_newline info (last - 1) st groups
+      handle_last_newline info ~pos:(last - 1) st ~groups
   end else if groups then
-    loop info s pos initial_state
+    loop info s ~pos initial_state
   else
-    loop_no_mark info s pos last initial_state
+    loop_no_mark info s ~pos ~last initial_state
 
 let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
-    { re ; cols = re.cols; pos ; last
+    { re ; colors = re.colors; pos ; last
     ; positions =
         if groups then begin
           let n = Automata.index_count re.tbl + 1 in
@@ -326,9 +304,11 @@ let match_str ~groups ~partial re s ~pos ~len =
     if pos = 0 then
       Category.(search_boundary ++ inexistant)
     else
-      Category.(search_boundary ++ category re (get_color re s (pos - 1))) in
+      Category.(search_boundary
+                ++ category re ~color:(get_color re s (pos - 1)))
+  in
   let initial_state = find_initial_state re initial_cat in
-  let st = scan_str info s initial_state groups in
+  let st = scan_str info s initial_state ~groups in
   let res =
     if st.idx = break || partial then
       Automata.status st.desc
@@ -337,7 +317,8 @@ let match_str ~groups ~partial re s ~pos ~len =
         if last = slen then
           Category.(search_boundary ++ inexistant)
         else
-          Category.(search_boundary ++ category re (get_color re s last)) in
+          Category.(search_boundary ++ category re ~color:(get_color re s last))
+      in
       let (idx, res) = final info st final_cat in
       if groups then info.positions.(idx) <- last + 1;
       res
@@ -348,12 +329,12 @@ let match_str ~groups ~partial re s ~pos ~len =
   | Automata.Failed -> Failed
   | Automata.Running -> Running
 
-let mk_re initial cols col_repr ncol lnl group_count =
+let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_count =
   { initial ;
     initial_states = [];
-    cols;
-    col_repr;
-    ncol;
+    colors;
+    color_repr;
+    ncolor;
     lnl;
     tbl = Automata.create_working_area ();
     states = Automata.State.Table.create 97;
@@ -475,14 +456,7 @@ let rec is_charset = function
   | Group _ | Nest _ | Pmark (_,_)->
     false
 
-(**** Colormap ****)
-
 (*XXX Use a better algorithm allowing non-contiguous regions? *)
-let split s cm =
-  Cset.iter s ~f:(fun i j ->
-      Bytes.set cm i '\001';
-      Bytes.set cm (j + 1) '\001';
-    )
 
 let cupper =
   Cset.union (cseq 'A' 'Z')
@@ -499,13 +473,13 @@ let colorize c regexp =
   let lnl = ref false in
   let rec colorize regexp =
     match regexp with
-      Set s                     -> split s c
+      Set s                     -> Color_map.split s c
     | Sequence l                -> List.iter colorize l
     | Alternative l             -> List.iter colorize l
     | Repeat (r, _, _)          -> colorize r
-    | Beg_of_line | End_of_line -> split (Cset.csingle '\n') c
+    | Beg_of_line | End_of_line -> Color_map.split (Cset.csingle '\n') c
     | Beg_of_word | End_of_word
-    | Not_bound                 -> split cword c
+    | Not_bound                 -> Color_map.split cword c
     | Beg_of_str | End_of_str
     | Start | Stop              -> ()
     | Last_end_of_line          -> lnl := true
@@ -520,21 +494,6 @@ let colorize c regexp =
   in
   colorize regexp;
   !lnl
-
-let make_cmap () = Bytes.make 257 '\000'
-
-let flatten_cmap cm =
-  let c = Bytes.create 256 in
-  let col_repr = Bytes.create 256 in
-  let v = ref 0 in
-  Bytes.set c 0 '\000';
-  Bytes.set col_repr 0 '\000';
-  for i = 1 to 255 do
-    if Bytes.get cm i <> '\000' then incr v;
-    Bytes.set c i (Char.chr !v);
-    Bytes.set col_repr !v (Char.chr i)
-  done;
-  (c, Bytes.sub col_repr 0 (!v + 1), !v + 1)
 
 (**** Compilation ****)
 
@@ -817,19 +776,19 @@ let rec handle_case ign_case = function
 
 let compile_1 regexp =
   let regexp = handle_case false regexp in
-  let c = make_cmap () in
+  let c = Color_map.make () in
   let need_lnl = colorize c regexp in
-  let (col, col_repr, ncol) = flatten_cmap c in
-  let lnl = if need_lnl then ncol else -1 in
-  let ncol = if need_lnl then ncol + 1 else ncol in
+  let (colors, color_repr, ncolor) = Color_map.flatten c in
+  let lnl = if need_lnl then ncolor else -1 in
+  let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ids = A.create_ids () in
   let pos = ref 0 in
   let (r, kind) =
     translate ids
-      `First false false `Greedy pos (ref Cset.CSetMap.empty) col regexp in
+      `First false false `Greedy pos (ref Cset.CSetMap.empty) colors regexp in
   let r = enforce_kind ids `First kind r in
   (*Format.eprintf "<%d %d>@." !ids ncol;*)
-  mk_re r col col_repr ncol lnl (!pos / 2)
+  mk_re ~initial:r ~colors ~color_repr ~ncolor ~lnl ~group_count:(!pos / 2)
 
 (****)
 
@@ -995,84 +954,14 @@ let exec_partial ?pos ?len re s =
   | Running -> `Partial
   | Failed  -> `Mismatch
 
-module Group = struct
-
-  type t = groups
-
-  let offset t i =
-    if 2 * i + 1 >= Array.length t.marks then raise Not_found;
-    let m1 = t.marks.(2 * i) in
-    if m1 = -1 then raise Not_found;
-    let p1 = t.gpos.(m1) - 1 in
-    let p2 = t.gpos.(t.marks.(2 * i + 1)) - 1 in
-    (p1, p2)
-
-  let get t i =
-    let (p1, p2) = offset t i in
-    String.sub t.s p1 (p2 - p1)
-
-  let start subs i = fst (offset subs i)
-
-  let stop subs i = snd (offset subs i)
-
-  let test t i =
-    if 2 * i >= Array.length t.marks then
-      false
-    else
-      let idx = t.marks.(2 * i) in
-      idx <> -1
-
-  let dummy_offset = (-1, -1)
-
-  let all_offset t =
-    let res = Array.make t.gcount dummy_offset in
-    for i = 0 to Array.length t.marks / 2 - 1 do
-      let m1 = t.marks.(2 * i) in
-      if m1 <> -1 then begin
-        let p1 = t.gpos.(m1) in
-        let p2 = t.gpos.(t.marks.(2 * i + 1)) in
-        res.(i) <- (p1 - 1, p2 - 1)
-      end
-    done;
-    res
-
-  let dummy_string = ""
-
-  let all t =
-    let res = Array.make t.gcount dummy_string in
-    for i = 0 to Array.length t.marks / 2 - 1 do
-      let m1 = t.marks.(2 * i) in
-      if m1 <> -1 then begin
-        let p1 = t.gpos.(m1) in
-        let p2 = t.gpos.(t.marks.(2 * i + 1)) in
-        res.(i) <- String.sub t.s (p1 - 1) (p2 - p1)
-      end
-    done;
-    res
-
-  let pp fmt t =
-    let matches =
-      let offsets = all_offset t in
-      let strs = all t in
-      Array.to_list (
-        Array.init (Array.length strs) (fun i -> strs.(i), offsets.(i))
-      ) in
-    let open Fmt in
-    let pp_match fmt (str, (start, stop)) =
-      fprintf fmt "@[(%s (%d %d))@]" str start stop in
-    sexp fmt "Group" (list pp_match) matches
-
-  let nb_groups t = t.gcount
-end
-
 module Mark = struct
 
   type t = Pmark.t
 
-  let test {pmarks ; _} p =
-    Pmark.Set.mem p pmarks
+  let test (g : Group.t) p =
+    Pmark.Set.mem p g.pmarks
 
-  let all s = s.pmarks
+  let all (g : Group.t) = g.pmarks
 
   module Set = Pmark.Set
 
@@ -1082,121 +971,132 @@ module Mark = struct
 
 end
 
-type 'a gen = unit -> 'a option
-
-let gen_of_seq (s:'a Seq.t) : 'a gen =
-  let r = ref s in
-  fun () -> match !r () with
-    | Seq.Nil -> None
-    | Seq.Cons (x, tl) ->
-      r := tl;
-      Some x
-
-let list_of_seq (s:'a Seq.t) : 'a list =
-  Seq.fold_left (fun l x -> x :: l) [] s |> List.rev
-
-let all_seq ?(pos=0) ?len re s : _ Seq.t =
-  if pos < 0 then invalid_arg "Re.all";
-  (* index of the first position we do not consider.
-     !pos < limit is an invariant *)
-  let limit = match len with
-    | None -> String.length s
-    | Some l ->
-      if l<0 || pos+l > String.length s then invalid_arg "Re.all";
-      pos+l
-  in
-  (* iterate on matches. When a match is found, search for the next
-     one just after its end *)
-  let rec aux pos () =
-    if pos >= limit
-    then Seq.Nil (* no more matches *)
-    else
-      match match_str ~groups:true ~partial:false re s
-              ~pos ~len:(limit - pos) with
-      | Match substr ->
-        let p1, p2 = Group.offset substr 0 in
-        let pos = if p1=p2 then p2+1 else p2 in
-        Seq.Cons (substr, aux pos)
-      | Running
-      | Failed -> Seq.Nil
-  in
-  aux pos
-
-let all_gen ?pos ?len re s = all_seq ?pos ?len re s |> gen_of_seq
-let all ?pos ?len re s = all_seq ?pos ?len re s |> list_of_seq
-
-let matches_seq ?pos ?len re s : _ Seq.t =
-  all_seq ?pos ?len re s
-  |> Seq.map (fun sub -> Group.get sub 0)
-
-let matches_gen ?pos ?len re s = matches_seq ?pos ?len re s |> gen_of_seq
-let matches ?pos ?len re s = matches_seq ?pos ?len re s |> list_of_seq
-
 type split_token =
   [ `Text of string
-  | `Delim of groups
+  | `Delim of Group.t
   ]
 
-let split_full_seq ?(pos=0) ?len re s : _ Seq.t =
-  if pos < 0 then invalid_arg "Re.split";
-  let limit = match len with
-    | None -> String.length s
-    | Some l ->
-      if l<0 || pos+l > String.length s then invalid_arg "Re.split";
-      pos+l
-  in
-  (* i: start of delimited string
-     pos: first position after last match of [re]
-     limit: first index we ignore (!pos < limit is an invariant) *)
-  let pos0 = pos in
-  let rec aux state i pos () = match state with
-    | `Idle when pos >= limit ->
-      if i < limit then (
-        let sub = String.sub s i (limit - i) in
-        Seq.Cons (`Text sub, aux state (i+1) pos)
-      ) else Seq.Nil
-    | `Idle ->
-      begin match match_str ~groups:true ~partial:false re s ~pos
-                    ~len:(limit - pos) with
-      | Match substr ->
-        let p1, p2 = Group.offset substr 0 in
-        let pos = if p1=p2 then p2+1 else p2 in
-        let old_i = i in
-        let i = p2 in
-        if p1 > pos0 then (
-          (* string does not start by a delimiter *)
-          let text = String.sub s old_i (p1 - old_i) in
-          let state = `Yield (`Delim substr) in
-          Seq.Cons (`Text text, aux state i pos)
-        ) else Seq.Cons (`Delim substr, aux state i pos)
-      | Running -> Seq.Nil
-      | Failed ->
-        if i < limit
-        then (
-          let text = String.sub s i (limit - i) in
-          (* yield last string *)
-          Seq.Cons (`Text text, aux state limit pos)
-        ) else
-          Seq.Nil
-      end
-    | `Yield x ->
-      Seq.Cons (x, aux `Idle i pos)
-  in
-  aux `Idle pos pos
+module Rseq = struct
+  let all ?(pos=0) ?len re s : _ Seq.t =
+    if pos < 0 then invalid_arg "Re.all";
+    (* index of the first position we do not consider.
+       !pos < limit is an invariant *)
+    let limit = match len with
+      | None -> String.length s
+      | Some l ->
+        if l<0 || pos+l > String.length s then invalid_arg "Re.all";
+        pos+l
+    in
+    (* iterate on matches. When a match is found, search for the next
+       one just after its end *)
+    let rec aux pos () =
+      if pos >= limit
+      then Seq.Nil (* no more matches *)
+      else
+        match match_str ~groups:true ~partial:false re s
+                ~pos ~len:(limit - pos) with
+        | Match substr ->
+          let p1, p2 = Group.offset substr 0 in
+          let pos = if p1=p2 then p2+1 else p2 in
+          Seq.Cons (substr, aux pos)
+        | Running
+        | Failed -> Seq.Nil
+    in
+    aux pos
 
-let split_full_gen ?pos ?len re s : _ gen = split_full_seq ?pos ?len re s |> gen_of_seq
-let split_full ?pos ?len re s = split_full_seq ?pos ?len re s |> list_of_seq
+  let matches ?pos ?len re s : _ Seq.t =
+    all ?pos ?len re s
+    |> Seq.map (fun sub -> Group.get sub 0)
 
-let split_seq ?pos ?len re s : _ Seq.t =
-  let seq = split_full_seq ?pos ?len re s in
-  let rec filter seq () = match seq ()  with
-    | Seq.Nil -> Seq.Nil
-    | Seq.Cons (`Delim _, tl) -> filter tl ()
-    | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter tl)
-  in filter seq
+  let split_full ?(pos=0) ?len re s : _ Seq.t =
+    if pos < 0 then invalid_arg "Re.split";
+    let limit = match len with
+      | None -> String.length s
+      | Some l ->
+        if l<0 || pos+l > String.length s then invalid_arg "Re.split";
+        pos+l
+    in
+    (* i: start of delimited string
+       pos: first position after last match of [re]
+       limit: first index we ignore (!pos < limit is an invariant) *)
+    let pos0 = pos in
+    let rec aux state i pos () = match state with
+      | `Idle when pos >= limit ->
+        if i < limit then (
+          let sub = String.sub s i (limit - i) in
+          Seq.Cons (`Text sub, aux state (i+1) pos)
+        ) else Seq.Nil
+      | `Idle ->
+        begin match match_str ~groups:true ~partial:false re s ~pos
+                      ~len:(limit - pos) with
+        | Match substr ->
+          let p1, p2 = Group.offset substr 0 in
+          let pos = if p1=p2 then p2+1 else p2 in
+          let old_i = i in
+          let i = p2 in
+          if p1 > pos0 then (
+            (* string does not start by a delimiter *)
+            let text = String.sub s old_i (p1 - old_i) in
+            let state = `Yield (`Delim substr) in
+            Seq.Cons (`Text text, aux state i pos)
+          ) else Seq.Cons (`Delim substr, aux state i pos)
+        | Running -> Seq.Nil
+        | Failed ->
+          if i < limit
+          then (
+            let text = String.sub s i (limit - i) in
+            (* yield last string *)
+            Seq.Cons (`Text text, aux state limit pos)
+          ) else
+            Seq.Nil
+        end
+      | `Yield x ->
+        Seq.Cons (x, aux `Idle i pos)
+    in
+    aux `Idle pos pos
 
-let split_gen ?pos ?len re s : _ gen = split_seq ?pos ?len re s |> gen_of_seq
-let split ?pos ?len re s = split_seq ?pos ?len re s |> list_of_seq
+  let split ?pos ?len re s : _ Seq.t =
+    let seq = split_full ?pos ?len re s in
+    let rec filter seq () = match seq ()  with
+      | Seq.Nil -> Seq.Nil
+      | Seq.Cons (`Delim _, tl) -> filter tl ()
+      | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter tl)
+    in filter seq
+end
+
+module Rlist = struct
+  let list_of_seq (s:'a Seq.t) : 'a list =
+    Seq.fold_left (fun l x -> x :: l) [] s |> List.rev
+
+  let all ?pos ?len re s = Rseq.all ?pos ?len re s |> list_of_seq
+
+  let matches ?pos ?len re s = Rseq.matches ?pos ?len re s |> list_of_seq
+
+  let split_full ?pos ?len re s = Rseq.split_full ?pos ?len re s |> list_of_seq
+
+  let split ?pos ?len re s = Rseq.split ?pos ?len re s |> list_of_seq
+end
+
+module Gen = struct
+  type 'a gen = unit -> 'a option
+  let gen_of_seq (s:'a Seq.t) : 'a gen =
+    let r = ref s in
+    fun () -> match !r () with
+      | Seq.Nil -> None
+      | Seq.Cons (x, tl) ->
+        r := tl;
+        Some x
+
+  let split ?pos ?len re s : _ gen =
+    Rseq.split ?pos ?len re s |> gen_of_seq
+
+  let split_full ?pos ?len re s : _ gen =
+    Rseq.split_full ?pos ?len re s |> gen_of_seq
+
+  let all ?pos ?len re s = Rseq.all ?pos ?len re s |> gen_of_seq
+
+  let matches ?pos ?len re s = Rseq.matches ?pos ?len re s |> gen_of_seq
+end
 
 let replace ?(pos=0) ?len ?(all=true) re ~f s =
   if pos < 0 then invalid_arg "Re.replace";
@@ -1277,9 +1177,20 @@ let witness t =
     | End_of_str -> "" in
   witness (handle_case false t)
 
+module Seq = Rseq
+module List = Rlist
+module Group = Group
+
 (** {2 Deprecated functions} *)
 
-type substrings = groups
+type 'a gen        = 'a Gen.gen
+let all_gen        = Gen.all
+let matches_gen    = Gen.matches
+let split_gen      = Gen.split
+let split_full_gen = Gen.split_full
+
+
+type substrings = Group.t
 
 let get = Group.get
 let get_ofs = Group.offset
@@ -1331,3 +1242,7 @@ Rep: e = T,e | ()
 Bounded repetition
   a{0,3} = (a,(a,a?)?)?
 *)
+
+type groups = Group.t
+
+include Rlist

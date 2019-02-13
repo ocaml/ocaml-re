@@ -1,6 +1,8 @@
+module L = List
 open Re
 open OUnit2
 open Fort_unit
+module List = L
 
 let re_match ?pos ?len r s res =
   expect_equal_app
