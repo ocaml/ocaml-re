@@ -96,7 +96,7 @@ let full_split ?(max=0) ~rex s =
   if String.length s = 0 then []
   else if max = 1 then [Text s]
   else
-    let results = Re.List.split_full rex s in
+    let results = Re.split_full rex s in
     let matches =
       List.map (function
         | `Text s -> [Text s]

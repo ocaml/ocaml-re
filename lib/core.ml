@@ -1184,13 +1184,9 @@ module Group = Group
 (** {2 Deprecated functions} *)
 
 type 'a gen        = 'a Gen.gen
-let all            = List.all
 let all_gen        = Gen.all
-let matches        = List.matches
 let matches_gen    = Gen.matches
-let split          = List.split
 let split_gen      = Gen.split
-let split_full     = List.split_full
 let split_full_gen = Gen.split_full
 
 
@@ -1248,3 +1244,5 @@ Bounded repetition
 *)
 
 type groups = Group.t
+
+include Rlist
