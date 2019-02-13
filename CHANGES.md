@@ -1,8 +1,11 @@
-1.8.0 (04-Aug-2018)
+1.8.0 (13-Feb-2019)
 -------------------
 
+* Fix regression in `Re.exec_partial` (#164)
 * Fix index-out-of-bounds exception in Re.Perl.re (#160)
 * Add seq based iterators (#170)
+* Mov gen related functions to `Re.Gen` and deprecate the old names (#167)
+* Introduce `Re.View` that exposes the internal representation (#163)
 
 1.7.3 (05-Mar-2018)
 -------------------
