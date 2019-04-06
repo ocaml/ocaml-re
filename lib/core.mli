@@ -125,6 +125,8 @@ type split_token =
   | `Delim of Group.t (** Delimiter *)
   ]
 
+type 'a seq = 'a Seq.t
+
 module Seq : sig
   val all :
     ?pos:int ->    (** Default: 0 *)
@@ -162,11 +164,17 @@ type 'a gen = unit -> 'a option
 val all_gen : ?pos:int -> ?len:int -> re -> string -> Group.t gen
 [@@ocaml.deprecated "Use Seq.all"]
 
+val all_seq : ?pos:int -> ?len:int -> re -> string -> Group.t seq
+[@@ocaml.deprecated "Use Seq.all"]
+
 val matches : ?pos:int -> ?len:int -> re -> string -> string list
 (** Same as {!all}, but extracts the matched substring rather than returning
     the whole group. This basically iterates over matched strings *)
 
 val matches_gen : ?pos:int -> ?len:int -> re -> string -> string gen
+[@@ocaml.deprecated "Use Seq.matches"]
+
+val matches_seq : ?pos:int -> ?len:int -> re -> string -> string seq
 [@@ocaml.deprecated "Use Seq.matches"]
 
 val split : ?pos:int -> ?len:int -> re -> string -> string list
@@ -177,12 +185,18 @@ val split : ?pos:int -> ?len:int -> re -> string -> string list
 val split_gen : ?pos:int -> ?len:int -> re -> string -> string gen
 [@@ocaml.deprecated "Use Seq.split"]
 
+val split_seq : ?pos:int -> ?len:int -> re -> string -> string seq
+[@@ocaml.deprecated "Use Seq.split"]
+
 val split_full : ?pos:int -> ?len:int -> re -> string -> split_token list
 (** [split re s] splits [s] into chunks separated by [re]. It yields the chunks
     along with the separators. For instance this can be used with a
     whitespace-matching re such as ["[\t ]+"]. *)
 
 val split_full_gen : ?pos:int -> ?len:int -> re -> string -> split_token gen
+[@@ocaml.deprecated "Use Seq.split_full"]
+
+val split_full_seq : ?pos:int -> ?len:int -> re -> string -> split_token seq
 [@@ocaml.deprecated "Use Seq.split_full"]
 
 val replace :
