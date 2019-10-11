@@ -1,3 +1,8 @@
+Unreleased
+----------
+
+* Add the `[:alpha:]` character class in `Re.Perl` (#169)
+
 1.9.0 (05-Apr-2019)
 -------------------
 
