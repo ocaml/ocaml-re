@@ -191,14 +191,27 @@ let enclosed_set ~explicit_slash ~explicit_period kind set =
 let exactly state c =
   State.append state (Re.char c) ~am_at_start_of_component:(c = '/')
 
-let many_many ~explicit_period =
-  (* We explicitly match periods only at the very beginning if [explicit_period] *)
-  Re.opt (
+let many_many state =
+  let explicit_period = state.State.period && state.State.pathname in
+  let first_explicit_period = State.explicit_period state in
+  let match_component ~explicit_period =
     Re.seq [
-      one         ~explicit_slash:false ~explicit_period;
-      Re.rep (one ~explicit_slash:false ~explicit_period:false);
+      one         ~explicit_slash:true ~explicit_period;
+      Re.rep (one ~explicit_slash:true ~explicit_period:false);
     ]
-  )
+  in
+  (* We must match components individually when [period] flag is set,
+     making sure to not match ["foo/.bar"]. *)
+  State.append state (
+    Re.seq [
+      Re.opt (match_component ~explicit_period:first_explicit_period);
+      Re.rep (
+        Re.seq [
+          Re.char '/';
+          match_component ~explicit_period
+        ]
+      );
+    ])
 
 let many (state : State.t) =
   let explicit_slash = State.explicit_slash state in
@@ -226,18 +239,15 @@ let many (state : State.t) =
     (* [maybe_empty] is the default translation of Many, except in some special cases.
     *)
     let maybe_empty = Re.opt not_empty in
-    let then_ state then_ =
+    let enclosed_set state kind set =
       State.append state (Re.alt [
-        then_ ~explicit_period:true;
+        enclosed_set kind set ~explicit_slash:true ~explicit_period:true;
         Re.seq [
           not_empty;
           (* Since [not_empty] matched, subsequent dots are not leading. *)
-          then_ ~explicit_period:false;
+          enclosed_set kind set ~explicit_slash:true ~explicit_period:false;
         ];
       ])
-    in
-    let then_enclosed_set state kind set =
-      then_ state (enclosed_set kind set ~explicit_slash:true)
     in
     let rec lookahead state =
       match State.next state with
@@ -254,10 +264,10 @@ let many (state : State.t) =
         exactly state c
       (* glob *? === glob ?* *)
       | Some (One, state) -> State.append state not_empty
-      | Some (Any_of enclosed, state) -> then_enclosed_set state `Any_of enclosed
-      | Some (Any_but enclosed, state) -> then_enclosed_set state `Any_but enclosed
+      | Some (Any_of enclosed, state) -> enclosed_set state `Any_of enclosed
+      | Some (Any_but enclosed, state) -> enclosed_set state `Any_but enclosed
       (* * then ** === ** *)
-      | Some (ManyMany, state) -> then_ state many_many
+      | Some (ManyMany, state) -> many_many state
     in
     lookahead state
   end
@@ -273,7 +283,7 @@ let piece state piece =
   | Any_but enclosed ->
     State.append state (enclosed_set `Any_but ~explicit_slash ~explicit_period enclosed)
   | Exactly c -> exactly state c
-  | ManyMany -> State.append state (many_many ~explicit_period)
+  | ManyMany -> many_many state
 
 let glob ~pathname ~period glob =
   let rec loop state =

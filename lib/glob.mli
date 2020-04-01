@@ -59,7 +59,8 @@ val glob :
     expansion is purely textual and can be nested. Defaults to false.
 
     [double_asterisk]: If this flag is set, double asterisks ('**') will match slash
-    characters, even if [pathname] is set. Default to true. *)
+    characters, even if [pathname] is set. The [period] flag still applies. Default to
+    true. *)
 
 val glob' : ?anchored:bool -> bool -> string -> Core.t
 (** Same, but allows to choose whether dots at the beginning of a

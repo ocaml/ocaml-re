@@ -104,6 +104,11 @@ let _ =
   assert (re_mismatch (glob ~anchored ~period "**") ".foobar");
   assert (re_mismatch (glob ~anchored ~period "**") ".foo/bar");
   assert (re_mismatch (glob ~anchored ~period "foo/**") "foo/.bar");
+  assert (re_mismatch (glob ~anchored ~period "**") "foo/.bar/bat");
+  assert (re_mismatch (glob ~anchored ~period "foo/**/bat") "foo/.bar/bat");
+  assert (re_mismatch (glob ~anchored ~period "/**/bat") "/foo/.bar/bat");
+  assert (re_mismatch (glob ~anchored ~period "/**/bat") "/.bar/bat");
+  assert (re_mismatch (glob ~anchored ~period "/**bat") "/bar/.bat");
   assert (re_match    (glob ~anchored ~period ".**") ".foobar");
   assert (re_match    (glob ~anchored ~period ".**") ".foo/bar");
   assert (re_match    (glob ~anchored ~period "foo/.**") "foo/.bar");
@@ -112,5 +117,10 @@ let _ =
   assert (re_match    (glob ~anchored ~period "**") ".foobar");
   assert (re_match    (glob ~anchored ~period "**") ".foo/bar");
   assert (re_match    (glob ~anchored ~period "foo/**") "foo/.bar");
+  assert (re_match    (glob ~anchored ~period "**") "foo/.bar/bat");
+  assert (re_match    (glob ~anchored ~period "foo/**/bat") "foo/.bar/bat");
+  assert (re_match    (glob ~anchored ~period "/**/bat") "/foo/.bar/bat");
+  assert (re_match    (glob ~anchored ~period "/**/bat") "/.bar/bat");
+  assert (re_match    (glob ~anchored ~period "/**bat") "/bar/.bat");
 
   run_test_suite "test_re";
