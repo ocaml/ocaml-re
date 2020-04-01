@@ -208,7 +208,7 @@ let many_many state =
       Re.rep (
         Re.seq [
           Re.char '/';
-          match_component ~explicit_period
+          Re.opt (match_component ~explicit_period);
         ]
       );
     ])
