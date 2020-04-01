@@ -46,7 +46,8 @@ val glob :
 
     [pathname]: If this flag is set, match a slash in string only with a slash in pattern
     and not by an asterisk ('*') or a question mark ('?') metacharacter, nor by a bracket
-    expression ('[]') containing a slash. Defaults to true.
+    expression ('[]') containing a slash. Double asterisk ('**') will match anything,
+    including slash characters. Defaults to true.
 
     [period]: If this flag is set, a leading period in string has to be matched exactly by
     a period in pattern. A period is considered to be leading if it is the first
