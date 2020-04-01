@@ -29,6 +29,7 @@ val glob :
   ?pathname:bool ->
   ?period:bool ->
   ?expand_braces:bool ->
+  ?double_asterisk:bool ->
   string ->
   Core.t
 (** Implements the semantics of shells patterns. The returned regular
@@ -46,8 +47,7 @@ val glob :
 
     [pathname]: If this flag is set, match a slash in string only with a slash in pattern
     and not by an asterisk ('*') or a question mark ('?') metacharacter, nor by a bracket
-    expression ('[]') containing a slash. Double asterisk ('**') will match anything,
-    including slash characters. Defaults to true.
+    expression ('[]') containing a slash. Defaults to true.
 
     [period]: If this flag is set, a leading period in string has to be matched exactly by
     a period in pattern. A period is considered to be leading if it is the first
@@ -56,7 +56,10 @@ val glob :
 
     If [expand_braces] is true, braced sets will expand into multiple globs,
     e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2.  As specified for bash, brace
-    expansion is purely textual and can be nested. Defaults to false. *)
+    expansion is purely textual and can be nested. Defaults to false.
+
+    [double_asterisk]: If this flag is set, double asterisks ('**') will match slash
+    characters, even if [pathname] is set. Default to true. *)
 
 val glob' : ?anchored:bool -> bool -> string -> Core.t
 (** Same, but allows to choose whether dots at the beginning of a

@@ -38,7 +38,7 @@ type piece =
 
 type t = piece list
 
-let of_string s : t =
+let of_string ~double_asterisk s : t =
   let i = ref 0 in
   let l = String.length s in
   let eos () = !i = l in
@@ -76,7 +76,7 @@ let of_string s : t =
 
   let piece () =
     if read '*'
-    then if read '*'
+    then if double_asterisk && read '*'
       then ManyMany
       else Many
     else if read '?'
@@ -288,10 +288,11 @@ let glob
       ?(pathname = true)
       ?(period = true)
       ?(expand_braces = false)
+      ?(double_asterisk = true)
       s
   =
   let to_re s =
-    let re = glob ~pathname ~period (of_string s) in
+    let re = glob ~pathname ~period (of_string ~double_asterisk s) in
     if anchored
     then Re.whole_string re
     else re
