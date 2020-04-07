@@ -29,6 +29,7 @@ val glob :
   ?pathname:bool ->
   ?period:bool ->
   ?expand_braces:bool ->
+  ?double_asterisk:bool ->
   string ->
   Core.t
 (** Implements the semantics of shells patterns. The returned regular
@@ -55,7 +56,11 @@ val glob :
 
     If [expand_braces] is true, braced sets will expand into multiple globs,
     e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2.  As specified for bash, brace
-    expansion is purely textual and can be nested. Defaults to false. *)
+    expansion is purely textual and can be nested. Defaults to false.
+
+    [double_asterisk]: If this flag is set, double asterisks ('**') will match slash
+    characters, even if [pathname] is set. The [period] flag still applies. Default to
+    true. *)
 
 val glob' : ?anchored:bool -> bool -> string -> Core.t
 (** Same, but allows to choose whether dots at the beginning of a

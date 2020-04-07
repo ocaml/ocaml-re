@@ -34,10 +34,11 @@ type piece =
   | Any_but of enclosed list
   | One
   | Many
+  | ManyMany
 
 type t = piece list
 
-let of_string s : t =
+let of_string ~double_asterisk s : t =
   let i = ref 0 in
   let l = String.length s in
   let eos () = !i = l in
@@ -75,7 +76,9 @@ let of_string s : t =
 
   let piece () =
     if read '*'
-    then Many
+    then if double_asterisk && read '*'
+      then ManyMany
+      else Many
     else if read '?'
     then One
     else if not (read '[')
@@ -188,6 +191,28 @@ let enclosed_set ~explicit_slash ~explicit_period kind set =
 let exactly state c =
   State.append state (Re.char c) ~am_at_start_of_component:(c = '/')
 
+let many_many state =
+  let explicit_period = state.State.period && state.State.pathname in
+  let first_explicit_period = State.explicit_period state in
+  let match_component ~explicit_period =
+    Re.seq [
+      one         ~explicit_slash:true ~explicit_period;
+      Re.rep (one ~explicit_slash:true ~explicit_period:false);
+    ]
+  in
+  (* We must match components individually when [period] flag is set,
+     making sure to not match ["foo/.bar"]. *)
+  State.append state (
+    Re.seq [
+      Re.opt (match_component ~explicit_period:first_explicit_period);
+      Re.rep (
+        Re.seq [
+          Re.char '/';
+          Re.opt (match_component ~explicit_period);
+        ]
+      );
+    ])
+
 let many (state : State.t) =
   let explicit_slash = State.explicit_slash state in
   let explicit_period = State.explicit_period state in
@@ -241,6 +266,8 @@ let many (state : State.t) =
       | Some (One, state) -> State.append state not_empty
       | Some (Any_of enclosed, state) -> enclosed_set state `Any_of enclosed
       | Some (Any_but enclosed, state) -> enclosed_set state `Any_but enclosed
+      (* * then ** === ** *)
+      | Some (ManyMany, state) -> many_many state
     in
     lookahead state
   end
@@ -256,6 +283,7 @@ let piece state piece =
   | Any_but enclosed ->
     State.append state (enclosed_set `Any_but ~explicit_slash ~explicit_period enclosed)
   | Exactly c -> exactly state c
+  | ManyMany -> many_many state
 
 let glob ~pathname ~period glob =
   let rec loop state =
@@ -270,10 +298,11 @@ let glob
       ?(pathname = true)
       ?(period = true)
       ?(expand_braces = false)
+      ?(double_asterisk = true)
       s
   =
   let to_re s =
-    let re = glob ~pathname ~period (of_string s) in
+    let re = glob ~pathname ~period (of_string ~double_asterisk s) in
     if anchored
     then Re.whole_string re
     else re

@@ -2,6 +2,8 @@ Unreleased
 ----------
 
 * Add the `[:alpha:]` character class in `Re.Perl` (#169)
+* Double asterisk (`**`) in `Re.Glob` (#172)
+  Like `*` but also match `/` characters when `pathname` is set.
 
 1.9.0 (05-Apr-2019)
 -------------------
