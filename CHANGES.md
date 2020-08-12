@@ -1,3 +1,8 @@
+Unreleased
+--------------------
+
+* Improve handling of word boundaries (#179)
+
 1.10.3 (13-Sep-2021)
 --------------------
 
