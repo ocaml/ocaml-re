@@ -1141,19 +1141,34 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
 let replace_string ?pos ?len ?all re ~by s =
   replace ?pos ?len ?all re s ~f:(fun _ -> by)
 
+let rec list_map_all_some acc f = function
+  | [] -> Some (List.rev acc)
+  | h :: t ->
+     match f h with
+     | None -> None
+     | Some x -> list_map_all_some (x :: acc) f t
+let list_map_all_some f l = list_map_all_some [] f l
+
 let witness t =
   let rec witness = function
-    | Set c -> String.make 1 (Char.chr (Cset.pick c))
-    | Sequence xs -> String.concat "" (List.map witness xs)
-    | Alternative (x :: _) -> witness x
-    | Alternative [] -> assert false
+    | Set c ->
+       if Cset.is_empty c
+       then None
+       else Some (String.make 1 (Char.chr (Cset.pick c)))
+    | Sequence xs ->
+       (match list_map_all_some witness xs with
+        | None -> None
+        | Some l -> Some (String.concat "" l))
+    | Alternative l -> List.find_map witness l
     | Repeat (r, from, _to) ->
-      let w = witness r in
-      let b = Buffer.create (String.length w * from) in
-      for _i=1 to from do
-        Buffer.add_string b w
-      done;
-      Buffer.contents b
+       (match witness r with
+        | None -> None
+        | Some w ->
+           let b = Buffer.create (String.length w * from) in
+           for _i=1 to from do
+             Buffer.add_string b w
+           done;
+           Some (Buffer.contents b))
     | No_case r -> witness r
     | Intersection _
     | Complement _
@@ -1174,8 +1189,10 @@ let witness t =
     | Last_end_of_line
     | Start
     | Stop
-    | End_of_str -> "" in
-  witness (handle_case false t)
+    | End_of_str -> Some "" in
+  match witness (handle_case false t) with
+  | None -> raise Not_found
+  | Some w -> w
 
 module Seq = Rseq
 module List = Rlist

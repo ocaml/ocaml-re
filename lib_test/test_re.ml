@@ -1,6 +1,5 @@
 module L = List
 open Re
-open OUnit2
 open Fort_unit
 module List = L
 
@@ -438,13 +437,21 @@ let _ =
   );
 
   expect_pass "witness" (fun () ->
-      let t r e = assert_equal ~printer:(fun x -> x) (witness r) e in
+      let t r e =
+        match e with
+        | None -> expect_eq_str not_found () witness empty
+        | Some str -> expect_eq_str id str witness r
+      in
 
-      t (set "ac") "a";
-      t (repn (str "foo") 3 None) "foofoofoo";
-      t (alt [char 'c' ; char 'd']) "c";
-      t (no_case (str "test")) "TEST";
-      t eol ""
+      t (set "ac") (Some "a");
+      t (repn (str "foo") 3 None) (Some "foofoofoo");
+      t (alt [char 'c' ; char 'd']) (Some "c");
+      t (no_case (str "test")) (Some "TEST");
+      t (seq [str "a"; str "b"]) (Some "ab");
+      t eol (Some "");
+      t empty None;
+      t (seq [str "a"; empty]) None;
+      t (alt [empty ; set "" ; set "ab"]) (Some "a");
     );
 
   (* Fixed bugs *)

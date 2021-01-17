@@ -493,6 +493,8 @@ end with type outer := t
 val witness : t -> string
 (** [witness r] generates a string [s] such that [execp (compile r) s] is true.
 
+   Raise [Not_found] if the regular expression is empty.
+
    This function currently has the following bug: it ignores
    zero-width assertions (beginning/end of words, beginning/end of
    string, etc). So when using such constructions, it is possible
