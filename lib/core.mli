@@ -493,9 +493,10 @@ end with type outer := t
 val witness : t -> string
 (** [witness r] generates a string [s] such that [execp (compile r) s] is true.
 
-    Be warned that this function is buggy because it ignores zero-width
-    assertions like beginning of words. As a result it can generate incorrect
-    results. *)
+   This function currently has the following bug: it ignores
+   zero-width assertions (beginning/end of words, beginning/end of
+   string, etc). So when using such constructions, it is possible
+   that the regular expression doesn't match the returned witness. *)
 
 (** {2 Deprecated functions} *)
 
