@@ -1,6 +1,6 @@
 {
   "name": "ocaml-re",
-  "namespace": "Re",
+  "namespace": false,
   "bsc-flags": ["-bs-no-version-header", "-bs-super-errors"],
   "sources": [ "lib"],
   "suffix": ".bs.js",
