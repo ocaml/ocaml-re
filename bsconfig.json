@@ -1,8 +1,42 @@
 {
   "name": "ocaml-re",
   "namespace": false,
-  "bsc-flags": ["-bs-no-version-header", "-bs-super-errors"],
-  "sources": [ "lib"],
+  "bsc-flags": [ "-bs-no-version-header", "-bs-super-errors" ],
+  "sources": [
+    {
+      "dir": "lib",
+      "files": [
+        "pcre.ml",
+        "group.ml",
+        "emacs.ml",
+        "glob.ml",
+        "category.ml",
+        "re.ml",
+        "color_map.ml",
+        "posix.ml",
+        "str.ml",
+        "pmark.ml",
+        "automata.ml",
+        "fmt.ml",
+        "cset.ml",
+        "core.ml",
+        "perl.ml",
+        "category.mli",
+        "str.mli",
+        "perl.mli",
+        "group.mli",
+        "color_map.mli",
+        "automata.mli",
+        "cset.mli",
+        "glob.mli",
+        "emacs.mli",
+        "posix.mli",
+        "pcre.mli",
+        "pmark.mli",
+        "core.mli"
+      ]
+    }
+  ],
   "suffix": ".bs.js",
   "package-specs": [
     {
