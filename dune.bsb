@@ -1,0 +1,353 @@
+;;;;{BSB GENERATED: NO EDIT
+(subdir ./lib
+(rule
+(targets  re.ast)
+ (deps (:inputs  re.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  re-Re.cmj re-Re.cmi re-Re.cmt re.bs.js)
+ (mode (promote (until-clean) (only re.bs.js)))(deps (:inputs  re.ast)  (:ast_deps .././lib/re.ast ) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o re-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  fmt.ast)
+ (deps (:inputs  fmt.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  fmt-Re.cmj fmt-Re.cmi fmt-Re.cmt fmt.bs.js)
+ (mode (promote (until-clean) (only fmt.bs.js)))(deps (:inputs  fmt.ast)  (:ast_deps .././lib/fmt.ast ) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o fmt-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  str.ast)
+ (deps (:inputs  str.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  str.iast)
+ (deps (:inputs  str.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  str-Re.cmi str-Re.cmti)
+ (deps (:inputs  str.iast)  (:ast_deps .././lib/str.ast .././lib/str.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o str-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  str-Re.cmj str-Re.cmt str.bs.js)
+ (mode (promote (until-clean) (only str.bs.js)))(deps (:inputs  str.ast)  str-Re.cmi (:ast_deps .././lib/str.ast .././lib/str.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o str-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  core.ast)
+ (deps (:inputs  core.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  core.iast)
+ (deps (:inputs  core.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  core-Re.cmi core-Re.cmti)
+ (deps (:inputs  core.iast)  (:ast_deps .././lib/core.ast .././lib/core.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o core-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  core-Re.cmj core-Re.cmt core.bs.js)
+ (mode (promote (until-clean) (only core.bs.js)))(deps (:inputs  core.ast)  core-Re.cmi (:ast_deps .././lib/core.ast .././lib/core.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o core-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  cset.ast)
+ (deps (:inputs  cset.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  cset.iast)
+ (deps (:inputs  cset.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  cset-Re.cmi cset-Re.cmti)
+ (deps (:inputs  cset.iast)  (:ast_deps .././lib/cset.ast .././lib/cset.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o cset-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  cset-Re.cmj cset-Re.cmt cset.bs.js)
+ (mode (promote (until-clean) (only cset.bs.js)))(deps (:inputs  cset.ast)  cset-Re.cmi (:ast_deps .././lib/cset.ast .././lib/cset.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o cset-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  glob.ast)
+ (deps (:inputs  glob.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  glob.iast)
+ (deps (:inputs  glob.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  glob-Re.cmi glob-Re.cmti)
+ (deps (:inputs  glob.iast)  (:ast_deps .././lib/glob.ast .././lib/glob.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o glob-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  glob-Re.cmj glob-Re.cmt glob.bs.js)
+ (mode (promote (until-clean) (only glob.bs.js)))(deps (:inputs  glob.ast)  glob-Re.cmi (:ast_deps .././lib/glob.ast .././lib/glob.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o glob-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pcre.ast)
+ (deps (:inputs  pcre.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pcre.iast)
+ (deps (:inputs  pcre.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pcre-Re.cmi pcre-Re.cmti)
+ (deps (:inputs  pcre.iast)  (:ast_deps .././lib/pcre.ast .././lib/pcre.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o pcre-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pcre-Re.cmj pcre-Re.cmt pcre.bs.js)
+ (mode (promote (until-clean) (only pcre.bs.js)))(deps (:inputs  pcre.ast)  pcre-Re.cmi (:ast_deps .././lib/pcre.ast .././lib/pcre.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o pcre-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  perl.ast)
+ (deps (:inputs  perl.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  perl.iast)
+ (deps (:inputs  perl.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  perl-Re.cmi perl-Re.cmti)
+ (deps (:inputs  perl.iast)  (:ast_deps .././lib/perl.ast .././lib/perl.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o perl-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  perl-Re.cmj perl-Re.cmt perl.bs.js)
+ (mode (promote (until-clean) (only perl.bs.js)))(deps (:inputs  perl.ast)  perl-Re.cmi (:ast_deps .././lib/perl.ast .././lib/perl.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o perl-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  emacs.ast)
+ (deps (:inputs  emacs.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  emacs.iast)
+ (deps (:inputs  emacs.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  emacs-Re.cmi emacs-Re.cmti)
+ (deps (:inputs  emacs.iast)  (:ast_deps .././lib/emacs.ast .././lib/emacs.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o emacs-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  emacs-Re.cmj emacs-Re.cmt emacs.bs.js)
+ (mode (promote (until-clean) (only emacs.bs.js)))(deps (:inputs  emacs.ast)  emacs-Re.cmi (:ast_deps .././lib/emacs.ast .././lib/emacs.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o emacs-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  group.ast)
+ (deps (:inputs  group.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  group.iast)
+ (deps (:inputs  group.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  group-Re.cmi group-Re.cmti)
+ (deps (:inputs  group.iast)  (:ast_deps .././lib/group.ast .././lib/group.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o group-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  group-Re.cmj group-Re.cmt group.bs.js)
+ (mode (promote (until-clean) (only group.bs.js)))(deps (:inputs  group.ast)  group-Re.cmi (:ast_deps .././lib/group.ast .././lib/group.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o group-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pmark.ast)
+ (deps (:inputs  pmark.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pmark.iast)
+ (deps (:inputs  pmark.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pmark-Re.cmi pmark-Re.cmti)
+ (deps (:inputs  pmark.iast)  (:ast_deps .././lib/pmark.ast .././lib/pmark.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o pmark-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  pmark-Re.cmj pmark-Re.cmt pmark.bs.js)
+ (mode (promote (until-clean) (only pmark.bs.js)))(deps (:inputs  pmark.ast)  pmark-Re.cmi (:ast_deps .././lib/pmark.ast .././lib/pmark.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o pmark-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  posix.ast)
+ (deps (:inputs  posix.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  posix.iast)
+ (deps (:inputs  posix.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  posix-Re.cmi posix-Re.cmti)
+ (deps (:inputs  posix.iast)  (:ast_deps .././lib/posix.ast .././lib/posix.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o posix-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  posix-Re.cmj posix-Re.cmt posix.bs.js)
+ (mode (promote (until-clean) (only posix.bs.js)))(deps (:inputs  posix.ast)  posix-Re.cmi (:ast_deps .././lib/posix.ast .././lib/posix.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o posix-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  automata.ast)
+ (deps (:inputs  automata.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  automata.iast)
+ (deps (:inputs  automata.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  automata-Re.cmi automata-Re.cmti)
+ (deps (:inputs  automata.iast)  (:ast_deps .././lib/automata.ast .././lib/automata.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o automata-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  automata-Re.cmj automata-Re.cmt automata.bs.js)
+ (mode (promote (until-clean) (only automata.bs.js)))(deps (:inputs  automata.ast)  automata-Re.cmi (:ast_deps .././lib/automata.ast .././lib/automata.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o automata-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  category.ast)
+ (deps (:inputs  category.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  category.iast)
+ (deps (:inputs  category.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  category-Re.cmi category-Re.cmti)
+ (deps (:inputs  category.iast)  (:ast_deps .././lib/category.ast .././lib/category.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o category-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  category-Re.cmj category-Re.cmt category.bs.js)
+ (mode (promote (until-clean) (only category.bs.js)))(deps (:inputs  category.ast)  category-Re.cmi (:ast_deps .././lib/category.ast .././lib/category.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o category-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  color_map.ast)
+ (deps (:inputs  color_map.ml) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  color_map.iast)
+ (deps (:inputs  color_map.mli) )
+(action
+ (run bsc  -w a -bs-no-version-header -bs-super-errors -absname -bs-ast -o %{targets} %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  color_map-Re.cmi color_map-Re.cmti)
+ (deps (:inputs  color_map.iast)  (:ast_deps .././lib/color_map.ast .././lib/color_map.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -I . -I ../.melange.eobjs   -w a -o color_map-Re.cmi %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ (rule
+(targets  color_map-Re.cmj color_map-Re.cmt color_map.bs.js)
+ (mode (promote (until-clean) (only color_map.bs.js)))(deps (:inputs  color_map.ast)  color_map-Re.cmi (:ast_deps .././lib/color_map.ast .././lib/color_map.iast) ../bsconfig.json ../.melange.eobjs/Re.cmi)
+(action
+ (progn (dynamic-run bsb_helper -bs-ns Re -root /Users/mando/Github/ocaml-re -cwd ./lib %{ast_deps}) (run bsc -bs-ns Re -bs-read-cmi -I . -I ../.melange.eobjs   -w a -bs-package-name ocaml-re -bs-package-output es6:./lib:.bs.js -o color_map-Re.cmj %{inputs})))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ 
+(alias (name bsb_world)(deps  color_map.bs.js category.bs.js automata.bs.js posix.bs.js pmark.bs.js group.bs.js emacs.bs.js perl.bs.js pcre.bs.js glob.bs.js cset.bs.js core.bs.js str.bs.js fmt.bs.js re.bs.js)
+(enabled_if (= %{ocaml_version} "4.12.0"))))
+
+(subdir ./.melange.eobjs(rule
+(targets  Re.cmi)
+ (deps (:inputs  Re.mlmap) )
+(action (run bsc -w -49 -color always -no-alias-deps %{inputs}))
+(enabled_if (= %{ocaml_version} "4.12.0")) )
+ )
+(subdir .melange.eobjs)
+
+(data_only_dirs node_modules .melange.eobjs)
+(alias (name bsb_world))
+;;;;BSB GENERATED: NO EDIT}

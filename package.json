@@ -1,0 +1,11 @@
+{
+  "name": "ocaml-re",
+  "version": "0.9.0",
+  "license": "GNU LESSER GENERAL PUBLIC LICENSE Version 2.1, February 1999",
+  "description": "RE is a regular expression library for OCaml",
+  "files": [
+    "lib/*",
+    "bsconfig.json"
+  ],
+  "scripts": {}
+}

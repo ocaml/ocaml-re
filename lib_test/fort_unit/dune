@@ -1,4 +1,5 @@
-(rule (copy %{project_root}/lib/fmt.ml fmt.ml))
+(rule
+ (copy %{project_root}/lib/fmt.ml fmt.ml))
 
 (library
  (name fort_unit)

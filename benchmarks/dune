@@ -1,3 +1,4 @@
 (executable
+ (modes byte exe)
  (libraries re threads core_bench)
  (name benchmark))

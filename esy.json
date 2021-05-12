@@ -1,0 +1,16 @@
+{
+  "name": "hello",
+  "esy": { "buildsInSource": "_build", "build": "dune build @all" },
+  "scripts": {
+    "buildsInSource": "_build",
+    "build": "dune build @all"
+  },
+  "dependencies": {
+    "@opam/core_bench": "v0.14.0",
+    "@opam/ounit": "2.2.4",
+    "@opam/ounit2": "2.2.4",
+    "melange": "melange-re/melange",
+    "ocaml": "4.12.x"
+  },
+  "devDependencies": { "@opam/ocaml-lsp-server": "*" }
+}

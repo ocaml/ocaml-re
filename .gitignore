@@ -9,3 +9,7 @@ setup.exe
 *.docdir
 .merlin
 *.install
+_esy
+.vscode/settings.json
+*.bs.js
+.melange.eobjs
