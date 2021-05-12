@@ -1,6 +1,6 @@
 {
   "name": "ocaml-re",
-  "namespace": false,
+  "namespace": true,
   "bsc-flags": [ "-bs-no-version-header", "-bs-super-errors" ],
   "sources": [
     {
