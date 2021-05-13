@@ -1,4 +1,16 @@
-(executable
- (modes byte exe)
- (libraries re threads core_bench)
- (name benchmark))
+; (executable
+;  (modes byte exe)
+;  (libraries re threads core_bench)
+;  (name benchmark))
+;
+; need to fix this error for benchmark to work. Caused by adding Seq.re
+; File "benchmarks/benchmark.ml", line 154, characters 15-24:
+; 154 |             |> drain_gen
+;                      ^^^^^^^^^
+; Error: This expression has type 'a Seq.t -> unit
+;        but an expression was expected of type
+;          Re__Core.Group.t Re__Seq.t -> 'b
+;        Type 'a Seq.t = unit -> 'a Seq.node is not compatible with type
+;          Re__Core.Group.t Re__Seq.t = unit -> Re__Core.Group.t Re__Seq.node
+;        Type 'a Seq.node is not compatible with type
+;          Re__Core.Group.t Re__Seq.node
