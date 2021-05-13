@@ -2,7 +2,3 @@
  (_
   (flags
    (:standard -w -50))))
-
-;;;;{BSB GENERATED: NO EDIT
-(include dune.bsb)
-;;;;BSB GENERATED: NO EDIT}
