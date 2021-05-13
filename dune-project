@@ -1,7 +1,3 @@
-(lang dune 2.8)
+(lang dune 1.0)
 
 (name re)
-
-(formatting disabled)
-
-(using action-plugin 0.1)
