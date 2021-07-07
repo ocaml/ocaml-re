@@ -75,23 +75,30 @@ let of_string ~double_asterisk s : t =
   in
 
   let piece () =
-    if read '*'
-    then if double_asterisk && read '*'
-      then ManyMany
-      else Many
+    if read '/' then
+      if read '*' then
+        if double_asterisk && read '*' then
+          if eos () then [ManyMany; Exactly('/')]
+          else [ManyMany]
+        else [Many; Exactly('/')]
+      else [Exactly('/')]
+    else if read '*'
+      then if double_asterisk && read '*'
+        then [ManyMany]
+        else [Many]
     else if read '?'
-    then One
+    then [One]
     else if not (read '[')
-    then Exactly (char ())
+    then [Exactly (char ())]
     else if read '^' || read '!'
-    then Any_but (enclosed ())
-    else Any_of (enclosed ())
+    then [Any_but (enclosed ())]
+    else [Any_of (enclosed ())]
   in
 
   let rec loop pieces =
     if eos ()
     then List.rev pieces
-    else loop (piece () :: pieces)
+    else loop (piece () @ pieces)
   in
 
   loop []
