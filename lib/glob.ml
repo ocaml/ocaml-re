@@ -49,10 +49,10 @@ let of_string ~double_asterisk s : t =
   in
 
   (**
-   [lookahead pattern] will attempt to read [pattern] and will return [true] if it was successful.
+   [read_ahead pattern] will attempt to read [pattern] and will return [true] if it was successful.
    If it fails, it will return [false] and not increment the read index.
   *)
-  let lookahead pattern =
+  let read_ahead pattern =
     let pattern_len = String.length pattern in
     (* if the pattern we are looking for exeeds the remaining length of s, return false immediately *)
     if !i + pattern_len >= l then
@@ -95,7 +95,7 @@ let of_string ~double_asterisk s : t =
   in
 
   let piece () =
-    if double_asterisk && lookahead "/**" && not (eos ())
+    if double_asterisk && read_ahead "/**" && not (eos ())
     then ManyMany
     else if read '*'
     then if double_asterisk && read '*'
