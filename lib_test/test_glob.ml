@@ -98,8 +98,19 @@ let _ =
   assert (re_match    (glob ~anchored "foo/**/bar") "foo/far/oof/bar");
   assert (re_match    (glob ~anchored "foo/**bar") "foo/far/oofbar");
   assert (re_match    (glob ~anchored "foo/**bar") "foo/bar");
+  assert (re_match    (glob ~anchored "foo/**bar") "foo/foobar");
   assert (re_match    (glob ~anchored "/**") "//foo");
   assert (re_match    (glob ~anchored "**") "foo//bar");
+
+  assert (re_match    (glob ~anchored "foo/bar/**/*.ml") "foo/bar/baz/foobar.ml");
+  assert (re_match    (glob ~anchored "foo/bar/**/*.ml") "foo/bar/foobar.ml");
+
+  assert (re_match    (glob ~anchored "foo/**/bar/**/baz") "foo/bar/baz");
+  assert (re_match    (glob ~anchored "foo/**/bar/**/baz") "foo/bar/x/y/z/baz");
+  assert (re_match    (glob ~anchored "foo/**/bar/**/baz") "foo/x/y/z/bar/baz");
+  assert (re_match    (glob ~anchored "foo/**/bar/**/baz") "foo/bar/x/bar/x/baz");
+  assert (re_mismatch (glob ~anchored "foo/**/bar/**/baz") "foo/bar/../x/baz");
+  assert (re_mismatch (glob ~anchored "foo/**/bar/**/baz") "foo/bar/./x/baz");
 
   (* Interaction with [~period] *)
   let period = true in

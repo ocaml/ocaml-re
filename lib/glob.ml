@@ -48,6 +48,26 @@ let of_string ~double_asterisk s : t =
     r
   in
 
+  (**
+   [read_ahead pattern] will attempt to read [pattern] and will return [true] if it was successful.
+   If it fails, it will return [false] and not increment the read index.
+  *)
+  let read_ahead pattern =
+    let pattern_len = String.length pattern in
+    (* if the pattern we are looking for exeeds the remaining length of s, return false immediately *)
+    if !i + pattern_len >= l then
+      false
+    else
+      try
+        for j = 0 to pattern_len - 1 do
+          let found = not (eos ()) && s.[!i + j] = pattern.[j] in
+          if not found then raise_no_trace Exit;
+        done;
+        i := !i + pattern_len;
+        true
+      with | Exit  -> false
+  in
+
   let char () =
     ignore (read '\\' : bool);
     if eos () then raise Parse_error;
@@ -75,7 +95,9 @@ let of_string ~double_asterisk s : t =
   in
 
   let piece () =
-    if read '*'
+    if double_asterisk && read_ahead "/**" && not (eos ())
+    then ManyMany
+    else if read '*'
     then if double_asterisk && read '*'
       then ManyMany
       else Many
