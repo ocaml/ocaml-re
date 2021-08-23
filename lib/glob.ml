@@ -69,7 +69,7 @@ let of_string ~double_asterisk s : t =
   in
 
   let char () =
-    ignore (read '\\' : bool);
+    if not Sys.win32 then ignore (read '\\' : bool);
     if eos () then raise Parse_error;
     let r = s.[!i] in
     incr i;
