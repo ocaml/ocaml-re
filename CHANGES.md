@@ -1,5 +1,5 @@
-Unreleased
-----------
+1.10.0 (25-Aug-2021)
+--------------------
 
 * Add the `[:alpha:]` character class in `Re.Perl` (#169)
 * Double asterisk (`**`) in `Re.Glob` (#172)
