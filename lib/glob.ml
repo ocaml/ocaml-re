@@ -61,7 +61,7 @@ let of_string ~double_asterisk s : t =
       try
         for j = 0 to pattern_len - 1 do
           let found = not (eos ()) && s.[!i + j] = pattern.[j] in
-          if not found then raise_no_trace Exit;
+          if not found then raise_notrace Exit;
         done;
         i := !i + pattern_len;
         true
@@ -69,7 +69,7 @@ let of_string ~double_asterisk s : t =
   in
 
   let char () =
-    ignore (read '\\' : bool);
+    if not Sys.win32 then ignore (read '\\' : bool);
     if eos () then raise Parse_error;
     let r = s.[!i] in
     incr i;
