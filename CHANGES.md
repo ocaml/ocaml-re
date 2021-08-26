@@ -6,6 +6,8 @@
   Like `*` but also match `/` characters when `pathname` is set.
 * Double asterisk should match 0 or more directories unless in trailing
   position. (#192, fixes #185)
+* Glob: add optional argument `?backslash_escapes` to control interpretation of
+  backslashes (useful under Windows) (#197, #198)
 
 1.9.0 (05-Apr-2019)
 -------------------

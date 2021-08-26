@@ -27,6 +27,7 @@ exception Parse_error
 val glob :
   ?anchored:bool ->
   ?pathname:bool ->
+  ?backslash_escapes:bool ->
   ?period:bool ->
   ?expand_braces:bool ->
   ?double_asterisk:bool ->
@@ -39,8 +40,6 @@ val glob :
     '?' matches a single character.
     A sequence '[...]' matches any one of the enclosed characters.
     A sequence '[^...]' or '[!...]' matches any character *but* the enclosed characters.
-    A backslash escapes the following character.  The last character of the string cannot
-    be a backslash.
 
     [anchored] controls whether the regular expression will only match entire
     strings. Defaults to false.
@@ -48,6 +47,11 @@ val glob :
     [pathname]: If this flag is set, match a slash in string only with a slash in pattern
     and not by an asterisk ('*') or a question mark ('?') metacharacter, nor by a bracket
     expression ('[]') containing a slash. Defaults to true.
+
+    [backslash_escapes]: If this flag is set, then a backslash will escape the
+    character following it, and it an error if the last character of the string
+    is a backslash. Otherwise, backslashes are considered equivalent to forward
+    slashes (useful when globbing Windows paths). Defaults to true.
 
     [period]: If this flag is set, a leading period in string has to be matched exactly by
     a period in pattern. A period is considered to be leading if it is the first
