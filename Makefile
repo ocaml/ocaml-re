@@ -23,3 +23,7 @@ release: ## Release on Opam
 	dune-release publish distrib --verbose
 	dune-release opam pkg
 	dune-release opam submit
+
+.PHONY: nix
+nix:
+	nix-shell -A resolve default.nix
