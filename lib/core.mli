@@ -147,34 +147,6 @@ type split_token =
   | `Delim of Group.t (** Delimiter *)
   ]
 
-module Seq : sig
-  val all :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> Group.t Seq.t
-    (** Same as {!all} but returns an iterator
-        @since NEXT_RELEASE *)
-
-  val matches :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> string Seq.t
-    (** Same as {!matches}, but returns an iterator
-        @since NEXT_RELEASE *)
-
-  val split :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> string Seq.t
-    (** @since NEXT_RELEASE *)
-
-  val split_full :
-    ?pos:int ->    (** Default: 0 *)
-    ?len:int ->
-    re -> string -> split_token Seq.t
-    (** @since NEXT_RELEASE *)
-end
-
 val all : ?pos:int -> ?len:int -> re -> string -> Group.t list
 (** Repeatedly calls {!exec} on the given string, starting at given position and
     length.*)
@@ -184,11 +156,17 @@ type 'a gen = unit -> 'a option
 val all_gen : ?pos:int -> ?len:int -> re -> string -> Group.t gen
 [@@ocaml.deprecated "Use Seq.all"]
 
+val all_seq : ?pos:int -> ?len:int -> re -> string -> Group.t Seq.t
+[@@ocaml.deprecated "Use Seq.all"]
+
 val matches : ?pos:int -> ?len:int -> re -> string -> string list
 (** Same as {!all}, but extracts the matched substring rather than returning
     the whole group. This basically iterates over matched strings *)
 
 val matches_gen : ?pos:int -> ?len:int -> re -> string -> string gen
+[@@ocaml.deprecated "Use Seq.matches"]
+
+val matches_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
 [@@ocaml.deprecated "Use Seq.matches"]
 
 val split : ?pos:int -> ?len:int -> re -> string -> string list
@@ -199,6 +177,9 @@ val split : ?pos:int -> ?len:int -> re -> string -> string list
 val split_gen : ?pos:int -> ?len:int -> re -> string -> string gen
 [@@ocaml.deprecated "Use Seq.split"]
 
+val split_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
+[@@ocaml.deprecated "Use Seq.split"]
+
 val split_full : ?pos:int -> ?len:int -> re -> string -> split_token list
 (** [split re s] splits [s] into chunks separated by [re]. It yields the chunks
     along with the separators. For instance this can be used with a
@@ -206,6 +187,37 @@ val split_full : ?pos:int -> ?len:int -> re -> string -> split_token list
 
 val split_full_gen : ?pos:int -> ?len:int -> re -> string -> split_token gen
 [@@ocaml.deprecated "Use Seq.split_full"]
+
+val split_full_seq : ?pos:int -> ?len:int -> re -> string -> split_token Seq.t
+[@@ocaml.deprecated "Use Seq.split_full"]
+
+module Seq : sig
+  val all :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> Group.t Seq.t
+    (** Same as {!all} but returns an iterator
+        @since 1.10.0 *)
+
+  val matches :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string Seq.t
+    (** Same as {!matches}, but returns an iterator
+        @since 1.10.0 *)
+
+  val split :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string Seq.t
+    (** @since 1.10.0 *)
+
+  val split_full :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> split_token Seq.t
+    (** @since 1.10.0 *)
+end
 
 val replace :
   ?pos:int ->    (** Default: 0 *)
