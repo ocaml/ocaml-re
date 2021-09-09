@@ -1183,6 +1183,11 @@ module Group = Group
 
 (** {2 Deprecated functions} *)
 
+let split_full_seq = Seq.split_full
+let split_seq = Seq.split
+let matches_seq = Seq.matches
+let all_seq = Seq.all
+
 type 'a gen        = 'a Gen.gen
 let all_gen        = Gen.all
 let matches_gen    = Gen.matches
