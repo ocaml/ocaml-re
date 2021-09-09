@@ -1,8 +1,10 @@
-Unreleased
-----------
+1.10.1 (08-Sep-2021)
+--------------------
 
 * Glob: add optional argument `?backslash_escapes` to control interpretation of
   backslashes (useful under Windows) (#197, #198)
+
+* Restore accidentally deleted `*_seq` deprecated aliases.
 
 1.10.0 (25-Aug-2021)
 --------------------
