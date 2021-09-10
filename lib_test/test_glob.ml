@@ -136,4 +136,23 @@ let _ =
   assert (re_match    (glob ~anchored ~period "/**/bat") "/.bar/bat");
   assert (re_match    (glob ~anchored ~period "/**bat") "/bar/.bat");
 
+  (* Backslash handling *)
+  let anchored = true in
+  let match_backslashes = false in
+  assert (re_mismatch   (glob ~anchored ~match_backslashes "a/b/c") "a\\b/c");
+  assert (re_match      (glob ~anchored ~match_backslashes "a\\b") "ab");
+  assert (re_match      (glob ~anchored ~match_backslashes "a/*.ml") "a/b\\c.ml");
+  assert (re_mismatch   (glob ~anchored ~match_backslashes "a/b/*.ml") "a\\b\\c.ml");
+  assert (re_mismatch   (glob ~anchored ~match_backslashes "/") "\\");
+  assert (re_mismatch   (glob ~anchored ~match_backslashes "/?") "\\a");
+  assert (re_match      (glob ~anchored ~match_backslashes "a/**.ml") "a\\c\\.b.ml");
+  let match_backslashes = true in
+  assert (re_match      (glob ~anchored ~match_backslashes "a/b/c") "a\\b/c");
+  assert (re_match      (glob ~anchored ~match_backslashes "a\\b") "ab");
+  assert (re_mismatch   (glob ~anchored ~match_backslashes "a/*.ml") "a/b\\c.ml");
+  assert (re_match      (glob ~anchored ~match_backslashes "a/b/*.ml") "a\\b\\c.ml");
+  assert (re_match      (glob ~anchored ~match_backslashes "/") "\\");
+  assert (re_match      (glob ~anchored ~match_backslashes "/?") "\\a");
+  assert (re_mismatch   (glob ~anchored ~match_backslashes "a/**.ml") "a\\c\\.b.ml");
+
   run_test_suite "test_re";
