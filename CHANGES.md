@@ -1,3 +1,10 @@
+Working
+-------
+
+* Glob: change optional argument `?backslash_escapes` to `?match_backslashes`.
+  The interpretation of backslashes in the glob pattern remains unchanged with
+  the new option, but forward slashes match backslashes when activated (#199)
+
 1.10.2 (09-Sep-2021)
 --------------------
 
