@@ -1,5 +1,5 @@
-Working
--------
+1.10.3 (13-Sep-2021)
+--------------------
 
 * Glob: change optional argument `?backslash_escapes` to `?match_backslashes`.
   The interpretation of backslashes in the glob pattern remains unchanged with
