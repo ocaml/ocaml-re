@@ -59,9 +59,9 @@ type re =
     (* The whole regular expression *)
     mutable initial_states : (Category.t * state) list;
     (* Initial states, indexed by initial category *)
-    colors : Bytes.t;
+    colors : string;
     (* Color table *)
-    color_repr : Bytes.t;
+    color_repr : string;
     (* Table from colors to one character of this color *)
     ncolor : int;
     (* Number of colors. *)
@@ -83,7 +83,7 @@ let print_re = pp_re
 type info =
   { re : re;
     (* The automata *)
-    colors : Bytes.t;
+    colors : string;
     (* Color table ([x.colors = x.re.colors])
        Shortcut used for performance reasons *)
     mutable positions : int array;
@@ -104,7 +104,7 @@ let category re ~color =
   else if color = re.lnl then
     Category.(lastnewline ++ newline ++ not_letter)
   else
-    Category.from_char (Bytes.get re.color_repr color)
+    Category.from_char (re.color_repr.[color])
 
 (****)
 
@@ -149,7 +149,7 @@ let delta info cat ~color st =
   desc
 
 let validate info (s:string) ~pos st =
-  let color = Char.code (Bytes.get info.colors (Char.code s.[pos])) in
+  let color = Char.code (info.colors.[Char.code s.[pos]]) in
   let cat = category info.re ~color in
   let desc' = delta info cat ~color st in
   let st' = find_state info.re desc' in
@@ -176,7 +176,7 @@ let rec loop info s pos st =
 
 let rec loop info (s:string) ~pos st =
   if pos < info.last then
-    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
+    let st' = st.next.(Char.code info.colors.[Char.code s.[pos]]) in
     loop2 info s ~pos st st'
   else
     st
@@ -189,7 +189,7 @@ and loop2 info s ~pos st st' =
       (* But then, we don't have enough registers left to store the
          right position.  So, we store the position plus one. *)
       let st'' =
-        st'.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
+        st'.next.(Char.code info.colors.[Char.code s.[pos]]) in
       info.positions.(st'.idx) <- pos;
       loop2 info s ~pos st' st''
     end else begin
@@ -206,7 +206,7 @@ and loop2 info s ~pos st st' =
 
 let rec loop_no_mark info s ~pos ~last st =
   if pos < last then
-    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
+    let st' = st.next.(Char.code info.colors.[Char.code s.[pos]]) in
     if st'.idx >= 0 then
       loop_no_mark info s ~pos:(pos + 1) ~last st'
     else if st'.idx = break then
@@ -246,7 +246,7 @@ let get_color re (s:string) pos =
       (* Special case for the last newline *)
       re.lnl
     else
-      Char.code (Bytes.get re.colors (Char.code s.[pos]))
+      Char.code re.colors.[Char.code s.[pos]]
 
 let rec handle_last_newline info ~pos st ~groups =
   let st' = st.next.(info.re.lnl) in
@@ -258,7 +258,7 @@ let rec handle_last_newline info ~pos st ~groups =
     st'
   end else begin (* Unknown *)
     let color = info.re.lnl in
-    let real_c = Char.code (Bytes.get info.colors (Char.code '\n')) in
+    let real_c = Char.code info.colors.[Char.code '\n'] in
     let cat = category info.re ~color in
     let desc' = delta info cat ~color:real_c st in
     let st' = find_state info.re desc' in
@@ -347,7 +347,7 @@ let cadd c s = Cset.add (Char.code c) s
 
 let trans_set cache cm s =
   match Cset.one_char s with
-  | Some i -> Cset.csingle (Bytes.get cm i)
+  | Some i -> Cset.csingle cm.[i]
   | None ->
     let v = (Cset.hash_rec s, s) in
     try
@@ -356,8 +356,7 @@ let trans_set cache cm s =
       let l =
         Cset.fold_right
           s
-          ~f:(fun (i, j) l -> Cset.union (cseq (Bytes.get cm i)
-                                            (Bytes.get cm j)) l)
+          ~f:(fun (i, j) l -> Cset.union (cseq cm.[i] cm.[j]) l)
           ~init:Cset.empty
       in
       cache := Cset.CSetMap.add v l !cache;
