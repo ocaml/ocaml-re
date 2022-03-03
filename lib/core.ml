@@ -155,54 +155,22 @@ let validate info (s:string) ~pos st =
   let st' = find_state info.re desc' in
   st.next.(color) <- st'
 
-(*
-let rec loop info s pos st =
+let rec loop info s ~pos st =
   if pos < info.last then
-    let st' = st.next.(Char.code info.cols.[Char.code s.[pos]]) in
+    let st' = st.next.(Char.code info.colors.[Char.code s.[pos]]) in
     let idx = st'.idx in
     if idx >= 0 then begin
       info.positions.(idx) <- pos;
-      loop info s (pos + 1) st'
+      loop info s ~pos:(pos + 1) st'
     end else if idx = break then begin
       info.positions.(st'.real_idx) <- pos;
       st'
     end else begin (* Unknown *)
-      validate info s pos st;
-      loop info s pos st
+      validate info s ~pos st;
+      loop info s ~pos st
     end
   else
     st
-*)
-
-let rec loop info (s:string) ~pos st =
-  if pos < info.last then
-    let st' = st.next.(Char.code info.colors.[Char.code s.[pos]]) in
-    loop2 info s ~pos st st'
-  else
-    st
-
-and loop2 info s ~pos st st' =
-  if st'.idx >= 0 then begin
-    let pos = pos + 1 in
-    if pos < info.last then begin
-      (* It is important to place these reads before the write *)
-      (* But then, we don't have enough registers left to store the
-         right position.  So, we store the position plus one. *)
-      let st'' =
-        st'.next.(Char.code info.colors.[Char.code s.[pos]]) in
-      info.positions.(st'.idx) <- pos;
-      loop2 info s ~pos st' st''
-    end else begin
-      info.positions.(st'.idx) <- pos;
-      st'
-    end
-  end else if st'.idx = break then begin
-    info.positions.(st'.real_idx) <- pos + 1;
-    st'
-  end else begin (* Unknown *)
-    validate info s ~pos st;
-    loop info s ~pos st
-  end
 
 let rec loop_no_mark info s ~pos ~last st =
   if pos < last then
@@ -251,10 +219,10 @@ let get_color re (s:string) pos =
 let rec handle_last_newline info ~pos st ~groups =
   let st' = st.next.(info.re.lnl) in
   if st'.idx >= 0 then begin
-    if groups then info.positions.(st'.idx) <- pos + 1;
+    if groups then info.positions.(st'.idx) <- pos;
     st'
   end else if st'.idx = break then begin
-    if groups then info.positions.(st'.real_idx) <- pos + 1;
+    if groups then info.positions.(st'.real_idx) <- pos;
     st'
   end else begin (* Unknown *)
     let color = info.re.lnl in
@@ -320,7 +288,7 @@ let match_str ~groups ~partial re s ~pos ~len =
           Category.(search_boundary ++ category re ~color:(get_color re s last))
       in
       let (idx, res) = final info st final_cat in
-      if groups then info.positions.(idx) <- last + 1;
+      if groups then info.positions.(idx) <- last;
       res
   in
   match res with
