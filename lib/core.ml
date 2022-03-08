@@ -65,9 +65,11 @@ module State : sig
 end = struct
   type t = Table of t array [@@unboxed]
 
-  let get_info (Table st) : state_info = Obj.magic st.(0) [@@inline always]
+  let get_info (Table st) : state_info =
+    Obj.magic (Array.unsafe_get st 0) [@@inline always]
   let set_info (Table st) (info : state_info) = st.(0) <- Obj.magic info
-  let follow_transition (Table st) ~color = st.(1 + color) [@@inline always]
+  let follow_transition (Table st) ~color =
+    Array.unsafe_get st (1 + color) [@@inline always]
   let set_transition (Table st) ~color st' = st.(1 + color) <- st'
 
   let dummy (info : state_info) = Table [|Obj.magic info|]
@@ -177,7 +179,8 @@ let validate info (s:string) ~pos st =
   State.set_transition st ~color st'
 
 let next colors st s pos =
-  State.follow_transition st ~color:(Char.code colors.[Char.code s.[pos]])
+  let c = Char.code (String.unsafe_get s pos) in
+  State.follow_transition st ~color:(Char.code (String.unsafe_get colors c))
 
 let rec loop info ~colors ~positions s ~pos ~last st0 st =
   if pos < last then
@@ -185,10 +188,10 @@ let rec loop info ~colors ~positions s ~pos ~last st0 st =
     let state_info = State.get_info st' in
     let idx = state_info.idx in
     if idx >= 0 then begin
-      positions.(idx) <- pos;
+      Array.unsafe_set positions idx pos;
       loop info ~colors ~positions s ~pos:(pos + 1) ~last st' st'
     end else if idx = break then begin
-      positions.(state_info.real_idx) <- pos;
+      Array.unsafe_set positions (state_info.real_idx) pos;
       st'
     end else begin (* Unknown *)
       validate info s ~pos st0;
