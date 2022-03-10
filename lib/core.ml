@@ -159,33 +159,33 @@ let validate info (s:string) ~pos st =
   let st' = find_state info.re desc' in
   st.next.(color) <- st'
 
-let rec loop info ~colors ~positions s ~pos ~last st =
+let rec loop info ~colors ~positions s ~pos ~last st0 st =
   if pos < last then
     let st' = st.next.(Char.code colors.[Char.code s.[pos]]) in
     let idx = st'.idx in
     if idx >= 0 then begin
       positions.(idx) <- pos;
-      loop info ~colors ~positions s ~pos:(pos + 1) ~last st'
+      loop info ~colors ~positions s ~pos:(pos + 1) ~last st' st'
     end else if idx = break then begin
       info.positions.(st'.real_idx) <- pos;
       st'
     end else begin (* Unknown *)
-      validate info s ~pos st;
-      loop info ~colors ~positions:info.positions s ~pos ~last st
+      validate info s ~pos st0;
+      loop info ~colors ~positions:info.positions s ~pos ~last st0 st0
     end
   else
     st
 
-let rec loop_no_mark info ~colors s ~pos ~last st =
+let rec loop_no_mark info ~colors s ~pos ~last st0 st =
   if pos < last then
     let st' = st.next.(Char.code colors.[Char.code s.[pos]]) in
     if st'.idx >= 0 then
-      loop_no_mark info ~colors s ~pos:(pos + 1) ~last st'
+      loop_no_mark info ~colors s ~pos:(pos + 1) ~last st' st'
     else if st'.idx = break then
       st'
     else begin (* Unknown *)
-      validate info s ~pos st;
-      loop_no_mark info ~colors s ~pos ~last st
+      validate info s ~pos st0;
+      loop_no_mark info ~colors s ~pos ~last st0 st0
     end
   else
     st
@@ -242,6 +242,7 @@ let rec scan_str info (s:string) initial_state ~groups =
   let pos = info.pos in
   let last = info.last in
   if (last = String.length s
+
       && info.re.lnl <> -1
       && last > pos
       && String.get s (last - 1) = '\n')
@@ -254,10 +255,10 @@ let rec scan_str info (s:string) initial_state ~groups =
       handle_last_newline info ~pos:(last - 1) st ~groups
   end else if groups then
     loop info ~colors:info.re.colors ~positions:info.positions
-      s ~pos ~last initial_state
+      s ~pos ~last initial_state initial_state
   else
     loop_no_mark
-      info ~colors:info.re.colors s ~pos ~last initial_state
+      info ~colors:info.re.colors s ~pos ~last initial_state initial_state
 
 (* This function adds a final boundary check on the input.
    This is useful to indicate that the output failed because
