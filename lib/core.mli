@@ -86,16 +86,26 @@ val exec :
     possible, the one specified by the match semantics described below is
     returned.
 
+    {5 Examples:}
+    {[
+        # let regex = Re.compile Re.(seq [str "//"; rep print ]);;
+        val regex : re = <abstr>
+
+        # Re.exec regex "// a C comment";;
+        - : Re.substrings = <abstr>
+
+        # Re.exec regex "# a C comment?";;
+        Exception: Not_found
+
+        # Re.exec ~pos:1 regex "// a C comment";;
+        Exception: Not_found
+    ]}
+
+
     @param pos optional beginning of the string (default 0)
     @param len length of the substring of [str] that can be matched (default [-1],
       meaning to the end of the string)
     @raise Not_found if the regular expression can't be found in [str]
-
-    Note that [exec re str ~pos ~len] is not equivalent to [exec re
-    (String.sub str pos len)]. This transformation changes the meaning
-    of some constructs ({!bos}, {!eos}, {!whole_string} and {!leol}), and
-    zero-width assertions like {!bow} or {!eow} look at characters before
-    [pos] and after [pos + len].
 *)
 
 val exec_opt :
@@ -111,6 +121,18 @@ val execp :
 (** Similar to {!exec}, but returns [true] if the expression matches,
     and [false] if it doesn't. This function is more efficient than
     calling {!exec} or {!exec_opt} and ignoring the returned group.
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile Re.(seq [str "//"; rep print ]);;
+        val regex : re = <abstr>
+
+        # Re.execp regex "// a C comment";;
+        - : bool = true
+
+        # Re.execp ~pos:1 regex "// a C comment";;
+        - : bool = false
+    ]}
  *)
 
 val exec_partial :
@@ -119,7 +141,26 @@ val exec_partial :
   re -> string -> [ `Full | `Partial | `Mismatch ]
 (** More detailed version of {!exec_p}. [`Full] is equivalent to [true],
    while [`Mismatch] and [`Partial] are equivalent to [false], but [`Partial]
-   indicates the input string could be extended to create a match. *)
+   indicates the input string could be extended to create a match.
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile Re.(seq [bos; str "// a C comment"]);;
+        val regex : re = <abstr>
+
+        # Re.exec_partial regex "// a C comment here.";;
+        - : [ `Full | `Mismatch | `Partial ] = `Full
+
+        # Re.exec_partial regex "// a C comment";;
+        - : [ `Full | `Mismatch | `Partial ] = `Partial
+
+        # Re.exec_partial regex "//";;
+        - : [ `Full | `Mismatch | `Partial ] = `Partial
+
+        # Re.exec_partial regex "# a C comment?";;
+        - : [ `Full | `Mismatch | `Partial ] = `Mismatch
+    ]}
+*)
 
 (** Marks *)
 module Mark : sig
@@ -171,8 +212,23 @@ val matches_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
 
 val split : ?pos:int -> ?len:int -> re -> string -> string list
 (** [split re s] splits [s] into chunks separated by [re]. It yields the chunks
-    themselves, not the separator. For instance this can be used with a
-    whitespace-matching re such as ["[\t ]+"]. *)
+    themselves, not the separator.
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile (Re.char ',');;
+        val regex : re = <abstr>
+
+        # Re.split regex "Re,Ocaml,Jerome Vouillon";;
+        - : string list = ["Re"; "Ocaml"; "Jerome Vouillon"]
+
+        # Re.split regex "No commas in this sentence.";;
+        - : string list = ["No commas in this sentence."]
+
+        # Re.split ~pos:3 regex "1,2,3,4. Commas go brrr.";;
+        - : string list = ["3"; "4. Commas go brrr."]
+    ]}
+*)
 
 val split_gen : ?pos:int -> ?len:int -> re -> string -> string gen
 [@@ocaml.deprecated "Use Seq.split"]
