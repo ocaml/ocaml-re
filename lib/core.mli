@@ -112,7 +112,23 @@ val exec_opt :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->    (** Default: -1 (until end of string) *)
   re -> string -> Group.t option
-(** Similar to {!exec}, but returns an option instead of using an exception. *)
+(** Similar to {!exec}, but returns an option instead of using an exception.
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile Re.(seq [str "//"; rep print ]);;
+        val regex : re = <abstr>
+
+        # Re.exec_opt regex "// a C comment";;
+        - : Re.substrings option = Some <abstr>
+
+        # Re.exec_opt regex "# a C comment?";;
+        - : Re.substrings option = None
+
+        # Re.exec_opt ~pos:1 regex "// a C comment";;
+        - : Re.substrings option = None
+    ]}
+*)
 
 val execp :
   ?pos:int ->    (** Default: 0 *)
@@ -196,9 +212,11 @@ type 'a gen = unit -> 'a option
 
 val all_gen : ?pos:int -> ?len:int -> re -> string -> Group.t gen
 [@@ocaml.deprecated "Use Seq.all"]
+(** @deprecated Use {!module-Seq.all} instead. *)
 
 val all_seq : ?pos:int -> ?len:int -> re -> string -> Group.t Seq.t
 [@@ocaml.deprecated "Use Seq.all"]
+(** @deprecated Use {!module-Seq.all} instead. *)
 
 val matches : ?pos:int -> ?len:int -> re -> string -> string list
 (** Same as {!all}, but extracts the matched substring rather than returning
@@ -206,9 +224,11 @@ val matches : ?pos:int -> ?len:int -> re -> string -> string list
 
 val matches_gen : ?pos:int -> ?len:int -> re -> string -> string gen
 [@@ocaml.deprecated "Use Seq.matches"]
+(** @deprecated Use {!module-Seq.matches} instead. *)
 
 val matches_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
 [@@ocaml.deprecated "Use Seq.matches"]
+(** @deprecated Use {!module-Seq.matches} instead. *)
 
 val split : ?pos:int -> ?len:int -> re -> string -> string list
 (** [split re s] splits [s] into chunks separated by [re]. It yields the chunks
@@ -232,20 +252,43 @@ val split : ?pos:int -> ?len:int -> re -> string -> string list
 
 val split_gen : ?pos:int -> ?len:int -> re -> string -> string gen
 [@@ocaml.deprecated "Use Seq.split"]
+(** @deprecated Use {!module-Seq.split} instead. *)
 
 val split_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
 [@@ocaml.deprecated "Use Seq.split"]
+(** @deprecated Use {!module-Seq.split} instead. *)
 
 val split_full : ?pos:int -> ?len:int -> re -> string -> split_token list
 (** [split re s] splits [s] into chunks separated by [re]. It yields the chunks
     along with the separators. For instance this can be used with a
-    whitespace-matching re such as ["[\t ]+"]. *)
+    whitespace-matching re such as ["[\t ]+"].
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile (Re.char ',');;
+        val regex : re = <abstr>
+
+        # Re.split_full regex "Re,Ocaml,Jerome Vouillon";;
+        - : Re.split_token list =
+          [`Text "Re"; `Delim <abstr>; `Text "Ocaml"; `Delim <abstr>;
+          `Text "Jerome Vouillon"]
+
+        # Re.split_full regex "No commas in this sentence.";;
+        - : Re.split_token list = [`Text "No commas in this sentence."]
+
+        # Re.split_full ~pos:3 regex "1,2,3,4. Commas go brrr.";;
+        - : Re.split_token list =
+          [`Delim <abstr>; `Text "3"; `Delim <abstr>; `Text "4. Commas go brrr."]
+    ]}
+*)
 
 val split_full_gen : ?pos:int -> ?len:int -> re -> string -> split_token gen
 [@@ocaml.deprecated "Use Seq.split_full"]
+(** @deprecated Use {!module-Seq.split_full} instead. *)
 
 val split_full_seq : ?pos:int -> ?len:int -> re -> string -> split_token Seq.t
 [@@ocaml.deprecated "Use Seq.split_full"]
+(** @deprecated Use {!module-Seq.split_full} instead. *)
 
 module Seq : sig
   val all :
