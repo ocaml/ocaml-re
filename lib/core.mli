@@ -155,7 +155,7 @@ val exec_partial :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->    (** Default: -1 (until end of string) *)
   re -> string -> [ `Full | `Partial | `Mismatch ]
-(** More detailed version of {!exec_p}. [`Full] is equivalent to [true],
+(** More detailed version of {!execp}. [`Full] is equivalent to [true],
    while [`Mismatch] and [`Partial] are equivalent to [false], but [`Partial]
    indicates the input string could be extended to create a match.
 
