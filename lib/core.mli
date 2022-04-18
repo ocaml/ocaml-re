@@ -220,7 +220,26 @@ val all_seq : ?pos:int -> ?len:int -> re -> string -> Group.t Seq.t
 
 val matches : ?pos:int -> ?len:int -> re -> string -> string list
 (** Same as {!all}, but extracts the matched substring rather than returning
-    the whole group. This basically iterates over matched strings *)
+    the whole group. This basically iterates over matched strings.
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
+        - : val regex : re = <abstr>
+
+        # Re.matches regex "my head, my shoulders, my knees, my toes ...";;
+        - : string list = ["my head"; "my shoulders"; "my knees"; "my toes"]
+
+        # Re.matches regex "My head, My shoulders, My knees, My toes ...";;
+        - : string list = []
+
+        # Re.matches regex "my my my my head my 1 toe my ...";;
+        - : string list = ["my my"; "my my"]
+
+        # Re.matches ~pos:2 regex "my my my my head my +1 toe my ...";;
+        - : string list = ["my my"; "my head"]
+    ]}
+*)
 
 val matches_gen : ?pos:int -> ?len:int -> re -> string -> string gen
 [@@ocaml.deprecated "Use Seq.matches"]
