@@ -359,7 +359,20 @@ val replace_string :
   string
 (** [replace_string ~all re ~by s] iterates on [s], and replaces every
     occurrence of [re] with [by]. If [all = false], then only the first
-    occurrence of [re] is replaced. *)
+    occurrence of [re] is replaced. 
+    
+    {5 Examples:}
+    {[
+        # let regex = Re.compile (Re.char ',');;
+        val regex : re = <abstr>
+
+        # Re.replace_string regex ~by:";" "[1,2,3,4,5,6,7]";;
+        - : string = "[1;2;3;4;5;6;7]"
+
+        # Re.replace_string regex ~all:false ~by:";" "[1,2,3,4,5,6,7]";;
+        - : string = "[1;2,3,4,5,6,7]"
+    ]}
+*)
 
 (** {2 String expressions (literal match)} *)
 
