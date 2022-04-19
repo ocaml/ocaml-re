@@ -314,14 +314,14 @@ module Seq : sig
     ?pos:int ->    (** Default: 0 *)
     ?len:int ->
     re -> string -> Group.t Seq.t
-    (** Same as {!all} but returns an iterator
+    (** Same as {!module-Re.val-all} but returns an iterator.
         @since 1.10.0 *)
 
   val matches :
     ?pos:int ->    (** Default: 0 *)
     ?len:int ->
     re -> string -> string Seq.t
-    (** Same as {!matches}, but returns an iterator
+    (** Same as {!module-Re.val-matches}, but returns an iterator.
         @since 1.10.0 *)
 
   val split :
