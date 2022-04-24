@@ -206,7 +206,20 @@ type split_token =
 
 val all : ?pos:int -> ?len:int -> re -> string -> Group.t list
 (** Repeatedly calls {!exec} on the given string, starting at given position and
-    length.*)
+    length.
+    
+    {5 Examples:}
+    {[
+        # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
+        - : val regex : re = <abstr>
+
+        # Re.all regex "my head, my shoulders, my knees, my toes ...";;
+        - : Re.substrings list = [<abstr>; <abstr>; <abstr>; <abstr>]
+
+        # Re.all regex "My head, My shoulders, My knees, My toes ...";;
+        - : Re.substrings list = []
+    ]}
+*)
 
 type 'a gen = unit -> 'a option
 
@@ -315,6 +328,15 @@ module Seq : sig
     ?len:int ->
     re -> string -> Group.t Seq.t
     (** Same as {!module-Re.val-all} but returns an iterator.
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
+        - : val regex : re = <abstr>
+
+        # Re.Seq.all regex "my head, my shoulders, my knees, my toes ...";;
+        - : Re.substrings Seq.t = <fun>
+    ]}
         @since 1.10.0 *)
 
   val matches :
@@ -322,19 +344,48 @@ module Seq : sig
     ?len:int ->
     re -> string -> string Seq.t
     (** Same as {!module-Re.val-matches}, but returns an iterator.
+
+    {5 Example:}
+    {[
+        # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
+        - : val regex : re = <abstr>
+
+        # Re.Seq.matches regex "my head, my shoulders, my knees, my toes ...";;
+        - : string Seq.t = <fun>
+    ]}
         @since 1.10.0 *)
 
   val split :
     ?pos:int ->    (** Default: 0 *)
     ?len:int ->
     re -> string -> string Seq.t
-    (** @since 1.10.0 *)
+    (** Same as {!module-Re.val-split} but returns an iterator.
+
+    {5 Example:}
+    {[
+        # let regex = Re.compile (Re.char ',');;
+        val regex : re = <abstr>
+
+        # Re.Seq.split regex "Re,Ocaml,Jerome Vouillon";;
+        - : string Seq.t = <fun>
+    ]}
+        @since 1.10.0 *)
 
   val split_full :
     ?pos:int ->    (** Default: 0 *)
     ?len:int ->
     re -> string -> split_token Seq.t
-    (** @since 1.10.0 *)
+    (** Same as {!module-Re.val-split_full} but returns an iterator.
+
+    {5 Example:}
+    {[
+        # let regex = Re.compile (Re.char ',');;
+        val regex : re = <abstr>
+
+        # Re.Seq.split_full regex "Re,Ocaml,Jerome Vouillon";;
+        - : Re__Core.split_token Seq.t = <fun>
+    ]}
+        @since 1.10.0 *)
 end
 
 val replace :
