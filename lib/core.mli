@@ -211,7 +211,7 @@ val all : ?pos:int -> ?len:int -> re -> string -> Group.t list
     {5 Examples:}
     {[
         # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
-        - : val regex : re = <abstr>
+        val regex : re = <abstr>
 
         # Re.all regex "my head, my shoulders, my knees, my toes ...";;
         - : Re.substrings list = [<abstr>; <abstr>; <abstr>; <abstr>]
@@ -238,7 +238,7 @@ val matches : ?pos:int -> ?len:int -> re -> string -> string list
     {5 Examples:}
     {[
         # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
-        - : val regex : re = <abstr>
+        val regex : re = <abstr>
 
         # Re.matches regex "my head, my shoulders, my knees, my toes ...";;
         - : string list = ["my head"; "my shoulders"; "my knees"; "my toes"]
@@ -332,7 +332,7 @@ module Seq : sig
     {5 Examples:}
     {[
         # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
-        - : val regex : re = <abstr>
+        val regex : re = <abstr>
 
         # Re.Seq.all regex "my head, my shoulders, my knees, my toes ...";;
         - : Re.substrings Seq.t = <fun>
@@ -348,7 +348,7 @@ module Seq : sig
     {5 Example:}
     {[
         # let regex = Re.compile Re.(seq [str "my"; blank; word(rep alpha)]);;
-        - : val regex : re = <abstr>
+        val regex : re = <abstr>
 
         # Re.Seq.matches regex "my head, my shoulders, my knees, my toes ...";;
         - : string Seq.t = <fun>
