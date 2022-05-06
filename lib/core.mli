@@ -29,6 +29,15 @@ type t
 type re
 (** Compiled regular expression *)
 
+(**/**)
+(** Alias for {!Group.t}. Deprecated *)
+type substrings = Group.t
+[@@ocaml.deprecated "Use Group.t"]
+
+(** Alias for {!Group.t}. Deprecated *)
+type groups = Group.t [@@ocaml.deprecated "Use Group.t"]
+(**/**)
+
 (** Manipulate matching groups. *)
 module Group : sig
   type t
@@ -66,7 +75,6 @@ module Group : sig
 
   val pp : Format.formatter -> t -> unit
 end
-type groups = Group.t [@@ocaml.deprecated "Use Group.t"]
 
 (** {2 Compilation and execution of a regular expression} *)
 
@@ -692,10 +700,6 @@ val witness : t -> string
     results. *)
 
 (** {2 Deprecated functions} *)
-
-type substrings = Group.t
-[@@ocaml.deprecated "Use Group.t"]
-(** Alias for {!Group.t}. Deprecated *)
 
 val get : Group.t -> int -> string
 [@@ocaml.deprecated "Use Group.get"]
