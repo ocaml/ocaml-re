@@ -1,4 +1,4 @@
-Unreleased
+1.10.4 (27-Apr-2022)
 --------------------
 
 * Improve handling of word boundaries (#179)
