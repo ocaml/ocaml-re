@@ -14,13 +14,13 @@ bug-reports: "https://github.com/ocaml/ocaml-re/issues"
 dev-repo: "git+https://github.com/ocaml/ocaml-re.git"
 
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   ["dune" "build" "-p" name "-j" jobs]
   ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
 
 depends: [
-  "ocaml" {>= "4.02"}
+  "ocaml" {>= "4.03"}
   "dune" {>= "2.0"}
   "ounit" {with-test}
   "seq"
