@@ -48,7 +48,7 @@ let match_line line =
 ]}
 *)
 
-(** XXX Character classes *)
+(* XXX Character classes *)
 
 exception Parse_error
 exception Not_supported
