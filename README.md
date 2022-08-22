@@ -29,7 +29,7 @@ The most notable missing features are **back-references** and
 look-ahead/look-behind **assertions**.
 
 There is also a subset of the PCRE interface available in the `Re.Pcre` module.
-This makes it easier to port code from that library to Re minimal changes.
+This makes it easier to port code from that library to Re with minimal changes.
 
 Performances
 ============
