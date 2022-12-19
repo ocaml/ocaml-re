@@ -303,7 +303,23 @@ val matches_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
 
       # Re.split ~pos:3 regex "1,2,3,4. Commas go brrr.";;
       - : string list = ["3"; "4. Commas go brrr."]
-    ]} *)
+    ]}
+
+    Be careful when using [split] with zero-length patterns like [eol], [bow],
+    and [eow].
+
+    {[
+      # Re.split (Re.compile Re.eol) "a\nb";;
+      - : string list = ["a"; "\nb"]
+
+      # Re.split (Re.compile Re.bow) "a b";;
+      - : string list = ["a "; "b"]
+
+      # Re.split (Re.compile Re.eow) "a b";;
+      - : string list = ["a"; " b"]
+    ]}
+
+    Note the position of the [\n] and space characters in the output. *)
 val split : ?pos:int -> ?len:int -> re -> string -> string list
 
 (** [split_delim re s] splits [s] into chunks separated by [re]. It
