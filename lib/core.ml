@@ -32,7 +32,7 @@ type match_info =
   | Failed
   | Running
 
-type state =
+type state_info =
   { idx : int;
     (* Index of the current position in the position table.
        Not yet computed transitions point to a dummy state where
@@ -41,8 +41,6 @@ type state =
        succeed or always fail. *)
     real_idx : int;
     (* The real index, in case [idx] is set to [break] *)
-    next : state array;
-    (* Transition table, indexed by color *)
     mutable final :
       (Category.t *
        (Automata.idx * Automata.status)) list;
@@ -53,15 +51,48 @@ type state =
     desc : Automata.State.t
     (* Description of this state of the automata *) }
 
+(* A state [t] is a pair composed of some information about the
+   state [state_info] and a transition table [t array], indexed by
+   color. For performance reason, to avoid an indirection, we manually
+   unbox the transition table: we allocate a single array, with the
+   state information at index 0, followed by the transitions. *)
+module State : sig
+  type t
+  val make : int -> state_info -> t
+  val get_info : t -> state_info
+  val follow_transition: t -> color:int -> t
+  val set_transition : t -> color:int -> t -> unit
+end = struct
+  type t = Table of t array [@@unboxed]
+
+  let get_info (Table st) : state_info =
+    Obj.magic (Array.unsafe_get st 0) [@@inline always]
+  let set_info (Table st) (info : state_info) = st.(0) <- Obj.magic info
+  let follow_transition (Table st) ~color =
+    Array.unsafe_get st (1 + color) [@@inline always]
+  let set_transition (Table st) ~color st' = st.(1 + color) <- st'
+
+  let dummy (info : state_info) = Table [|Obj.magic info|]
+
+  let unknown_state =
+    dummy
+      { idx = unknown; real_idx = 0; final = []; desc = Automata.State.dummy }
+
+  let make ncol state =
+    let st = Table (Array.make (ncol + 1) unknown_state) in
+    set_info st state;
+    st
+end
+
 (* Automata (compiled regular expression) *)
 type re =
   { initial : Automata.expr;
     (* The whole regular expression *)
-    mutable initial_states : (Category.t * state) list;
+    mutable initial_states : (Category.t * State.t) list;
     (* Initial states, indexed by initial category *)
-    colors : Bytes.t;
+    colors : string;
     (* Color table *)
-    color_repr : Bytes.t;
+    color_repr : string;
     (* Table from colors to one character of this color *)
     ncolor : int;
     (* Number of colors. *)
@@ -70,7 +101,7 @@ type re =
     tbl : Automata.working_area;
     (* Temporary table used to compute the first available index
        when computing a new state *)
-    states : state Automata.State.Table.t;
+    states : State.t Automata.State.Table.t;
     (* States of the deterministic automata *)
     group_count : int
     (* Number of groups in the regular expression *) }
@@ -83,9 +114,6 @@ let print_re = pp_re
 type info =
   { re : re;
     (* The automata *)
-    colors : Bytes.t;
-    (* Color table ([x.colors = x.re.colors])
-       Shortcut used for performance reasons *)
     mutable positions : int array;
     (* Array of mark positions
        The mark are off by one for performance reasons *)
@@ -104,16 +132,9 @@ let category re ~color =
   else if color = re.lnl then
     Category.(lastnewline ++ newline ++ not_letter)
   else
-    Category.from_char (Bytes.get re.color_repr color)
+    Category.from_char (re.color_repr.[color])
 
 (****)
-
-let dummy_next = [||]
-
-let unknown_state =
-  { idx = unknown; real_idx = 0;
-    next = dummy_next; final = [];
-    desc = Automata.State.dummy }
 
 let mk_state ncol desc =
   let break_state =
@@ -122,11 +143,13 @@ let mk_state ncol desc =
     | Automata.Failed
     | Automata.Match _ -> true
   in
-  { idx = if break_state then break else desc.Automata.State.idx;
-    real_idx = desc.Automata.State.idx;
-    next = if break_state then dummy_next else Array.make ncol unknown_state;
-    final = [];
-    desc }
+  let st =
+    { idx = if break_state then break else desc.Automata.State.idx;
+      real_idx = desc.Automata.State.idx;
+      final = [];
+      desc }
+  in
+  State.make (if break_state then 0 else ncol) st
 
 let find_state re desc =
   try
@@ -149,71 +172,46 @@ let delta info cat ~color st =
   desc
 
 let validate info (s:string) ~pos st =
-  let color = Char.code (Bytes.get info.colors (Char.code s.[pos])) in
+  let color = Char.code (info.re.colors.[Char.code s.[pos]]) in
   let cat = category info.re ~color in
-  let desc' = delta info cat ~color st in
+  let desc' = delta info cat ~color (State.get_info st) in
   let st' = find_state info.re desc' in
-  st.next.(color) <- st'
+  State.set_transition st ~color st'
 
-(*
-let rec loop info s pos st =
-  if pos < info.last then
-    let st' = st.next.(Char.code info.cols.[Char.code s.[pos]]) in
-    let idx = st'.idx in
+let next colors st s pos =
+  let c = Char.code (String.unsafe_get s pos) in
+  State.follow_transition st ~color:(Char.code (String.unsafe_get colors c))
+
+let rec loop info ~colors ~positions s ~pos ~last st0 st =
+  if pos < last then
+    let st' = next colors st s pos in
+    let state_info = State.get_info st' in
+    let idx = state_info.idx in
     if idx >= 0 then begin
-      info.positions.(idx) <- pos;
-      loop info s (pos + 1) st'
+      Array.unsafe_set positions idx pos;
+      loop info ~colors ~positions s ~pos:(pos + 1) ~last st' st'
     end else if idx = break then begin
-      info.positions.(st'.real_idx) <- pos;
+      Array.unsafe_set positions (state_info.real_idx) pos;
       st'
     end else begin (* Unknown *)
-      validate info s pos st;
-      loop info s pos st
+      validate info s ~pos st0;
+      loop info ~colors ~positions:info.positions s ~pos ~last st0 st0
     end
   else
     st
-*)
 
-let rec loop info (s:string) ~pos st =
-  if pos < info.last then
-    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
-    loop2 info s ~pos st st'
-  else
-    st
-
-and loop2 info s ~pos st st' =
-  if st'.idx >= 0 then begin
-    let pos = pos + 1 in
-    if pos < info.last then begin
-      (* It is important to place these reads before the write *)
-      (* But then, we don't have enough registers left to store the
-         right position.  So, we store the position plus one. *)
-      let st'' =
-        st'.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
-      info.positions.(st'.idx) <- pos;
-      loop2 info s ~pos st' st''
-    end else begin
-      info.positions.(st'.idx) <- pos;
-      st'
-    end
-  end else if st'.idx = break then begin
-    info.positions.(st'.real_idx) <- pos + 1;
-    st'
-  end else begin (* Unknown *)
-    validate info s ~pos st;
-    loop info s ~pos st
-  end
-
-let rec loop_no_mark info s ~pos ~last st =
+let rec loop_no_mark info ~colors s ~pos ~last st0 st =
   if pos < last then
-    let st' = st.next.(Char.code (Bytes.get info.colors (Char.code s.[pos]))) in
-    if st'.idx >= 0 then
-      loop_no_mark info s ~pos:(pos + 1) ~last st'
-    else if st'.idx = break then
+    let st' = next colors st s pos in
+    let state_info = State.get_info st' in
+    let idx = state_info.idx in
+    if idx >= 0 then
+      loop_no_mark info ~colors s ~pos:(pos + 1) ~last st' st'
+    else if idx = break then
       st'
     else begin (* Unknown *)
-      validate info s ~pos st;
-      loop_no_mark info s ~pos ~last st
+      validate info s ~pos st0;
+      loop_no_mark info ~colors s ~pos ~last st0 st0
     end
   else
     st
@@ -246,23 +244,23 @@ let get_color re (s:string) pos =
       (* Special case for the last newline *)
       re.lnl
     else
-      Char.code (Bytes.get re.colors (Char.code s.[pos]))
+      Char.code re.colors.[Char.code s.[pos]]
 
 let rec handle_last_newline info ~pos st ~groups =
-  let st' = st.next.(info.re.lnl) in
-  if st'.idx >= 0 then begin
-    if groups then info.positions.(st'.idx) <- pos + 1;
+  let st' = State.follow_transition st ~color:info.re.lnl in
+  if (State.get_info st').idx >= 0 then begin
+    if groups then info.positions.((State.get_info st').idx) <- pos;
     st'
-  end else if st'.idx = break then begin
-    if groups then info.positions.(st'.real_idx) <- pos + 1;
+  end else if (State.get_info st').idx = break then begin
+    if groups then info.positions.((State.get_info st').real_idx) <- pos;
     st'
   end else begin (* Unknown *)
     let color = info.re.lnl in
-    let real_c = Char.code (Bytes.get info.colors (Char.code '\n')) in
+    let real_c = Char.code info.re.colors.[Char.code '\n'] in
     let cat = category info.re ~color in
-    let desc' = delta info cat ~color:real_c st in
+    let desc' = delta info cat ~color:real_c (State.get_info st) in
     let st' = find_state info.re desc' in
-    st.next.(color) <- st';
+    State.set_transition st ~color st';
     handle_last_newline info ~pos st ~groups
   end
 
@@ -270,26 +268,29 @@ let rec scan_str info (s:string) initial_state ~groups =
   let pos = info.pos in
   let last = info.last in
   if (last = String.length s
+
       && info.re.lnl <> -1
       && last > pos
       && String.get s (last - 1) = '\n')
   then begin
     let info = { info with last = last - 1 } in
     let st = scan_str info s initial_state ~groups in
-    if st.idx = break then
+    if (State.get_info st).idx = break then
       st
     else
       handle_last_newline info ~pos:(last - 1) st ~groups
   end else if groups then
-    loop info s ~pos initial_state
+    loop info ~colors:info.re.colors ~positions:info.positions
+      s ~pos ~last initial_state initial_state
   else
-    loop_no_mark info s ~pos ~last initial_state
+    loop_no_mark
+      info ~colors:info.re.colors s ~pos ~last initial_state initial_state
 
 let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
-    { re ; colors = re.colors; pos ; last
+    { re; pos ; last
     ; positions =
         if groups then begin
           let n = Automata.index_count re.tbl + 1 in
@@ -310,8 +311,8 @@ let match_str ~groups ~partial re s ~pos ~len =
   let initial_state = find_initial_state re initial_cat in
   let st = scan_str info s initial_state ~groups in
   let res =
-    if st.idx = break || partial then
-      Automata.status st.desc
+    if (State.get_info st).idx = break || partial then
+      Automata.status (State.get_info st).desc
     else
       let final_cat =
         if last = slen then
@@ -319,8 +320,8 @@ let match_str ~groups ~partial re s ~pos ~len =
         else
           Category.(search_boundary ++ category re ~color:(get_color re s last))
       in
-      let (idx, res) = final info st final_cat in
-      if groups then info.positions.(idx) <- last + 1;
+      let (idx, res) = final info (State.get_info st) final_cat in
+      if groups then info.positions.(idx) <- last;
       res
   in
   match res with
@@ -347,7 +348,7 @@ let cadd c s = Cset.add (Char.code c) s
 
 let trans_set cache cm s =
   match Cset.one_char s with
-  | Some i -> Cset.csingle (Bytes.get cm i)
+  | Some i -> Cset.csingle cm.[i]
   | None ->
     let v = (Cset.hash_rec s, s) in
     try
@@ -356,8 +357,7 @@ let trans_set cache cm s =
       let l =
         Cset.fold_right
           s
-          ~f:(fun (i, j) l -> Cset.union (cseq (Bytes.get cm i)
-                                            (Bytes.get cm j)) l)
+          ~f:(fun (i, j) l -> Cset.union (cseq cm.[i] cm.[j]) l)
           ~init:Cset.empty
       in
       cache := Cset.CSetMap.add v l !cache;
