@@ -74,6 +74,10 @@ val compile : t -> re
 (** Compile a regular expression into an executable version that can be
     used to match strings, e.g. with {!exec}. *)
 
+val group_count : re -> int
+(** Return the number of capture groups (including the one
+    corresponding to the entire regexp). *)
+
 val exec :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->    (** Default: -1 (until end of string) *)
