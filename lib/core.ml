@@ -79,6 +79,8 @@ let pp_re ch re = Automata.pp ch re.initial
 
 let print_re = pp_re
 
+let group_count re = re.group_count
+
 (* Information used during matching *)
 type info =
   { re : re;

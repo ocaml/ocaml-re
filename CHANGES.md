@@ -1,3 +1,8 @@
+Unreleased
+----------
+
+* Add `Re.group_count` to get the number of groups in a compiled regex (#218)
+
 1.10.4 (27-Apr-2022)
 --------------------
 
