@@ -480,4 +480,48 @@ let _ =
   test "exec_partial 7"               (str "")       "hello"   `Full;
   test "exec_partial 8" (whole_string (str "hello")) ""        `Partial;
 
+  let test ?pos msg re input expected =
+    let extract_groups = function
+      | `Full group -> `Full (Group.all_offset group)
+      | `Partial _ | `Mismatch as result -> result
+    in
+    expect_pass msg (fun () ->
+      expect_equal_app id expected extract_groups (exec_partial_detailed ?pos (compile re) input)
+        ~printer:(function
+        | `Partial position -> Printf.sprintf "`Partial %d" position
+        | `Full groups ->
+          Array.to_list groups
+          |> List.map (fun (a, b) -> Printf.sprintf "%d,%d" a b)
+          |> String.concat ";"
+          |> Printf.sprintf "`Full [|%s|]"
+        | `Mismatch -> "`Mismatch"))
+  in
+  test "exec_partial_detailed 1"               (str "hello")  "he"      (`Partial 0);
+  (* Because of how the matching engine currently works, situations where
+     the entirety of the input string cannot be a match like the test below
+     actually return the last character as a potential start instead of just
+     return `Partial (String.length input). This is still fine however as
+     it still respects the mli contract, as no match could start before
+     the given position, and is fine in practice as testing an extra
+     character on extra input doesn't add much more in terms of workload.
+   *)
+  test "exec_partial_detailed 2"                (str "hello")    "goodbye" (`Partial 6);
+  test "exec_partial_detailed 3"                (str "hello")    "hello"   (`Full [|0, 5|]);
+  test "exec_partial_detailed 4"  (whole_string (str "hello"))   "hello"   (`Full [|0, 5|]);
+  test "exec_partial_detailed 5"  (whole_string (str "hello"))   "goodbye" `Mismatch;
+  test "exec_partial_detailed 6"                (str "hello")    ""        (`Partial 0);
+  test "exec_partial_detailed 7"                (str "")         "hello"   (`Full [|0, 0|]);
+  test "exec_partial_detailed 8"  (whole_string (str "hello"))   ""        (`Partial 0);
+  test "exec_partial_detailed 9"                (str "abc")      ".ab.ab"  (`Partial 4);
+  test "exec_partial_detailed 10"
+    ~pos:1
+    (seq [ not_boundary; str "b"])
+    "ab"
+    (`Full [|1, 2|]);
+  test "exec_partial_detailed 11"
+    (seq [ group (str "a"); rep any; group (str "b")])
+    ".acb."
+    (`Full [|1, 4; 1, 2; 3, 4|]);
+
+
   run_test_suite "test_re"

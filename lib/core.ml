@@ -30,7 +30,7 @@ let break = -3
 type match_info =
   | Match of Group.t
   | Failed
-  | Running
+  | Running of { no_match_starts_before : int }
 
 type state =
   { idx : int;
@@ -279,25 +279,50 @@ let match_str ~groups ~partial re s ~pos ~len =
   in
   let initial_state = find_initial_state re initial_cat in
   let st = scan_str info s initial_state ~groups in
+  (* This function adds a final boundary check on the input.
+     This is useful to indicate that the output failed because
+     of insufficient input, or to verify that the output actually
+     matches for regex that have boundary conditions with respect
+     to the input string.
+   *)
+  let finalize () =
+    let final_cat =
+      if last = slen then
+        Category.(search_boundary ++ inexistant)
+      else
+        Category.(search_boundary ++ category re ~color:(get_color re s last))
+    in
+    let (idx, res) = final info st final_cat in
+    (match groups, res with
+    | true, Match _ -> info.positions.(idx) <- last
+    | _ -> ());
+    res
+  in
   let res =
-    if st.idx = break || partial then
+    if st.idx = break || (partial && not groups) then
       Automata.status st.desc
-    else
-      let final_cat =
-        if last = slen then
-          Category.(search_boundary ++ inexistant)
-        else
-          Category.(search_boundary ++ category re ~color:(get_color re s last))
-      in
-      let (idx, res) = final info st final_cat in
-      if groups then info.positions.(idx) <- last;
-      res
+    else if partial && groups then
+      match Automata.status st.desc with
+      | Match _ | Failed as status -> status
+      | Running ->
+        (* This could be because it's still not fully matched, or it
+           could be that because we need to run special end of input
+           checks. *)
+        (match finalize () with
+         | Match _ as status -> status
+         | Failed | Running ->
+           (* A failure here just means that we need more data, i.e.
+              it's a partial match. *)
+           Running)
+    else finalize ()
   in
   match res with
     Automata.Match (marks, pmarks) ->
     Match { s ; marks; pmarks ; gpos = info.positions; gcount = re.group_count}
   | Automata.Failed -> Failed
-  | Automata.Running -> Running
+  | Automata.Running ->
+    let no_match_starts_before = if groups then info.positions.(0) else 0 in
+    Running { no_match_starts_before }
 
 let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_count =
   { initial ;
@@ -920,7 +945,14 @@ let exec_partial ?pos ?len re s =
   match exec_internal ~groups:false ~partial:true "Re.exec_partial"
           ?pos ?len re s with
     Match _ -> `Full
-  | Running -> `Partial
+  | Running _ -> `Partial
+  | Failed  -> `Mismatch
+
+let exec_partial_detailed ?pos ?len re s =
+  match exec_internal ~groups:true ~partial:true "Re.exec_partial_detailed"
+          ?pos ?len re s with
+    Match group -> `Full group
+  | Running { no_match_starts_before } -> `Partial no_match_starts_before
   | Failed  -> `Mismatch
 
 module Mark = struct
@@ -968,7 +1000,7 @@ module Rseq = struct
           let p1, p2 = Group.offset substr 0 in
           let pos = if p1=p2 then p2+1 else p2 in
           Seq.Cons (substr, aux pos)
-        | Running
+        | Running _
         | Failed -> Seq.Nil
     in
     aux pos
@@ -1009,7 +1041,7 @@ module Rseq = struct
             let state = `Yield (`Delim substr) in
             Seq.Cons (`Text text, aux state i pos)
           ) else Seq.Cons (`Delim substr, aux state i pos)
-        | Running -> Seq.Nil
+        | Running _ -> Seq.Nil
         | Failed ->
           if i < limit
           then (
@@ -1100,7 +1132,7 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
               p2)
         else
           Buffer.add_substring buf s p2 (limit-p2)
-      | Running -> ()
+      | Running _ -> ()
       | Failed ->
         Buffer.add_substring buf s pos (limit-pos)
   in
