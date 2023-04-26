@@ -2,7 +2,7 @@ Description
 ===========
 
 Re is a regular expression library for OCaml.
-[![Build status](https://github.com/ocaml/ocaml-re/actions/workflows/main.yml/badge.svg)]
+[![Build status](https://github.com/ocaml/ocaml-re/actions/workflows/main.yml/badge.svg)](https://github.com/ocaml/ocaml-re/actions/workflows/main.yml)
 
 Contact
 =======
