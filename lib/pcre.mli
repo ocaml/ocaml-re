@@ -1,3 +1,6 @@
+exception Parse_error
+exception Not_supported
+
 type regexp = Core.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]

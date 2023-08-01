@@ -1,5 +1,8 @@
 module Re = Core
 
+exception Parse_error = Perl.Parse_error
+exception Not_supported = Perl.Not_supported
+
 type regexp = Re.re
 
 type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
