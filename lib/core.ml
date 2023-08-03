@@ -72,6 +72,8 @@ type re =
        when computing a new state *)
     states : state Automata.State.Table.t;
     (* States of the deterministic automata *)
+    group_names : (string * int) list;
+    (* Named groups in the regular expression *)
     group_count : int
     (* Number of groups in the regular expression *) }
 
@@ -80,6 +82,8 @@ let pp_re ch re = Automata.pp ch re.initial
 let print_re = pp_re
 
 let group_count re = re.group_count
+
+let group_names re = re.group_names
 
 (* Information used during matching *)
 type info =
@@ -324,7 +328,7 @@ let match_str ~groups ~partial re s ~pos ~len =
     let no_match_starts_before = if groups then info.positions.(0) else 0 in
     Running { no_match_starts_before }
 
-let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_count =
+let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =
   { initial ;
     initial_states = [];
     colors;
@@ -333,6 +337,7 @@ let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_count =
     lnl;
     tbl = Automata.create_working_area ();
     states = Automata.State.Table.create 97;
+    group_names;
     group_count }
 
 (**** Character sets ****)
@@ -370,7 +375,7 @@ type regexp =
   | Last_end_of_line | Start | Stop
   | Sem of Automata.sem * regexp
   | Sem_greedy of Automata.rep_kind * regexp
-  | Group of regexp | No_group of regexp | Nest of regexp
+  | Group of string option * regexp | No_group of regexp | Nest of regexp
   | Case of regexp | No_case of regexp
   | Intersection of regexp list
   | Complement of regexp list
@@ -389,7 +394,7 @@ module View = struct
     | Last_end_of_line | Start | Stop
     | Sem of Automata.sem * regexp
     | Sem_greedy of Automata.rep_kind * regexp
-    | Group of regexp | No_group of regexp | Nest of regexp
+    | Group of string option * regexp | No_group of regexp | Nest of regexp
     | Case of regexp | No_case of regexp
     | Intersection of regexp list
     | Complement of regexp list
@@ -424,7 +429,8 @@ let rec pp fmt t =
     sexp fmt "Sem" (pair Automata.pp_sem pp) (sem, re)
   | Sem_greedy (k, re) ->
     sexp fmt "Sem_greedy" (pair Automata.pp_rep_kind pp) (k, re)
-  | Group c        -> var "Group" c
+  | Group (None, c)   -> var "Group" c
+  | Group (Some n, c) -> sexp fmt "Named_group" (pair str pp) (n, c)
   | No_group c     -> var "No_group" c
   | Nest c         -> var "Nest" c
   | Case c         -> var "Case" c
@@ -479,7 +485,7 @@ let colorize c regexp =
     | Last_end_of_line          -> lnl := true
     | Sem (_, r)
     | Sem_greedy (_, r)
-    | Group r | No_group r
+    | Group (_, r) | No_group r
     | Nest r | Pmark (_,r)     -> colorize r
     | Case _ | No_case _
     | Intersection _
@@ -574,16 +580,16 @@ let enforce_kind ids kind kind' cr =
   |  _               -> cr
 
 (* XXX should probably compute a category mask *)
-let rec translate ids kind ign_group ign_case greedy pos cache c = function
+let rec translate ids kind ign_group ign_case greedy pos names cache c = function
   | Set s ->
     (A.cst ids (trans_set cache c s), kind)
   | Sequence l ->
-    (trans_seq ids kind ign_group ign_case greedy pos cache c l, kind)
+    (trans_seq ids kind ign_group ign_case greedy pos names cache c l, kind)
   | Alternative l ->
     begin match merge_sequences l with
         [r'] ->
         let (cr, kind') =
-          translate ids kind ign_group ign_case greedy pos cache c r' in
+          translate ids kind ign_group ign_case greedy pos names cache c r' in
         (enforce_kind ids kind kind' cr, kind)
       | merged_sequences ->
         (A.alt ids
@@ -591,14 +597,14 @@ let rec translate ids kind ign_group ign_case greedy pos cache c = function
               (fun r' ->
                  let (cr, kind') =
                    translate ids kind ign_group ign_case greedy
-                     pos cache c r' in
+                     pos names cache c r' in
                  enforce_kind ids kind kind' cr)
               merged_sequences),
          kind)
     end
   | Repeat (r', i, j) ->
     let (cr, kind') =
-      translate ids kind ign_group ign_case greedy pos cache c r' in
+      translate ids kind ign_group ign_case greedy pos names cache c r' in
     let rem =
       match j with
         None ->
@@ -652,28 +658,33 @@ let rec translate ids kind ign_group ign_case greedy pos cache c = function
     (A.before ids Category.search_boundary, kind)
   | Sem (kind', r') ->
     let (cr, kind'') =
-      translate ids kind' ign_group ign_case greedy pos cache c r' in
+      translate ids kind' ign_group ign_case greedy pos names cache c r' in
     (enforce_kind ids kind' kind'' cr,
      kind')
   | Sem_greedy (greedy', r') ->
-    translate ids kind ign_group ign_case greedy' pos cache c r'
-  | Group r' ->
+    translate ids kind ign_group ign_case greedy' pos names cache c r'
+  | Group (n, r') ->
     if ign_group then
-      translate ids kind ign_group ign_case greedy pos cache c r'
+      translate ids kind ign_group ign_case greedy pos names cache c r'
     else
       let p = !pos in
+      let () =
+        match n with
+        | Some name -> names := (name, p / 2) :: !names
+        | None -> ()
+      in
       pos := !pos + 2;
       let (cr, kind') =
-        translate ids kind ign_group ign_case greedy pos cache c r' in
+        translate ids kind ign_group ign_case greedy pos names cache c r' in
       (A.seq ids `First (A.mark ids p) (
           A.seq ids `First cr (A.mark ids (p + 1))),
        kind')
   | No_group r' ->
-    translate ids kind true ign_case greedy pos cache c r'
+    translate ids kind true ign_case greedy pos names cache c r'
   | Nest r' ->
     let b = !pos in
     let (cr, kind') =
-      translate ids kind ign_group ign_case greedy pos cache c r'
+      translate ids kind ign_group ign_case greedy pos names cache c r'
     in
     let e = !pos - 1 in
     if e < b then
@@ -684,21 +695,21 @@ let rec translate ids kind ign_group ign_case greedy pos cache c = function
     assert false
   | Pmark (i, r') ->
     let (cr, kind') =
-      translate ids kind ign_group ign_case greedy pos cache c r' in
+      translate ids kind ign_group ign_case greedy pos names cache c r' in
     (A.seq ids `First (A.pmark ids i) cr, kind')
 
-and trans_seq ids kind ign_group ign_case greedy pos cache c = function
+and trans_seq ids kind ign_group ign_case greedy pos names cache c = function
   | [] ->
     A.eps ids
   | [r] ->
     let (cr', kind') =
-      translate ids kind ign_group ign_case greedy pos cache c r in
+      translate ids kind ign_group ign_case greedy pos names cache c r in
     enforce_kind ids kind kind' cr'
   | r :: rem ->
     let (cr', kind') =
-      translate ids kind ign_group ign_case greedy pos cache c r in
+      translate ids kind ign_group ign_case greedy pos names cache c r in
     let cr'' =
-      trans_seq ids kind ign_group ign_case greedy pos cache c rem in
+      trans_seq ids kind ign_group ign_case greedy pos names cache c rem in
     if A.is_eps cr'' then
       cr'
     else if A.is_eps cr' then
@@ -741,8 +752,8 @@ let rec handle_case ign_case = function
   | Sem_greedy (k, r) ->
     let r' = handle_case ign_case r in
     if is_charset r' then r' else Sem_greedy (k, r')
-  | Group r ->
-    Group (handle_case ign_case r)
+  | Group (n, r) ->
+    Group (n, handle_case ign_case r)
   | No_group r ->
     let r' = handle_case ign_case r in
     if is_charset r' then r' else No_group r'
@@ -777,12 +788,13 @@ let compile_1 regexp =
   let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ids = A.create_ids () in
   let pos = ref 0 in
+  let names = ref [] in
   let (r, kind) =
     translate ids
-      `First false false `Greedy pos (ref Cset.CSetMap.empty) colors regexp in
+      `First false false `Greedy pos names (ref Cset.CSetMap.empty) colors regexp in
   let r = enforce_kind ids `First kind r in
   (*Format.eprintf "<%d %d>@." !ids ncol;*)
-  mk_re ~initial:r ~colors ~color_repr ~ncolor ~lnl ~group_count:(!pos / 2)
+  mk_re ~initial:r ~colors ~color_repr ~ncolor ~lnl ~group_names:(List.rev !names) ~group_count:(!pos / 2)
 
 (****)
 
@@ -799,7 +811,7 @@ let rec anchored = function
     false
   | Beg_of_str | Start ->
     true
-  | Sem (_, r) | Sem_greedy (_, r) | Group r | No_group r | Nest r
+  | Sem (_, r) | Sem_greedy (_, r) | Group (_, r) | No_group r | Nest r
   | Case r | No_case r | Pmark (_, r) ->
     anchored r
 
@@ -851,7 +863,7 @@ let shortest r = Sem (`Shortest, r)
 let first r = Sem (`First, r)
 let greedy r = Sem_greedy (`Greedy, r)
 let non_greedy r = Sem_greedy (`Non_greedy, r)
-let group r = Group r
+let group ?name r = Group (name, r)
 let no_group r = No_group r
 let nest r = Nest r
 let mark r = let i = Pmark.gen () in (i,Pmark (i,r))
@@ -1159,7 +1171,7 @@ let witness t =
     | Intersection _
     | Complement _
     | Difference (_, _) -> assert false
-    | Group r
+    | Group (_, r)
     | No_group r
     | Nest r
     | Sem (_, r)
