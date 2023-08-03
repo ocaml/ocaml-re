@@ -255,6 +255,25 @@ let rec scan_str info (s:string) initial_state ~groups =
   else
     loop_no_mark info s ~pos ~last initial_state
 
+(* This function adds a final boundary check on the input.
+   This is useful to indicate that the output failed because
+   of insufficient input, or to verify that the output actually
+   matches for regex that have boundary conditions with respect
+   to the input string.
+ *)
+let final_boundary_check ~last ~slen re s ~info ~st ~groups =
+  let final_cat =
+    if last = slen then
+      Category.(search_boundary ++ inexistant)
+    else
+      Category.(search_boundary ++ category re ~color:(get_color re s last))
+  in
+  let (idx, res) = final info st final_cat in
+  (match groups, res with
+  | true, Match _ -> info.positions.(idx) <- last
+  | _ -> ());
+  res
+
 let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
@@ -279,25 +298,6 @@ let match_str ~groups ~partial re s ~pos ~len =
   in
   let initial_state = find_initial_state re initial_cat in
   let st = scan_str info s initial_state ~groups in
-  (* This function adds a final boundary check on the input.
-     This is useful to indicate that the output failed because
-     of insufficient input, or to verify that the output actually
-     matches for regex that have boundary conditions with respect
-     to the input string.
-   *)
-  let finalize () =
-    let final_cat =
-      if last = slen then
-        Category.(search_boundary ++ inexistant)
-      else
-        Category.(search_boundary ++ category re ~color:(get_color re s last))
-    in
-    let (idx, res) = final info st final_cat in
-    (match groups, res with
-    | true, Match _ -> info.positions.(idx) <- last
-    | _ -> ());
-    res
-  in
   let res =
     if st.idx = break || (partial && not groups) then
       Automata.status st.desc
@@ -308,13 +308,13 @@ let match_str ~groups ~partial re s ~pos ~len =
         (* This could be because it's still not fully matched, or it
            could be that because we need to run special end of input
            checks. *)
-        (match finalize () with
+        (match final_boundary_check ~last ~slen re s ~info ~st ~groups with
          | Match _ as status -> status
          | Failed | Running ->
            (* A failure here just means that we need more data, i.e.
               it's a partial match. *)
            Running)
-    else finalize ()
+    else final_boundary_check ~last ~slen re s ~info ~st ~groups
   in
   match res with
     Automata.Match (marks, pmarks) ->
