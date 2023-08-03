@@ -35,6 +35,23 @@ let exec ~rex ?pos s =
 let get_substring s i =
   Re.Group.get s i
 
+let names rex =
+  Re.group_names rex
+  |> List.map fst
+  |> Array.of_list
+
+let get_named_substring rex name s =
+  let rec loop = function
+    | [] -> raise Not_found
+    | (n, i) :: rem when n = name ->
+       begin
+         try get_substring s i
+         with Not_found -> loop rem
+       end
+    | _ :: rem -> loop rem
+  in
+  loop (Re.group_names rex)
+
 let get_substring_ofs s i =
   Re.Group.offset s i
 
