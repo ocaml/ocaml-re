@@ -41,13 +41,21 @@ let group_split2 _ =
   let sp = full_split ~rex "testxyyy" in
   assert_equal ~printer sp [Text "test"; Delim "x"; NoGroup; Text "yyy"]
 
+let rex = regexp "(?<many_x>x+)"
+
+let named_groups _ =
+  let s = exec ~rex "testxxxyyy" in
+  assert_equal (get_named_substring rex "many_x" s) "xxx"
+
 let test_fixtures =
   "test pcre features" >:::
   [ "test [:blank:] class" >:: test_blank_class
   ; "test splitting empty string" >:: split_empty
   ; "test split with max of 1" >:: split_max_1
   ; "test group split 1" >:: group_split1
-  ; "test group split 2 - NoGroup" >:: group_split2]
+  ; "test group split 2 - NoGroup" >:: group_split2
+  ; "test named groups" >:: named_groups
+  ]
 
 let _ = run_test_tt_main test_fixtures
 
