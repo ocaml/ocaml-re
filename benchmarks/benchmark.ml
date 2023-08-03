@@ -163,4 +163,4 @@ let benchmarks =
     |> Bench.Test.create_group ~name:"tex gitignore"
   ] @ [http_benches]
 
-let () = Command.run (Bench.make_command benchmarks)
+let () = Command_unix.run (Bench.make_command benchmarks)
