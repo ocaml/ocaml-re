@@ -3,7 +3,7 @@ exception Not_supported
 
 type regexp = Core.re
 
-type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
+type flag = [ `CASELESS | `MULTILINE | `ANCHORED | `DOTALL ]
 
 type groups = Core.Group.t
 
