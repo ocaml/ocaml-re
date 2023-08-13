@@ -182,6 +182,18 @@ val exec_partial :
     ]}
 *)
 
+val exec_partial_detailed :
+  ?pos:int ->    (** Default: 0 *)
+  ?len:int ->    (** Default: -1 (until end of string) *)
+  re -> string -> [ `Full of Group.t | `Partial of int | `Mismatch ]
+(** More detailed version of {!exec_opt}. [`Full group] is equivalent to [Some group],
+   while [`Mismatch] and [`Partial _] are equivalent to [None], but [`Partial position]
+   indicates that the input string could be extended to create a match, and no match could
+   start in the input string before the given position.
+   This could be used to not have to search the entirety of the input if more
+   becomes available, and use the given position as the [?pos] argument.
+*)
+
 (** Marks *)
 module Mark : sig
 
