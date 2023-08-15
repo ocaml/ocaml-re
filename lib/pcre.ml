@@ -5,7 +5,7 @@ exception Not_supported = Perl.Not_supported
 
 type regexp = Re.re
 
-type flag = [ `CASELESS | `MULTILINE | `ANCHORED ]
+type flag = [ `CASELESS | `MULTILINE | `ANCHORED | `DOTALL ]
 
 type split_result =
   | Text  of string
@@ -20,6 +20,7 @@ let re ?(flags = []) pat =
     | `CASELESS -> `Caseless
     | `MULTILINE -> `Multiline
     | `ANCHORED -> `Anchored
+    | `DOTALL -> `Dotall
   ) flags in
   Perl.re ~opts pat
 
