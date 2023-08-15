@@ -108,6 +108,11 @@ let parse multiline dollar_endonly dotall ungreedy s =
           r
         end else if accept '#' then begin
           comment ()
+        end else if accept '<' then begin
+          let name = name () in
+          let r = regexp () in
+          if not (accept ')') then raise Parse_error;
+          Re.group ~name r
         end else
           raise Parse_error
       end else begin
@@ -182,6 +187,22 @@ let parse multiline dollar_endonly dotall ungreedy s =
         integer' i'
     | _ ->
         unget (); Some i
+  and name () =
+    if eos () then raise Parse_error else
+    match get () with
+      ('_' | 'a'..'z' | 'A'..'Z') as c ->
+      let b = Buffer.create 32 in
+      Buffer.add_char b c;
+      name' b
+    | _ -> raise Parse_error
+  and name' b =
+    if eos () then raise Parse_error else
+    match get () with
+      ('_' | 'a'..'z' | 'A'..'Z' | '0'..'9') as c ->
+      Buffer.add_char b c;
+      name' b
+    | '>' -> Buffer.contents b
+    | _ -> raise Parse_error
   and bracket s =
     if s <> [] && accept ']' then s else begin
       match char () with

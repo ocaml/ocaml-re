@@ -78,6 +78,9 @@ val group_count : re -> int
 (** Return the number of capture groups (including the one
     corresponding to the entire regexp). *)
 
+val group_names : re -> (string * int) list
+(** Return named capture groups with their index. *)
+
 val exec :
   ?pos:int ->    (** Default: 0 *)
   ?len:int ->    (** Default: -1 (until end of string) *)
@@ -581,7 +584,7 @@ val non_greedy : t -> t
 
 (** {2 Groups (or submatches)} *)
 
-val group : t -> t
+val group : ?name:string -> t -> t
 (** Delimit a group. The group is considered as matching if it is used at least
    once (it may be used multiple times if is nested inside {!rep} for
    instance). If it is used multiple times, the last match is what gets
@@ -688,7 +691,7 @@ module View : sig
     | Last_end_of_line | Start | Stop
     | Sem of Automata.sem * outer
     | Sem_greedy of Automata.rep_kind * outer
-    | Group of outer | No_group of outer | Nest of outer
+    | Group of string option * outer | No_group of outer | Nest of outer
     | Case of outer | No_case of outer
     | Intersection of outer list
     | Complement of outer list
