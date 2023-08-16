@@ -6,6 +6,7 @@ Unreleased
   (#219)
 * Add support for `DOTALL` flag in `Re.Pcre.regexp` (#225)
 * Add support for named groups (#223)
+* Add support for some control characters in `Re.Perl` (#227)
 
 1.10.4 (27-Apr-2022)
 --------------------
