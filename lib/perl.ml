@@ -133,7 +133,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
     end else if accept '\\' then begin
 (* XXX
    - Back-references
-   - \cx (control-x), \e, \f, \n, \r, \t, \xhh, \ddd
+   - \cx (control-x), \ddd
 *)
       if eos () then raise Parse_error;
       match get () with
@@ -161,6 +161,21 @@ let parse multiline dollar_endonly dotall ungreedy s =
           Re.eos
       | 'G' ->
           Re.start
+      | 'e' ->
+          Re.char '\x1b'
+      | 'f' ->
+          Re.char '\x0c'
+      | 'n' ->
+          Re.char '\n'
+      | 'r' ->
+          Re.char '\r'
+      | 't' ->
+          Re.char '\t'
+      | 'x' ->
+          let c1 = hexdigit () in
+          let c2 = hexdigit () in
+          let code = c1 * 16 + c2 in
+          Re.char (char_of_int code)
       | 'a'..'z' | 'A'..'Z' ->
           raise Parse_error
       | '0'..'9' ->
@@ -173,6 +188,13 @@ let parse multiline dollar_endonly dotall ungreedy s =
         '*' | '+' | '?' | '{' | '\\' -> raise Parse_error
       |                 c            -> Re.char c
     end
+  and hexdigit () =
+    if eos () then raise Parse_error;
+    match get () with
+      '0'..'9' as d -> Char.code d - Char.code '0'
+    | 'a'..'f' as d -> Char.code d - Char.code 'a' + 10
+    | 'A'..'F' as d -> Char.code d - Char.code 'A' + 10
+    | _ -> raise Parse_error
   and integer () =
     if eos () then None else
     match get () with
