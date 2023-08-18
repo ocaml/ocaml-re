@@ -4,6 +4,8 @@ Unreleased
 * Add `Re.group_count` to get the number of groups in a compiled regex (#218)
 * Add `Re.exec_partial_detailed` to allow resuming searches from partial inputs
   (#219)
+* Re-export `Re.Perl`'s `Parse_error` and `Not_supported` exceptions
+  in Pcre (#222)
 * Add support for `DOTALL` flag in `Re.Pcre.regexp` (#225)
 * Add support for named groups (#223)
 * Add support for some control characters in `Re.Perl` (#227)
