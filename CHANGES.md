@@ -1,5 +1,5 @@
-Unreleased
-----------
+1.11.0 (19-Aug-2023)
+--------------------
 
 * Add `Re.group_count` to get the number of groups in a compiled regex (#218)
 * Add `Re.exec_partial_detailed` to allow resuming searches from partial inputs
