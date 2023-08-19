@@ -25,6 +25,7 @@ jobs:
 
       - name: Deps
         run: opam install -d . --deps-only
+        run: opam install odoc
 
       - name: Build
         run: opam exec -- dune build @doc
