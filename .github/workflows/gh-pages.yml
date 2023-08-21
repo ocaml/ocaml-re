@@ -25,6 +25,8 @@ jobs:
 
       - name: Deps
         run: opam install -d . --deps-only
+
+      - name: Odoc
         run: opam install odoc
 
       - name: Build
