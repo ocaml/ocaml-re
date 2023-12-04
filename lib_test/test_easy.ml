@@ -23,7 +23,9 @@ let test_iter () =
   assert_equal ~printer:pp_list
     ["ab"; "abab"] (Re.matches ~pos:2 ~len:7 re "abab ababab");
   assert_equal ~printer:pp_list
-    [""; ""] (Re.matches re_empty "ab");
+    [""; ""; ""] (Re.matches re_empty "ab");
+  assert_equal ~printer:pp_list
+    [""; "a"; ""] (Re.matches (Re.compile (Re.rep (Re.char 'a'))) "cat");
   ()
 
 let test_split () =
@@ -41,6 +43,10 @@ let test_split () =
     ["a "; "b"] (Re.split re_bow "a b");
   assert_equal ~printer:pp_list
     ["a"; " b"] (Re.split re_eow "a b");
+  assert_equal ~printer:pp_list
+    [] (Re.split re_whitespace "");
+  assert_equal ~printer:pp_list
+    [] (Re.split re_empty "");
   ()
 
 let map_split_delim =
@@ -69,8 +75,15 @@ let test_split_full () =
     [`D " "; `T "a"; `D " "; `T "full_word"; `D " "; `T "bc"; `D "   "]
     (Re.split_full re_whitespace " a full_word bc   " |> map_split_delim);
   assert_equal ~printer:pp_list'
-    [`D ""; `T "a"; `D ""; `T  "b"] (* XXX: not trivial *)
+    [] (Re.split_full re_whitespace "" |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [`D ""] (Re.split_full re_empty "" |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [`D ""; `T "a"; `D ""; `T  "b"; `D ""] (* XXX: not trivial *)
     (Re.split_full re_empty "ab" |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [`D ""; `T "c"; `D "a"; `T "t"; `D ""]
+    (Re.split_full (Re.compile (Re.rep (Re.char 'a'))) "cat" |> map_split_delim);
   ()
 
 let test_replace () =
@@ -80,6 +93,10 @@ let test_replace () =
     (Re.replace re ~f " hello world; I love chips!");
   assert_equal ~printer:pp_str " Allo maman, bobo"
     (Re.replace ~all:false re ~f " allo maman, bobo");
+  assert_equal ~printer:pp_str "a"
+    (Re.replace re_empty ~f:(fun _ -> "a") "");
+  assert_equal ~printer:pp_str "*c*t*"
+    (Re.replace (Re.compile (Re.rep (Re.char 'a'))) ~f:(fun _ -> "*") "cat");
   ()
 
 let test_replace_string () =
