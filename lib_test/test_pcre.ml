@@ -47,6 +47,50 @@ let named_groups _ =
   let s = exec ~rex "testxxxyyy" in
   assert_equal (get_named_substring rex "many_x" s) "xxx"
 
+let quote = Printf.sprintf "'%s'"
+let pp_str x = x
+let pp_list l =
+  l
+  |> List.map quote
+  |> String.concat ", "
+  |> Printf.sprintf "[ %s ]"
+
+let re_whitespace = regexp "[\t ]+"
+let re_empty = regexp ""
+let re_eol = Re.compile Re.eol
+let re_bow = Re.compile Re.bow
+let re_eow = Re.compile Re.eow
+
+let test_split () =
+  assert_equal ~printer:pp_list
+    ["aa"; "bb"; "c"; "d"; ""] (split ~rex:re_whitespace "aa bb c d ");
+  assert_equal ~printer:pp_list
+    [""; "a"; "full_word"; "bc"; ""]
+    (split ~rex:re_whitespace " a full_word bc   ");
+  assert_equal ~printer:pp_list
+    [""; "a"; "b"; "c"; "d"; ""] (split ~rex:re_empty "abcd");
+  assert_equal ~printer:pp_list
+    ["a"; "\nb"; ""] (split ~rex:re_eol "a\nb");
+  assert_equal ~printer:pp_list
+    [""; "a "; "b"] (split ~rex:re_bow "a b");
+  assert_equal ~printer:pp_list
+    ["a"; " b"; ""] (split ~rex:re_eow "a b");
+  let rex = regexp "" in
+  assert_equal ~printer:pp_list (split ~rex "xx") [""; "x"; "x"; ""]
+
+let test_substitute () =
+  let rex = regexp "[a-zA-Z]+" in
+  let subst = String.capitalize_ascii in
+  assert_equal ~printer:pp_str  " Hello World; I Love Chips!"
+    (substitute ~rex ~subst " hello world; I love chips!");
+  assert_equal ~printer:pp_str "a"
+    (substitute ~rex:re_empty ~subst:(fun _ -> "a") "");
+  assert_equal ~printer:pp_str "*c*t*"
+    (substitute ~rex:(regexp "a*") ~subst:(fun _ -> "*") "cat");
+  let rex = regexp "^ *" in
+  assert_equal ~printer:pp_str
+    (substitute ~rex ~subst:(fun _ -> "A ") "test") "A test"
+
 let test_fixtures =
   "test pcre features" >:::
   [ "test [:blank:] class" >:: test_blank_class
@@ -55,7 +99,8 @@ let test_fixtures =
   ; "test group split 1" >:: group_split1
   ; "test group split 2 - NoGroup" >:: group_split2
   ; "test named groups" >:: named_groups
+  ; "test split" >:: test_split
+  ; "test substitute" >:: test_substitute
   ]
 
 let _ = run_test_tt_main test_fixtures
-
