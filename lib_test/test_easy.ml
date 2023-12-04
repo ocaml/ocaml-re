@@ -49,6 +49,28 @@ let test_split () =
     [] (Re.split re_empty "");
   ()
 
+let test_split_delim () =
+  assert_equal ~printer:pp_list
+    ["aa"; "bb"; "c"; "d"; ""] (Re.split_delim re_whitespace "aa bb c d ");
+  assert_equal ~printer:pp_list
+    ["a"; "b"; ""] (Re.split_delim ~pos:1 ~len:4 re_whitespace "aa b c d");
+  assert_equal ~printer:pp_list
+    [""; "a"; "full_word"; "bc"; ""]
+    (Re.split_delim re_whitespace " a full_word bc   ");
+  assert_equal ~printer:pp_list
+    [""; "a"; "b"; "c"; "d"; ""] (Re.split_delim re_empty "abcd");
+  assert_equal ~printer:pp_list
+    ["a"; "\nb"; ""] (Re.split_delim re_eol "a\nb");
+  assert_equal ~printer:pp_list
+    [""; "a "; "b"] (Re.split_delim re_bow "a b");
+  assert_equal ~printer:pp_list
+    ["a"; " b"; ""] (Re.split_delim re_eow "a b");
+  assert_equal ~printer:pp_list
+    [""] (Re.split_delim re_whitespace "");
+  assert_equal ~printer:pp_list
+    [""; ""] (Re.split_delim re_empty "");
+  ()
+
 let map_split_delim =
   List.map
     (function
@@ -81,6 +103,10 @@ let test_split_full () =
   assert_equal ~printer:pp_list'
     [`D ""; `T "a"; `D ""; `T  "b"; `D ""] (* XXX: not trivial *)
     (Re.split_full re_empty "ab" |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [] (Re.split_full re_whitespace "" |> map_split_delim);
+  assert_equal ~printer:pp_list'
+    [`D ""] (Re.split_full re_empty "" |> map_split_delim);
   assert_equal ~printer:pp_list'
     [`D ""; `T "c"; `D "a"; `T "t"; `D ""]
     (Re.split_full (Re.compile (Re.rep (Re.char 'a'))) "cat" |> map_split_delim);
@@ -118,6 +144,7 @@ let test_bug_55 () =
 let suite = "easy" >:::
   [ "iter" >:: test_iter
   ; "split" >:: test_split
+  ; "split_delim" >:: test_split_delim
   ; "split_full" >:: test_split_full
   ; "replace" >:: test_replace
   ; "replace_string" >:: test_replace_string

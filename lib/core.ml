@@ -1081,6 +1081,16 @@ module Rseq = struct
       | Seq.Cons (`Delim _, tl) -> filter tl ()
       | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter tl)
     in filter seq
+
+  let split_delim ?pos ?len re s : _ Seq.t =
+    let seq = split_full ?pos ?len re s in
+    let rec filter ~delim seq () = match seq ()  with
+      | Seq.Nil -> if delim then Seq.Cons ("", fun () -> Seq.Nil) else Seq.Nil
+      | Seq.Cons (`Delim _, tl) ->
+        if delim then Seq.Cons ("", fun () -> filter ~delim:true tl ())
+        else filter ~delim:true tl ()
+      | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter ~delim:false tl)
+    in filter ~delim:true seq
 end
 
 module Rlist = struct
@@ -1094,6 +1104,9 @@ module Rlist = struct
   let split_full ?pos ?len re s = Rseq.split_full ?pos ?len re s |> list_of_seq
 
   let split ?pos ?len re s = Rseq.split ?pos ?len re s |> list_of_seq
+
+  let split_delim ?pos ?len re s =
+    Rseq.split_delim ?pos ?len re s |> list_of_seq
 end
 
 module Gen = struct
