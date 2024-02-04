@@ -305,8 +305,12 @@ val matches_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
       - : string list = ["3"; "4. Commas go brrr."]
     ]}
 
+    {6 Zero-length patterns:}
+
     Be careful when using [split] with zero-length patterns like [eol], [bow],
-    and [eow].
+    and [eow].  Because they don't have any width, they will still be present in
+    the result. (Note the position of the [\n] and space characters in the
+    output.)
 
     {[
       # Re.split (Re.compile Re.eol) "a\nb";;
@@ -319,7 +323,16 @@ val matches_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
       - : string list = ["a"; " b"]
     ]}
 
-    Note the position of the [\n] and space characters in the output. *)
+    Compare this to the behavior of splitting on the char itself. (Note that
+    the delimiters are not present in the output.)
+
+    {[
+      # Re.split (Re.compile (Re.char '\n')) "a\nb";;
+      - : string list = ["a"; "b"]
+
+      # Re.split (Re.compile (Re.char ' ')) "a b";;
+      - : string list = ["a"; "b"]
+    ]} *)
 val split : ?pos:int -> ?len:int -> re -> string -> string list
 
 (** [split_delim re s] splits [s] into chunks separated by [re]. It
