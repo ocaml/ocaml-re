@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Seq (re.Re.Seq)</title><link rel="stylesheet" href="../../../odoc.support/odoc.css"/><meta charset="utf-8"/><meta name="generator" content="odoc 2.2.1"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../index.html">re</a> &#x00BB; <a href="../index.html">Re</a> &#x00BB; Seq</nav><header class="odoc-preamble"><h1>Module <code><span>Re.Seq</span></code></h1></header><div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-all"><a href="#val-all" class="anchor"></a><code><span><span class="keyword">val</span> all : 
-  <span>?pos:int <span class="arrow">&#45;&gt;</span></span>
-  <span>?len:int <span class="arrow">&#45;&gt;</span></span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Seq (re.Re.Seq)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../odoc.support/odoc.css"/><meta name="generator" content="odoc 2.4.1"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../index.html">re</a> &#x00BB; <a href="../index.html">Re</a> &#x00BB; Seq</nav><header class="odoc-preamble"><h1>Module <code><span>Re.Seq</span></code></h1></header><div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-all"><a href="#val-all" class="anchor"></a><code><span><span class="keyword">val</span> all : 
+  <span><span class="optlabel">?pos</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?len</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="xref-unresolved">Re__.Core.re</span> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="xref-unresolved">Re__.Core.Group.t</span> <span class="xref-unresolved">Stdlib</span>.Seq.t</span></span></code></div><div class="spec-doc"><p>Same as <a href="../index.html#val-all"><code>Re.all</code></a> but returns an iterator.</p><p>Examples:</p><pre class="language-ocaml"><code># let regex = Re.compile Re.(seq [str &quot;my&quot;; blank; word(rep alpha)]);;
@@ -9,8 +9,8 @@ val regex : re = &lt;abstr&gt;
 
 # Re.Seq.all regex &quot;my head, my shoulders, my knees, my toes ...&quot;;;
 - : Re.substrings Seq.t = &lt;fun&gt;</code></pre><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 1.10.0</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-matches"><a href="#val-matches" class="anchor"></a><code><span><span class="keyword">val</span> matches : 
-  <span>?pos:int <span class="arrow">&#45;&gt;</span></span>
-  <span>?len:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?pos</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?len</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="xref-unresolved">Re__.Core.re</span> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="xref-unresolved">Stdlib</span>.Seq.t</span></span></code></div><div class="spec-doc"><p>Same as <a href="../index.html#val-matches"><code>Re.matches</code></a>, but returns an iterator.</p><p>Example:</p><pre class="language-ocaml"><code># let regex = Re.compile Re.(seq [str &quot;my&quot;; blank; word(rep alpha)]);;
@@ -18,17 +18,26 @@ val regex : re = &lt;abstr&gt;
 
 # Re.Seq.matches regex &quot;my head, my shoulders, my knees, my toes ...&quot;;;
 - : string Seq.t = &lt;fun&gt;</code></pre><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 1.10.0</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split"><a href="#val-split" class="anchor"></a><code><span><span class="keyword">val</span> split : 
-  <span>?pos:int <span class="arrow">&#45;&gt;</span></span>
-  <span>?len:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?pos</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?len</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="xref-unresolved">Re__.Core.re</span> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="xref-unresolved">Stdlib</span>.Seq.t</span></span></code></div><div class="spec-doc"><p>Same as <a href="../index.html#val-split"><code>Re.split</code></a> but returns an iterator.</p><p>Example:</p><pre class="language-ocaml"><code># let regex = Re.compile (Re.char ',');;
 val regex : re = &lt;abstr&gt;
 
 # Re.Seq.split regex &quot;Re,Ocaml,Jerome Vouillon&quot;;;
-- : string Seq.t = &lt;fun&gt;</code></pre><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 1.10.0</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split_full"><a href="#val-split_full" class="anchor"></a><code><span><span class="keyword">val</span> split_full : 
-  <span>?pos:int <span class="arrow">&#45;&gt;</span></span>
-  <span>?len:int <span class="arrow">&#45;&gt;</span></span>
+- : string Seq.t = &lt;fun&gt;</code></pre><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 1.10.0</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split_delim"><a href="#val-split_delim" class="anchor"></a><code><span><span class="keyword">val</span> split_delim : 
+  <span><span class="optlabel">?pos</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?len</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="xref-unresolved">Re__.Core.re</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="xref-unresolved">Stdlib</span>.Seq.t</span></span></code></div><div class="spec-doc"><p>Same as <a href="../index.html#val-split_delim"><code>Re.split_delim</code></a> but returns an iterator.</p><p>Example:</p><pre class="language-ocaml"><code># let regex = Re.compile (Re.char ',');;
+val regex : re = &lt;abstr&gt;
+
+# Re.Seq.split regex &quot;Re,Ocaml,Jerome Vouillon&quot;;;
+- : string Seq.t = &lt;fun&gt;</code></pre><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 1.11.1</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split_full"><a href="#val-split_full" class="anchor"></a><code><span><span class="keyword">val</span> split_full : 
+  <span><span class="optlabel">?pos</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?len</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="xref-unresolved">Re__.Core.re</span> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span><span>[ <span>`Text of string</span> <span><span>| `Delim</span> of <span class="xref-unresolved">Re__.Core.Group.t</span></span> ]</span> <span class="xref-unresolved">Stdlib</span>.Seq.t</span></span></code></div><div class="spec-doc"><p>Same as <a href="../index.html#val-split_full"><code>Re.split_full</code></a> but returns an iterator.</p><p>Example:</p><pre class="language-ocaml"><code># let regex = Re.compile (Re.char ',');;
