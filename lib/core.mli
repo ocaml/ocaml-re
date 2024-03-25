@@ -282,8 +282,9 @@ val matches_seq : ?pos:int -> ?len:int -> re -> string -> string Seq.t
 (** @deprecated Use {!module-Seq.matches} instead. *)
 
 val split : ?pos:int -> ?len:int -> re -> string -> string list
-(** [split re s] splits [s] into chunks separated by [re]. It yields the chunks
-    themselves, not the separator.
+(** [split re s] splits [s] into chunks separated by [re]. It yields
+    the chunks themselves, not the separator. An occurence of the
+    separator at the beginning or the end of the string is ignoring.
 
     {5 Examples:}
     {[
@@ -295,6 +296,34 @@ val split : ?pos:int -> ?len:int -> re -> string -> string list
 
         # Re.split regex "No commas in this sentence.";;
         - : string list = ["No commas in this sentence."]
+
+        # Re.split regex ",1,2,";;
+        - : string list = ["1"; "2"]
+
+        # Re.split ~pos:3 regex "1,2,3,4. Commas go brrr.";;
+        - : string list = ["3"; "4. Commas go brrr."]
+    ]}
+*)
+
+val split_delim : ?pos:int -> ?len:int -> re -> string -> string list
+(** [split_delim re s] splits [s] into chunks separated by [re]. It
+    yields the chunks themselves, not the separator. Occurences of the
+    separator at the beginning or the end of the string will produce
+    empty chunks.
+
+    {5 Examples:}
+    {[
+        # let regex = Re.compile (Re.char ',');;
+        val regex : re = <abstr>
+
+        # Re.split regex "Re,Ocaml,Jerome Vouillon";;
+        - : string list = ["Re"; "Ocaml"; "Jerome Vouillon"]
+
+        # Re.split regex "No commas in this sentence.";;
+        - : string list = ["No commas in this sentence."]
+
+        # Re.split regex ",1,2,";;
+        - : string list = [""; "1"; "2"; ""]
 
         # Re.split ~pos:3 regex "1,2,3,4. Commas go brrr.";;
         - : string list = ["3"; "4. Commas go brrr."]
@@ -389,6 +418,22 @@ module Seq : sig
         - : string Seq.t = <fun>
     ]}
         @since 1.10.0 *)
+
+  val split_delim :
+    ?pos:int ->    (** Default: 0 *)
+    ?len:int ->
+    re -> string -> string Seq.t
+    (** Same as {!module-Re.val-split_delim} but returns an iterator.
+
+    {5 Example:}
+    {[
+        # let regex = Re.compile (Re.char ',');;
+        val regex : re = <abstr>
+
+        # Re.Seq.split regex "Re,Ocaml,Jerome Vouillon";;
+        - : string Seq.t = <fun>
+    ]}
+        @since 1.11.1 *)
 
   val split_full :
     ?pos:int ->    (** Default: 0 *)

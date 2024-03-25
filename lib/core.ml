@@ -1002,20 +1002,24 @@ module Rseq = struct
     in
     (* iterate on matches. When a match is found, search for the next
        one just after its end *)
-    let rec aux pos () =
-      if pos >= limit
+    let rec aux pos on_match () =
+      if pos > limit
       then Seq.Nil (* no more matches *)
       else
         match match_str ~groups:true ~partial:false re s
                 ~pos ~len:(limit - pos) with
         | Match substr ->
           let p1, p2 = Group.offset substr 0 in
-          let pos = if p1=p2 then p2+1 else p2 in
-          Seq.Cons (substr, aux pos)
+          if on_match && p1 = pos && p1 = p2 then
+            (* skip empty match right after a match *)
+            aux (pos + 1) false ()
+          else
+            let pos = if p1=p2 then p2+1 else p2 in
+            Seq.Cons (substr, aux pos (p1 <> p2))
         | Running _
         | Failed -> Seq.Nil
     in
-    aux pos
+    aux pos false
 
   let matches ?pos ?len re s : _ Seq.t =
     all ?pos ?len re s
@@ -1034,11 +1038,10 @@ module Rseq = struct
        limit: first index we ignore (!pos < limit is an invariant) *)
     let pos0 = pos in
     let rec aux state i pos () = match state with
-      | `Idle when pos >= limit ->
-        if i < limit then (
-          let sub = String.sub s i (limit - i) in
-          Seq.Cons (`Text sub, aux state (i+1) pos)
-        ) else Seq.Nil
+      | `Idle when pos > limit ->
+        (* We had an empty match at the end of the string *)
+        assert (i = limit);
+        Seq.Nil
       | `Idle ->
         begin match match_str ~groups:true ~partial:false re s ~pos
                       ~len:(limit - pos) with
@@ -1047,7 +1050,10 @@ module Rseq = struct
           let pos = if p1=p2 then p2+1 else p2 in
           let old_i = i in
           let i = p2 in
-          if p1 > pos0 then (
+          if old_i = p1 && p1 = p2 && p1 > pos0 then
+            (* Skip empty match right after a delimiter *)
+            aux state i pos ()
+          else if p1 > pos0 then (
             (* string does not start by a delimiter *)
             let text = String.sub s old_i (p1 - old_i) in
             let state = `Yield (`Delim substr) in
@@ -1075,6 +1081,16 @@ module Rseq = struct
       | Seq.Cons (`Delim _, tl) -> filter tl ()
       | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter tl)
     in filter seq
+
+  let split_delim ?pos ?len re s : _ Seq.t =
+    let seq = split_full ?pos ?len re s in
+    let rec filter ~delim seq () = match seq ()  with
+      | Seq.Nil -> if delim then Seq.Cons ("", fun () -> Seq.Nil) else Seq.Nil
+      | Seq.Cons (`Delim _, tl) ->
+        if delim then Seq.Cons ("", fun () -> filter ~delim:true tl ())
+        else filter ~delim:true tl ()
+      | Seq.Cons (`Text s,tl) -> Seq.Cons (s, filter ~delim:false tl)
+    in filter ~delim:true seq
 end
 
 module Rlist = struct
@@ -1088,6 +1104,9 @@ module Rlist = struct
   let split_full ?pos ?len re s = Rseq.split_full ?pos ?len re s |> list_of_seq
 
   let split ?pos ?len re s = Rseq.split ?pos ?len re s |> list_of_seq
+
+  let split_delim ?pos ?len re s =
+    Rseq.split_delim ?pos ?len re s |> list_of_seq
 end
 
 module Gen = struct
@@ -1122,33 +1141,41 @@ let replace ?(pos=0) ?len ?(all=true) re ~f s =
   (* buffer into which we write the result *)
   let buf = Buffer.create (String.length s) in
   (* iterate on matched substrings. *)
-  let rec iter pos =
-    if pos < limit
+  let rec iter pos on_match =
+    if pos <= limit
     then
       match match_str ~groups:true ~partial:false re s ~pos ~len:(limit-pos) with
       | Match substr ->
         let p1, p2 = Group.offset substr 0 in
-        (* add string between previous match and current match *)
-        Buffer.add_substring buf s pos (p1-pos);
-        (* what should we replace the matched group with? *)
-        let replacing = f substr in
-        Buffer.add_string buf replacing;
-        if all then
-          (* if we matched a non-char e.g. ^ we must manually advance by 1 *)
-          iter (
-            if p1=p2 then (
-              (* a non char could be past the end of string. e.g. $ *)
-              if p2 < limit then Buffer.add_char buf s.[p2];
-              p2+1
-            ) else
-              p2)
-        else
-          Buffer.add_substring buf s p2 (limit-p2)
+        if pos = p1 && p1 = p2 && on_match then begin
+          (* if we matched an empty string right after a match,
+             we must manually advance by 1 *)
+          if p2 < limit then Buffer.add_char buf s.[p2];
+          iter (p2 + 1) false
+        end else begin
+          (* add string between previous match and current match *)
+          Buffer.add_substring buf s pos (p1-pos);
+          (* what should we replace the matched group with? *)
+          let replacing = f substr in
+          Buffer.add_string buf replacing;
+          if all then
+            (* if we matched an empty string, we must manually advance by 1 *)
+            iter (
+              if p1=p2 then (
+                (* a non char could be past the end of string. e.g. $ *)
+                if p2 < limit then Buffer.add_char buf s.[p2];
+                p2+1
+              ) else
+                p2)
+              (p1 <> p2)
+          else
+            Buffer.add_substring buf s p2 (limit-p2)
+        end
       | Running _ -> ()
       | Failed ->
         Buffer.add_substring buf s pos (limit-pos)
   in
-  iter pos;
+  iter pos false;
   Buffer.contents buf
 
 let replace_string ?pos ?len ?all re ~by s =

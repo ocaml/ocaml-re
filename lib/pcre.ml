@@ -60,37 +60,65 @@ let pmatch ~rex s =
 
 let substitute ~rex ~subst str =
   let b = Buffer.create 1024 in
-  let rec loop pos =
-    if pos >= String.length str then
-      Buffer.contents b
-    else if Re.execp ~pos rex str then (
+  let rec loop pos on_match =
+    if Re.execp ~pos rex str then (
       let ss = Re.exec ~pos rex str in
       let start, fin = Re.Group.offset ss 0 in
-      let pat = Re.Group.get ss 0 in
-      Buffer.add_substring b str pos (start - pos);
-      Buffer.add_string b (subst pat);
-      loop fin
-    ) else (
-      Buffer.add_substring b str pos (String.length str - pos);
-      loop (String.length str)
-    )
+      if on_match && start = pos && start = fin then (
+        (* Empty match following a match *)
+        if pos < String.length str then (
+          Buffer.add_char b str.[pos];
+          loop (pos + 1) false
+        )
+      ) else (
+        let pat = Re.Group.get ss 0 in
+        Buffer.add_substring b str pos (start - pos);
+        Buffer.add_string b (subst pat);
+        if start = fin then (
+          (* Manually advance by one after an empty match *)
+          if fin < String.length str then (
+            Buffer.add_char b str.[fin];
+            loop (fin + 1) false
+          )
+        ) else
+          loop fin true
+      )
+    ) else
+      Buffer.add_substring b str pos (String.length str - pos)
   in
-  loop 0
+  loop 0 false;
+  Buffer.contents b
 
 let split ~rex str =
-  let rec loop accu pos =
-    if pos >= String.length str then
-      List.rev accu
-    else if Re.execp ~pos rex str then (
+  let finish str last accu =
+    let accu = String.sub str last (String.length str - last) :: accu in
+    List.rev accu
+  in
+  let rec loop accu last pos on_match =
+    if Re.execp ~pos rex str then (
       let ss = Re.exec ~pos rex str in
       let start, fin = Re.Group.offset ss 0 in
-      let s = String.sub str pos (start - pos) in
-      loop (s :: accu) fin
-    ) else (
-      let s = String.sub str pos (String.length str - pos) in
-      loop (s :: accu) (String.length str)
-    ) in
-  loop [] 0
+      if on_match && start = pos && start = fin then (
+        (* Empty match following a match *)
+        if pos = String.length str then
+          finish str last accu
+        else
+          loop accu last (pos + 1) false
+      ) else (
+        let accu = String.sub str last (start - last) :: accu in
+        if start = fin then (
+          (* Manually advance by one after an empty match *)
+          if fin = String.length str then
+            finish str fin accu
+          else
+            loop accu fin (fin + 1) false
+        ) else
+          loop accu fin fin true
+      )
+    ) else
+      finish str last accu
+  in
+  loop [] 0 0 false
 
 (* From PCRE *)
 let string_unsafe_sub s ofs len =
