@@ -10,4 +10,4 @@ val create : int -> bool -> t
 
 val get : t -> int -> bool
 
-val set_all : t -> bool -> unit
+val reset_zero : t -> unit

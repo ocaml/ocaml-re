@@ -330,8 +330,6 @@ let create_working_area () = ref (Bit_vector.singleton false)
 
 let index_count w = Bit_vector.length !w
 
-let reset_table a = Bit_vector.set_all a false
-
 let rec mark_used_indices tbl =
   List.iter (function
       | E.TSeq (l, _, _) -> mark_used_indices tbl l
@@ -345,7 +343,7 @@ let rec find_free tbl idx len =
 
 let free_index tbl_ref l =
   let tbl = !tbl_ref in
-  reset_table tbl;
+  Bit_vector.reset_zero tbl;
   mark_used_indices tbl l;
   let len = Bit_vector.length tbl in
   let idx = find_free tbl 0 len in
