@@ -730,52 +730,81 @@ let as_set = function
 (* XXX Should split alternatives into (1) charsets and (2) more
    complex regular expressions; alternative should therefore probably
    be flatten here *)
-let rec handle_case ign_case = function
+(* CR rgrinberg: in many of cases below, we evaluate [is_charset] on constructors where 
+   we already know the result and can just inline it. We do so on purpose to avoid syncing
+   [is_charset] and this function *)
+let rec handle_case ign_case re =
+  match re with
   | Set s ->
-    Set (if ign_case then case_insens s else s)
+    let re = Set (if ign_case then case_insens s else s) in
+    re, is_charset re
   | Sequence l ->
-    Sequence (List.map (handle_case ign_case) l)
+    let re = Sequence (List.map (fun re -> handle_case ign_case re |> fst) l) in
+    re, is_charset re
   | Alternative l ->
-    let l' = List.map (handle_case ign_case) l in
-    if is_charset (Alternative l') then
-      Set (List.fold_left (fun s r -> Cset.union s (as_set r)) Cset.empty l')
-    else
-      Alternative l'
+    let l', is_charset =
+      let l', is_charsets =
+        List.map (handle_case ign_case) l
+        |> List.split
+      in
+      l', List.for_all Fun.id is_charsets
+    in
+    let r =
+      if is_charset
+      then Set (List.fold_left (fun s r -> Cset.union s (as_set r)) Cset.empty l')
+      else Alternative l'
+    in
+    r, is_charset
   | Repeat (r, i, j) ->
-    Repeat (handle_case ign_case r, i, j)
+    let r, _ = handle_case ign_case r in
+    let re = Repeat (r, i, j) in
+    re, is_charset re
   | Beg_of_line | End_of_line | Beg_of_word | End_of_word | Not_bound
-  | Beg_of_str | End_of_str | Last_end_of_line | Start | Stop as r ->
-    r
+  | Beg_of_str | End_of_str | Last_end_of_line | Start | Stop ->
+    re, is_charset re
   | Sem (k, r) ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else Sem (k, r')
+    let r', is_charset = handle_case ign_case r in
+    (if is_charset then r' else Sem (k, r')), is_charset
   | Sem_greedy (k, r) ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else Sem_greedy (k, r')
+    let r', is_charset = handle_case ign_case r in
+    (if is_charset then r' else Sem_greedy (k, r')), is_charset
   | Group (n, r) ->
-    Group (n, handle_case ign_case r)
+    let r, _ = handle_case ign_case r in
+    let re = Group (n, r) in
+    (* CR-someday jtov: [is_charset (Group _)] is always false. *)
+    re, is_charset re
   | No_group r ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else No_group r'
+    let r', is_charset = handle_case ign_case r in
+    (if is_charset then r' else No_group r'), is_charset
   | Nest r ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else Nest r'
+    let r', is_charset = handle_case ign_case r in
+    (if is_charset then r' else Nest r'), is_charset
   | Case r ->
     handle_case false r
   | No_case r ->
     handle_case true r
   | Intersection l ->
-    let l' = List.map (fun r -> handle_case ign_case r) l in
-    Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) Cset.cany l')
+    let l' = List.map (fun r -> handle_case ign_case r |> fst) l in
+    let re = Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) Cset.cany l') in
+    re, is_charset re
   | Complement l ->
-    let l' = List.map (fun r -> handle_case ign_case r) l in
-    Set (Cset.diff Cset.cany
-           (List.fold_left (fun s r -> Cset.union s (as_set r))
-              Cset.empty l'))
+    let l' = List.map (fun r -> handle_case ign_case r |> fst) l in
+    let re =
+      Set (Cset.diff Cset.cany
+              (List.fold_left (fun s r -> Cset.union s (as_set r))
+                Cset.empty l'))
+    in
+    re, is_charset re
   | Difference (r, r') ->
-    Set (Cset.inter (as_set (handle_case ign_case r))
-           (Cset.diff Cset.cany (as_set (handle_case ign_case r'))))
-  | Pmark (i,r) -> Pmark (i,handle_case ign_case r)
+    let r = handle_case ign_case r |> fst |> as_set in
+    let r' = handle_case ign_case r' |> fst |> as_set in
+    let re = Set (Cset.inter r (Cset.diff Cset.cany r')) in
+    re, is_charset re
+  | Pmark (i,r) ->
+    let r,  _ = handle_case ign_case r in
+    let re = Pmark (i,r) in
+    re, is_charset re
+  
 
 (****)
 
