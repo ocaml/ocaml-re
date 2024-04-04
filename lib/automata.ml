@@ -324,32 +324,30 @@ end
 
 (**** Find a free index ****)
 
-type working_area = bool array ref
+type working_area = Bit_vector.t ref
 
-let create_working_area () = ref [| false |]
+let create_working_area () = ref (Bit_vector.create_zero 1)
 
-let index_count w = Array.length !w
-
-let reset_table a = Array.fill a 0 (Array.length a) false
+let index_count w = Bit_vector.length !w
 
 let rec mark_used_indices tbl =
   List.iter (function
       | E.TSeq (l, _, _) -> mark_used_indices tbl l
       | E.TExp (marks, _)
       | E.TMatch marks ->
-        List.iter (fun (_, i) -> if i >= 0 then tbl.(i) <- true)
+        List.iter (fun (_, i) -> if i >= 0 then Bit_vector.set tbl i true)
           marks.Marks.marks)
 
 let rec find_free tbl idx len =
-  if idx = len || not tbl.(idx) then idx else find_free tbl (idx + 1) len
+  if idx = len || not (Bit_vector.get tbl idx) then idx else find_free tbl (idx + 1) len
 
 let free_index tbl_ref l =
   let tbl = !tbl_ref in
-  reset_table tbl;
+  Bit_vector.reset_zero tbl;
   mark_used_indices tbl l;
-  let len = Array.length tbl in
+  let len = Bit_vector.length tbl in
   let idx = find_free tbl 0 len in
-  if idx = len then tbl_ref := Array.make (2 * len) false;
+  if idx = len then tbl_ref := Bit_vector.create_zero (2 * len);
   idx
 
 (**** Computation of the next state ****)
