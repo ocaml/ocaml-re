@@ -128,8 +128,9 @@ let mk_state ncol desc =
     | Automata.Failed
     | Automata.Match _ -> true
   in
-  { idx = if break_state then break else desc.Automata.State.idx;
-    real_idx = desc.Automata.State.idx;
+  let real_idx = Automata.State.idx desc in
+  { idx = if break_state then break else real_idx;
+    real_idx;
     next = if break_state then dummy_next else Array.make ncol unknown_state;
     final = [];
     desc }
@@ -147,7 +148,7 @@ let find_state re desc =
 let delta info cat ~color st =
   let desc = Automata.delta info.re.tbl cat color st.desc in
   let len = Array.length info.positions in
-  if desc.Automata.State.idx = len && len > 0 then begin
+  if Automata.State.idx desc = len && len > 0 then begin
     let pos = info.positions in
     info.positions <- Array.make (2 * len) 0;
     Array.blit pos 0 info.positions 0 len
@@ -197,7 +198,7 @@ let final info st cat =
     List.assq cat st.final
   with Not_found ->
     let st' = delta info cat ~color:(-1) st in
-    let res = (st'.Automata.State.idx, Automata.status st') in
+    let res = (Automata.State.idx st', Automata.status st') in
     st.final <- (cat, res) :: st.final;
     res
 
