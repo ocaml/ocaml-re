@@ -511,16 +511,15 @@ let rec restrict s = function
 let rec remove_marks b e rem =
   if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
 
-let rec prepend_marks_expr m = function
-  | E.TSeq (l, e', s) -> E.TSeq (prepend_marks_expr_lst m l, e', s)
-  | E.TExp (m', e')   -> E.TExp (Marks.merge m m', e')
-  | E.TMatch m'       -> E.TMatch (Marks.merge m m')
-
-and prepend_marks_expr_lst m l =
-  List.map (prepend_marks_expr m) l
-
-let prepend_marks m =
-  List.map (fun (s, x) -> (s, prepend_marks_expr_lst m x))
+let prepend_marks =
+  let rec prepend_marks_expr m = function
+    | E.TSeq (l, e', s) -> E.TSeq (prepend_marks_expr_lst m l, e', s)
+    | E.TExp (m', e')   -> E.TExp (Marks.merge m m', e')
+    | E.TMatch m'       -> E.TMatch (Marks.merge m m')
+  and prepend_marks_expr_lst m l =
+    List.map (prepend_marks_expr m) l
+  in
+  fun m -> List.map (fun (s, x) -> (s, prepend_marks_expr_lst m x))
 
 let rec deriv_1 all_chars categories marks cat x rem =
   match x.def with
