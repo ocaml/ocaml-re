@@ -79,6 +79,21 @@ module Marks = struct
     in
     fun marks idx -> { marks with marks = marks_set_idx idx marks.marks }
 
+  let filter t b e =
+    { t with marks = List.filter (fun (i, _) -> i < b || i > e) t.marks }
+
+  let rec remove_marks b e rem =
+    if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
+
+  let erase t b e =
+    { t with marks = (remove_marks b e (filter t b e).marks) }
+
+  let set_mark t i =
+    { t with marks = (i, -1) :: List.remove_assq i t.marks }
+
+  let set_pmark t i =
+    { t with pmarks = Pmark.Set.add i t.pmarks }
+
   let pp_marks ch t =
     match t.marks with
     | [] ->
@@ -400,9 +415,6 @@ let rec set_idx idx = function
   | E.TExp (marks, x) :: r ->
     E.TExp ((Marks.marks_set_idx marks idx), x) :: set_idx idx r
 
-let filter_marks b e marks =
-  {marks with Marks.marks = List.filter (fun (i, _) -> i < b || i > e) marks.Marks.marks }
-
 let rec delta_1 marks c ~next_cat ~prev_cat x rem =
   (*Format.eprintf "%d@." x.id;*)
   match x.def with
@@ -427,13 +439,13 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
   | Eps ->
     E.TMatch marks :: rem
   | Mark i ->
-    let marks = { marks with Marks.marks = (i, -1) :: List.remove_assq i marks.Marks.marks } in
+    let marks = Marks.set_mark marks i in
     E.TMatch marks :: rem
   | Pmark i ->
-    let marks = { marks with Marks.pmarks = Pmark.Set.add i marks.Marks.pmarks } in
+    let marks = Marks.set_pmark marks i in
     E.TMatch marks :: rem
   | Erase (b, e) ->
-    E.TMatch (filter_marks b e marks) :: rem
+    E.TMatch (Marks.filter marks b e) :: rem
   | Before cat'' ->
     if Category.intersect next_cat cat'' then E.TMatch marks :: rem else rem
   | After cat'' ->
@@ -518,9 +530,6 @@ let rec restrict s = function
     then restrict s rem
     else (s'', x') :: restrict s rem
 
-let rec remove_marks b e rem =
-  if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
-
 let prepend_marks =
   let rec prepend_marks_expr m = function
     | E.TSeq (l, e', s) -> E.TSeq (prepend_marks_expr_lst m l, e', s)
@@ -558,12 +567,11 @@ let rec deriv_1 all_chars categories marks cat x rem =
   | Eps ->
     Cset.prepend all_chars [E.TMatch marks] rem
   | Mark i ->
-    Cset.prepend all_chars [E.TMatch {marks with Marks.marks = ((i, -1) :: List.remove_assq i marks.Marks.marks)}] rem
+    Cset.prepend all_chars [E.TMatch (Marks.set_mark marks i)] rem
   | Pmark _ ->
     Cset.prepend all_chars [E.TMatch marks] rem
   | Erase (b, e) ->
-    Cset.prepend all_chars
-      [E.TMatch {marks with Marks.marks = (remove_marks b e (filter_marks b e marks).Marks.marks)}] rem
+    Cset.prepend all_chars [E.TMatch (Marks.erase marks b e)] rem
   | Before cat' ->
     Cset.prepend (List.assq cat' categories) [E.TMatch marks] rem
   | After cat' ->
