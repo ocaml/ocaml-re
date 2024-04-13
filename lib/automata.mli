@@ -56,11 +56,6 @@ val rename : ids -> expr -> expr
 (* States of the automata *)
 
 type idx = int
-module Marks : sig
-  type t =
-    { marks: (mark * idx) list
-    ; pmarks: Pmark.Set.t }
-end
 
 module E : sig
   type t
