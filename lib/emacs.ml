@@ -26,15 +26,12 @@ exception Parse_error
 exception Not_supported
 
 let parse s =
-  let i = ref 0 in
-  let l = String.length s in
-  let eos () = !i = l in
-  let test c = not (eos ()) && s.[!i] = c in
-  let test2 c c' = !i + 1 < l && s.[!i] = c && s.[!i + 1] = c' in
-  let accept c = let r = test c in if r then incr i; r in
-  let accept2 c c' = let r = test2 c c' in if r then i := !i + 2; r in
-  let get () = let r = s.[!i] in incr i; r in
-
+  let buf = Parse_buffer.create s in
+  let accept = Parse_buffer.accept buf in
+  let accept2 = Parse_buffer.accept2 buf in
+  let eos () = Parse_buffer.eos buf in
+  let test2 = Parse_buffer.test2 buf in
+  let get () = Parse_buffer.get buf in
   let rec regexp () = regexp' (branch ())
   and regexp' left =
     if accept2 '\\' '|' then regexp' (Re.alt [left; branch ()]) else left

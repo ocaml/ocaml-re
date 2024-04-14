@@ -22,7 +22,7 @@
 
 module Re = Core
 
-exception Parse_error
+exception Parse_error = Parse_buffer.Parse_error
 exception Not_supported
 
 let posix_class_of_string = function
@@ -50,23 +50,13 @@ let posix_class_strings =
   ; "graph" ; "xdigit" ]
 
 let parse multiline dollar_endonly dotall ungreedy s =
-  let i = ref 0 in
-  let l = String.length s in
-  let eos () = !i = l in
-  let test c = not (eos ()) && s.[!i] = c in
-  let accept c = let r = test c in if r then incr i; r in
-  let accept_s s' =
-    let len = String.length s' in
-    try
-      for j = 0 to len - 1 do
-        try if s'.[j] <> s.[!i + j] then raise_notrace Exit
-        with _ -> raise_notrace Exit
-      done;
-      i := !i + len;
-      true
-    with Exit -> false in
-  let get () = let r = s.[!i] in incr i; r in
-  let unget () = decr i in
+  let buf = Parse_buffer.create s in
+  let accept = Parse_buffer.accept buf in
+  let eos () = Parse_buffer.eos buf in
+  let test c = Parse_buffer.test buf c in
+  let unget () = Parse_buffer.unget buf in
+  let get () = Parse_buffer.get buf in
+  let accept_s = Parse_buffer.accept_s buf in
   let greedy_mod r =
     let gr = accept '?' in
     let gr = if ungreedy then not gr else gr in
@@ -85,9 +75,9 @@ let parse multiline dollar_endonly dotall ungreedy s =
     if accept '+' then greedy_mod (Re.rep1 r) else
     if accept '?' then greedy_mod (Re.opt r) else
     if accept '{' then
-      match integer () with
+      match Parse_buffer.integer buf with
         Some i ->
-          let j = if accept ',' then integer () else Some i in
+          let j = if accept ',' then Parse_buffer.integer buf else Some i in
           if not (accept '}') then raise Parse_error;
           begin match j with
             Some j when j < i -> raise Parse_error | _ -> ()
@@ -195,20 +185,6 @@ let parse multiline dollar_endonly dotall ungreedy s =
     | 'a'..'f' as d -> Char.code d - Char.code 'a' + 10
     | 'A'..'F' as d -> Char.code d - Char.code 'A' + 10
     | _ -> raise Parse_error
-  and integer () =
-    if eos () then None else
-    match get () with
-      '0'..'9' as d -> integer' (Char.code d - Char.code '0')
-    |     _        -> unget (); None
-  and integer' i =
-    if eos () then Some i else
-    match get () with
-      '0'..'9' as d ->
-        let i' = 10 * i + (Char.code d - Char.code '0') in
-        if i' < i then raise Parse_error;
-        integer' i'
-    | _ ->
-        unget (); Some i
   and name () =
     if eos () then raise Parse_error else
     match get () with
@@ -291,7 +267,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
       `Char c
   and comment () =
     if eos () then raise Parse_error;
-    if accept ')' then Re.epsilon else begin incr i; comment () end
+    if accept ')' then Re.epsilon else begin Parse_buffer.junk buf; comment () end
   in
   let res = regexp () in
   if not (eos ()) then raise Parse_error;
