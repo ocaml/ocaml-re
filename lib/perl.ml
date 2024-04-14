@@ -59,8 +59,8 @@ let parse multiline dollar_endonly dotall ungreedy s =
     let len = String.length s' in
     try
       for j = 0 to len - 1 do
-        try if s'.[j] <> s.[!i + j] then raise Exit
-        with _ -> raise Exit
+        try if s'.[j] <> s.[!i + j] then raise_notrace Exit
+        with _ -> raise_notrace Exit
       done;
       i := !i + len;
       true
