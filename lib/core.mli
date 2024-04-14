@@ -99,7 +99,7 @@ val exec :
         val regex : re = <abstr>
 
         # Re.exec regex "// a C comment";;
-        - : Re.substrings = <abstr>
+        - : Re.Group.t = <abstr>
 
         # Re.exec regex "# a C comment?";;
         Exception: Not_found
@@ -127,13 +127,13 @@ val exec_opt :
         val regex : re = <abstr>
 
         # Re.exec_opt regex "// a C comment";;
-        - : Re.substrings option = Some <abstr>
+        - : Re.Group.t option = Some <abstr>
 
         # Re.exec_opt regex "# a C comment?";;
-        - : Re.substrings option = None
+        - : Re.Group.t option = None
 
         # Re.exec_opt ~pos:1 regex "// a C comment";;
-        - : Re.substrings option = None
+        - : Re.Group.t option = None
     ]}
 *)
 
@@ -233,10 +233,10 @@ val all : ?pos:int -> ?len:int -> re -> string -> Group.t list
         val regex : re = <abstr>
 
         # Re.all regex "my head, my shoulders, my knees, my toes ...";;
-        - : Re.substrings list = [<abstr>; <abstr>; <abstr>; <abstr>]
+        - : Re.Group.t list = [<abstr>; <abstr>; <abstr>; <abstr>]
 
         # Re.all regex "My head, My shoulders, My knees, My toes ...";;
-        - : Re.substrings list = []
+        - : Re.Group.t list = []
     ]}
 *)
 
@@ -383,7 +383,7 @@ module Seq : sig
         val regex : re = <abstr>
 
         # Re.Seq.all regex "my head, my shoulders, my knees, my toes ...";;
-        - : Re.substrings Seq.t = <fun>
+        - : Re.Group.t Seq.t = <fun>
     ]}
         @since 1.10.0 *)
 
