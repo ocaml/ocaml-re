@@ -2,6 +2,7 @@ Unreleased
 ----------
 * Add `Re.split_delim` (#233)
 * Fix handling of empty matches in splitting and substitution functions (#233)
+* Add support for character classes in `Re.Posix` (#263)
 
 1.11.0 (19-Aug-2023)
 --------------------
