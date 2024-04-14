@@ -447,7 +447,7 @@ module Seq : sig
         val regex : re = <abstr>
 
         # Re.Seq.split_full regex "Re,Ocaml,Jerome Vouillon";;
-        - : Re__Core.split_token Seq.t = <fun>
+        - : Re.split_token Seq.t = <fun>
     ]}
         @since 1.10.0 *)
 end
