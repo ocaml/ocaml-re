@@ -1,2 +1,4 @@
 (env
- (_ (flags (:standard -w -50))))
+ (_
+  (flags
+   (:standard -w -50))))
