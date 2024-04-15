@@ -277,6 +277,8 @@ module State = struct
     ; mutable status: status option
     ; hash: hash }
 
+  let[@inline] idx t = t.idx
+
   let dummy =
     { idx = -1
     ; category = Category.dummy
