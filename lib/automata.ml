@@ -399,7 +399,7 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
     Cst s ->
     if Cset.mem c s then E.texp marks eps_expr :: rem else rem
   | Alt l ->
-    delta_2 marks c ~next_cat ~prev_cat l rem
+    delta_alt marks c ~next_cat ~prev_cat l rem
   | Seq (kind, y, z) ->
     let y' = delta_1 marks c ~next_cat ~prev_cat y [] in
     delta_seq c ~next_cat ~prev_cat kind y' z rem
@@ -429,12 +429,12 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
   | After cat'' ->
     if Category.intersect prev_cat cat'' then E.TMatch marks :: rem else rem
 
-and delta_2 marks c ~next_cat ~prev_cat l rem =
+and delta_alt marks c ~next_cat ~prev_cat l rem =
   match l with
     []     -> rem
   | y :: r ->
     delta_1 marks c ~next_cat ~prev_cat y
-      (delta_2 marks c ~next_cat ~prev_cat r rem)
+      (delta_alt marks c ~next_cat ~prev_cat r rem)
 
 and delta_seq c ~next_cat ~prev_cat kind y z rem =
   match first_match y with
