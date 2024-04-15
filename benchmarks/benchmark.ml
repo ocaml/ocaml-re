@@ -1,5 +1,6 @@
-open Core
 open Core_bench
+module List = ListLabels
+module String = StringLabels
 
 module Http = struct
   open Re
@@ -47,26 +48,25 @@ module Http = struct
   end
 end
 
-let http_requests = In_channel.read_all "benchmarks/http-requests.txt"
+let http_requests = Stdio.In_channel.read_all "benchmarks/http-requests.txt"
 
 let str_20_zeroes = String.make 20 '0'
 let re_20_zeroes = Re.(str str_20_zeroes)
 
 let tex_ignore_re =
-  "benchmarks/tex.gitignore"
-  |> In_channel.read_lines
+  Stdio.In_channel.read_lines "benchmarks/tex.gitignore"
   |> List.map ~f:(fun s ->
-      match String.lsplit2 s ~on:'#' with
+      match Base.String.lsplit2 s ~on:'#' with
       | Some (pattern, _comment) -> pattern
       | None -> s)
   |> List.filter_map ~f:(fun s ->
-      match String.strip s with
+      match Base.String.strip s with
       | "" -> None
       | s -> Some s)
   |> List.map ~f:Re.Glob.glob
   |> Re.alt
 
-let tex_ignore_filesnames = In_channel.read_lines "benchmarks/files"
+let tex_ignore_filesnames = Stdio.In_channel.read_lines "benchmarks/files"
 
 let lots_of_a's =
   String.init 101 ~f:(function
@@ -99,7 +99,7 @@ let exec_bench exec name (re : Re.t) cases =
   let re = Re.compile re in
   Bench.Test.create_group ~name (
     List.mapi cases ~f:(fun i case ->
-        let name = sprintf "case %i" i in
+        let name = Printf.sprintf "case %i" i in
         Bench.Test.create ~name (fun () -> ignore (exec re case))
       )
   )
@@ -107,8 +107,7 @@ let exec_bench exec name (re : Re.t) cases =
 let exec_bench_many exec name re cases =
   let re = Re.compile re in
   Bench.Test.create ~name (fun () ->
-      cases |> List.iter ~f:(fun x -> ignore (exec re x))
-    )
+    List.iter cases ~f:(fun x -> ignore (exec re x)))
 
 let rec read_all_http pos re reqs =
   if pos >= String.length reqs
@@ -154,12 +153,12 @@ let benchmarks =
             |> drain_gen
           )
       ] |> Test.create_group ~name:"auto" in
-    Test.create_group ~name:"http" [manual ; many] in
+    Test.create_group ~name:"http" [manual ; many]
+  in
   benches @ [
     [ exec_bench_many Re.execp "execp"
     ; exec_bench_many Re.exec_opt "exec_opt" ]
-    |> List.map ~f:(fun f ->
-        f tex_ignore_re tex_ignore_filesnames)
+    |> List.map ~f:(fun f -> f tex_ignore_re tex_ignore_filesnames)
     |> Bench.Test.create_group ~name:"tex gitignore"
   ] @ [http_benches]
 
