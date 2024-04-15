@@ -128,17 +128,6 @@ let rec pp ch e =
   | After c ->
     sexp ch "after" Category.pp c
 
-
-(****)
-
-let rec first f = function
-  | [] ->
-    None
-  | x :: r ->
-    match f x with
-      None          -> first f r
-    | Some _ as res -> res
-
 (****)
 
 type ids = int ref
@@ -275,6 +264,11 @@ module E = struct
   let pp ch t = print_state_lst ch [t] { id = 0; def = Eps }
 end
 
+let rec first_match = function
+  | [] -> None
+  | (E.TMatch marks) :: _ -> Some marks
+  | _ :: r -> first_match r
+
 module State = struct
   type t =
     { idx: idx
@@ -410,10 +404,7 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
   | Rep (rep_kind, kind, y) ->
     let y' = delta_1 marks c ~next_cat ~prev_cat y [] in
     let (y'', marks') =
-      match
-        first
-          (function E.TMatch marks -> Some marks | _ -> None) y'
-      with
+      match first_match y' with
         None        -> (y', marks)
       | Some marks' -> (remove_matches y', marks')
     in
@@ -444,9 +435,7 @@ and delta_2 marks c ~next_cat ~prev_cat l rem =
       (delta_2 marks c ~next_cat ~prev_cat r rem)
 
 and delta_seq c ~next_cat ~prev_cat kind y z rem =
-  match
-    first (function E.TMatch marks -> Some marks | _ -> None) y
-  with
+  match first_match y with
     None ->
     E.tseq kind y z rem
   | Some marks ->
@@ -545,11 +534,7 @@ let rec deriv_1 all_chars categories marks cat x rem =
     List.fold_right
       (fun (s, z) rem ->
          let (z', marks') =
-           match
-             first
-               (function E.TMatch marks -> Some marks | _ -> None)
-               z
-           with
+           match first_match z with
              None        -> (z, marks)
            | Some marks' -> (remove_matches z, marks')
          in
@@ -589,10 +574,7 @@ and deriv_seq all_chars categories cat kind y z rem =
     let z' = deriv_1 all_chars categories Marks.empty cat z [(all_chars, [])] in
     List.fold_right
       (fun (s, y) rem ->
-         match
-           first (function E.TMatch marks -> Some marks | _ -> None)
-             y
-         with
+         match first_match y with
            None ->
            Cset.prepend s (E.tseq kind y z []) rem
          | Some marks ->
