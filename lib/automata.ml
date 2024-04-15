@@ -261,7 +261,7 @@ module E = struct
            print_state_rec ch e y)
         rem
 
-  let pp ch t = print_state_lst ch [t] { id = 0; def = Eps }
+  let _pp ch t = print_state_lst ch [t] { id = 0; def = Eps }
 end
 
 let rec first_match = function

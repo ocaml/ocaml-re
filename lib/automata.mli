@@ -57,12 +57,6 @@ val rename : ids -> expr -> expr
 
 type idx = int
 
-module E : sig
-  type t
-  val pp : Format.formatter -> t -> unit
-end
-
-type hash
 type mark_infos = int array
 type status = Failed | Match of mark_infos * Pmark.Set.t | Running
 
