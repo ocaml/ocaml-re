@@ -309,6 +309,26 @@ module State = struct
       if c <> 0 then c else
         compare x.desc y.desc
 
+  let status =
+    let flatten_match m =
+      let ma = List.fold_left (fun ma (i, _) -> max ma i) (-1) m in
+      let res = Array.make (ma + 1) (-1) in
+      List.iter (fun (i, v) -> res.(i) <- v) m;
+      res
+    in
+    fun s ->
+      match s.status with
+      | Some st -> st
+      | None ->
+        let st =
+          match s.desc with
+            []              -> Failed
+          | E.TMatch m :: _ -> Match (flatten_match m.marks, m.Marks.pmarks)
+          | _               -> Running
+        in
+        s.status <- Some st;
+        st
+
   type t' = t
   module Table = Hashtbl.Make(
     struct
@@ -632,23 +652,3 @@ Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_st
           categories rem) der [])
 
 (****)
-
-let flatten_match m =
-  let ma = List.fold_left (fun ma (i, _) -> max ma i) (-1) m in
-  let res = Array.make (ma + 1) (-1) in
-  List.iter (fun (i, v) -> res.(i) <- v) m;
-  res
-
-let status s =
-  match s.State.status with
-    Some st ->
-    st
-  | None ->
-    let st =
-      match s.State.desc with
-        []              -> Failed
-      | E.TMatch m :: _ -> Match (flatten_match m.Marks.marks, m.Marks.pmarks)
-      | _               -> Running
-    in
-    s.State.status <- Some st;
-    st

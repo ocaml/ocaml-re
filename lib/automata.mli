@@ -65,6 +65,7 @@ module State : sig
   val dummy : t
   val create : Category.t -> expr -> t
   val idx : t -> idx
+  val status : t -> status
   module Table : Hashtbl.S with type key = t
 end
 
@@ -82,5 +83,3 @@ val deriv :
   (Cset.t * State.t) list
 
 (****)
-
-val status : State.t -> status
