@@ -4,4 +4,4 @@
 (library
  (name fort_unit)
  (wrapped false)
- (libraries re oUnit))
+ (libraries re ounit2))
