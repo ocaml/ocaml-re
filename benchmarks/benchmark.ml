@@ -122,6 +122,16 @@ let rec drain_gen gen =
   | Seq.Nil -> ()
   | Cons (_, tail) -> drain_gen tail
 
+let string_traversal =
+  let open Bench in
+  let rec repeat n f = if n > 0 then begin f (); repeat (n - 1) f end in
+  Test.create ~name:"string traversal from #210" (fun () ->
+    let len = 1000 * 1000 in
+    let s = String.make len 'a' in
+    let re = Re.Pcre.regexp "aaaaaaaaaaaaaaaaz" in
+    let perform () = try ignore (Re.execp re s ~pos:0) with Not_found -> () in
+    ignore (repeat 1000 perform))
+
 let benchmarks =
   let benches =
     benchmarks
@@ -160,6 +170,6 @@ let benchmarks =
     ; exec_bench_many Re.exec_opt "exec_opt" ]
     |> List.map ~f:(fun f -> f tex_ignore_re tex_ignore_filesnames)
     |> Bench.Test.create_group ~name:"tex gitignore"
-  ] @ [http_benches]
+  ] @ [http_benches] @ [ string_traversal ]
 
 let () = Command_unix.run (Bench.make_command benchmarks)
