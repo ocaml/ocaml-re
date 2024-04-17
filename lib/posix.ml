@@ -30,18 +30,16 @@ Note that it should be possible to handle "(((ab)c)d)e" efficiently
 *)
 module Re = Core
 
-exception Parse_error
+exception Parse_error = Parse_buffer.Parse_error
 exception Not_supported
 
 let parse newline s =
-  let i = ref 0 in
-  let l = String.length s in
-  let eos () = !i = l in
-  let test c = not (eos ()) && s.[!i] = c in
-  let accept c = let r = test c in if r then incr i; r in
-  let get () = let r = s.[!i] in incr i; r in
-  let unget () = decr i in
-
+  let buf = Parse_buffer.create s in
+  let accept = Parse_buffer.accept buf in
+  let eos () = Parse_buffer.eos buf in
+  let test c = Parse_buffer.test buf c in
+  let unget () = Parse_buffer.unget buf in
+  let get () = Parse_buffer.get buf in
   let rec regexp () = regexp' (branch ())
   and regexp' left =
     if accept '|' then regexp' (Re.alt [left; branch ()]) else left
@@ -55,9 +53,9 @@ let parse newline s =
     if accept '+' then Re.rep1 (Re.nest r) else
     if accept '?' then Re.opt r else
     if accept '{' then
-      match integer () with
+      match Parse_buffer.integer buf with
         Some i ->
-          let j = if accept ',' then integer () else Some i in
+          let j = if accept ',' then Parse_buffer.integer buf else Some i in
           if not (accept '}') then raise Parse_error;
           begin match j with
             Some j when j < i -> raise Parse_error | _ -> ()
@@ -97,20 +95,6 @@ let parse newline s =
         '*' | '+' | '?' | '{' | '\\' -> raise Parse_error
       |                 c            -> Re.char c
     end
-  and integer () =
-    if eos () then None else
-    match get () with
-      '0'..'9' as d -> integer' (Char.code d - Char.code '0')
-    |     _        -> unget (); None
-  and integer' i =
-    if eos () then Some i else
-    match get () with
-      '0'..'9' as d ->
-        let i' = 10 * i + (Char.code d - Char.code '0') in
-        if i' < i then raise Parse_error;
-        integer' i'
-    | _ ->
-        unget (); Some i
   and bracket s =
     if s <> [] && accept ']' then s else begin
       let c = char () in
