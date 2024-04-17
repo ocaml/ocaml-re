@@ -89,9 +89,6 @@ let group_names re = re.group_names
 type info =
   { re : re;
     (* The automata *)
-    colors : string;
-    (* Color table ([x.colors = x.re.colors])
-       Shortcut used for performance reasons *)
     mutable positions : int array;
     (* Array of mark positions
        The mark are off by one for performance reasons *)
@@ -156,39 +153,39 @@ let delta info cat ~color st =
   desc
 
 let validate info (s:string) ~pos st =
-  let color = Char.code (info.colors.[Char.code s.[pos]]) in
+  let color = Char.code (info.re.colors.[Char.code s.[pos]]) in
   let cat = category info.re ~color in
   let desc' = delta info cat ~color st in
   let st' = find_state info.re desc' in
   st.next.(color) <- st'
 
-let rec loop info s ~pos st =
-  if pos < info.last then
-    let st' = st.next.(Char.code info.colors.[Char.code s.[pos]]) in
+let rec loop info ~colors ~positions s ~pos ~last st =
+  if pos < last then
+    let st' = st.next.(Char.code colors.[Char.code s.[pos]]) in
     let idx = st'.idx in
     if idx >= 0 then begin
-      info.positions.(idx) <- pos;
-      loop info s ~pos:(pos + 1) st'
+      positions.(idx) <- pos;
+      loop info ~colors ~positions s ~pos:(pos + 1) ~last st'
     end else if idx = break then begin
       info.positions.(st'.real_idx) <- pos;
       st'
     end else begin (* Unknown *)
       validate info s ~pos st;
-      loop info s ~pos st
+      loop info ~colors ~positions:info.positions s ~pos ~last st
     end
   else
     st
 
-let rec loop_no_mark info s ~pos ~last st =
+let rec loop_no_mark info ~colors s ~pos ~last st =
   if pos < last then
-    let st' = st.next.(Char.code info.colors.[Char.code s.[pos]]) in
+    let st' = st.next.(Char.code colors.[Char.code s.[pos]]) in
     if st'.idx >= 0 then
-      loop_no_mark info s ~pos:(pos + 1) ~last st'
+      loop_no_mark info ~colors s ~pos:(pos + 1) ~last st'
     else if st'.idx = break then
       st'
     else begin (* Unknown *)
       validate info s ~pos st;
-      loop_no_mark info s ~pos ~last st
+      loop_no_mark info ~colors s ~pos ~last st
     end
   else
     st
@@ -233,7 +230,7 @@ let rec handle_last_newline info ~pos st ~groups =
     st'
   end else begin (* Unknown *)
     let color = info.re.lnl in
-    let real_c = Char.code info.colors.[Char.code '\n'] in
+    let real_c = Char.code info.re.colors.[Char.code '\n'] in
     let cat = category info.re ~color in
     let desc' = delta info cat ~color:real_c st in
     let st' = find_state info.re desc' in
@@ -256,9 +253,11 @@ let rec scan_str info (s:string) initial_state ~groups =
     else
       handle_last_newline info ~pos:(last - 1) st ~groups
   end else if groups then
-    loop info s ~pos initial_state
+    loop info ~colors:info.re.colors ~positions:info.positions
+      s ~pos ~last initial_state
   else
-    loop_no_mark info s ~pos ~last initial_state
+    loop_no_mark
+      info ~colors:info.re.colors s ~pos ~last initial_state
 
 (* This function adds a final boundary check on the input.
    This is useful to indicate that the output failed because
@@ -283,7 +282,7 @@ let match_str ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
-    { re ; colors = re.colors; pos ; last
+    { re; pos ; last
     ; positions =
         if groups then begin
           let n = Automata.index_count re.tbl + 1 in
