@@ -125,10 +125,10 @@ let rec drain_gen gen =
 let string_traversal =
   let open Bench in
   let rec repeat n f = if n > 0 then begin f (); repeat (n - 1) f end in
+  let len = 1000 * 1000 in
+  let s = String.make len 'a' in
+  let re = Re.Pcre.regexp "aaaaaaaaaaaaaaaaz" in
   Test.create ~name:"string traversal from #210" (fun () ->
-    let len = 1000 * 1000 in
-    let s = String.make len 'a' in
-    let re = Re.Pcre.regexp "aaaaaaaaaaaaaaaaz" in
     let perform () = try ignore (Re.execp re s ~pos:0) with Not_found -> () in
     ignore (repeat 1000 perform))
 
