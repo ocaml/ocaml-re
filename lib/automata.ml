@@ -72,14 +72,12 @@ module Marks = struct
   let hash m accu =
     hash_marks_offset m.marks (hash_combine (Hashtbl.hash m.pmarks) accu)
 
-  let rec marks_set_idx idx = function
-    | (a, -1) :: rem ->
-      (a, idx) :: marks_set_idx idx rem
-    | marks ->
-      marks
-
-  let marks_set_idx marks idx =
-    { marks with marks = marks_set_idx idx marks.marks }
+  let marks_set_idx =
+    let rec marks_set_idx idx = function
+      | (a, -1) :: rem -> (a, idx) :: marks_set_idx idx rem
+      | marks -> marks
+    in
+    fun marks idx -> { marks with marks = marks_set_idx idx marks.marks }
 
   let pp_marks ch t =
     match t.marks with
