@@ -57,8 +57,7 @@ val rename : ids -> expr -> expr
 
 type idx = int
 
-type mark_infos = int array
-type status = Failed | Match of mark_infos * Pmark.Set.t | Running
+type status = Failed | Match of Mark_infos.t * Pmark.Set.t | Running
 
 module State : sig
   type t

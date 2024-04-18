@@ -1,19 +1,16 @@
 (* Result of a successful match. *)
 type t =
   { s : string
-  ; marks : Automata.mark_infos
+  ; marks : Mark_infos.t
   ; pmarks : Pmark.Set.t
   ; gpos : int array
   ; gcount : int
   }
 
 let offset t i =
-  if 2 * i + 1 >= Array.length t.marks then raise Not_found;
-  let m1 = t.marks.(2 * i) in
-  if m1 = -1 then raise Not_found;
-  let p1 = t.gpos.(m1) in
-  let p2 = t.gpos.(t.marks.(2 * i + 1)) in
-  (p1, p2)
+  match Mark_infos.offset t.marks i with
+  | None -> raise Not_found
+  | Some (start, stop) -> (t.gpos.(start), t.gpos.(stop))
 
 let get t i =
   let (p1, p2) = offset t i in
@@ -23,12 +20,7 @@ let start subs i = fst (offset subs i)
 
 let stop subs i = snd (offset subs i)
 
-let test t i =
-  if 2 * i >= Array.length t.marks then
-    false
-  else
-    let idx = t.marks.(2 * i) in
-    idx <> -1
+let test t i = Mark_infos.test t.marks i
 
 let get_opt t i =
   if test t i
@@ -39,28 +31,20 @@ let dummy_offset = (-1, -1)
 
 let all_offset t =
   let res = Array.make t.gcount dummy_offset in
-  for i = 0 to Array.length t.marks / 2 - 1 do
-    let m1 = t.marks.(2 * i) in
-    if m1 <> -1 then begin
-      let p1 = t.gpos.(m1) in
-      let p2 = t.gpos.(t.marks.(2 * i + 1)) in
-      res.(i) <- (p1, p2)
-    end
-  done;
+  Mark_infos.iteri t.marks ~f:(fun i start stop ->
+    let p1 = t.gpos.(start) in
+    let p2 = t.gpos.(stop) in
+    res.(i) <- (p1, p2));
   res
 
 let dummy_string = ""
 
 let all t =
   let res = Array.make t.gcount dummy_string in
-  for i = 0 to Array.length t.marks / 2 - 1 do
-    let m1 = t.marks.(2 * i) in
-    if m1 <> -1 then begin
-      let p1 = t.gpos.(m1) in
-      let p2 = t.gpos.(t.marks.(2 * i + 1)) in
-      res.(i) <- String.sub t.s p1 (p2 - p1)
-    end
-  done;
+  Mark_infos.iteri t.marks ~f:(fun i start stop ->
+    let p1 = t.gpos.(start) in
+    let p2 = t.gpos.(stop) in
+    res.(i) <- String.sub t.s p1 (p2 - p1));
   res
 
 let pp fmt t =

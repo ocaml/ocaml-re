@@ -192,8 +192,7 @@ let rec rename ids x =
 (****)
 
 type hash = int
-type mark_infos = int array
-type status = Failed | Match of mark_infos * Pmark.Set.t | Running
+type status = Failed | Match of Mark_infos.t * Pmark.Set.t | Running
 
 module E = struct
   type t =
@@ -307,25 +306,18 @@ module State = struct
       if c <> 0 then c else
         compare x.desc y.desc
 
-  let status =
-    let flatten_match m =
-      let ma = List.fold_left (fun ma (i, _) -> max ma i) (-1) m in
-      let res = Array.make (ma + 1) (-1) in
-      List.iter (fun (i, v) -> res.(i) <- v) m;
-      res
-    in
-    fun s ->
-      match s.status with
-      | Some st -> st
-      | None ->
-        let st =
-          match s.desc with
-            []              -> Failed
-          | E.TMatch m :: _ -> Match (flatten_match m.marks, m.Marks.pmarks)
-          | _               -> Running
-        in
-        s.status <- Some st;
-        st
+  let status s =
+    match s.status with
+    | Some st -> st
+    | None ->
+      let st =
+        match s.desc with
+          []              -> Failed
+        | E.TMatch m :: _ -> Match (Mark_infos.make m.marks, m.Marks.pmarks)
+        | _               -> Running
+      in
+      s.status <- Some st;
+      st
 
   type t' = t
   module Table = Hashtbl.Make(
