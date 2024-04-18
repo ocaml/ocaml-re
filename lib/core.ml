@@ -161,13 +161,18 @@ let validate info (s:string) ~pos st =
 
 let rec loop info ~colors ~positions s ~pos ~last st =
   if pos < last then
-    let st' = st.next.(Char.code colors.[Char.code s.[pos]]) in
+    let st' =
+      let c =
+        let c = Char.code (String.unsafe_get s pos) in
+        Char.code (String.unsafe_get colors c)
+      in
+      Array.unsafe_get st.next c in
     let idx = st'.idx in
     if idx >= 0 then begin
-      positions.(idx) <- pos;
+      Array.unsafe_set positions idx pos;
       loop info ~colors ~positions s ~pos:(pos + 1) ~last st'
     end else if idx = break then begin
-      info.positions.(st'.real_idx) <- pos;
+      Array.unsafe_set info.positions (st'.real_idx) pos;
       st'
     end else begin (* Unknown *)
       validate info s ~pos st;
@@ -178,7 +183,7 @@ let rec loop info ~colors ~positions s ~pos ~last st =
 
 let rec loop_no_mark info ~colors s ~pos ~last st =
   if pos < last then
-    let st' = st.next.(Char.code colors.[Char.code s.[pos]]) in
+    let st' = Array.unsafe_get st.next (Char.code colors.[Char.code s.[pos]]) in
     if st'.idx >= 0 then
       loop_no_mark info ~colors s ~pos:(pos + 1) ~last st'
     else if st'.idx = break then
