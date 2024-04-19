@@ -215,6 +215,10 @@ module E = struct
     | TExp of Marks.t * expr
     | TMatch of Marks.t
 
+  let is_tmatch = function
+    | TMatch _ -> true
+    | TSeq _ | TExp _ -> false
+
   let rec equal l1 l2 =
     match l1, l2 with
     | [], [] ->
@@ -584,11 +588,7 @@ and deriv_2 all_chars categories marks cat l rem =
                 (deriv_2 all_chars categories marks cat r rem)
 
 and deriv_seq all_chars categories cat kind y z rem =
-  if
-    List.exists
-      (fun (_s, xl) ->
-         List.exists (function E.TMatch _ -> true | _ -> false) xl)
-      y
+  if List.exists (fun (_s, xl) -> List.exists E.is_tmatch xl) y
   then
     let z' = deriv_1 all_chars categories Marks.empty cat z [(all_chars, [])] in
     List.fold_right
