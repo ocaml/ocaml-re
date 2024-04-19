@@ -177,9 +177,13 @@ let delta info cat ~color st =
 
 let validate info (s : string) ~pos st =
   let color = Char.code info.re.colors.[Char.code s.[pos]] in
-  let cat = category info.re ~color in
-  let desc' = delta info cat ~color (State.get_info st) in
-  let st' = find_state info.re desc' in
+  let st' =
+    let desc' =
+      let cat = category info.re ~color in
+      delta info cat ~color (State.get_info st)
+    in
+    find_state info.re desc'
+  in
   State.set_transition st ~color st'
 ;;
 
@@ -311,12 +315,14 @@ let rec scan_str info (s : string) initial_state ~groups =
    to the input string.
 *)
 let final_boundary_check ~last ~slen re s ~info ~st ~groups =
-  let final_cat =
-    if last = slen
-    then Category.(search_boundary ++ inexistant)
-    else Category.(search_boundary ++ category re ~color:(get_color re s last))
+  let idx, res =
+    let final_cat =
+      Category.(
+        search_boundary
+        ++ if last = slen then inexistant else category re ~color:(get_color re s last))
+    in
+    final info (State.get_info st) final_cat
   in
-  let idx, res = final info (State.get_info st) final_cat in
   (match groups, res with
    | true, Match _ -> info.positions.(idx) <- last
    | _ -> ());
@@ -338,14 +344,18 @@ let match_str ~groups ~partial re s ~pos ~len =
          else [||])
     }
   in
-  let initial_cat =
-    if pos = 0
-    then Category.(search_boundary ++ inexistant)
-    else Category.(search_boundary ++ category re ~color:(get_color re s (pos - 1)))
+  let st =
+    let initial_state =
+      let initial_cat =
+        Category.(
+          search_boundary
+          ++ if pos = 0 then inexistant else category re ~color:(get_color re s (pos - 1)))
+      in
+      find_initial_state re initial_cat
+    in
+    scan_str info s initial_state ~groups
   in
-  let initial_state = find_initial_state re initial_cat in
-  let st = scan_str info s initial_state ~groups in
-  let res =
+  match
     if (State.get_info st).idx = break || (partial && not groups)
     then Automata.State.status (State.get_info st).desc
     else if partial && groups
@@ -363,12 +373,11 @@ let match_str ~groups ~partial re s ~pos ~len =
               it's a partial match. *)
            Running))
     else final_boundary_check ~last ~slen re s ~info ~st ~groups
-  in
-  match res with
-  | Automata.Match (marks, pmarks) ->
+  with
+  | Match (marks, pmarks) ->
     Match { s; marks; pmarks; gpos = info.positions; gcount = re.group_count }
-  | Automata.Failed -> Failed
-  | Automata.Running ->
+  | Failed -> Failed
+  | Running ->
     let no_match_starts_before = if groups then info.positions.(0) else 0 in
     Running { no_match_starts_before }
 ;;
@@ -688,11 +697,8 @@ let rec translate ids kind ign_group ign_case greedy pos names cache c = functio
     ( A.alt
         ids
         [ A.seq ids `First (A.after ids Category.letter) (A.before ids Category.letter)
-        ; A.seq
-            ids
-            `First
-            (A.after ids Category.(inexistant ++ not_letter))
-            (A.before ids Category.(inexistant ++ not_letter))
+        ; (let cat = Category.(inexistant ++ not_letter) in
+           A.seq ids `First (A.after ids cat) (A.before ids cat))
         ]
     , kind )
   | Beg_of_str -> A.after ids Category.inexistant, kind
