@@ -583,7 +583,7 @@ val not_boundary : t
 (** Not at a word boundary *)
 
 val whole_string : t -> t
-(** Only matches the whole string, i.e. [fun t -> seq [ eos; t; bos ]]. *)
+(** Only matches the whole string, i.e. [fun t -> seq [ bos; t; eos ]]. *)
 
 (** {2 Match semantics}
 
