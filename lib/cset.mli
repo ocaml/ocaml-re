@@ -26,38 +26,28 @@ type c = int
 type t
 
 val iter : t -> f:(c -> c -> unit) -> unit
-
 val union : t -> t -> t
 val inter : t -> t -> t
 val diff : t -> t -> t
 val offset : int -> t -> t
-
 val empty : t
 val single : c -> t
 val seq : c -> c -> t
 val add : c -> t -> t
-
 val mem : c -> t -> bool
 
 type hash
+
 val hash : t -> hash
-
 val pp : Format.formatter -> t -> unit
-
 val one_char : t -> c option
-
-val fold_right : t -> init:'acc -> f:(c * c -> 'acc ->  'acc) -> 'acc
-
+val fold_right : t -> init:'acc -> f:(c * c -> 'acc -> 'acc) -> 'acc
 val hash_rec : t -> int
 
 module CSetMap : Map.S with type key = int * t
 
 val cany : t
-
 val csingle : char -> t
-
 val is_empty : t -> bool
-
 val prepend : t -> 'a list -> (t * 'a list) list -> (t * 'a list) list
-
 val pick : t -> c

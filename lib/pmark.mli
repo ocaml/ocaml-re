@@ -1,5 +1,5 @@
-
 type t = private int
+
 val equal : t -> t -> bool
 val compare : t -> t -> int
 val gen : unit -> t
