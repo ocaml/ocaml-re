@@ -20,6 +20,17 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
+module Ids = struct
+  type t = int ref
+
+  let create () = ref 0
+
+  let next t =
+    incr t;
+    !t
+  ;;
+end
+
 type sem =
   [ `Longest
   | `Shortest
@@ -140,17 +151,8 @@ let rec pp ch e =
 ;;
 
 (****)
-
-type ids = int ref
-
-let create_ids () = ref 0
 let eps_expr = { id = 0; def = Eps }
-
-let mk_expr ids def =
-  incr ids;
-  { id = !ids; def }
-;;
-
+let mk_expr ids def = { id = Ids.next ids; def }
 let empty ids = mk_expr ids (Alt [])
 let cst ids s = if Cset.is_empty s then empty ids else mk_expr ids (Cst s)
 

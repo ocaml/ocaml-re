@@ -43,21 +43,24 @@ type expr
 val is_eps : expr -> bool
 val pp : Format.formatter -> expr -> unit
 
-type ids
+module Ids : sig
+  type t
 
-val create_ids : unit -> ids
-val cst : ids -> Cset.t -> expr
-val empty : ids -> expr
-val alt : ids -> expr list -> expr
-val seq : ids -> sem -> expr -> expr -> expr
-val eps : ids -> expr
-val rep : ids -> rep_kind -> sem -> expr -> expr
-val mark : ids -> mark -> expr
-val pmark : ids -> Pmark.t -> expr
-val erase : ids -> mark -> mark -> expr
-val before : ids -> Category.t -> expr
-val after : ids -> Category.t -> expr
-val rename : ids -> expr -> expr
+  val create : unit -> t
+end
+
+val cst : Ids.t -> Cset.t -> expr
+val empty : Ids.t -> expr
+val alt : Ids.t -> expr list -> expr
+val seq : Ids.t -> sem -> expr -> expr -> expr
+val eps : Ids.t -> expr
+val rep : Ids.t -> rep_kind -> sem -> expr -> expr
+val mark : Ids.t -> mark -> expr
+val pmark : Ids.t -> Pmark.t -> expr
+val erase : Ids.t -> mark -> mark -> expr
+val before : Ids.t -> Category.t -> expr
+val after : Ids.t -> Category.t -> expr
+val rename : Ids.t -> expr -> expr
 
 (****)
 
