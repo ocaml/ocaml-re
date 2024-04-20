@@ -262,13 +262,14 @@ let get_color re (s : string) pos =
 
 let rec handle_last_newline info ~pos st ~groups =
   let st' = State.follow_transition st ~color:info.re.lnl in
-  if (State.get_info st').idx >= 0
+  let info' = State.get_info st' in
+  if info'.idx >= 0
   then (
-    if groups then info.positions.((State.get_info st').idx) <- pos;
+    if groups then info.positions.(info'.idx) <- pos;
     st')
-  else if (State.get_info st').idx = break
+  else if info'.idx = break
   then (
-    if groups then info.positions.((State.get_info st').real_idx) <- pos;
+    if groups then info.positions.(info'.real_idx) <- pos;
     st')
   else (
     (* Unknown *)
