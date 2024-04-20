@@ -480,8 +480,8 @@ and delta_4 c ~next_cat ~prev_cat l rem =
 ;;
 
 let delta tbl_ref next_cat char (st : State.t) =
-  let prev_cat = st.category in
   let expr', _ =
+    let prev_cat = st.category in
     remove_duplicates [] (delta_4 char ~next_cat ~prev_cat st.desc []) eps_expr
   in
   let idx = free_index tbl_ref expr' in
