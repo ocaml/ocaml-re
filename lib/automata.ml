@@ -270,17 +270,47 @@ module E = struct
   let _pp ch t = print_state_lst ch [ t ] { id = 0; def = Eps }
 end
 
-let rec first_match = function
-  | [] -> None
-  | E.TMatch marks :: _ -> Some marks
-  | _ :: r -> first_match r
-;;
+module Desc = struct
+  type t = E.t list
+
+  open E
+
+  let rec first_match = function
+    | [] -> None
+    | TMatch marks :: _ -> Some marks
+    | _ :: r -> first_match r
+  ;;
+
+  let remove_matches =
+    List.filter (function
+      | TMatch _ -> false
+      | _ -> true)
+  ;;
+
+  let split_at_match =
+    let rec split_at_match_rec l' = function
+      | [] -> assert false
+      | TMatch _ :: r -> List.rev l', remove_matches r
+      | x :: r -> split_at_match_rec (x :: l') r
+    in
+    fun l -> split_at_match_rec [] l
+  ;;
+
+  let exists_tmatch = List.exists is_tmatch
+
+  let rec set_idx idx = function
+    | [] -> []
+    | TMatch marks :: r -> TMatch (Marks.marks_set_idx marks idx) :: set_idx idx r
+    | TSeq (l', x, kind) :: r -> TSeq (set_idx idx l', x, kind) :: set_idx idx r
+    | TExp (marks, x) :: r -> TExp (Marks.marks_set_idx marks idx, x) :: set_idx idx r
+  ;;
+end
 
 module State = struct
   type t =
     { idx : idx
     ; category : Category.t
-    ; desc : E.t list
+    ; desc : Desc.t
     ; mutable status : status option
     ; hash : hash
     }
@@ -372,21 +402,6 @@ end
 
 (**** Computation of the next state ****)
 
-let remove_matches =
-  List.filter (function
-    | E.TMatch _ -> false
-    | _ -> true)
-;;
-
-let split_at_match =
-  let rec split_at_match_rec l' = function
-    | [] -> assert false
-    | E.TMatch _ :: r -> List.rev l', remove_matches r
-    | x :: r -> split_at_match_rec (x :: l') r
-  in
-  fun l -> split_at_match_rec [] l
-;;
-
 let rec remove_duplicates prev l y =
   match l with
   | [] -> [], prev
@@ -411,13 +426,6 @@ let rec remove_duplicates prev l y =
       e :: r', prev')
 ;;
 
-let rec set_idx idx = function
-  | [] -> []
-  | E.TMatch marks :: r -> E.TMatch (Marks.marks_set_idx marks idx) :: set_idx idx r
-  | E.TSeq (l', x, kind) :: r -> E.TSeq (set_idx idx l', x, kind) :: set_idx idx r
-  | E.TExp (marks, x) :: r -> E.TExp (Marks.marks_set_idx marks idx, x) :: set_idx idx r
-;;
-
 let rec delta_1 marks c ~next_cat ~prev_cat x rem =
   (*Format.eprintf "%d@." x.id;*)
   match x.def with
@@ -429,9 +437,9 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
   | Rep (rep_kind, kind, y) ->
     let y' = delta_1 marks c ~next_cat ~prev_cat y [] in
     let y'', marks' =
-      match first_match y' with
+      match Desc.first_match y' with
       | None -> y', marks
-      | Some marks' -> remove_matches y', marks'
+      | Some marks' -> Desc.remove_matches y', marks'
     in
     (match rep_kind with
      | `Greedy -> E.tseq kind y'' x (E.TMatch marks' :: rem)
@@ -456,16 +464,16 @@ and delta_alt marks c ~next_cat ~prev_cat l rem =
     delta_1 marks c ~next_cat ~prev_cat y (delta_alt marks c ~next_cat ~prev_cat r rem)
 
 and delta_seq c ~next_cat ~prev_cat kind y z rem =
-  match first_match y with
+  match Desc.first_match y with
   | None -> E.tseq kind y z rem
   | Some marks ->
     (match kind with
      | `Longest ->
-       E.tseq kind (remove_matches y) z (delta_1 marks c ~next_cat ~prev_cat z rem)
+       E.tseq kind (Desc.remove_matches y) z (delta_1 marks c ~next_cat ~prev_cat z rem)
      | `Shortest ->
-       delta_1 marks c ~next_cat ~prev_cat z (E.tseq kind (remove_matches y) z rem)
+       delta_1 marks c ~next_cat ~prev_cat z (E.tseq kind (Desc.remove_matches y) z rem)
      | `First ->
-       let y', y'' = split_at_match y in
+       let y', y'' = Desc.split_at_match y in
        E.tseq kind y' z (delta_1 marks c ~next_cat ~prev_cat z (E.tseq kind y'' z rem)))
 ;;
 
@@ -489,7 +497,7 @@ let delta tbl_ref next_cat char (st : State.t) =
     remove_duplicates [] (delta_4 char ~next_cat ~prev_cat st.desc []) eps_expr
   in
   let idx = Working_area.free_index tbl_ref expr' in
-  let expr'' = set_idx idx expr' in
+  let expr'' = Desc.set_idx idx expr' in
   State.mk idx next_cat expr''
 ;;
 
@@ -541,9 +549,9 @@ let rec deriv_1 all_chars categories marks cat x rem =
     List.fold_right
       (fun (s, z) rem ->
         let z', marks' =
-          match first_match z with
+          match Desc.first_match z with
           | None -> z, marks
-          | Some marks' -> remove_matches z, marks'
+          | Some marks' -> Desc.remove_matches z, marks'
         in
         Cset.prepend
           s
@@ -576,22 +584,27 @@ and deriv_2 all_chars categories marks cat l rem =
       (deriv_2 all_chars categories marks cat r rem)
 
 and deriv_seq all_chars categories cat kind y z rem =
-  if List.exists (fun (_s, xl) -> List.exists E.is_tmatch xl) y
+  if List.exists (fun (_s, xl) -> Desc.exists_tmatch xl) y
   then (
     let z' = deriv_1 all_chars categories Marks.empty cat z [ all_chars, [] ] in
     List.fold_right
       (fun (s, y) rem ->
-        match first_match y with
+        match Desc.first_match y with
         | None -> Cset.prepend s (E.tseq kind y z []) rem
         | Some marks ->
           let z'' = prepend_marks marks z' |> restrict s in
           (match kind with
            | `Longest ->
-             Cset.prepend s (E.tseq kind (remove_matches y) z []) (prepend_deriv z'' rem)
+             Cset.prepend
+               s
+               (E.tseq kind (Desc.remove_matches y) z [])
+               (prepend_deriv z'' rem)
            | `Shortest ->
-             prepend_deriv z'' (Cset.prepend s (E.tseq kind (remove_matches y) z []) rem)
+             prepend_deriv
+               z''
+               (Cset.prepend s (E.tseq kind (Desc.remove_matches y) z []) rem)
            | `First ->
-             let y', y'' = split_at_match y in
+             let y', y'' = Desc.split_at_match y in
              Cset.prepend
                s
                (E.tseq kind y' z [])
@@ -625,7 +638,7 @@ let deriv tbl_ref all_chars categories (st : State.t) =
             Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
          *)
          let idx = Working_area.free_index tbl_ref expr' in
-         let expr'' = set_idx idx expr' in
+         let expr'' = Desc.set_idx idx expr' in
          List.fold_right
            (fun (cat', s') rem ->
              let s'' = Cset.inter s s' in
