@@ -167,17 +167,18 @@ let parse multiline dollar_endonly dotall ungreedy s =
     then s
     else (
       match char () with
+      | `Set st -> bracket (st :: s)
       | `Char c ->
         if accept '-'
         then
           if accept ']'
           then Re.char c :: Re.char '-' :: s
-          else (
-            match char () with
-            | `Char c' -> bracket (Re.rg c c' :: s)
-            | `Set st' -> bracket (Re.char c :: Re.char '-' :: st' :: s))
-        else bracket (Re.char c :: s)
-      | `Set st -> bracket (st :: s))
+          else
+            bracket
+              (match char () with
+               | `Char c' -> Re.rg c c' :: s
+               | `Set st' -> Re.char c :: Re.char '-' :: st' :: s)
+        else bracket (Re.char c :: s))
   and char () =
     if eos () then raise Parse_error;
     let c = get () in
