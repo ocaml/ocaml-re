@@ -340,31 +340,35 @@ end
 
 (**** Find a free index ****)
 
-type working_area = Bit_vector.t ref
+module Working_area = struct
+  type t = Bit_vector.t ref
 
-let create_working_area () = ref (Bit_vector.create_zero 1)
-let index_count w = Bit_vector.length !w
+  let create () = ref (Bit_vector.create_zero 1)
+  let index_count w = Bit_vector.length !w
 
-let rec mark_used_indices tbl =
-  List.iter (function
-    | E.TSeq (l, _, _) -> mark_used_indices tbl l
-    | E.TExp (marks, _) | E.TMatch marks ->
-      List.iter (fun (_, i) -> if i >= 0 then Bit_vector.set tbl i true) marks.Marks.marks)
-;;
+  let rec mark_used_indices tbl =
+    List.iter (function
+      | E.TSeq (l, _, _) -> mark_used_indices tbl l
+      | E.TExp (marks, _) | E.TMatch marks ->
+        List.iter
+          (fun (_, i) -> if i >= 0 then Bit_vector.set tbl i true)
+          marks.Marks.marks)
+  ;;
 
-let rec find_free tbl idx len =
-  if idx = len || not (Bit_vector.get tbl idx) then idx else find_free tbl (idx + 1) len
-;;
+  let rec find_free tbl idx len =
+    if idx = len || not (Bit_vector.get tbl idx) then idx else find_free tbl (idx + 1) len
+  ;;
 
-let free_index tbl_ref l =
-  let tbl = !tbl_ref in
-  Bit_vector.reset_zero tbl;
-  mark_used_indices tbl l;
-  let len = Bit_vector.length tbl in
-  let idx = find_free tbl 0 len in
-  if idx = len then tbl_ref := Bit_vector.create_zero (2 * len);
-  idx
-;;
+  let free_index tbl_ref l =
+    let tbl = !tbl_ref in
+    Bit_vector.reset_zero tbl;
+    mark_used_indices tbl l;
+    let len = Bit_vector.length tbl in
+    let idx = find_free tbl 0 len in
+    if idx = len then tbl_ref := Bit_vector.create_zero (2 * len);
+    idx
+  ;;
+end
 
 (**** Computation of the next state ****)
 
@@ -484,7 +488,7 @@ let delta tbl_ref next_cat char (st : State.t) =
   let expr', _ =
     remove_duplicates [] (delta_4 char ~next_cat ~prev_cat st.desc []) eps_expr
   in
-  let idx = free_index tbl_ref expr' in
+  let idx = Working_area.free_index tbl_ref expr' in
   let expr'' = set_idx idx expr' in
   State.mk idx next_cat expr''
 ;;
@@ -620,7 +624,7 @@ let deriv tbl_ref all_chars categories (st : State.t) =
          (*
             Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
          *)
-         let idx = free_index tbl_ref expr' in
+         let idx = Working_area.free_index tbl_ref expr' in
          let expr'' = set_idx idx expr' in
          List.fold_right
            (fun (cat', s') rem ->
