@@ -484,6 +484,7 @@ module View = struct
 end
 
 let rec pp fmt t =
+  let open Format in
   let open Fmt in
   let var s re = sexp fmt s pp re in
   let seq s rel = sexp fmt s (list pp) rel in
