@@ -321,7 +321,7 @@ module State = struct
       let st =
         match s.desc with
         | [] -> Failed
-        | E.TMatch m :: _ -> Match (Mark_infos.make m.marks, m.Marks.pmarks)
+        | E.TMatch m :: _ -> Match (Mark_infos.make m.marks, m.pmarks)
         | _ -> Running
       in
       s.status <- Some st;
