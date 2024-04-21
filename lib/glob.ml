@@ -39,40 +39,13 @@ type piece =
 type t = piece list
 
 let of_string ~double_asterisk s : t =
-  let i = ref 0 in
-  let l = String.length s in
-  let eos () = !i = l in
-  let read c =
-    let r = (not (eos ())) && s.[!i] = c in
-    if r then incr i;
-    r
-  in
-  (* [read_ahead pattern] will attempt to read [pattern] and will return [true]
-     if it was successful. If it fails, it will return [false] and not increment
-     the read index. *)
-  let read_ahead pattern =
-    let pattern_len = String.length pattern in
-    (* if the pattern we are looking for exceeds the remaining length of s,
-       return false immediately *)
-    if !i + pattern_len > l
-    then false
-    else (
-      try
-        for j = 0 to pattern_len - 1 do
-          let found = (not (eos ())) && s.[!i + j] = pattern.[j] in
-          if not found then raise_notrace Exit
-        done;
-        i := !i + pattern_len;
-        true
-      with
-      | Exit -> false)
-  in
+  let buf = Parse_buffer.create s in
+  let eos () = Parse_buffer.eos buf in
+  let read c = Parse_buffer.accept buf c in
   let char () =
     ignore (read '\\' : bool);
     if eos () then raise Parse_error;
-    let r = s.[!i] in
-    incr i;
-    r
+    Parse_buffer.get buf
   in
   let enclosed () : enclosed list =
     let rec loop s =
@@ -93,7 +66,7 @@ let of_string ~double_asterisk s : t =
     loop []
   in
   let piece acc =
-    if double_asterisk && read_ahead "/**"
+    if double_asterisk && Parse_buffer.accept_s buf "/**"
     then ManyMany :: (if eos () then Exactly '/' :: acc else acc)
     else if read '*'
     then (if double_asterisk && read '*' then ManyMany else Many) :: acc
