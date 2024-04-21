@@ -360,11 +360,12 @@ let match_str ~groups ~partial re s ~pos ~len =
     scan_str info s initial_state ~groups
   in
   match
-    if (State.get_info st).idx = break || (partial && not groups)
-    then Automata.State.status (State.get_info st).desc
+    let state_info = State.get_info st in
+    if state_info.idx = break || (partial && not groups)
+    then Automata.State.status state_info.desc
     else if partial && groups
     then (
-      match Automata.State.status (State.get_info st).desc with
+      match Automata.State.status state_info.desc with
       | (Match _ | Failed) as status -> status
       | Running ->
         (* This could be because it's still not fully matched, or it
