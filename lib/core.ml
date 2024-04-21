@@ -904,10 +904,11 @@ let epsilon = seq []
 
 let repn r i j =
   if i < 0 then invalid_arg "Re.repn";
-  (match j with
-   | Some j when j < i -> invalid_arg "Re.repn"
-   | _ -> ());
-  Repeat (r, i, j)
+  match j, i with
+  | Some j, _ when j < i -> invalid_arg "Re.repn"
+  | Some 0, 0 -> seq []
+  | Some 1, 1 -> r
+  | _ -> Repeat (r, i, j)
 ;;
 
 let rep r = repn r 0 None
