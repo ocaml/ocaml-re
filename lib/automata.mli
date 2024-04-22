@@ -24,19 +24,28 @@
 
 type mark = int
 
-type sem = [ `Longest | `Shortest | `First ]
-type rep_kind = [ `Greedy | `Non_greedy ]
+type sem =
+  [ `Longest
+  | `Shortest
+  | `First
+  ]
+
+type rep_kind =
+  [ `Greedy
+  | `Non_greedy
+  ]
 
 val pp_sem : Format.formatter -> sem -> unit
 val pp_rep_kind : Format.formatter -> rep_kind -> unit
 
 type expr
+
 val is_eps : expr -> bool
 val pp : Format.formatter -> expr -> unit
 
 type ids
-val create_ids : unit -> ids
 
+val create_ids : unit -> ids
 val cst : ids -> Cset.t -> expr
 val empty : ids -> expr
 val alt : ids -> expr list -> expr
@@ -48,7 +57,6 @@ val pmark : ids -> Pmark.t -> expr
 val erase : ids -> mark -> mark -> expr
 val before : ids -> Category.t -> expr
 val after : ids -> Category.t -> expr
-
 val rename : ids -> expr -> expr
 
 (****)
@@ -57,14 +65,19 @@ val rename : ids -> expr -> expr
 
 type idx = int
 
-type status = Failed | Match of Mark_infos.t * Pmark.Set.t | Running
+type status =
+  | Failed
+  | Match of Mark_infos.t * Pmark.Set.t
+  | Running
 
 module State : sig
   type t
+
   val dummy : t
   val create : Category.t -> expr -> t
   val idx : t -> idx
   val status : t -> status
+
   module Table : Hashtbl.S with type key = t
 end
 
@@ -73,12 +86,16 @@ end
 (* Computation of the states following a given state *)
 
 type working_area
+
 val create_working_area : unit -> working_area
 val index_count : working_area -> int
-
 val delta : working_area -> Category.t -> Cset.c -> State.t -> State.t
-val deriv :
-  working_area -> Cset.t -> (Category.t * Cset.t) list -> State.t ->
-  (Cset.t * State.t) list
+
+val deriv
+  :  working_area
+  -> Cset.t
+  -> (Category.t * Cset.t) list
+  -> State.t
+  -> (Cset.t * State.t) list
 
 (****)

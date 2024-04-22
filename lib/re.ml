@@ -1,5 +1,4 @@
 include Core
-
 module Emacs = Emacs
 module Glob = Glob
 module Perl = Perl

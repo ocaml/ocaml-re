@@ -24,11 +24,12 @@ let flatten cm =
     Bytes.set c i (Char.chr !v);
     Bytes.set color_repr !v (Char.chr i)
   done;
-  (Bytes.unsafe_to_string c, Bytes.sub_string color_repr 0 (!v + 1), !v + 1)
+  Bytes.unsafe_to_string c, Bytes.sub_string color_repr 0 (!v + 1), !v + 1
+;;
 
 (* mark all the endpoints of the intervals of the char set with the 1 byte *)
 let split s cm =
   Cset.iter s ~f:(fun i j ->
-      Bytes.set cm i '\001';
-      Bytes.set cm (j + 1) '\001';
-    )
+    Bytes.set cm i '\001';
+    Bytes.set cm (j + 1) '\001')
+;;
