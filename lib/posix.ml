@@ -97,32 +97,37 @@ let parse newline s =
     end
   and bracket s =
     if s <> [] && accept ']' then s else begin
-      let c = char () in
-      if accept '-' then begin
-        if accept ']' then Re.char c :: Re.char '-' :: s else begin
-          let c' = char () in
-          bracket (Re.rg c c' :: s)
-        end
-      end else
-        bracket (Re.char c :: s)
+      match char () with
+      | `Char c ->
+        if accept '-' then begin
+          if accept ']' then Re.char c :: Re.char '-' :: s else begin
+            match char () with
+              `Char c' ->
+              bracket (Re.rg c c' :: s)
+            | `Set st' ->
+              bracket (Re.char c :: Re.char '-' :: st' :: s)
+          end
+        end else
+          bracket (Re.char c :: s)
+      | `Set st -> bracket (st :: s)
     end
   and char () =
     if eos () then raise Parse_error;
     let c = get () in
     if c = '[' then begin
-      if accept '=' then raise Not_supported
-      else if accept ':' then begin
-        raise Not_supported (*XXX*)
-      end else if accept '.' then begin
-        if eos () then raise Parse_error;
-        let c = get () in
-        if not (accept '.') then raise Not_supported;
-        if not (accept ']') then raise Parse_error;
-        c
-      end else
-        c
+      match Posix_class.parse buf with
+      | Some set -> `Set set
+      | None ->
+        if accept '.' then begin
+          if eos () then raise Parse_error;
+          let c = get () in
+          if not (accept '.') then raise Not_supported;
+          if not (accept ']') then raise Parse_error;
+          `Char c
+        end else
+          `Char c
     end else
-      c
+      `Char c
   in
   let res = regexp () in
   if not (eos ()) then raise Parse_error;

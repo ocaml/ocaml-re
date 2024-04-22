@@ -25,30 +25,6 @@ module Re = Core
 exception Parse_error = Parse_buffer.Parse_error
 exception Not_supported
 
-let posix_class_of_string = function
-  | "alpha"  -> Re.alpha
-  | "alnum"  -> Re.alnum
-  | "ascii"  -> Re.ascii
-  | "blank"  -> Re.blank
-  | "cntrl"  -> Re.cntrl
-  | "digit"  -> Re.digit
-  | "lower"  -> Re.lower
-  | "print"  -> Re.print
-  | "space"  -> Re.space
-  | "upper"  -> Re.upper
-  | "word"   -> Re.wordc
-  | "punct"  -> Re.punct
-  | "graph"  -> Re.graph
-  | "xdigit" -> Re.xdigit
-  | class_   -> invalid_arg ("Invalid pcre class: " ^ class_)
-
-let posix_class_strings =
-  [ "alpha" ; "alnum" ; "ascii"
-  ; "blank" ; "cntrl" ; "digit"
-  ; "lower" ; "print" ; "space"
-  ; "upper" ; "word"  ; "punct"
-  ; "graph" ; "xdigit" ]
-
 let parse multiline dollar_endonly dotall ungreedy s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
@@ -56,7 +32,6 @@ let parse multiline dollar_endonly dotall ungreedy s =
   let test c = Parse_buffer.test buf c in
   let unget () = Parse_buffer.unget buf in
   let get () = Parse_buffer.get buf in
-  let accept_s = Parse_buffer.accept_s buf in
   let greedy_mod r =
     let gr = accept '?' in
     let gr = if ungreedy then not gr else gr in
@@ -222,24 +197,17 @@ let parse multiline dollar_endonly dotall ungreedy s =
     let c = get () in
     if c = '[' then begin
       if accept '=' then raise Not_supported;
-      if accept ':' then
-        let compl = accept '^' in
-        let cls =
-          try List.find accept_s posix_class_strings
-          with Not_found -> raise Parse_error in
-        if not (accept_s ":]") then raise Parse_error;
-        let re =
-          let posix_class = posix_class_of_string cls in
-          if compl then Re.compl [posix_class] else posix_class in
-        `Set (re)
-      else if accept '.' then begin
-        if eos () then raise Parse_error;
-        let c = get () in
-        if not (accept '.') then raise Not_supported;
-        if not (accept ']') then raise Parse_error;
-        `Char c
-      end else
-        `Char c
+      match Posix_class.parse buf with
+      | Some set -> `Set set
+      | None ->
+        if accept '.' then begin
+          if eos () then raise Parse_error;
+          let c = get () in
+          if not (accept '.') then raise Not_supported;
+          if not (accept ']') then raise Parse_error;
+          `Char c
+        end else
+          `Char c
     end else if c = '\\' then begin
       if eos () then raise Parse_error;
       let c = get () in

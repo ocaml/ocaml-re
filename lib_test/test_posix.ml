@@ -1,9 +1,13 @@
 open OUnit
 
+let execp = Re.execp
+
 let test_class_space () =
-  match Re.Posix.compile_pat {|a[[:space:]]b|} with
-  | exception Re.Posix.Not_supported -> ()
-  | (_ : Re.re) -> assert false
+  let re = Re.Posix.compile_pat {|a[[:space:]]b|} in
+  let exec = Re.execp re in
+  assert_bool "matches with space" (exec "a b");
+  assert_bool "does not match without a space" (not (exec "ab"));
+  assert_bool "does not match with a different char" (not (exec "a_b"))
 
 let suite = "posix" >:::
   [ "regression 213" >:: test_class_space
