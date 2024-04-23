@@ -61,17 +61,17 @@ module Marks = struct
 
   let empty = { marks = []; pmarks = Pmark.Set.empty }
 
-  let rec merge_marks_offset old = function
-    | [] -> old
-    | (i, v) :: rem ->
-      let nw' = merge_marks_offset (List.remove_assq i old) rem in
-      if v = -2 then nw' else (i, v) :: nw'
-  ;;
-
-  let merge old nw =
-    { marks = merge_marks_offset old.marks nw.marks
-    ; pmarks = Pmark.Set.union old.pmarks nw.pmarks
-    }
+  let merge =
+    let rec merge_marks_offset old = function
+      | [] -> old
+      | (i, v) :: rem ->
+        let nw' = merge_marks_offset (List.remove_assq i old) rem in
+        if v = -2 then nw' else (i, v) :: nw'
+    in
+    fun old nw ->
+      { marks = merge_marks_offset old.marks nw.marks
+      ; pmarks = Pmark.Set.union old.pmarks nw.pmarks
+      }
   ;;
 
   let rec hash_marks_offset l accu =
@@ -90,12 +90,11 @@ module Marks = struct
     fun marks idx -> { marks with marks = marks_set_idx idx marks.marks }
   ;;
 
-  let filter t b e = { t with marks = List.filter (fun (i, _) -> i < b || i > e) t.marks }
-
   let rec remove_marks b e rem =
     if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
   ;;
 
+  let filter t b e = { t with marks = List.filter (fun (i, _) -> i < b || i > e) t.marks }
   let erase t b e = { t with marks = remove_marks b e (filter t b e).marks }
   let set_mark t i = { t with marks = (i, -1) :: List.remove_assq i t.marks }
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
@@ -375,13 +374,14 @@ let remove_matches =
     | _ -> true)
 ;;
 
-let rec split_at_match_rec l' = function
-  | [] -> assert false
-  | E.TMatch _ :: r -> List.rev l', remove_matches r
-  | x :: r -> split_at_match_rec (x :: l') r
+let split_at_match =
+  let rec split_at_match_rec l' = function
+    | [] -> assert false
+    | E.TMatch _ :: r -> List.rev l', remove_matches r
+    | x :: r -> split_at_match_rec (x :: l') r
+  in
+  fun l -> split_at_match_rec [] l
 ;;
-
-let split_at_match l = split_at_match_rec [] l
 
 let rec remove_duplicates prev l y =
   match l with
@@ -479,10 +479,10 @@ and delta_4 c ~next_cat ~prev_cat l rem =
   | y :: r -> delta_3 c ~next_cat ~prev_cat y (delta_4 c ~next_cat ~prev_cat r rem)
 ;;
 
-let delta tbl_ref next_cat char st =
-  let prev_cat = st.State.category in
+let delta tbl_ref next_cat char (st : State.t) =
+  let prev_cat = st.category in
   let expr', _ =
-    remove_duplicates [] (delta_4 char ~next_cat ~prev_cat st.State.desc []) eps_expr
+    remove_duplicates [] (delta_4 char ~next_cat ~prev_cat st.desc []) eps_expr
   in
   let idx = free_index tbl_ref expr' in
   let expr'' = set_idx idx expr' in
@@ -611,10 +611,8 @@ and deriv_4 all_chars categories cat l rem =
   | y :: r -> deriv_3 all_chars categories cat y (deriv_4 all_chars categories cat r rem)
 ;;
 
-let deriv tbl_ref all_chars categories st =
-  let der =
-    deriv_4 all_chars categories st.State.category st.State.desc [ all_chars, [] ]
-  in
+let deriv tbl_ref all_chars categories (st : State.t) =
+  let der = deriv_4 all_chars categories st.category st.desc [ all_chars, [] ] in
   simpl_tr
     (List.fold_right
        (fun (s, expr) rem ->
