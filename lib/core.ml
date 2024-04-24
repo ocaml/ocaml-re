@@ -273,10 +273,14 @@ let rec handle_last_newline info ~pos st ~groups =
   else (
     (* Unknown *)
     let color = info.re.lnl in
-    let real_c = Char.code info.re.colors.[Char.code '\n'] in
-    let cat = category info.re ~color in
-    let desc' = delta info cat ~color:real_c (State.get_info st) in
-    let st' = find_state info.re desc' in
+    let st' =
+      let desc' =
+        let cat = category info.re ~color in
+        let real_c = Char.code info.re.colors.[Char.code '\n'] in
+        delta info cat ~color:real_c (State.get_info st)
+      in
+      find_state info.re desc'
+    in
     State.set_transition st ~color st';
     handle_last_newline info ~pos st ~groups)
 ;;
