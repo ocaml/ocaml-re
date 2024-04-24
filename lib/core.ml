@@ -102,7 +102,7 @@ type re =
   ; (* Number of colors. *)
     lnl : int
   ; (* Color of the last newline. -1 if unnecessary *)
-    tbl : Automata.working_area
+    tbl : Automata.Working_area.t
   ; (* Temporary table used to compute the first available index
        when computing a new state *)
     states : State.t Automata.State.Table.t
@@ -343,7 +343,7 @@ let match_str ~groups ~partial re s ~pos ~len =
     ; positions =
         (if groups
          then (
-           let n = Automata.index_count re.tbl + 1 in
+           let n = Automata.Working_area.index_count re.tbl + 1 in
            if n <= 10 then [| 0; 0; 0; 0; 0; 0; 0; 0; 0; 0 |] else Array.make n 0)
          else [||])
     }
@@ -393,7 +393,7 @@ let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =
   ; color_repr
   ; ncolor
   ; lnl
-  ; tbl = Automata.create_working_area ()
+  ; tbl = Automata.Working_area.create ()
   ; states = Automata.State.Table.create 97
   ; group_names
   ; group_count

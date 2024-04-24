@@ -85,14 +85,17 @@ end
 
 (* Computation of the states following a given state *)
 
-type working_area
+module Working_area : sig
+  type t
 
-val create_working_area : unit -> working_area
-val index_count : working_area -> int
-val delta : working_area -> Category.t -> Cset.c -> State.t -> State.t
+  val create : unit -> t
+  val index_count : t -> int
+end
+
+val delta : Working_area.t -> Category.t -> Cset.c -> State.t -> State.t
 
 val deriv
-  :  working_area
+  :  Working_area.t
   -> Cset.t
   -> (Category.t * Cset.t) list
   -> State.t
