@@ -57,7 +57,7 @@ type state_info =
 module State : sig
   type t
 
-  val make : int -> state_info -> t
+  val make : ncol:int -> state_info -> t
   val get_info : t -> state_info
   val follow_transition : t -> color:int -> t
   val set_transition : t -> color:int -> t -> unit
@@ -81,7 +81,7 @@ end = struct
     dummy { idx = unknown; real_idx = 0; final = []; desc = Automata.State.dummy }
   ;;
 
-  let make ncol state =
+  let make ~ncol state =
     let st = Table (Array.make (ncol + 1) unknown_state) in
     set_info st state;
     st
@@ -151,7 +151,7 @@ let mk_state ncol desc =
     let real_idx = Automata.State.idx desc in
     { idx = (if break_state then break else real_idx); real_idx; final = []; desc }
   in
-  State.make (if break_state then 0 else ncol) st
+  State.make ~ncol:(if break_state then 0 else ncol) st
 ;;
 
 let find_state re desc =
