@@ -52,9 +52,9 @@ let of_string ~double_asterisk s : t =
      the read index. *)
   let read_ahead pattern =
     let pattern_len = String.length pattern in
-    (* if the pattern we are looking for exeeds the remaining length of s,
+    (* if the pattern we are looking for exceeds the remaining length of s,
        return false immediately *)
-    if !i + pattern_len >= l
+    if !i + pattern_len > l
     then false
     else (
       try
@@ -92,20 +92,20 @@ let of_string ~double_asterisk s : t =
     in
     loop []
   in
-  let piece () =
-    if double_asterisk && read_ahead "/**" && not (eos ())
-    then ManyMany
+  let piece acc =
+    if double_asterisk && read_ahead "/**"
+    then ManyMany :: (if eos () then Exactly '/' :: acc else acc)
     else if read '*'
-    then if double_asterisk && read '*' then ManyMany else Many
+    then (if double_asterisk && read '*' then ManyMany else Many) :: acc
     else if read '?'
-    then One
+    then One :: acc
     else if not (read '[')
-    then Exactly (char ())
+    then Exactly (char ()) :: acc
     else if read '^' || read '!'
-    then Any_but (enclosed ())
-    else Any_of (enclosed ())
+    then Any_but (enclosed ()) :: acc
+    else Any_of (enclosed ()) :: acc
   in
-  let rec loop pieces = if eos () then List.rev pieces else loop (piece () :: pieces) in
+  let rec loop pieces = if eos () then List.rev pieces else loop (piece pieces) in
   loop []
 ;;
 
