@@ -350,9 +350,7 @@ module Working_area = struct
     List.iter (function
       | E.TSeq (l, _, _) -> mark_used_indices tbl l
       | E.TExp (marks, _) | E.TMatch marks ->
-        List.iter
-          (fun (_, i) -> if i >= 0 then Bit_vector.set tbl i true)
-          marks.Marks.marks)
+        List.iter (fun (_, i) -> if i >= 0 then Bit_vector.set tbl i true) marks.marks)
   ;;
 
   let rec find_free tbl idx len =
