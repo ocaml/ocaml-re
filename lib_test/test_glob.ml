@@ -82,6 +82,8 @@ let _ =
   assert (re_match (glob ~anchored "foo/**bar") "foo/bar");
   assert (re_match (glob ~anchored "foo/**bar") "foo/foobar");
   assert (re_match (glob ~anchored "/**") "//foo");
+  assert (re_match (glob ~anchored "/**") "/");
+  assert (re_match (glob ~anchored "/**") "/x");
   assert (re_match (glob ~anchored "**") "foo//bar");
   assert (re_match (glob ~anchored "foo/bar/**/*.ml") "foo/bar/baz/foobar.ml");
   assert (re_match (glob ~anchored "foo/bar/**/*.ml") "foo/bar/foobar.ml");
