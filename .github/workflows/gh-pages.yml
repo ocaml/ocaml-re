@@ -1,41 +1,54 @@
-name: github pages
+name: Deploy odoc to GitHub Pages
 
 on:
   push:
     branches:
       - master
 
-jobs:
-  deploy:
-    name: Deploy doc
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@main
+permissions: read-all
 
-      - name: Use OCaml
+concurrency:
+  group: deploy-odoc
+  cancel-in-progress: true
+
+jobs:
+  deploy-odoc:
+    name: Deploy odoc to GitHub Pages
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tree
+        uses: actions/checkout@v4
+
+      - name: Set-up OCaml
         uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-compiler: '4.14.x'
+          ocaml-compiler: "5.2"
 
-      - name: Pin
-        run: opam pin -n .
+      - name: Install dependencies
+        run: opam install . --deps-only --with-doc
 
-      - name: Depext
-        run: opam depext -yt re
-
-      - name: Deps
-        run: opam install -d . --deps-only
-
-      - name: Odoc
-        run: opam install odoc
-
-      - name: Build
+      - name: Build documentation
         run: opam exec -- dune build @doc
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Set-up Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_build/default/_doc/_html/
-          destination_dir: .
-          enable_jekyll: true
+          path: _build/default/_doc/_html
+
+      - name: Deploy odoc to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
