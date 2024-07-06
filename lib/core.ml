@@ -416,14 +416,14 @@ let enforce_kind ids kind kind' cr =
 ;;
 
 (* XXX should probably compute a category mask *)
-let rec translate ids kind ign_group ign_case greedy pos names cache c = function
+let rec translate ids kind ~ign_group ~ign_case greedy pos names cache c = function
   | Set s -> A.cst ids (trans_set cache c s), kind
-  | Sequence l -> trans_seq ids kind ign_group ign_case greedy pos names cache c l, kind
+  | Sequence l -> trans_seq ids kind ~ign_group ~ign_case greedy pos names cache c l, kind
   | Alternative l ->
     (match merge_sequences l with
      | [ r' ] ->
        let cr, kind' =
-         translate ids kind ign_group ign_case greedy pos names cache c r'
+         translate ids kind ~ign_group ~ign_case greedy pos names cache c r'
        in
        enforce_kind ids kind kind' cr, kind
      | merged_sequences ->
@@ -432,13 +432,13 @@ let rec translate ids kind ign_group ign_case greedy pos names cache c = functio
            (List.map
               (fun r' ->
                 let cr, kind' =
-                  translate ids kind ign_group ign_case greedy pos names cache c r'
+                  translate ids kind ~ign_group ~ign_case greedy pos names cache c r'
                 in
                 enforce_kind ids kind kind' cr)
               merged_sequences)
        , kind ))
   | Repeat (r', i, j) ->
-    let cr, kind' = translate ids kind ign_group ign_case greedy pos names cache c r' in
+    let cr, kind' = translate ids kind ~ign_group ~ign_case greedy pos names cache c r' in
     let rem =
       match j with
       | None -> A.rep ids greedy kind' cr
@@ -483,13 +483,15 @@ let rec translate ids kind ign_group ign_case greedy pos names cache c = functio
   | Start -> A.after ids Category.search_boundary, kind
   | Stop -> A.before ids Category.search_boundary, kind
   | Sem (kind', r') ->
-    let cr, kind'' = translate ids kind' ign_group ign_case greedy pos names cache c r' in
+    let cr, kind'' =
+      translate ids kind' ~ign_group ~ign_case greedy pos names cache c r'
+    in
     enforce_kind ids kind' kind'' cr, kind'
   | Sem_greedy (greedy', r') ->
-    translate ids kind ign_group ign_case greedy' pos names cache c r'
+    translate ids kind ~ign_group ~ign_case greedy' pos names cache c r'
   | Group (n, r') ->
     if ign_group
-    then translate ids kind ign_group ign_case greedy pos names cache c r'
+    then translate ids kind ~ign_group ~ign_case greedy pos names cache c r'
     else (
       let p = !pos in
       let () =
@@ -498,28 +500,31 @@ let rec translate ids kind ign_group ign_case greedy pos names cache c = functio
         | None -> ()
       in
       pos := A.Mark.next2 !pos;
-      let cr, kind' = translate ids kind ign_group ign_case greedy pos names cache c r' in
+      let cr, kind' =
+        translate ids kind ~ign_group ~ign_case greedy pos names cache c r'
+      in
       ( A.seq ids `First (A.mark ids p) (A.seq ids `First cr (A.mark ids (A.Mark.next p)))
       , kind' ))
-  | No_group r' -> translate ids kind true ign_case greedy pos names cache c r'
+  | No_group r' ->
+    translate ids kind ~ign_group:true ~ign_case greedy pos names cache c r'
   | Nest r' ->
     let b = !pos in
-    let cr, kind' = translate ids kind ign_group ign_case greedy pos names cache c r' in
+    let cr, kind' = translate ids kind ~ign_group ~ign_case greedy pos names cache c r' in
     let e = A.Mark.prev !pos in
     if e < b then cr, kind' else A.seq ids `First (A.erase ids b e) cr, kind'
   | Difference _ | Complement _ | Intersection _ | No_case _ | Case _ -> assert false
   | Pmark (i, r') ->
-    let cr, kind' = translate ids kind ign_group ign_case greedy pos names cache c r' in
+    let cr, kind' = translate ids kind ~ign_group ~ign_case greedy pos names cache c r' in
     A.seq ids `First (A.pmark ids i) cr, kind'
 
-and trans_seq ids kind ign_group ign_case greedy pos names cache c = function
+and trans_seq ids kind ~ign_group ~ign_case greedy pos names cache c = function
   | [] -> A.eps ids
   | [ r ] ->
-    let cr', kind' = translate ids kind ign_group ign_case greedy pos names cache c r in
+    let cr', kind' = translate ids kind ~ign_group ~ign_case greedy pos names cache c r in
     enforce_kind ids kind kind' cr'
   | r :: rem ->
-    let cr', kind' = translate ids kind ign_group ign_case greedy pos names cache c r in
-    let cr'' = trans_seq ids kind ign_group ign_case greedy pos names cache c rem in
+    let cr', kind' = translate ids kind ~ign_group ~ign_case greedy pos names cache c r in
+    let cr'' = trans_seq ids kind ~ign_group ~ign_case greedy pos names cache c rem in
     if A.is_eps cr'' then cr' else if A.is_eps cr' then cr'' else A.seq ids kind' cr' cr''
 ;;
 
@@ -537,8 +542,8 @@ let compile_1 regexp =
     translate
       ids
       `First
-      false
-      false
+      ~ign_group:false
+      ~ign_case:false
       `Greedy
       pos
       names
