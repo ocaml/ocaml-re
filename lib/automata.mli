@@ -22,7 +22,15 @@
 
 (* Regular expressions *)
 
-type mark = int
+module Mark : sig
+  type t [@@immediate]
+
+  val start : t
+  val prev : t -> t
+  val next : t -> t
+  val next2 : t -> t
+  val group_count : t -> int
+end
 
 type sem =
   [ `Longest
@@ -55,9 +63,9 @@ val alt : Ids.t -> expr list -> expr
 val seq : Ids.t -> sem -> expr -> expr -> expr
 val eps : Ids.t -> expr
 val rep : Ids.t -> rep_kind -> sem -> expr -> expr
-val mark : Ids.t -> mark -> expr
+val mark : Ids.t -> Mark.t -> expr
 val pmark : Ids.t -> Pmark.t -> expr
-val erase : Ids.t -> mark -> mark -> expr
+val erase : Ids.t -> Mark.t -> Mark.t -> expr
 val before : Ids.t -> Category.t -> expr
 val after : Ids.t -> Category.t -> expr
 val rename : Ids.t -> expr -> expr

@@ -42,7 +42,16 @@ type rep_kind =
   | `Non_greedy
   ]
 
-type mark = int
+module Mark = struct
+  type t = int
+
+  let start = 0
+  let prev x = pred x
+  let next x = succ x
+  let next2 x = x + 2
+  let group_count x = x / 2
+end
+
 type idx = int
 
 type expr =

@@ -494,17 +494,18 @@ let rec translate ids kind ign_group ign_case greedy pos names cache c = functio
       let p = !pos in
       let () =
         match n with
-        | Some name -> names := (name, p / 2) :: !names
+        | Some name -> names := (name, A.Mark.group_count p) :: !names
         | None -> ()
       in
-      pos := !pos + 2;
+      pos := A.Mark.next2 !pos;
       let cr, kind' = translate ids kind ign_group ign_case greedy pos names cache c r' in
-      A.seq ids `First (A.mark ids p) (A.seq ids `First cr (A.mark ids (p + 1))), kind')
+      ( A.seq ids `First (A.mark ids p) (A.seq ids `First cr (A.mark ids (A.Mark.next p)))
+      , kind' ))
   | No_group r' -> translate ids kind true ign_case greedy pos names cache c r'
   | Nest r' ->
     let b = !pos in
     let cr, kind' = translate ids kind ign_group ign_case greedy pos names cache c r' in
-    let e = !pos - 1 in
+    let e = A.Mark.prev !pos in
     if e < b then cr, kind' else A.seq ids `First (A.erase ids b e) cr, kind'
   | Difference _ | Complement _ | Intersection _ | No_case _ | Case _ -> assert false
   | Pmark (i, r') ->
@@ -530,7 +531,7 @@ let compile_1 regexp =
   let lnl = if need_lnl then ncolor else -1 in
   let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ids = A.Ids.create () in
-  let pos = ref 0 in
+  let pos = ref A.Mark.start in
   let names = ref [] in
   let r, kind =
     translate
@@ -554,7 +555,7 @@ let compile_1 regexp =
     ~ncolor
     ~lnl
     ~group_names:(List.rev !names)
-    ~group_count:(!pos / 2)
+    ~group_count:(A.Mark.group_count !pos)
 ;;
 
 (****)
