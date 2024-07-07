@@ -13,6 +13,13 @@ module Repr : sig
   val repr : t -> Cset.c -> char
 end
 
+module Table : sig
+  type t
+
+  val get_char : t -> Cset.c -> char
+  val get : t -> char -> Cset.c
+end
+
 val make : unit -> t
-val flatten : t -> string * Repr.t * int
+val flatten : t -> Table.t * Repr.t * int
 val split : Cset.t -> t -> unit

@@ -215,18 +215,18 @@ let mark r =
 let cseq c c' = Cset.seq (Cset.of_int (Char.code c)) (Cset.of_int (Char.code c'))
 let cadd c s = Cset.add (Cset.of_int (Char.code c)) s
 
-let trans_set cache cm s =
+let trans_set cache (cm : Color_map.Table.t) s =
   match Cset.one_char s with
-  | Some i -> Cset.csingle cm.[Cset.to_int i]
+  | Some i -> Cset.csingle (Color_map.Table.get_char cm i)
   | None ->
     let v = Cset.hash_rec s, s in
     (try Cset.CSetMap.find v !cache with
      | Not_found ->
        let l =
-         Cset.fold_right
-           s
-           ~f:(fun (i, j) l -> Cset.union (cseq cm.[Cset.to_int i] cm.[Cset.to_int j]) l)
-           ~init:Cset.empty
+         Cset.fold_right s ~init:Cset.empty ~f:(fun (i, j) l ->
+           let start = Color_map.Table.get_char cm i in
+           let stop = Color_map.Table.get_char cm j in
+           Cset.union (cseq start stop) l)
        in
        cache := Cset.CSetMap.add v l !cache;
        l)
