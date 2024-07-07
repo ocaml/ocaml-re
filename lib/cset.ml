@@ -21,6 +21,10 @@
 *)
 
 type c = int
+
+let to_int x = x
+let of_int x = x
+
 type t = (c * c) list
 
 let rec union l l' =

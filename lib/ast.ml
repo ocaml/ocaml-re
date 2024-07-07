@@ -212,12 +212,12 @@ let mark r =
 ;;
 
 (**** Character sets ****)
-let cseq c c' = Cset.seq (Char.code c) (Char.code c')
-let cadd c s = Cset.add (Char.code c) s
+let cseq c c' = Cset.seq (Cset.of_int (Char.code c)) (Cset.of_int (Char.code c'))
+let cadd c s = Cset.add (Cset.of_int (Char.code c)) s
 
 let trans_set cache cm s =
   match Cset.one_char s with
-  | Some i -> Cset.csingle cm.[i]
+  | Some i -> Cset.csingle cm.[Cset.to_int i]
   | None ->
     let v = Cset.hash_rec s, s in
     (try Cset.CSetMap.find v !cache with
@@ -225,7 +225,7 @@ let trans_set cache cm s =
        let l =
          Cset.fold_right
            s
-           ~f:(fun (i, j) l -> Cset.union (cseq cm.[i] cm.[j]) l)
+           ~f:(fun (i, j) l -> Cset.union (cseq cm.[Cset.to_int i] cm.[Cset.to_int j]) l)
            ~init:Cset.empty
        in
        cache := Cset.CSetMap.add v l !cache;
