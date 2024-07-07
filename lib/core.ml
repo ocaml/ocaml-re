@@ -96,7 +96,7 @@ type re =
   ; (* Initial states, indexed by initial category *)
     colors : string
   ; (* Color table *)
-    color_repr : string
+    color_repr : Color_map.Repr.t
   ; (* Table from colors to one character of this color *)
     ncolor : int
   ; (* Number of colors. *)
@@ -132,12 +132,11 @@ type info =
 (****)
 
 let category re ~color =
-  let color = Cset.to_int color in
-  if color = -1
+  if Cset.to_int color = -1
   then Category.inexistant (* Special category for the last newline *)
-  else if color = re.lnl
+  else if Cset.to_int color = re.lnl
   then Category.(lastnewline ++ newline ++ not_letter)
-  else Category.from_char re.color_repr.[color]
+  else Category.from_char (Color_map.Repr.repr re.color_repr color)
 ;;
 
 (****)

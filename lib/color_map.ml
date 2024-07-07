@@ -11,6 +11,12 @@
 
 type t = Bytes.t
 
+module Repr = struct
+  type t = string
+
+  let repr t color = t.[Cset.to_int color]
+end
+
 let make () = Bytes.make 257 '\000'
 
 let flatten cm =

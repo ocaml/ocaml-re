@@ -7,6 +7,12 @@
 *)
 type t
 
+module Repr : sig
+  type t
+
+  val repr : t -> Cset.c -> char
+end
+
 val make : unit -> t
-val flatten : t -> string * string * int
+val flatten : t -> string * Repr.t * int
 val split : Cset.t -> t -> unit
