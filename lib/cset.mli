@@ -26,6 +26,8 @@ type c [@@immediate]
 
 val to_int : c -> int
 val of_int : int -> c
+val to_char : c -> char
+val of_char : char -> c
 
 type t
 

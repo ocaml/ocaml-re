@@ -24,6 +24,8 @@ type c = int
 
 let to_int x = x
 let of_int x = x
+let to_char t = Char.chr t
+let of_char c = Char.code c
 
 type t = (c * c) list
 
