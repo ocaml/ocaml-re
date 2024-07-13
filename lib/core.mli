@@ -356,6 +356,35 @@ val split : ?pos:int -> ?len:int -> re -> string -> string list
 
       # Re.split ~pos:3 regex "1,2,3,4. Commas go brrr.";;
       - : string list = ["3"; "4. Commas go brrr."]
+    ]}
+
+    {6 Zero-length patterns:}
+
+    Be careful when using [split_delim] with zero-length patterns like [eol],
+    [bow], and [eow].  Because they don't have any width, they will still be
+    present in the result. (Note the position of the [\n] and space characters
+    in the output.)
+
+    {[
+      # Re.split_delim (Re.compile Re.eol) "a\nb";;
+      - : string list = ["a"; "\nb"; ""]
+
+      # Re.split_delim (Re.compile Re.bow) "a b";;
+      - : string list = [""; "a "; "b"]
+
+      # Re.split_delim (Re.compile Re.eow) "a b";;
+      - : string list = ["a"; " b"; ""]
+    ]}
+
+    Compare this to the behavior of splitting on the char itself. (Note that
+    the delimiters are not present in the output.)
+
+    {[
+      # Re.split_delim (Re.compile (Re.char '\n')) "a\nb";;
+      - : string list = ["a"; "b"]
+
+      # Re.split_delim (Re.compile (Re.char ' ')) "a b";;
+      - : string list = ["a"; "b"]
     ]} *)
 val split_delim : ?pos:int -> ?len:int -> re -> string -> string list
 
