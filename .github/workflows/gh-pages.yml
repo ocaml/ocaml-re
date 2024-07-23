@@ -38,6 +38,11 @@ jobs:
       - name: Install dependencies
         run: opam install . --deps-only --with-doc
 
+      # Dune needs `odoc` to build documentation.
+      # https://dune.readthedocs.io/en/stable/documentation.html#prerequisites
+      - name: Install dependencies
+        run: opam install odoc
+
       - name: Build documentation
         run: opam exec -- dune build @doc
 
