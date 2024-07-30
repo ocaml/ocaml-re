@@ -1,3 +1,5 @@
+(** NOTE: Only a subset of the PCRE spec is supported *)
+
 exception Parse_error
 exception Not_supported
 
