@@ -59,8 +59,8 @@ module State : sig
 
   val make : ncol:int -> state_info -> t
   val get_info : t -> state_info
-  val follow_transition : t -> color:int -> t
-  val set_transition : t -> color:int -> t -> unit
+  val follow_transition : t -> color:Cset.c -> t
+  val set_transition : t -> color:Cset.c -> t -> unit
 end = struct
   type t = Table of t array [@@unboxed]
 
@@ -70,11 +70,11 @@ end = struct
 
   let set_info (Table st) (info : state_info) = st.(0) <- Obj.magic info
 
-  let follow_transition (Table st) ~color = Array.unsafe_get st (1 + color)
+  let follow_transition (Table st) ~color = Array.unsafe_get st (1 + Cset.to_int color)
   [@@inline always]
   ;;
 
-  let set_transition (Table st) ~color st' = st.(1 + color) <- st'
+  let set_transition (Table st) ~color st' = st.(1 + Cset.to_int color) <- st'
   let dummy (info : state_info) = Table [| Obj.magic info |]
 
   let unknown_state =
@@ -132,6 +132,7 @@ type info =
 (****)
 
 let category re ~color =
+  let color = Cset.to_int color in
   if color = -1
   then Category.inexistant (* Special category for the last newline *)
   else if color = re.lnl
@@ -176,7 +177,7 @@ let delta info cat ~color st =
 ;;
 
 let validate info (s : string) ~pos st =
-  let color = Char.code info.re.colors.[Char.code s.[pos]] in
+  let color = Cset.of_int @@ Char.code info.re.colors.[Char.code s.[pos]] in
   let st' =
     let desc' =
       let cat = category info.re ~color in
@@ -189,7 +190,7 @@ let validate info (s : string) ~pos st =
 
 let next colors st s pos =
   let c = Char.code (String.unsafe_get s pos) in
-  State.follow_transition st ~color:(Char.code (String.unsafe_get colors c))
+  State.follow_transition st ~color:(Cset.of_int @@ Char.code (String.unsafe_get colors c))
 ;;
 
 let rec loop info ~colors ~positions s ~pos ~last st0 st =
@@ -233,7 +234,7 @@ let rec loop_no_mark info ~colors s ~pos ~last st0 st =
 let final info st cat =
   try List.assq cat st.final with
   | Not_found ->
-    let st' = delta info cat ~color:(-1) st in
+    let st' = delta info cat ~color:(Cset.of_int (-1)) st in
     let res = Automata.State.idx st', Automata.State.status st' in
     st.final <- (cat, res) :: st.final;
     res
@@ -248,6 +249,8 @@ let find_initial_state re cat =
 ;;
 
 let get_color re (s : string) pos =
+  Cset.of_int
+  @@
   if pos < 0
   then -1
   else (
@@ -261,7 +264,7 @@ let get_color re (s : string) pos =
 ;;
 
 let rec handle_last_newline info ~pos st ~groups =
-  let st' = State.follow_transition st ~color:info.re.lnl in
+  let st' = State.follow_transition st ~color:(Cset.of_int info.re.lnl) in
   let info' = State.get_info st' in
   if info'.idx >= 0
   then (
@@ -273,11 +276,11 @@ let rec handle_last_newline info ~pos st ~groups =
     st')
   else (
     (* Unknown *)
-    let color = info.re.lnl in
+    let color = Cset.of_int info.re.lnl in
     let st' =
       let desc' =
         let cat = category info.re ~color in
-        let real_c = Char.code info.re.colors.[Char.code '\n'] in
+        let real_c = Cset.of_int @@ Char.code info.re.colors.[Char.code '\n'] in
         delta info cat ~color:real_c (State.get_info st)
       in
       find_state info.re desc'
@@ -811,7 +814,7 @@ let replace_string ?pos ?len ?all re ~by s = replace ?pos ?len ?all re s ~f:(fun
 
 let witness t =
   let rec witness = function
-    | Set c -> String.make 1 (Char.chr (Cset.pick c))
+    | Set c -> String.make 1 (Char.chr (Cset.pick c |> Cset.to_int))
     | Sequence xs -> String.concat "" (List.map witness xs)
     | Alternative (x :: _) -> witness x
     | Alternative [] -> assert false

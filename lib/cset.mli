@@ -22,7 +22,11 @@
 
 (* Character sets, represented as sorted list of intervals *)
 
-type c = int
+type c [@@immediate]
+
+val to_int : c -> int
+val of_int : int -> c
+
 type t
 
 val iter : t -> f:(c -> c -> unit) -> unit
