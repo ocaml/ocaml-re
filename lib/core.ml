@@ -419,13 +419,14 @@ let enforce_kind ids kind kind' cr =
 ;;
 
 (* XXX should probably compute a category mask *)
-let rec translate ids kind ~ign_group greedy pos names cache c = function
-  | Set s -> A.cst ids (trans_set cache c s), kind
-  | Sequence l -> trans_seq ids kind ~ign_group greedy pos names cache c l, kind
+
+let rec translate ids kind ~ign_group greedy pos names cache colors = function
+  | Set s -> A.cst ids (trans_set cache colors s), kind
+  | Sequence l -> trans_seq ids kind ~ign_group greedy pos names cache colors l, kind
   | Alternative l ->
     (match merge_sequences l with
      | [ r' ] ->
-       let cr, kind' = translate ids kind ~ign_group greedy pos names cache c r' in
+       let cr, kind' = translate ids kind ~ign_group greedy pos names cache colors r' in
        enforce_kind ids kind kind' cr, kind
      | merged_sequences ->
        ( A.alt
@@ -433,13 +434,13 @@ let rec translate ids kind ~ign_group greedy pos names cache c = function
            (List.map
               (fun r' ->
                 let cr, kind' =
-                  translate ids kind ~ign_group greedy pos names cache c r'
+                  translate ids kind ~ign_group greedy pos names cache colors r'
                 in
                 enforce_kind ids kind kind' cr)
               merged_sequences)
        , kind ))
   | Repeat (r', i, j) ->
-    let cr, kind' = translate ids kind ~ign_group greedy pos names cache c r' in
+    let cr, kind' = translate ids kind ~ign_group greedy pos names cache colors r' in
     let rem =
       match j with
       | None -> A.rep ids greedy kind' cr
@@ -484,12 +485,13 @@ let rec translate ids kind ~ign_group greedy pos names cache c = function
   | Start -> A.after ids Category.search_boundary, kind
   | Stop -> A.before ids Category.search_boundary, kind
   | Sem (kind', r') ->
-    let cr, kind'' = translate ids kind' ~ign_group greedy pos names cache c r' in
+    let cr, kind'' = translate ids kind' ~ign_group greedy pos names cache colors r' in
     enforce_kind ids kind' kind'' cr, kind'
-  | Sem_greedy (greedy', r') -> translate ids kind ~ign_group greedy' pos names cache c r'
+  | Sem_greedy (greedy', r') ->
+    translate ids kind ~ign_group greedy' pos names cache colors r'
   | Group (n, r') ->
     if ign_group
-    then translate ids kind ~ign_group greedy pos names cache c r'
+    then translate ids kind ~ign_group greedy pos names cache colors r'
     else (
       let p = !pos in
       let () =
@@ -498,18 +500,18 @@ let rec translate ids kind ~ign_group greedy pos names cache c = function
         | None -> ()
       in
       pos := A.Mark.next2 !pos;
-      let cr, kind' = translate ids kind ~ign_group greedy pos names cache c r' in
+      let cr, kind' = translate ids kind ~ign_group greedy pos names cache colors r' in
       ( A.seq ids `First (A.mark ids p) (A.seq ids `First cr (A.mark ids (A.Mark.next p)))
       , kind' ))
-  | No_group r' -> translate ids kind ~ign_group:true greedy pos names cache c r'
+  | No_group r' -> translate ids kind ~ign_group:true greedy pos names cache colors r'
   | Nest r' ->
     let b = !pos in
-    let cr, kind' = translate ids kind ~ign_group greedy pos names cache c r' in
+    let cr, kind' = translate ids kind ~ign_group greedy pos names cache colors r' in
     let e = A.Mark.prev !pos in
     if e < b then cr, kind' else A.seq ids `First (A.erase ids b e) cr, kind'
   | Difference _ | Complement _ | Intersection _ | No_case _ | Case _ -> assert false
   | Pmark (i, r') ->
-    let cr, kind' = translate ids kind ~ign_group greedy pos names cache c r' in
+    let cr, kind' = translate ids kind ~ign_group greedy pos names cache colors r' in
     A.seq ids `First (A.pmark ids i) cr, kind'
 
 and trans_seq ids kind ~ign_group greedy pos names cache c = function
