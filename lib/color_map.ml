@@ -17,6 +17,13 @@ module Repr = struct
   let repr t color = t.[Cset.to_int color]
 end
 
+module Table = struct
+  type t = string
+
+  let get_char t c = t.[Cset.to_int c]
+  let get t c = Cset.of_int @@ Char.code t.[Char.code c]
+end
+
 let make () = Bytes.make 257 '\000'
 
 let flatten cm =

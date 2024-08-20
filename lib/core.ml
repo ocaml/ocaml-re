@@ -94,7 +94,7 @@ type re =
   ; (* The whole regular expression *)
     mutable initial_states : (Category.t * State.t) list
   ; (* Initial states, indexed by initial category *)
-    colors : string
+    colors : Color_map.Table.t
   ; (* Color table *)
     color_repr : Color_map.Repr.t
   ; (* Table from colors to one character of this color *)
@@ -176,7 +176,7 @@ let delta info cat ~color st =
 ;;
 
 let validate info (s : string) ~pos st =
-  let color = Cset.of_int @@ Char.code info.re.colors.[Char.code s.[pos]] in
+  let color = Color_map.Table.get info.re.colors s.[pos] in
   let st' =
     let desc' =
       let cat = category info.re ~color in
@@ -188,8 +188,7 @@ let validate info (s : string) ~pos st =
 ;;
 
 let next colors st s pos =
-  let c = Char.code (String.unsafe_get s pos) in
-  State.follow_transition st ~color:(Cset.of_int @@ Char.code (String.unsafe_get colors c))
+  State.follow_transition st ~color:(Color_map.Table.get colors (String.unsafe_get s pos))
 ;;
 
 let rec loop info ~colors ~positions s ~pos ~last st0 st =
@@ -248,18 +247,16 @@ let find_initial_state re cat =
 ;;
 
 let get_color re (s : string) pos =
-  Cset.of_int
-  @@
   if pos < 0
-  then -1
+  then Cset.of_int @@ -1
   else (
     let slen = String.length s in
     if pos >= slen
-    then -1
+    then Cset.of_int (-1)
     else if pos = slen - 1 && re.lnl <> -1 && s.[pos] = '\n'
     then (* Special case for the last newline *)
-      re.lnl
-    else Char.code re.colors.[Char.code s.[pos]])
+      Cset.of_int re.lnl
+    else Color_map.Table.get re.colors s.[pos])
 ;;
 
 let rec handle_last_newline info ~pos st ~groups =
@@ -279,7 +276,7 @@ let rec handle_last_newline info ~pos st ~groups =
     let st' =
       let desc' =
         let cat = category info.re ~color in
-        let real_c = Cset.of_int @@ Char.code info.re.colors.[Char.code '\n'] in
+        let real_c = Color_map.Table.get info.re.colors '\n' in
         delta info cat ~color:real_c (State.get_info st)
       in
       find_state info.re desc'
@@ -418,8 +415,8 @@ let enforce_kind ids kind kind' cr =
 ;;
 
 (* XXX should probably compute a category mask *)
-
-let rec translate ids kind ~ign_group greedy pos names cache colors = function
+let rec translate ids kind ~ign_group greedy pos names cache (colors : Color_map.Table.t)
+  = function
   | Set s -> A.cst ids (trans_set cache colors s), kind
   | Sequence l -> trans_seq ids kind ~ign_group greedy pos names cache colors l, kind
   | Alternative l ->
