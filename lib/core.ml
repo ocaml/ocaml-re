@@ -812,7 +812,7 @@ let replace_string ?pos ?len ?all re ~by s = replace ?pos ?len ?all re s ~f:(fun
 
 let witness t =
   let rec witness = function
-    | Set c -> String.make 1 (Char.chr (Cset.pick c |> Cset.to_int))
+    | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
     | Sequence xs -> String.concat "" (List.map witness xs)
     | Alternative (x :: _) -> witness x
     | Alternative [] -> assert false

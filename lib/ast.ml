@@ -212,8 +212,8 @@ let mark r =
 ;;
 
 (**** Character sets ****)
-let cseq c c' = Cset.seq (Cset.of_int (Char.code c)) (Cset.of_int (Char.code c'))
-let cadd c s = Cset.add (Cset.of_int (Char.code c)) s
+let cseq c c' = Cset.seq (Cset.of_char c) (Cset.of_char c')
+let cadd c s = Cset.add (Cset.of_char c) s
 
 let trans_set cache (cm : Color_map.Table.t) s =
   match Cset.one_char s with
