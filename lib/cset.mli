@@ -33,6 +33,7 @@ type t
 
 val iter : t -> f:(c -> c -> unit) -> unit
 val union : t -> t -> t
+val union_all : t list -> t
 val inter : t -> t -> t
 val diff : t -> t -> t
 val offset : int -> t -> t
@@ -41,6 +42,27 @@ val single : c -> t
 val seq : c -> c -> t
 val add : c -> t -> t
 val mem : c -> t -> bool
+val case_insens : t -> t
+val cdigit : t
+val calpha : t
+val cword : t
+val notnl : t
+val ascii : t
+val nl : t
+val cseq : char -> char -> t
+val set : string -> t
+val blank : t
+val space : t
+val xdigit : t
+val lower : t
+val upper : t
+val alpha : t
+val alnum : t
+val wordc : t
+val cntrl : t
+val graph : t
+val print : t
+val punct : t
 
 type hash
 

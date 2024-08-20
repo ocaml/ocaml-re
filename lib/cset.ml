@@ -1,3 +1,6 @@
+module List = struct end
+open Import
+
 (*
    RE - A regular expression library
 
@@ -82,6 +85,7 @@ let rec offset o l =
 ;;
 
 let empty = []
+let union_all : t list -> t = List.fold_left ~init:empty ~f:union
 
 let rec mem (c : int) s =
   match s with
@@ -130,7 +134,7 @@ module CSetMap = Map.Make (struct
     ;;
   end)
 
-let fold_right t ~init ~f = List.fold_right f t init
+let fold_right t ~init ~f = List.fold_right ~f t ~init
 let csingle c = single (Char.code c)
 let cany = [ 0, 255 ]
 
@@ -159,4 +163,66 @@ let rec prepend s x l =
 let pick = function
   | [] -> invalid_arg "Re_cset.pick"
   | (x, _) :: _ -> x
+;;
+
+let cseq c c' = seq (of_char c) (of_char c')
+let rg = cseq
+let char = csingle
+let upper = union_all [ cseq 'A' 'Z'; cseq '\192' '\214'; cseq '\216' '\222' ]
+let clower = offset 32 upper
+let cdigit = cseq '0' '9'
+let ascii = cseq '\000' '\127'
+let cadd c s = add (of_char c) s
+let space = add (of_char ' ') (cseq '\009' '\013')
+let xdigit = union_all [ cdigit; cseq 'a' 'f'; cseq 'A' 'F' ]
+
+let calpha =
+  List.fold_right
+    ~f:cadd
+    [ '\170'; '\181'; '\186'; '\223'; '\255' ]
+    ~init:(union clower upper)
+;;
+
+let calnum = union calpha cdigit
+
+let case_insens s =
+  union_all [ s; offset 32 (inter s upper); offset (-32) (inter s clower) ]
+;;
+
+let cword = cadd '_' calnum
+let notnl = diff cany (csingle '\n')
+let nl = csingle '\n'
+
+let set str =
+  let s = ref empty in
+  for i = 0 to String.length str - 1 do
+    s := union (csingle str.[i]) !s
+  done;
+  !s
+;;
+
+let blank = set "\t "
+
+(* CR rgrinberg: this [lower] doesn't match [clower] *)
+let lower = union_all [ rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255' ]
+let alpha = union_all [ lower; upper; char '\170'; char '\186' ]
+let alnum = union_all [ alpha; cdigit ]
+let wordc = union_all [ alnum; char '_' ]
+let cntrl = union_all [ rg '\000' '\031'; rg '\127' '\159' ]
+let graph = union_all [ rg '\033' '\126'; rg '\160' '\255' ]
+let print = union_all [ rg '\032' '\126'; rg '\160' '\255' ]
+
+let punct =
+  union_all
+    [ rg '\033' '\047'
+    ; rg '\058' '\064'
+    ; rg '\091' '\096'
+    ; rg '\123' '\126'
+    ; rg '\160' '\169'
+    ; rg '\171' '\180'
+    ; rg '\182' '\185'
+    ; rg '\187' '\191'
+    ; char '\215'
+    ; char '\247'
+    ]
 ;;
