@@ -20,6 +20,8 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
+open Import
+
 let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
 
 (****)
@@ -427,13 +429,11 @@ let rec translate ids kind ~ign_group greedy pos names cache (colors : Color_map
      | merged_sequences ->
        ( A.alt
            ids
-           (List.map
-              (fun r' ->
-                let cr, kind' =
-                  translate ids kind ~ign_group greedy pos names cache colors r'
-                in
-                enforce_kind ids kind kind' cr)
-              merged_sequences)
+           (List.map merged_sequences ~f:(fun r' ->
+              let cr, kind' =
+                translate ids kind ~ign_group greedy pos names cache colors r'
+              in
+              enforce_kind ids kind kind' cr))
        , kind ))
   | Repeat (r', i, j) ->
     let cr, kind' = translate ids kind ~ign_group greedy pos names cache colors r' in
@@ -813,7 +813,7 @@ let replace_string ?pos ?len ?all re ~by s = replace ?pos ?len ?all re s ~f:(fun
 let witness t =
   let rec witness = function
     | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
-    | Sequence xs -> String.concat "" (List.map witness xs)
+    | Sequence xs -> String.concat "" (List.map ~f:witness xs)
     | Alternative (x :: _) -> witness x
     | Alternative [] -> assert false
     | Repeat (r, from, _to) ->

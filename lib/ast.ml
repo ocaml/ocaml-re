@@ -1,3 +1,5 @@
+open Import
+
 type t =
   | Set of Cset.t
   | Sequence of t list
@@ -63,7 +65,7 @@ let rec pp fmt t =
 
 let rec is_charset = function
   | Set _ -> true
-  | Alternative l | Intersection l | Complement l -> List.for_all is_charset l
+  | Alternative l | Intersection l | Complement l -> List.for_all ~f:is_charset l
   | Difference (r, r') -> is_charset r && is_charset r'
   | Sem (_, r) | Sem_greedy (_, r) | No_group r | Case r | No_case r -> is_charset r
   | Sequence _
@@ -295,9 +297,9 @@ let clower = Cset.offset 32 cupper
 
 let calpha =
   List.fold_right
-    cadd
+    ~f:cadd
     [ '\170'; '\181'; '\186'; '\223'; '\255' ]
-    (Cset.union clower cupper)
+    ~init:(Cset.union clower cupper)
 ;;
 
 let cdigit = cseq '0' '9'
@@ -309,8 +311,8 @@ let colorize c regexp =
   let rec colorize regexp =
     match regexp with
     | Set s -> Color_map.split s c
-    | Sequence l -> List.iter colorize l
-    | Alternative l -> List.iter colorize l
+    | Sequence l -> List.iter ~f:colorize l
+    | Alternative l -> List.iter ~f:colorize l
     | Repeat (r, _, _) -> colorize r
     | Beg_of_line | End_of_line -> Color_map.split (Cset.csingle '\n') c
     | Beg_of_word | End_of_word | Not_bound -> Color_map.split cword c
@@ -325,8 +327,8 @@ let colorize c regexp =
 ;;
 
 let rec anchored = function
-  | Sequence l -> List.exists anchored l
-  | Alternative l -> List.for_all anchored l
+  | Sequence l -> List.exists ~f:anchored l
+  | Alternative l -> List.for_all ~f:anchored l
   | Repeat (r, i, _) -> i > 0 && anchored r
   | Set _
   | Beg_of_line
@@ -359,17 +361,19 @@ let case_insens s =
        (Cset.offset (-32) (Cset.inter s clower)))
 ;;
 
+let collect_set ~init ~f = List.fold_left ~init ~f:(fun s r -> f s (as_set r))
+
 (* XXX Should split alternatives into (1) charsets and (2) more
    complex regular expressions; alternative should therefore probably
    be flatten here *)
 let rec handle_case ign_case = function
   | Set s -> Set (if ign_case then case_insens s else s)
-  | Sequence l -> Sequence (List.map (handle_case ign_case) l)
+  | Sequence l -> Sequence (List.map ~f:(handle_case ign_case) l)
   | Alternative l ->
-    let l' = List.map (handle_case ign_case) l in
-    if is_charset (Alternative l')
-    then Set (List.fold_left (fun s r -> Cset.union s (as_set r)) Cset.empty l')
-    else Alternative l'
+    let l = List.map ~f:(handle_case ign_case) l in
+    if is_charset (Alternative l)
+    then Set (collect_set ~f:Cset.union ~init:Cset.empty l)
+    else Alternative l
   | Repeat (r, i, j) -> Repeat (handle_case ign_case r, i, j)
   | ( Beg_of_line
     | End_of_line
@@ -382,29 +386,27 @@ let rec handle_case ign_case = function
     | Start
     | Stop ) as r -> r
   | Sem (k, r) ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else Sem (k, r')
+    let r = handle_case ign_case r in
+    if is_charset r then r else Sem (k, r)
   | Sem_greedy (k, r) ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else Sem_greedy (k, r')
+    let r = handle_case ign_case r in
+    if is_charset r then r else Sem_greedy (k, r)
   | Group (n, r) -> Group (n, handle_case ign_case r)
   | No_group r ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else No_group r'
+    let r = handle_case ign_case r in
+    if is_charset r then r else No_group r
   | Nest r ->
-    let r' = handle_case ign_case r in
-    if is_charset r' then r' else Nest r'
+    let r = handle_case ign_case r in
+    if is_charset r then r else Nest r
   | Case r -> handle_case false r
   | No_case r -> handle_case true r
   | Intersection l ->
-    let l' = List.map (fun r -> handle_case ign_case r) l in
-    Set (List.fold_left (fun s r -> Cset.inter s (as_set r)) Cset.cany l')
+    Set (List.map ~f:(handle_case ign_case) l |> collect_set ~f:Cset.inter ~init:Cset.cany)
   | Complement l ->
-    let l' = List.map (fun r -> handle_case ign_case r) l in
     Set
-      (Cset.diff
-         Cset.cany
-         (List.fold_left (fun s r -> Cset.union s (as_set r)) Cset.empty l'))
+      (List.map ~f:(handle_case ign_case) l
+       |> collect_set ~f:Cset.union ~init:Cset.empty
+       |> Cset.diff Cset.cany)
   | Difference (r, r') ->
     Set
       (Cset.inter
