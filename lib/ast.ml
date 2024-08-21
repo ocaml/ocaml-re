@@ -194,14 +194,7 @@ let non_greedy r = Sem_greedy (`Non_greedy, r)
 let group ?name r = Group (name, r)
 let no_group r = No_group r
 let nest r = Nest r
-
-let set str =
-  let s = ref Cset.empty in
-  for i = 0 to String.length str - 1 do
-    s := Cset.union (Cset.csingle str.[i]) !s
-  done;
-  Set !s
-;;
+let set str = Set (Cset.set str)
 
 let mark r =
   let i = Pmark.gen () in
@@ -209,8 +202,6 @@ let mark r =
 ;;
 
 (**** Character sets ****)
-let cseq c c' = Cset.seq (Cset.of_char c) (Cset.of_char c')
-let cadd c s = Cset.add (Cset.of_char c) s
 
 let trans_set cache (cm : Color_map.Table.t) s =
   match Cset.one_char s with
@@ -223,7 +214,7 @@ let trans_set cache (cm : Color_map.Table.t) s =
          Cset.fold_right s ~init:Cset.empty ~f:(fun (i, j) l ->
            let start = Color_map.Table.get_char cm i in
            let stop = Color_map.Table.get_char cm j in
-           Cset.union (cseq start stop) l)
+           Cset.union (Cset.cseq start stop) l)
        in
        cache := Cset.CSetMap.add v l !cache;
        l)
@@ -231,7 +222,7 @@ let trans_set cache (cm : Color_map.Table.t) s =
 
 (****)
 
-let rg c c' = Set (cseq c c')
+let rg c c' = Set (Cset.cseq c c')
 
 let inter l =
   let r = Intersection l in
@@ -249,57 +240,25 @@ let diff r r' =
 ;;
 
 let any = Set Cset.cany
-let notnl = Set (Cset.diff Cset.cany (Cset.csingle '\n'))
-let lower = alt [ rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255' ]
-let upper = alt [ rg 'A' 'Z'; rg '\192' '\214'; rg '\216' '\222' ]
-let alpha = alt [ lower; upper; char '\170'; char '\186' ]
-let digit = rg '0' '9'
-let alnum = alt [ alpha; digit ]
-let wordc = alt [ alnum; char '_' ]
-let ascii = rg '\000' '\127'
-let blank = set "\t "
-let cntrl = alt [ rg '\000' '\031'; rg '\127' '\159' ]
-let graph = alt [ rg '\033' '\126'; rg '\160' '\255' ]
-let print = alt [ rg '\032' '\126'; rg '\160' '\255' ]
-
-let punct =
-  alt
-    [ rg '\033' '\047'
-    ; rg '\058' '\064'
-    ; rg '\091' '\096'
-    ; rg '\123' '\126'
-    ; rg '\160' '\169'
-    ; rg '\171' '\180'
-    ; rg '\182' '\185'
-    ; rg '\187' '\191'
-    ; char '\215'
-    ; char '\247'
-    ]
-;;
-
-let space = alt [ char ' '; rg '\009' '\013' ]
-let xdigit = alt [ digit; rg 'a' 'f'; rg 'A' 'F' ]
+let notnl = Set Cset.notnl
+let lower = Set Cset.lower
+let upper = Set Cset.upper
+let alpha = Set Cset.alpha
+let digit = Set Cset.cdigit
+let alnum = Set Cset.alnum
+let wordc = Set Cset.wordc
+let ascii = Set Cset.ascii
+let blank = Set Cset.blank
+let cntrl = Set Cset.cntrl
+let graph = Set Cset.graph
+let print = Set Cset.print
+let punct = Set Cset.punct
+let space = Set Cset.space
+let xdigit = Set Cset.xdigit
 let case r = Case r
 let no_case r = No_case r
 
 (*XXX Use a better algorithm allowing non-contiguous regions? *)
-
-let cupper =
-  Cset.union (cseq 'A' 'Z') (Cset.union (cseq '\192' '\214') (cseq '\216' '\222'))
-;;
-
-let clower = Cset.offset 32 cupper
-
-let calpha =
-  List.fold_right
-    ~f:cadd
-    [ '\170'; '\181'; '\186'; '\223'; '\255' ]
-    ~init:(Cset.union clower cupper)
-;;
-
-let cdigit = cseq '0' '9'
-let calnum = Cset.union calpha cdigit
-let cword = cadd '_' calnum
 
 let colorize c regexp =
   let lnl = ref false in
@@ -309,8 +268,8 @@ let colorize c regexp =
     | Sequence l -> List.iter ~f:colorize l
     | Alternative l -> List.iter ~f:colorize l
     | Repeat (r, _, _) -> colorize r
-    | Beg_of_line | End_of_line -> Color_map.split (Cset.csingle '\n') c
-    | Beg_of_word | End_of_word | Not_bound -> Color_map.split cword c
+    | Beg_of_line | End_of_line -> Color_map.split Cset.nl c
+    | Beg_of_word | End_of_word | Not_bound -> Color_map.split Cset.cword c
     | Beg_of_str | End_of_str | Start | Stop -> ()
     | Last_end_of_line -> lnl := true
     | Sem (_, r) | Sem_greedy (_, r) | Group (_, r) | No_group r | Nest r | Pmark (_, r)
@@ -348,21 +307,13 @@ let rec anchored = function
   | Pmark (_, r) -> anchored r
 ;;
 
-let case_insens s =
-  Cset.union
-    s
-    (Cset.union
-       (Cset.offset 32 (Cset.inter s cupper))
-       (Cset.offset (-32) (Cset.inter s clower)))
-;;
-
 let collect_set ~init ~f = List.fold_left ~init ~f:(fun s r -> f s (as_set r))
 
 (* XXX Should split alternatives into (1) charsets and (2) more
    complex regular expressions; alternative should therefore probably
    be flatten here *)
 let rec handle_case ign_case = function
-  | Set s -> Set (if ign_case then case_insens s else s)
+  | Set s -> Set (if ign_case then Cset.case_insens s else s)
   | Sequence l -> Sequence (List.map ~f:(handle_case ign_case) l)
   | Alternative l ->
     let l = List.map ~f:(handle_case ign_case) l in
