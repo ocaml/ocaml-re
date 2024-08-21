@@ -128,8 +128,8 @@ and eq_list l1 l2 =
   | _ -> false
 ;;
 
-let sequence = function
-  | [ x ] -> x
+let seq = function
+  | [ r ] -> r
   | l -> Sequence l
 ;;
 
@@ -139,7 +139,7 @@ let rec merge_sequences = function
   | Sequence (x :: y) :: r ->
     (match merge_sequences r with
      | Sequence (x' :: y') :: r' when equal x x' ->
-       Sequence [ x; Alternative [ sequence y; sequence y' ] ] :: r'
+       Sequence [ x; Alternative [ seq y; seq y' ] ] :: r'
      | r' -> Sequence (x :: y) :: r')
   | x :: r -> x :: merge_sequences r
 ;;
@@ -157,11 +157,6 @@ let char c = Set (Cset.csingle c)
 let alt = function
   | [ r ] -> r
   | l -> Alternative l
-;;
-
-let seq = function
-  | [ r ] -> r
-  | l -> Sequence l
 ;;
 
 let empty = alt []
