@@ -34,6 +34,7 @@ type t
 val iter : t -> f:(c -> c -> unit) -> unit
 val union : t -> t -> t
 val union_all : t list -> t
+val intersect_all : t list -> t
 val inter : t -> t -> t
 val diff : t -> t -> t
 val offset : int -> t -> t
