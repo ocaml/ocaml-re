@@ -85,7 +85,9 @@ let rec offset o l =
 ;;
 
 let empty = []
+let cany = [ 0, 255 ]
 let union_all : t list -> t = List.fold_left ~init:empty ~f:union
+let intersect_all : t list -> t = List.fold_left ~init:cany ~f:inter
 
 let rec mem (c : int) s =
   match s with
@@ -136,7 +138,6 @@ module CSetMap = Map.Make (struct
 
 let fold_right t ~init ~f = List.fold_right ~f t ~init
 let csingle c = single (Char.code c)
-let cany = [ 0, 255 ]
 
 let is_empty = function
   | [] -> true

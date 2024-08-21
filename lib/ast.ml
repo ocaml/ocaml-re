@@ -291,8 +291,6 @@ let rec anchored = function
   | Pmark (_, r) -> anchored r
 ;;
 
-let collect_set ~init ~f = List.fold_left ~init ~f:(fun s r -> f s (as_set r))
-
 (* XXX Should split alternatives into (1) charsets and (2) more
    complex regular expressions; alternative should therefore probably
    be flatten here *)
@@ -302,7 +300,7 @@ let rec handle_case ign_case = function
   | Alternative l ->
     let l = List.map ~f:(handle_case ign_case) l in
     if is_charset (Alternative l)
-    then Set (collect_set ~f:Cset.union ~init:Cset.empty l)
+    then Set (List.map ~f:as_set l |> Cset.union_all)
     else Alternative l
   | Repeat (r, i, j) -> Repeat (handle_case ign_case r, i, j)
   | ( Beg_of_line
@@ -331,11 +329,12 @@ let rec handle_case ign_case = function
   | Case r -> handle_case false r
   | No_case r -> handle_case true r
   | Intersection l ->
-    Set (List.map ~f:(handle_case ign_case) l |> collect_set ~f:Cset.inter ~init:Cset.cany)
+    Set
+      (List.map ~f:(fun set -> handle_case ign_case set |> as_set) l |> Cset.intersect_all)
   | Complement l ->
     Set
-      (List.map ~f:(handle_case ign_case) l
-       |> collect_set ~f:Cset.union ~init:Cset.empty
+      (List.map ~f:(fun s -> handle_case ign_case s |> as_set) l
+       |> Cset.union_all
        |> Cset.diff Cset.cany)
   | Difference (r, r') ->
     Set
