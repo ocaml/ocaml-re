@@ -143,7 +143,7 @@ let str s =
   for i = String.length s - 1 downto 0 do
     l := Set (Cset.csingle s.[i]) :: !l
   done;
-  Sequence !l
+  seq !l
 ;;
 
 let alt = function
