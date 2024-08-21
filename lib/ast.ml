@@ -217,16 +217,16 @@ let no_case r = No_case r
 
 (*XXX Use a better algorithm allowing non-contiguous regions? *)
 
-let colorize c regexp =
+let colorize color_map regexp =
   let lnl = ref false in
   let rec colorize regexp =
     match regexp with
-    | Set s -> Color_map.split s c
+    | Set s -> Color_map.split color_map s
     | Sequence l -> List.iter ~f:colorize l
     | Alternative l -> List.iter ~f:colorize l
     | Repeat (r, _, _) -> colorize r
-    | Beg_of_line | End_of_line -> Color_map.split Cset.nl c
-    | Beg_of_word | End_of_word | Not_bound -> Color_map.split Cset.cword c
+    | Beg_of_line | End_of_line -> Color_map.split color_map Cset.nl
+    | Beg_of_word | End_of_word | Not_bound -> Color_map.split color_map Cset.cword
     | Beg_of_str | End_of_str | Start | Stop -> ()
     | Last_end_of_line -> lnl := true
     | Sem (_, r) | Sem_greedy (_, r) | Group (_, r) | No_group r | Nest r | Pmark (_, r)

@@ -23,4 +23,4 @@ end
 
 val make : unit -> t
 val flatten : t -> Table.t * Repr.t
-val split : Cset.t -> t -> unit
+val split : t -> Cset.t -> unit
