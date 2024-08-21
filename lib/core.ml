@@ -548,9 +548,9 @@ and trans_seq ({ ids; kind; _ } as ctx) = function
 
 let compile_1 regexp =
   let regexp = handle_case false regexp in
-  let c = Color_map.make () in
-  let need_lnl = colorize c regexp in
-  let colors, color_repr, ncolor = Color_map.flatten c in
+  let color_map = Color_map.make () in
+  let need_lnl = colorize color_map regexp in
+  let colors, color_repr, ncolor = Color_map.flatten color_map in
   let lnl = if need_lnl then ncolor else -1 in
   let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ctx =
