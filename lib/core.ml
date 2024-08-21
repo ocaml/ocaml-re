@@ -427,6 +427,23 @@ type context =
   ; colors : Color_map.Table.t
   }
 
+let trans_set cache (cm : Color_map.Table.t) s =
+  match Cset.one_char s with
+  | Some i -> Cset.csingle (Color_map.Table.get_char cm i)
+  | None ->
+    let v = Cset.hash_rec s, s in
+    (try Cset.CSetMap.find v !cache with
+     | Not_found ->
+       let l =
+         Cset.fold_right s ~init:Cset.empty ~f:(fun (i, j) l ->
+           let start = Color_map.Table.get_char cm i in
+           let stop = Color_map.Table.get_char cm j in
+           Cset.union (Cset.cseq start stop) l)
+       in
+       cache := Cset.CSetMap.add v l !cache;
+       l)
+;;
+
 (* XXX should probably compute a category mask *)
 let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } as ctx)
   = function
