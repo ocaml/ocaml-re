@@ -548,9 +548,9 @@ and trans_seq ({ ids; kind; _ } as ctx) = function
 
 let compile_1 regexp =
   let regexp = handle_case false regexp in
-  let c = Color_map.make () in
-  let need_lnl = colorize c regexp in
-  let colors, color_repr, ncolor = Color_map.flatten c in
+  let color_map = Color_map.make () in
+  let need_lnl = colorize color_map regexp in
+  let colors, color_repr, ncolor = Color_map.flatten color_map in
   let lnl = if need_lnl then ncolor else -1 in
   let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ctx =
@@ -578,6 +578,25 @@ let compile_1 regexp =
 ;;
 
 (****)
+
+let char c = Set (Cset.csingle c)
+let rg c c' = Set (Cset.cseq c c')
+let any = Set Cset.cany
+let notnl = Set Cset.notnl
+let lower = Set Cset.lower
+let upper = Set Cset.upper
+let alpha = Set Cset.alpha
+let digit = Set Cset.cdigit
+let alnum = Set Cset.alnum
+let wordc = Set Cset.wordc
+let ascii = Set Cset.ascii
+let blank = Set Cset.blank
+let cntrl = Set Cset.cntrl
+let graph = Set Cset.graph
+let print = Set Cset.print
+let punct = Set Cset.punct
+let space = Set Cset.space
+let xdigit = Set Cset.xdigit
 
 let compile r =
   compile_1 (if anchored r then group r else seq [ shortest (rep any); group r ])

@@ -93,8 +93,8 @@ let as_set = function
 let rec equal x1 x2 =
   match x1, x2 with
   | Set s1, Set s2 -> s1 = s2
-  | Sequence l1, Sequence l2 -> eq_list l1 l2
-  | Alternative l1, Alternative l2 -> eq_list l1 l2
+  | Sequence l1, Sequence l2 -> List.equal ~eq:equal l1 l2
+  | Alternative l1, Alternative l2 -> List.equal ~eq:equal l1 l2
   | Repeat (x1', i1, j1), Repeat (x2', i2, j2) -> i1 = i2 && j1 = j2 && equal x1' x2'
   | Beg_of_line, Beg_of_line
   | End_of_line, End_of_line
@@ -115,16 +115,10 @@ let rec equal x1 x2 =
   | Nest x1', Nest x2' -> equal x1' x2'
   | Case x1', Case x2' -> equal x1' x2'
   | No_case x1', No_case x2' -> equal x1' x2'
-  | Intersection l1, Intersection l2 -> eq_list l1 l2
-  | Complement l1, Complement l2 -> eq_list l1 l2
+  | Intersection l1, Intersection l2 -> List.equal ~eq:equal l1 l2
+  | Complement l1, Complement l2 -> List.equal ~eq:equal l1 l2
   | Difference (x1', x1''), Difference (x2', x2'') -> equal x1' x2' && equal x1'' x2''
   | Pmark (m1, r1), Pmark (m2, r2) -> Pmark.equal m1 m2 && equal r1 r2
-  | _ -> false
-
-and eq_list l1 l2 =
-  match l1, l2 with
-  | [], [] -> true
-  | x1 :: r1, x2 :: r2 -> equal x1 x2 && eq_list r1 r2
   | _ -> false
 ;;
 
@@ -151,8 +145,6 @@ let str s =
   done;
   Sequence !l
 ;;
-
-let char c = Set (Cset.csingle c)
 
 let alt = function
   | [ r ] -> r
@@ -203,8 +195,6 @@ let mark r =
 
 (**** Character sets ****)
 
-let rg c c' = Set (Cset.cseq c c')
-
 let inter l =
   let r = Intersection l in
   if is_charset r then r else invalid_arg "Re.inter"
@@ -219,23 +209,6 @@ let diff r r' =
   let r'' = Difference (r, r') in
   if is_charset r'' then r'' else invalid_arg "Re.diff"
 ;;
-
-let any = Set Cset.cany
-let notnl = Set Cset.notnl
-let lower = Set Cset.lower
-let upper = Set Cset.upper
-let alpha = Set Cset.alpha
-let digit = Set Cset.cdigit
-let alnum = Set Cset.alnum
-let wordc = Set Cset.wordc
-let ascii = Set Cset.ascii
-let blank = Set Cset.blank
-let cntrl = Set Cset.cntrl
-let graph = Set Cset.graph
-let print = Set Cset.print
-let punct = Set Cset.punct
-let space = Set Cset.space
-let xdigit = Set Cset.xdigit
 
 (****)
 
