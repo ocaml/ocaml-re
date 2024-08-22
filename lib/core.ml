@@ -865,15 +865,10 @@ let witness t =
         Buffer.add_string b w
       done;
       Buffer.contents b
-    | No_case r -> witness r
-    | Intersection _ | Complement _ | Difference (_, _) -> assert false
-    | Group (_, r)
-    | No_group r
-    | Nest r
-    | Sem (_, r)
-    | Pmark (_, r)
-    | Case r
-    | Sem_greedy (_, r) -> witness r
+    | Case _ | No_case _ | Intersection _ | Complement _ | Difference (_, _) ->
+      assert false
+    | Group (_, r) | No_group r | Nest r | Sem (_, r) | Pmark (_, r) | Sem_greedy (_, r)
+      -> witness r
     | Beg_of_line
     | End_of_line
     | Beg_of_word
