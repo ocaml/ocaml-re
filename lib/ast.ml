@@ -146,8 +146,6 @@ let str s =
   Sequence !l
 ;;
 
-let char c = Set (Cset.csingle c)
-
 let alt = function
   | [ r ] -> r
   | l -> Alternative l
@@ -197,8 +195,6 @@ let mark r =
 
 (**** Character sets ****)
 
-let rg c c' = Set (Cset.cseq c c')
-
 let inter l =
   let r = Intersection l in
   if is_charset r then r else invalid_arg "Re.inter"
@@ -213,23 +209,6 @@ let diff r r' =
   let r'' = Difference (r, r') in
   if is_charset r'' then r'' else invalid_arg "Re.diff"
 ;;
-
-let any = Set Cset.cany
-let notnl = Set Cset.notnl
-let lower = Set Cset.lower
-let upper = Set Cset.upper
-let alpha = Set Cset.alpha
-let digit = Set Cset.cdigit
-let alnum = Set Cset.alnum
-let wordc = Set Cset.wordc
-let ascii = Set Cset.ascii
-let blank = Set Cset.blank
-let cntrl = Set Cset.cntrl
-let graph = Set Cset.graph
-let print = Set Cset.print
-let punct = Set Cset.punct
-let space = Set Cset.space
-let xdigit = Set Cset.xdigit
 
 (****)
 
