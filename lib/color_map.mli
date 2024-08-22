@@ -11,6 +11,7 @@ module Repr : sig
   type t
 
   val repr : t -> Cset.c -> char
+  val length : t -> int
 end
 
 module Table : sig
@@ -21,5 +22,5 @@ module Table : sig
 end
 
 val make : unit -> t
-val flatten : t -> Table.t * Repr.t * int
+val flatten : t -> Table.t * Repr.t
 val split : Cset.t -> t -> unit
