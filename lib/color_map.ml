@@ -42,8 +42,8 @@ let flatten cm =
 ;;
 
 (* mark all the endpoints of the intervals of the char set with the 1 byte *)
-let split s cm =
-  Cset.iter s ~f:(fun i j ->
-    Bytes.set cm (Cset.to_int i) '\001';
-    Bytes.set cm (Cset.to_int j + 1) '\001')
+let split t set =
+  Cset.iter set ~f:(fun i j ->
+    Bytes.set t (Cset.to_int i) '\001';
+    Bytes.set t (Cset.to_int j + 1) '\001')
 ;;
