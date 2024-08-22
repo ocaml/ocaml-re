@@ -65,8 +65,8 @@ let rec pp fmt t =
 
 let rec is_charset = function
   | Set _ -> true
-  | Alternative l | Intersection l | Complement l -> List.for_all ~f:is_charset l
-  | Difference (r, r') -> is_charset r && is_charset r'
+  | Alternative l -> List.for_all l ~f:is_charset
+  | Intersection _ | Complement _ | Difference _ -> true
   | Sem (_, r) | Sem_greedy (_, r) | No_group r | Case r | No_case r -> is_charset r
   | Sequence _
   | Repeat _
