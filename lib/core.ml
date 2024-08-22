@@ -580,24 +580,24 @@ let compile_1 regexp =
 
 (****)
 
-let char c = Set (Cset.csingle c)
-let rg c c' = Set (Cset.cseq c c')
-let any = Set Cset.cany
-let notnl = Set Cset.notnl
-let lower = Set Cset.lower
-let upper = Set Cset.upper
-let alpha = Set Cset.alpha
-let digit = Set Cset.cdigit
-let alnum = Set Cset.alnum
-let wordc = Set Cset.wordc
-let ascii = Set Cset.ascii
-let blank = Set Cset.blank
-let cntrl = Set Cset.cntrl
-let graph = Set Cset.graph
-let print = Set Cset.print
-let punct = Set Cset.punct
-let space = Set Cset.space
-let xdigit = Set Cset.xdigit
+let char c = cset (Cset.csingle c)
+let rg c c' = cset (Cset.cseq c c')
+let any = cset Cset.cany
+let notnl = cset Cset.notnl
+let lower = cset Cset.lower
+let upper = cset Cset.upper
+let alpha = cset Cset.alpha
+let digit = cset Cset.cdigit
+let alnum = cset Cset.alnum
+let wordc = cset Cset.wordc
+let ascii = cset Cset.ascii
+let blank = cset Cset.blank
+let cntrl = cset Cset.cntrl
+let graph = cset Cset.graph
+let print = cset Cset.print
+let punct = cset Cset.punct
+let space = cset Cset.space
+let xdigit = cset Cset.xdigit
 
 let compile r =
   compile_1 (if anchored r then group r else seq [ shortest (rep any); group r ])
