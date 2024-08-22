@@ -1,4 +1,4 @@
-type 'a ast =
+type 'a ast = private
   | Alternative of 'a list
   | Sem of Automata.sem * 'a
   | Sem_greedy of Automata.rep_kind * 'a
@@ -6,14 +6,14 @@ type 'a ast =
   | No_case of 'a
   | Case of 'a
 
-type cset =
+type cset = private
   | Cset of Cset.t
   | Intersection of cset list
   | Complement of cset list
   | Difference of cset * cset
   | Cast of cset ast
 
-type t =
+type t = private
   | Set of cset
   | Ast of t ast
   | Sequence of t list
@@ -74,3 +74,4 @@ val alt : t list -> t
 val shortest : t -> t
 val seq : t list -> t
 val cset : Cset.t -> t
+val t_of_cset : cset -> t

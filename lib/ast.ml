@@ -372,3 +372,5 @@ let rec handle_case ign_case = function
   | Ast (No_case r) -> handle_case true r
   | Pmark (i, r) -> Pmark (i, handle_case ign_case r)
 ;;
+
+let t_of_cset x = Set x
