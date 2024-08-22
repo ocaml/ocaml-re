@@ -187,6 +187,7 @@ let group ?name r = Group (name, r)
 let no_group r = No_group r
 let nest r = Nest r
 let set str = Set (Cset.set str)
+let cset cset = Set cset
 
 let mark r =
   let i = Pmark.gen () in
