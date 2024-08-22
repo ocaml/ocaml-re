@@ -887,7 +887,6 @@ let witness t =
 ;;
 
 module Seq = Rseq
-module List = Rlist
 module Group = Group
 
 (** {2 Deprecated functions} *)
@@ -992,7 +991,7 @@ module View = struct
 
   let view_ast f (t : _ Ast.ast) : t =
     match t with
-    | Alternative a -> Alternative (ListLabels.map ~f a)
+    | Alternative a -> Alternative (List.map ~f a)
     | Sem (sem, a) -> Sem (sem, f a)
     | Sem_greedy (sem, a) -> Sem_greedy (sem, f a)
     | No_group a -> No_group (f a)
@@ -1003,8 +1002,8 @@ module View = struct
   let view_set (cset : cset) : t =
     match cset with
     | Cset set -> Set set
-    | Intersection sets -> Intersection (ListLabels.map sets ~f:Ast.t_of_cset)
-    | Complement sets -> Complement (ListLabels.map sets ~f:Ast.t_of_cset)
+    | Intersection sets -> Intersection (List.map sets ~f:Ast.t_of_cset)
+    | Complement sets -> Complement (List.map sets ~f:Ast.t_of_cset)
     | Difference (x, y) -> Difference (Ast.t_of_cset x, Ast.t_of_cset y)
     | Cast ast -> view_ast Ast.t_of_cset ast
   ;;
@@ -1031,3 +1030,5 @@ module View = struct
 end
 
 let pp = Ast.pp
+
+module List = Rlist
