@@ -46,40 +46,37 @@ end
 
 include Ast.Export
 
-let exec_internal name ?(pos = 0) ?(len = -1) ~partial ~groups re s =
-  if pos < 0 || len < -1 || pos + len > String.length s then invalid_arg name;
+let exec_internal ?(pos = 0) ?(len = -1) ~partial ~groups re s =
   Compile.match_str ~groups ~partial re s ~pos ~len
 ;;
 
 let exec ?pos ?len re s =
-  match exec_internal "Re.exec" ?pos ?len ~groups:true ~partial:false re s with
+  match exec_internal ?pos ?len ~groups:true ~partial:false re s with
   | Match substr -> substr
   | _ -> raise Not_found
 ;;
 
 let exec_opt ?pos ?len re s =
-  match exec_internal "Re.exec_opt" ?pos ?len ~groups:true ~partial:false re s with
+  match exec_internal ?pos ?len ~groups:true ~partial:false re s with
   | Match substr -> Some substr
   | _ -> None
 ;;
 
 let execp ?pos ?len re s =
-  match exec_internal ~groups:false ~partial:false "Re.execp" ?pos ?len re s with
+  match exec_internal ~groups:false ~partial:false ?pos ?len re s with
   | Match _substr -> true
   | _ -> false
 ;;
 
 let exec_partial ?pos ?len re s =
-  match exec_internal ~groups:false ~partial:true "Re.exec_partial" ?pos ?len re s with
+  match exec_internal ~groups:false ~partial:true ?pos ?len re s with
   | Match _ -> `Full
   | Running _ -> `Partial
   | Failed -> `Mismatch
 ;;
 
 let exec_partial_detailed ?pos ?len re s =
-  match
-    exec_internal ~groups:true ~partial:true "Re.exec_partial_detailed" ?pos ?len re s
-  with
+  match exec_internal ~groups:true ~partial:true ?pos ?len re s with
   | Match group -> `Full group
   | Running { no_match_starts_before } -> `Partial no_match_starts_before
   | Failed -> `Mismatch
@@ -247,59 +244,6 @@ module Gen = struct
   let all ?pos ?len re s = Rseq.all ?pos ?len re s |> gen_of_seq
   let matches ?pos ?len re s = Rseq.matches ?pos ?len re s |> gen_of_seq
 end
-
-let replace ?(pos = 0) ?len ?(all = true) re ~f s =
-  if pos < 0 then invalid_arg "Re.replace";
-  let limit =
-    match len with
-    | None -> String.length s
-    | Some l ->
-      if l < 0 || pos + l > String.length s then invalid_arg "Re.replace";
-      pos + l
-  in
-  (* buffer into which we write the result *)
-  let buf = Buffer.create (String.length s) in
-  (* iterate on matched substrings. *)
-  let rec iter pos on_match =
-    if pos <= limit
-    then (
-      match
-        Compile.match_str ~groups:true ~partial:false re s ~pos ~len:(limit - pos)
-      with
-      | Match substr ->
-        let p1, p2 = Group.offset substr 0 in
-        if pos = p1 && p1 = p2 && on_match
-        then (
-          (* if we matched an empty string right after a match,
-             we must manually advance by 1 *)
-          if p2 < limit then Buffer.add_char buf s.[p2];
-          iter (p2 + 1) false)
-        else (
-          (* add string between previous match and current match *)
-          Buffer.add_substring buf s pos (p1 - pos);
-          (* what should we replace the matched group with? *)
-          let replacing = f substr in
-          Buffer.add_string buf replacing;
-          if all
-          then
-            (* if we matched an empty string, we must manually advance by 1 *)
-            iter
-              (if p1 = p2
-               then (
-                 (* a non char could be past the end of string. e.g. $ *)
-                 if p2 < limit then Buffer.add_char buf s.[p2];
-                 p2 + 1)
-               else p2)
-              (p1 <> p2)
-          else Buffer.add_substring buf s p2 (limit - p2))
-      | Running _ -> ()
-      | Failed -> Buffer.add_substring buf s pos (limit - pos))
-  in
-  iter pos false;
-  Buffer.contents buf
-;;
-
-let replace_string ?pos ?len ?all re ~by s = replace ?pos ?len ?all re s ~f:(fun _ -> by)
 
 let witness t =
   let rec witness (t : Ast.no_case) =
