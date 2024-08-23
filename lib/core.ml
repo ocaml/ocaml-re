@@ -1003,10 +1003,10 @@ module View = struct
   let view_set (cset : cset) : t =
     match cset with
     | Cset set -> Set set
-    | Intersection sets -> Intersection (ListLabels.map sets ~f:(fun x -> Ast.Set x))
-    | Complement sets -> Complement (ListLabels.map sets ~f:(fun x -> Ast.Set x))
-    | Difference (x, y) -> Difference (Set x, Set y)
-    | Cast ast -> view_ast (fun x -> Ast.Set x) ast
+    | Intersection sets -> Intersection (ListLabels.map sets ~f:Ast.t_of_cset)
+    | Complement sets -> Complement (ListLabels.map sets ~f:Ast.t_of_cset)
+    | Difference (x, y) -> Difference (Ast.t_of_cset x, Ast.t_of_cset y)
+    | Cast ast -> view_ast Ast.t_of_cset ast
   ;;
 
   let view : Ast.t -> t = function
