@@ -447,7 +447,7 @@ let trans_set cache (cm : Color_map.Table.t) s =
 (* XXX should probably compute a category mask *)
 let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } as ctx)
   = function
-  | Set (Cset s) -> A.cst ids (trans_set cache colors s), kind
+  | Set s -> A.cst ids (trans_set cache colors s), kind
   | Sequence l -> trans_seq ctx l, kind
   | Ast (Alternative l) ->
     (match merge_sequences l with
@@ -530,8 +530,6 @@ let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } a
     let cr, kind' = translate ctx r' in
     let e = A.Mark.prev !pos in
     if e < b then cr, kind' else A.seq ids `First (A.erase ids b e) cr, kind'
-  | Set (Cast _) -> assert false
-  | Set (Difference _ | Complement _ | Intersection _) -> assert false
   | Ast (No_case _ | Case _) -> assert false
   | Pmark (i, r') ->
     let cr, kind' = translate ctx r' in
@@ -600,6 +598,9 @@ let print = cset Cset.print
 let punct = cset Cset.punct
 let space = cset Cset.space
 let xdigit = cset Cset.xdigit
+
+open Ast
+include Export
 
 let compile r =
   compile_1 (if anchored r then group r else seq [ shortest (rep any); group r ])
@@ -856,7 +857,7 @@ let replace_string ?pos ?len ?all re ~by s = replace ?pos ?len ?all re s ~f:(fun
 
 let witness t =
   let rec witness = function
-    | Set (Cset c) -> String.make 1 (Cset.to_char (Cset.pick c))
+    | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
     | Sequence xs -> String.concat "" (List.map ~f:witness xs)
     | Ast (Alternative (x :: _)) -> witness x
     | Ast (Alternative []) -> assert false
@@ -868,8 +869,6 @@ let witness t =
       done;
       Buffer.contents b
     | Ast (Case _ | No_case _) -> assert false
-    | Set (Cast _) -> assert false
-    | Set (Intersection _ | Complement _ | Difference (_, _)) -> assert false
     | Ast (No_group r | Sem (_, r) | Sem_greedy (_, r)) -> witness r
     | Nest r | Pmark (_, r) | Group (_, r) -> witness r
     | Beg_of_line
@@ -959,7 +958,6 @@ Bounded repetition
 type groups = Group.t
 
 include Rlist
-include Ast
 
 module View = struct
   type t =
