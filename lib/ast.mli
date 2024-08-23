@@ -81,6 +81,7 @@ module Export : sig
   val shortest : t -> t
   val seq : t list -> t
   val pp : t Fmt.t
+  val witness : t -> string
 end
 
 val cset : Cset.t -> t
