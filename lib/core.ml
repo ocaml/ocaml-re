@@ -447,9 +447,9 @@ let trans_set cache (cm : Color_map.Table.t) s =
 (* XXX should probably compute a category mask *)
 let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } as ctx)
   = function
-  | Set s -> A.cst ids (trans_set cache colors s), kind
+  | Set (Cset s) -> A.cst ids (trans_set cache colors s), kind
   | Sequence l -> trans_seq ctx l, kind
-  | Alternative l ->
+  | Ast (Alternative l) ->
     (match merge_sequences l with
      | [ r' ] ->
        let cr, kind' = translate ctx r' in
@@ -506,10 +506,10 @@ let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } a
   | Last_end_of_line -> A.before ids Category.(inexistant ++ lastnewline), kind
   | Start -> A.after ids Category.search_boundary, kind
   | Stop -> A.before ids Category.search_boundary, kind
-  | Sem (kind', r') ->
+  | Ast (Sem (kind', r')) ->
     let cr, kind'' = translate { ctx with kind = kind' } r' in
     enforce_kind ids kind' kind'' cr, kind'
-  | Sem_greedy (greedy', r') -> translate { ctx with greedy = greedy' } r'
+  | Ast (Sem_greedy (greedy', r')) -> translate { ctx with greedy = greedy' } r'
   | Group (n, r') ->
     if ign_group
     then translate ctx r'
@@ -524,13 +524,15 @@ let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } a
       let cr, kind' = translate ctx r' in
       ( A.seq ids `First (A.mark ids p) (A.seq ids `First cr (A.mark ids (A.Mark.next p)))
       , kind' ))
-  | No_group r' -> translate { ctx with ign_group = true } r'
+  | Ast (No_group r') -> translate { ctx with ign_group = true } r'
   | Nest r' ->
     let b = !pos in
     let cr, kind' = translate ctx r' in
     let e = A.Mark.prev !pos in
     if e < b then cr, kind' else A.seq ids `First (A.erase ids b e) cr, kind'
-  | Difference _ | Complement _ | Intersection _ | No_case _ | Case _ -> assert false
+  | Set (Cast _) -> assert false
+  | Set (Difference _ | Complement _ | Intersection _) -> assert false
+  | Ast (No_case _ | Case _) -> assert false
   | Pmark (i, r') ->
     let cr, kind' = translate ctx r' in
     A.seq ids `First (A.pmark ids i) cr, kind'
@@ -854,10 +856,10 @@ let replace_string ?pos ?len ?all re ~by s = replace ?pos ?len ?all re s ~f:(fun
 
 let witness t =
   let rec witness = function
-    | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
+    | Set (Cset c) -> String.make 1 (Cset.to_char (Cset.pick c))
     | Sequence xs -> String.concat "" (List.map ~f:witness xs)
-    | Alternative (x :: _) -> witness x
-    | Alternative [] -> assert false
+    | Ast (Alternative (x :: _)) -> witness x
+    | Ast (Alternative []) -> assert false
     | Repeat (r, from, _to) ->
       let w = witness r in
       let b = Buffer.create (String.length w * from) in
@@ -865,10 +867,11 @@ let witness t =
         Buffer.add_string b w
       done;
       Buffer.contents b
-    | Case _ | No_case _ | Intersection _ | Complement _ | Difference (_, _) ->
-      assert false
-    | Group (_, r) | No_group r | Nest r | Sem (_, r) | Pmark (_, r) | Sem_greedy (_, r)
-      -> witness r
+    | Ast (Case _ | No_case _) -> assert false
+    | Set (Cast _) -> assert false
+    | Set (Intersection _ | Complement _ | Difference (_, _)) -> assert false
+    | Ast (No_group r | Sem (_, r) | Sem_greedy (_, r)) -> witness r
+    | Nest r | Pmark (_, r) | Group (_, r) -> witness r
     | Beg_of_line
     | End_of_line
     | Beg_of_word
@@ -960,9 +963,71 @@ include Rlist
 include Ast
 
 module View = struct
-  include Ast
+  type t =
+    | Set of Cset.t
+    | Sequence of Ast.t list
+    | Alternative of Ast.t list
+    | Repeat of Ast.t * int * int option
+    | Beg_of_line
+    | End_of_line
+    | Beg_of_word
+    | End_of_word
+    | Not_bound
+    | Beg_of_str
+    | End_of_str
+    | Last_end_of_line
+    | Start
+    | Stop
+    | Sem of Automata.sem * Ast.t
+    | Sem_greedy of Automata.rep_kind * Ast.t
+    | Group of string option * Ast.t
+    | No_group of Ast.t
+    | Nest of Ast.t
+    | Case of Ast.t
+    | No_case of Ast.t
+    | Intersection of Ast.t list
+    | Complement of Ast.t list
+    | Difference of Ast.t * Ast.t
+    | Pmark of Pmark.t * Ast.t
 
-  let view = Fun.id
+  let view_ast f (t : _ Ast.ast) : t =
+    match t with
+    | Alternative a -> Alternative (ListLabels.map ~f a)
+    | Sem (sem, a) -> Sem (sem, f a)
+    | Sem_greedy (sem, a) -> Sem_greedy (sem, f a)
+    | No_group a -> No_group (f a)
+    | No_case a -> No_case (f a)
+    | Case a -> Case (f a)
+  ;;
+
+  let view_set (cset : cset) : t =
+    match cset with
+    | Cset set -> Set set
+    | Intersection sets -> Intersection (ListLabels.map sets ~f:(fun x -> Ast.Set x))
+    | Complement sets -> Complement (ListLabels.map sets ~f:(fun x -> Ast.Set x))
+    | Difference (x, y) -> Difference (Set x, Set y)
+    | Cast ast -> view_ast (fun x -> Ast.Set x) ast
+  ;;
+
+  let view : Ast.t -> t = function
+    | Set s -> view_set s
+    | Ast s -> view_ast (fun x -> x) s
+    | Sequence s -> Sequence s
+    | Repeat (t, x, y) -> Repeat (t, x, y)
+    | Beg_of_line -> Beg_of_line
+    | End_of_line -> End_of_line
+    | Beg_of_word -> Beg_of_word
+    | End_of_word -> End_of_word
+    | Not_bound -> Not_bound
+    | Beg_of_str -> Beg_of_str
+    | End_of_str -> End_of_str
+    | Last_end_of_line -> Last_end_of_line
+    | Start -> Start
+    | Stop -> Stop
+    | Group (name, t) -> Group (name, t)
+    | Nest t -> Nest t
+    | Pmark (pmark, t) -> Pmark (pmark, t)
+  ;;
 end
 
 let pp = Ast.pp
