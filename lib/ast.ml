@@ -127,6 +127,54 @@ type no_case = (Cset.t, [ `Uncased ]) gen
 let pp = pp_gen pp_cset
 let cset cset = Set (Cset cset)
 
+let rec handle_case_cset ign_case = function
+  | Cset s -> if ign_case then Cset.case_insens s else s
+  | Cast (Alternative l) -> List.map ~f:(handle_case_cset ign_case) l |> Cset.union_all
+  | Complement l ->
+    List.map ~f:(handle_case_cset ign_case) l |> Cset.union_all |> Cset.diff Cset.cany
+  | Difference (r, r') ->
+    Cset.inter
+      (handle_case_cset ign_case r)
+      (Cset.diff Cset.cany (handle_case_cset ign_case r'))
+  | Cast (No_group a) | Cast (Sem (_, a)) | Cast (Sem_greedy (_, a)) ->
+    handle_case_cset ign_case a
+  | Intersection l -> List.map ~f:(handle_case_cset ign_case) l |> Cset.intersect_all
+  | Cast (No_case a) -> handle_case_cset true a
+  | Cast (Case a) -> handle_case_cset false a
+;;
+
+(* CR rgrinberg: this function eliminates [Case]/[No_case] and simplifies
+   all char sets to their primitive representation. We should reflect that in
+   the types *)
+let rec handle_case ign_case : t -> (Cset.t, [ `Uncased ]) gen = function
+  | Set s -> Set (handle_case_cset ign_case s)
+  | Sequence l -> Sequence (List.map ~f:(handle_case ign_case) l)
+  | Ast (Alternative l) ->
+    let l = List.map ~f:(handle_case ign_case) l in
+    Ast (Alternative l)
+  | Repeat (r, i, j) -> Repeat (handle_case ign_case r, i, j)
+  | ( Beg_of_line
+    | End_of_line
+    | Beg_of_word
+    | End_of_word
+    | Not_bound
+    | Beg_of_str
+    | End_of_str
+    | Last_end_of_line
+    | Start
+    | Stop ) as r -> r
+  | Ast (Sem (k, r)) ->
+    let r = handle_case ign_case r in
+    Ast (Sem (k, r))
+  | Ast (Sem_greedy (k, r)) -> Ast (Sem_greedy (k, handle_case ign_case r))
+  | Group (n, r) -> Group (n, handle_case ign_case r)
+  | Ast (No_group r) -> Ast (No_group (handle_case ign_case r))
+  | Nest r -> Nest (handle_case ign_case r)
+  | Ast (Case r) -> handle_case false r
+  | Ast (No_case r) -> handle_case true r
+  | Pmark (i, r) -> Pmark (i, handle_case ign_case r)
+;;
+
 module Export = struct
   type nonrec t = t
 
@@ -258,8 +306,6 @@ module Export = struct
     | _, _ -> invalid_arg "Re.diff"
   ;;
 
-  (****)
-
   let case =
     let f = { f = (fun r -> Case r) } in
     fun t -> make_set f t
@@ -268,6 +314,36 @@ module Export = struct
   let no_case =
     let f = { f = (fun r -> No_case r) } in
     fun t -> make_set f t
+  ;;
+
+  let witness t =
+    let rec witness (t : no_case) =
+      match t with
+      | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
+      | Sequence xs -> String.concat "" (List.map ~f:witness xs)
+      | Ast (Alternative (x :: _)) -> witness x
+      | Ast (Alternative []) -> assert false
+      | Repeat (r, from, _to) ->
+        let w = witness r in
+        let b = Buffer.create (String.length w * from) in
+        for _i = 1 to from do
+          Buffer.add_string b w
+        done;
+        Buffer.contents b
+      | Ast (No_group r | Sem (_, r) | Sem_greedy (_, r)) -> witness r
+      | Nest r | Pmark (_, r) | Group (_, r) -> witness r
+      | Beg_of_line
+      | End_of_line
+      | Beg_of_word
+      | End_of_word
+      | Not_bound
+      | Beg_of_str
+      | Last_end_of_line
+      | Start
+      | Stop
+      | End_of_str -> ""
+    in
+    witness (handle_case false t)
   ;;
 end
 
@@ -324,54 +400,6 @@ and anchored : t -> bool = function
   | Last_end_of_line
   | Stop -> false
   | Beg_of_str | Start -> true
-;;
-
-let rec handle_case_cset ign_case = function
-  | Cset s -> if ign_case then Cset.case_insens s else s
-  | Cast (Alternative l) -> List.map ~f:(handle_case_cset ign_case) l |> Cset.union_all
-  | Complement l ->
-    List.map ~f:(handle_case_cset ign_case) l |> Cset.union_all |> Cset.diff Cset.cany
-  | Difference (r, r') ->
-    Cset.inter
-      (handle_case_cset ign_case r)
-      (Cset.diff Cset.cany (handle_case_cset ign_case r'))
-  | Cast (No_group a) | Cast (Sem (_, a)) | Cast (Sem_greedy (_, a)) ->
-    handle_case_cset ign_case a
-  | Intersection l -> List.map ~f:(handle_case_cset ign_case) l |> Cset.intersect_all
-  | Cast (No_case a) -> handle_case_cset true a
-  | Cast (Case a) -> handle_case_cset false a
-;;
-
-(* CR rgrinberg: this function eliminates [Case]/[No_case] and simplifies
-   all char sets to their primitive representation. We should reflect that in
-   the types *)
-let rec handle_case ign_case : t -> (Cset.t, [ `Uncased ]) gen = function
-  | Set s -> Set (handle_case_cset ign_case s)
-  | Sequence l -> Sequence (List.map ~f:(handle_case ign_case) l)
-  | Ast (Alternative l) ->
-    let l = List.map ~f:(handle_case ign_case) l in
-    Ast (Alternative l)
-  | Repeat (r, i, j) -> Repeat (handle_case ign_case r, i, j)
-  | ( Beg_of_line
-    | End_of_line
-    | Beg_of_word
-    | End_of_word
-    | Not_bound
-    | Beg_of_str
-    | End_of_str
-    | Last_end_of_line
-    | Start
-    | Stop ) as r -> r
-  | Ast (Sem (k, r)) ->
-    let r = handle_case ign_case r in
-    Ast (Sem (k, r))
-  | Ast (Sem_greedy (k, r)) -> Ast (Sem_greedy (k, handle_case ign_case r))
-  | Group (n, r) -> Group (n, handle_case ign_case r)
-  | Ast (No_group r) -> Ast (No_group (handle_case ign_case r))
-  | Nest r -> Nest (handle_case ign_case r)
-  | Ast (Case r) -> handle_case false r
-  | Ast (No_case r) -> handle_case true r
-  | Pmark (i, r) -> Pmark (i, handle_case ign_case r)
 ;;
 
 let t_of_cset x = Set x

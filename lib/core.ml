@@ -118,36 +118,6 @@ module Gen = struct
   let matches ?pos ?len re s = Search.matches ?pos ?len re s |> gen_of_seq
 end
 
-let witness t =
-  let rec witness (t : Ast.no_case) =
-    match t with
-    | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
-    | Sequence xs -> String.concat "" (List.map ~f:witness xs)
-    | Ast (Alternative (x :: _)) -> witness x
-    | Ast (Alternative []) -> assert false
-    | Repeat (r, from, _to) ->
-      let w = witness r in
-      let b = Buffer.create (String.length w * from) in
-      for _i = 1 to from do
-        Buffer.add_string b w
-      done;
-      Buffer.contents b
-    | Ast (No_group r | Sem (_, r) | Sem_greedy (_, r)) -> witness r
-    | Nest r | Pmark (_, r) | Group (_, r) -> witness r
-    | Beg_of_line
-    | End_of_line
-    | Beg_of_word
-    | End_of_word
-    | Not_bound
-    | Beg_of_str
-    | Last_end_of_line
-    | Start
-    | Stop
-    | End_of_str -> ""
-  in
-  witness (Ast.handle_case false t)
-;;
-
 module Group = Group
 
 (** {2 Deprecated functions} *)
