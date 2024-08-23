@@ -1,12 +1,14 @@
 open Import
 
-type 'a ast =
-  | Alternative of 'a list
-  | Sem of Automata.sem * 'a
-  | Sem_greedy of Automata.rep_kind * 'a
-  | No_group of 'a
-  | No_case of 'a
-  | Case of 'a
+type ('a, _) ast =
+  | Alternative : 'a list -> ('a, [> `Uncased ]) ast
+  | Sem : Automata.sem * 'a -> ('a, [> `Uncased ]) ast
+  | Sem_greedy : Automata.rep_kind * 'a -> ('a, [> `Uncased ]) ast
+  | No_group : 'a -> ('a, [> `Uncased ]) ast
+  | No_case : 'a -> ('a, [> `Cased ]) ast
+  | Case : 'a -> ('a, [> `Cased ]) ast
+
+let empty_alternative : ('a, 'b) ast = Alternative []
 
 let equal_ast eq x y =
   match x, y with
@@ -14,12 +16,10 @@ let equal_ast eq x y =
   | Sem (sem, a), Sem (sem', a') -> sem = sem' && eq a a'
   | Sem_greedy (rep, a), Sem_greedy (rep', a') -> rep = rep' && eq a a'
   | No_group a, No_group b -> eq a b
-  | No_case a, No_case b -> eq a b
-  | Case a, Case b -> eq a b
   | _, _ -> false
 ;;
 
-let pp_ast f fmt ast =
+let pp_ast (type a b) f fmt (ast : (a, b) ast) =
   let open Fmt in
   let var s re = sexp fmt s f re in
   match ast with
@@ -36,13 +36,13 @@ type cset =
   | Intersection of cset list
   | Complement of cset list
   | Difference of cset * cset
-  | Cast of cset ast
+  | Cast of (cset, [ `Cased | `Uncased ]) ast
 
-type 'a gen =
+type ('a, 'case) gen =
   | Set of 'a
-  | Ast of 'a gen ast
-  | Sequence of 'a gen list
-  | Repeat of 'a gen * int * int option
+  | Ast of (('a, 'case) gen, 'case) ast
+  | Sequence of ('a, 'case) gen list
+  | Repeat of ('a, 'case) gen * int * int option
   | Beg_of_line
   | End_of_line
   | Beg_of_word
@@ -53,9 +53,9 @@ type 'a gen =
   | Last_end_of_line
   | Start
   | Stop
-  | Group of string option * 'a gen
-  | Nest of 'a gen
-  | Pmark of Pmark.t * 'a gen
+  | Group of string option * ('a, 'case) gen
+  | Nest of ('a, 'case) gen
+  | Pmark of Pmark.t * ('a, 'case) gen
 
 let rec pp_gen pp_cset fmt t =
   let open Format in
@@ -121,19 +121,8 @@ let rec equal cset x1 x2 =
   | _ -> false
 ;;
 
-let rec equal_cset (x : cset) (y : cset) : bool =
-  match x, y with
-  | Cset x, Cset y -> x = y
-  | Intersection x, Intersection y -> List.equal ~eq:equal_cset x y
-  | Complement x, Complement y -> List.equal ~eq:equal_cset x y
-  | Difference (x, y), Difference (x', y') -> equal_cset x x' && equal_cset y y'
-  | Cast x, Cast y -> equal_ast equal_cset x y
-  | _, _ -> false
-;;
-
-let () = ignore equal_cset
-
-type t = cset gen
+type t = (cset, [ `Cased | `Uncased ]) gen
+type no_case = (Cset.t, [ `Uncased ]) gen
 
 let pp = pp_gen pp_cset
 let cset cset = Set (Cset cset)
@@ -164,7 +153,7 @@ module Export = struct
     | e -> Some e
   ;;
 
-  let empty = Ast (Alternative [])
+  let empty : t = Ast empty_alternative
 
   let alt (elems : t list) : t =
     match elems with
@@ -203,7 +192,7 @@ module Export = struct
   let start = Start
   let stop = Stop
 
-  type f = { f : 'a. 'a -> 'a ast }
+  type 'b f = { f : 'a. 'a -> ('a, 'b) ast }
 
   let make_set f t =
     match t with
@@ -295,10 +284,10 @@ let rec merge_sequences = function
 
 (*XXX Use a better algorithm allowing non-contiguous regions? *)
 
-let colorize color_map regexp =
+let colorize color_map (regexp : no_case) =
   let lnl = ref false in
   let rec colorize regexp =
-    match regexp with
+    match (regexp : no_case) with
     | Set s -> Color_map.split color_map s
     | Sequence l -> List.iter ~f:colorize l
     | Ast (Alternative l) -> List.iter ~f:colorize l
@@ -309,14 +298,12 @@ let colorize color_map regexp =
     | Last_end_of_line -> lnl := true
     | Group (_, r) | Nest r | Pmark (_, r) -> colorize r
     | Ast (Sem (_, r) | Sem_greedy (_, r) | No_group r) -> colorize r
-    (* case handling eliminated before colorization *)
-    | Ast (No_case _) | Ast (Case _) -> assert false
   in
   colorize regexp;
   !lnl
 ;;
 
-let rec anchored_ast : t ast -> bool = function
+let rec anchored_ast : (t, _) ast -> bool = function
   | Alternative als -> List.for_all ~f:anchored als
   | Sem (_, r) | Sem_greedy (_, r) | No_group r | No_case r | Case r -> anchored r
 
@@ -356,7 +343,7 @@ let rec handle_case_cset ign_case = function
 (* CR rgrinberg: this function eliminates [Case]/[No_case] and simplifies
    all char sets to their primitive representation. We should reflect that in
    the types *)
-let rec handle_case ign_case : t -> Cset.t gen = function
+let rec handle_case ign_case : t -> (Cset.t, [ `Uncased ]) gen = function
   | Set s -> Set (handle_case_cset ign_case s)
   | Sequence l -> Sequence (List.map ~f:(handle_case ign_case) l)
   | Ast (Alternative l) ->

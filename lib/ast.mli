@@ -1,23 +1,23 @@
-type 'a ast = private
-  | Alternative of 'a list
-  | Sem of Automata.sem * 'a
-  | Sem_greedy of Automata.rep_kind * 'a
-  | No_group of 'a
-  | No_case of 'a
-  | Case of 'a
+type ('a, _) ast = private
+  | Alternative : 'a list -> ('a, [> `Uncased ]) ast
+  | Sem : Automata.sem * 'a -> ('a, [> `Uncased ]) ast
+  | Sem_greedy : Automata.rep_kind * 'a -> ('a, [> `Uncased ]) ast
+  | No_group : 'a -> ('a, [> `Uncased ]) ast
+  | No_case : 'a -> ('a, [> `Cased ]) ast
+  | Case : 'a -> ('a, [> `Cased ]) ast
 
 type cset = private
   | Cset of Cset.t
   | Intersection of cset list
   | Complement of cset list
   | Difference of cset * cset
-  | Cast of cset ast
+  | Cast of (cset, [ `Cased | `Uncased ]) ast
 
-type 'a gen = private
+type ('a, 'case) gen = private
   | Set of 'a
-  | Ast of 'a gen ast
-  | Sequence of 'a gen list
-  | Repeat of 'a gen * int * int option
+  | Ast of (('a, 'case) gen, 'case) ast
+  | Sequence of ('a, 'case) gen list
+  | Repeat of ('a, 'case) gen * int * int option
   | Beg_of_line
   | End_of_line
   | Beg_of_word
@@ -28,17 +28,18 @@ type 'a gen = private
   | Last_end_of_line
   | Start
   | Stop
-  | Group of string option * 'a gen
-  | Nest of 'a gen
-  | Pmark of Pmark.t * 'a gen
+  | Group of string option * ('a, 'case) gen
+  | Nest of ('a, 'case) gen
+  | Pmark of Pmark.t * ('a, 'case) gen
 
-type t = cset gen
+type t = (cset, [ `Cased | `Uncased ]) gen
+type no_case = (Cset.t, [ `Uncased ]) gen
 
 val pp : t Fmt.t
-val merge_sequences : Cset.t gen list -> Cset.t gen list
-val handle_case : bool -> t -> Cset.t gen
+val merge_sequences : (Cset.t, [ `Uncased ]) gen list -> (Cset.t, [ `Uncased ]) gen list
+val handle_case : bool -> t -> (Cset.t, [ `Uncased ]) gen
 val anchored : t -> bool
-val colorize : Color_map.t -> Cset.t gen -> bool
+val colorize : Color_map.t -> (Cset.t, [ `Uncased ]) gen -> bool
 
 module Export : sig
   type nonrec t = t
