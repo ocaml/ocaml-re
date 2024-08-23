@@ -372,5 +372,34 @@ let _ =
     (seq [ group (str "a"); rep any; group (str "b") ])
     ".acb."
     (`Full [| 1, 4; 1, 2; 3, 4 |]);
+  (* Alternation of character sets isn't flattened *)
+  let lhs_group =
+    let open Re in
+    alt [ group (char 'a'); char 'b' ]
+  in
+  test "lhs group - 1" lhs_group "a" (`Full [| 0, 1; 0, 1 |]);
+  test "lhs group - 2" lhs_group "b" (`Full [| 0, 1; -1, -1 |]);
+  test
+    "lhs/rhs group"
+    (let open Re in
+     alt [ group (char 'a'); group (char 'b') ])
+    "b"
+    (`Full [| 0, 1; -1, -1; 0, 1 |]);
+  (* No_group inside char set: *)
+  let no_group_charset =
+    let a = Re.group (Re.char 'a') in
+    let b = Re.char 'b' in
+    Re.no_group (Re.alt [ a; b ])
+  in
+  test "no group inside char set - 1" no_group_charset "a" (`Full [| 0, 1 |]);
+  test "no group inside char set - 2" no_group_charset "b" (`Full [| 0, 1 |]);
+  (* No_group outside char set *)
+  let no_group_string =
+    let aa = Re.group (Re.str "aa") in
+    let bb = Re.str "bb" in
+    Re.no_group (Re.alt [ aa; bb ])
+  in
+  test "no group inside string - 1" no_group_string "aa" (`Full [| 0, 2 |]);
+  test "no group inside string - 2" no_group_string "bb" (`Full [| 0, 2 |]);
   run_test_suite "test_re"
 ;;
