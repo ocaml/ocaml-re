@@ -13,8 +13,8 @@ let empty_alternative : ('a, 'b) ast = Alternative []
 let equal_ast eq x y =
   match x, y with
   | Alternative a, Alternative b -> List.equal ~eq a b
-  | Sem (sem, a), Sem (sem', a') -> sem = sem' && eq a a'
-  | Sem_greedy (rep, a), Sem_greedy (rep', a') -> rep = rep' && eq a a'
+  | Sem (sem, a), Sem (sem', a') -> Poly.equal sem sem' && eq a a'
+  | Sem_greedy (rep, a), Sem_greedy (rep', a') -> Poly.equal rep rep' && eq a a'
   | No_group a, No_group b -> eq a b
   | _, _ -> false
 ;;
@@ -101,7 +101,8 @@ let rec equal cset x1 x2 =
   match x1, x2 with
   | Set s1, Set s2 -> cset s1 s2
   | Sequence l1, Sequence l2 -> List.equal ~eq:(equal cset) l1 l2
-  | Repeat (x1', i1, j1), Repeat (x2', i2, j2) -> i1 = i2 && j1 = j2 && equal cset x1' x2'
+  | Repeat (x1', i1, j1), Repeat (x2', i2, j2) ->
+    Int.equal i1 i2 && Option.equal Int.equal j1 j2 && equal cset x1' x2'
   | Beg_of_line, Beg_of_line
   | End_of_line, End_of_line
   | Beg_of_word, Beg_of_word
@@ -354,7 +355,7 @@ let rec merge_sequences = function
   | Ast (Alternative l') :: r -> merge_sequences (l' @ r)
   | Sequence (x :: y) :: r ->
     (match merge_sequences r with
-     | Sequence (x' :: y') :: r' when equal ( = ) x x' ->
+     | Sequence (x' :: y') :: r' when equal Cset.equal x x' ->
        Sequence [ x; Ast (Alternative [ seq y; seq y' ]) ] :: r'
      | r' -> Sequence (x :: y) :: r')
   | x :: r -> x :: merge_sequences r

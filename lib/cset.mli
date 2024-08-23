@@ -31,6 +31,7 @@ val of_char : char -> c
 
 type t
 
+val equal : t -> t -> bool
 val iter : t -> f:(c -> c -> unit) -> unit
 val union : t -> t -> t
 val union_all : t list -> t

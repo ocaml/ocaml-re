@@ -32,6 +32,8 @@ let of_char c = Char.code c
 
 type t = (c * c) list
 
+let equal = List.equal ~eq:(fun (x, y) (x', y') -> Int.equal x x' && Int.equal y y')
+
 let rec union l l' =
   match l, l' with
   | _, [] -> l
@@ -109,7 +111,7 @@ let hash l = hash_rec l land 0x3FFFFFFF
 (****)
 
 let print_one ch (c1, c2) =
-  if c1 = c2 then Format.fprintf ch "%d" c1 else Format.fprintf ch "%d-%d" c1 c2
+  if Int.equal c1 c2 then Format.fprintf ch "%d" c1 else Format.fprintf ch "%d-%d" c1 c2
 ;;
 
 let pp = Fmt.list print_one
@@ -123,7 +125,7 @@ let rec iter t ~f =
 ;;
 
 let one_char = function
-  | [ (i, j) ] when i = j -> Some i
+  | [ (i, j) ] when Int.equal i j -> Some i
   | _ -> None
 ;;
 
