@@ -31,11 +31,22 @@ module Ids = struct
   ;;
 end
 
-type sem =
-  [ `Longest
-  | `Shortest
-  | `First
-  ]
+module Sem = struct
+  type t =
+    [ `Longest
+    | `Shortest
+    | `First
+    ]
+
+  let pp ch k =
+    Format.pp_print_string
+      ch
+      (match k with
+       | `Shortest -> "short"
+       | `Longest -> "long"
+       | `First -> "first")
+  ;;
+end
 
 type rep_kind =
   [ `Greedy
@@ -62,9 +73,9 @@ type expr =
 and def =
   | Cst of Cset.t
   | Alt of expr list
-  | Seq of sem * expr * expr
+  | Seq of Sem.t * expr * expr
   | Eps
-  | Rep of rep_kind * sem * expr
+  | Rep of rep_kind * Sem.t * expr
   | Mark of int
   | Erase of int * int
   | Before of Category.t
@@ -130,15 +141,6 @@ end
 
 (****)
 
-let pp_sem ch k =
-  Format.pp_print_string
-    ch
-    (match k with
-     | `Shortest -> "short"
-     | `Longest -> "long"
-     | `First -> "first")
-;;
-
 let pp_rep_kind fmt = function
   | `Greedy -> Format.pp_print_string fmt "Greedy"
   | `Non_greedy -> Format.pp_print_string fmt "Non_greedy"
@@ -149,9 +151,9 @@ let rec pp ch e =
   match e.def with
   | Cst l -> sexp ch "cst" Cset.pp l
   | Alt l -> sexp ch "alt" (list pp) l
-  | Seq (k, e, e') -> sexp ch "seq" (triple pp_sem pp pp) (k, e, e')
+  | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
   | Eps -> str ch "eps"
-  | Rep (_rk, k, e) -> sexp ch "rep" (pair pp_sem pp) (k, e)
+  | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
   | Mark i -> sexp ch "mark" int i
   | Pmark i -> sexp ch "pmark" int (i :> int)
   | Erase (b, e) -> sexp ch "erase" (pair int int) (b, e)
@@ -171,7 +173,7 @@ let alt ids = function
   | l -> mk_expr ids (Alt l)
 ;;
 
-let seq ids kind x y =
+let seq ids (kind : Sem.t) x y =
   match x.def, y.def with
   | Alt [], _ -> x
   | _, Alt [] -> y
@@ -215,7 +217,7 @@ type status =
 
 module E = struct
   type t =
-    | TSeq of t list * expr * sem
+    | TSeq of t list * expr * Sem.t
     | TExp of Marks.t * expr
     | TMatch of Marks.t
 
@@ -472,7 +474,7 @@ and delta_alt marks c ~next_cat ~prev_cat l rem =
   | y :: r ->
     delta_1 marks c ~next_cat ~prev_cat y (delta_alt marks c ~next_cat ~prev_cat r rem)
 
-and delta_seq c ~next_cat ~prev_cat kind y z rem =
+and delta_seq c ~next_cat ~prev_cat (kind : Sem.t) y z rem =
   match Desc.first_match y with
   | None -> E.tseq kind y z rem
   | Some marks ->

@@ -14,7 +14,7 @@ type t =
   | Last_end_of_line
   | Start
   | Stop
-  | Sem of Automata.sem * Ast.t
+  | Sem of Automata.Sem.t * Ast.t
   | Sem_greedy of Automata.rep_kind * Ast.t
   | Group of string option * Ast.t
   | No_group of Ast.t

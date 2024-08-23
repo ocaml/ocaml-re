@@ -2,7 +2,7 @@ open Import
 
 type ('a, _) ast =
   | Alternative : 'a list -> ('a, [> `Uncased ]) ast
-  | Sem : Automata.sem * 'a -> ('a, [> `Uncased ]) ast
+  | Sem : Automata.Sem.t * 'a -> ('a, [> `Uncased ]) ast
   | Sem_greedy : Automata.rep_kind * 'a -> ('a, [> `Uncased ]) ast
   | No_group : 'a -> ('a, [> `Uncased ]) ast
   | No_case : 'a -> ('a, [> `Cased ]) ast
@@ -24,7 +24,7 @@ let pp_ast (type a b) f fmt (ast : (a, b) ast) =
   let var s re = sexp fmt s f re in
   match ast with
   | Alternative alt -> sexp fmt "Alternative" (list f) alt
-  | Sem (sem, a) -> sexp fmt "Sem" (pair Automata.pp_sem f) (sem, a)
+  | Sem (sem, a) -> sexp fmt "Sem" (pair Automata.Sem.pp f) (sem, a)
   | Sem_greedy (k, re) -> sexp fmt "Sem_greedy" (pair Automata.pp_rep_kind f) (k, re)
   | No_group c -> var "No_group" c
   | Case c -> var "Case" c
