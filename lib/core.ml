@@ -403,8 +403,6 @@ let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =
   }
 ;;
 
-open Ast
-
 (**** Compilation ****)
 
 module A = Automata
@@ -453,7 +451,7 @@ let rec translate
   | Set s -> A.cst ids (trans_set cache colors s), kind
   | Sequence l -> trans_seq ctx l, kind
   | Ast (Alternative l) ->
-    (match merge_sequences l with
+    (match Ast.merge_sequences l with
      | [ r' ] ->
        let cr, kind' = translate ctx r' in
        enforce_kind ids kind kind' cr, kind
@@ -549,9 +547,9 @@ and trans_seq ({ ids; kind; _ } as ctx) = function
 ;;
 
 let compile_1 regexp =
-  let regexp = handle_case false regexp in
+  let regexp = Ast.handle_case false regexp in
   let color_map = Color_map.make () in
-  let need_lnl = colorize color_map regexp in
+  let need_lnl = Ast.colorize color_map regexp in
   let colors, color_repr = Color_map.flatten color_map in
   let ncolor = Color_map.Repr.length color_repr in
   let lnl = if need_lnl then ncolor else -1 in
@@ -582,30 +580,32 @@ let compile_1 regexp =
 
 (****)
 
-let char c = cset (Cset.csingle c)
-let rg c c' = cset (Cset.cseq c c')
-let any = cset Cset.cany
-let notnl = cset Cset.notnl
-let lower = cset Cset.lower
-let upper = cset Cset.upper
-let alpha = cset Cset.alpha
-let digit = cset Cset.cdigit
-let alnum = cset Cset.alnum
-let wordc = cset Cset.wordc
-let ascii = cset Cset.ascii
-let blank = cset Cset.blank
-let cntrl = cset Cset.cntrl
-let graph = cset Cset.graph
-let print = cset Cset.print
-let punct = cset Cset.punct
-let space = cset Cset.space
-let xdigit = cset Cset.xdigit
+include struct
+  let cset = Ast.cset
+  let char c = cset (Cset.csingle c)
+  let rg c c' = cset (Cset.cseq c c')
+  let any = cset Cset.cany
+  let notnl = cset Cset.notnl
+  let lower = cset Cset.lower
+  let upper = cset Cset.upper
+  let alpha = cset Cset.alpha
+  let digit = cset Cset.cdigit
+  let alnum = cset Cset.alnum
+  let wordc = cset Cset.wordc
+  let ascii = cset Cset.ascii
+  let blank = cset Cset.blank
+  let cntrl = cset Cset.cntrl
+  let graph = cset Cset.graph
+  let print = cset Cset.print
+  let punct = cset Cset.punct
+  let space = cset Cset.space
+  let xdigit = cset Cset.xdigit
+end
 
-open Ast
-include Export
+include Ast.Export
 
 let compile r =
-  compile_1 (if anchored r then group r else seq [ shortest (rep any); group r ])
+  compile_1 (if Ast.anchored r then group r else seq [ shortest (rep any); group r ])
 ;;
 
 let exec_internal name ?(pos = 0) ?(len = -1) ~partial ~groups re s =
@@ -884,7 +884,7 @@ let witness t =
     | Stop
     | End_of_str -> ""
   in
-  witness (handle_case false t)
+  witness (Ast.handle_case false t)
 ;;
 
 module Seq = Rseq
@@ -999,7 +999,7 @@ module View = struct
     | Case a -> Case (f a)
   ;;
 
-  let view_set (cset : cset) : t =
+  let view_set (cset : Ast.cset) : t =
     match cset with
     | Cset set -> Set set
     | Intersection sets -> Intersection (List.map sets ~f:Ast.t_of_cset)
