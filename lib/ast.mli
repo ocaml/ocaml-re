@@ -80,6 +80,7 @@ module Export : sig
   val alt : t list -> t
   val shortest : t -> t
   val seq : t list -> t
+  val pp : t Fmt.t
 end
 
 val cset : Cset.t -> t

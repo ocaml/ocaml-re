@@ -130,6 +130,8 @@ let cset cset = Set (Cset cset)
 module Export = struct
   type nonrec t = t
 
+  let pp = pp
+
   let seq = function
     | [ r ] -> r
     | l -> Sequence l
