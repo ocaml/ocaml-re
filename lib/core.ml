@@ -445,8 +445,11 @@ let trans_set cache (cm : Color_map.Table.t) s =
 ;;
 
 (* XXX should probably compute a category mask *)
-let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } as ctx)
-  = function
+let rec translate
+  ({ ids; kind; ign_group; greedy; pos; names; cache; colors } as ctx)
+  (ast : Ast.no_case)
+  =
+  match ast with
   | Set s -> A.cst ids (trans_set cache colors s), kind
   | Sequence l -> trans_seq ctx l, kind
   | Ast (Alternative l) ->
@@ -530,7 +533,6 @@ let rec translate ({ ids; kind; ign_group; greedy; pos; names; cache; colors } a
     let cr, kind' = translate ctx r' in
     let e = A.Mark.prev !pos in
     if e < b then cr, kind' else A.seq ids `First (A.erase ids b e) cr, kind'
-  | Ast (No_case _ | Case _) -> assert false
   | Pmark (i, r') ->
     let cr, kind' = translate ctx r' in
     A.seq ids `First (A.pmark ids i) cr, kind'
@@ -856,7 +858,8 @@ let replace ?(pos = 0) ?len ?(all = true) re ~f s =
 let replace_string ?pos ?len ?all re ~by s = replace ?pos ?len ?all re s ~f:(fun _ -> by)
 
 let witness t =
-  let rec witness = function
+  let rec witness (t : Ast.no_case) =
+    match t with
     | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
     | Sequence xs -> String.concat "" (List.map ~f:witness xs)
     | Ast (Alternative (x :: _)) -> witness x
@@ -868,7 +871,6 @@ let witness t =
         Buffer.add_string b w
       done;
       Buffer.contents b
-    | Ast (Case _ | No_case _) -> assert false
     | Ast (No_group r | Sem (_, r) | Sem_greedy (_, r)) -> witness r
     | Nest r | Pmark (_, r) | Group (_, r) -> witness r
     | Beg_of_line
