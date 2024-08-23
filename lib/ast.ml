@@ -2,9 +2,6 @@ open Import
 
 type ('a, _) ast =
   | Alternative : 'a list -> ('a, [> `Uncased ]) ast
-  | Sem : Automata.Sem.t * 'a -> ('a, [> `Uncased ]) ast
-  | Sem_greedy : Automata.rep_kind * 'a -> ('a, [> `Uncased ]) ast
-  | No_group : 'a -> ('a, [> `Uncased ]) ast
   | No_case : 'a -> ('a, [> `Cased ]) ast
   | Case : 'a -> ('a, [> `Cased ]) ast
 
@@ -13,9 +10,6 @@ let empty_alternative : ('a, 'b) ast = Alternative []
 let equal_ast eq x y =
   match x, y with
   | Alternative a, Alternative b -> List.equal ~eq a b
-  | Sem (sem, a), Sem (sem', a') -> Poly.equal sem sem' && eq a a'
-  | Sem_greedy (rep, a), Sem_greedy (rep', a') -> Poly.equal rep rep' && eq a a'
-  | No_group a, No_group b -> eq a b
   | _, _ -> false
 ;;
 
@@ -24,9 +18,6 @@ let pp_ast (type a b) f fmt (ast : (a, b) ast) =
   let var s re = sexp fmt s f re in
   match ast with
   | Alternative alt -> sexp fmt "Alternative" (list f) alt
-  | Sem (sem, a) -> sexp fmt "Sem" (pair Automata.Sem.pp f) (sem, a)
-  | Sem_greedy (k, re) -> sexp fmt "Sem_greedy" (pair Automata.pp_rep_kind f) (k, re)
-  | No_group c -> var "No_group" c
   | Case c -> var "Case" c
   | No_case c -> var "No_case" c
 ;;
@@ -54,8 +45,11 @@ type ('a, 'case) gen =
   | Start
   | Stop
   | Group of string option * ('a, 'case) gen
+  | No_group of ('a, 'case) gen
   | Nest of ('a, 'case) gen
   | Pmark of Pmark.t * ('a, 'case) gen
+  | Sem of Automata.Sem.t * ('a, 'case) gen
+  | Sem_greedy of Automata.rep_kind * ('a, 'case) gen
 
 let rec pp_gen pp_cset fmt t =
   let open Format in
@@ -84,6 +78,9 @@ let rec pp_gen pp_cset fmt t =
   | Nest c -> var "Nest" c
   | Pmark (m, r) -> sexp fmt "Pmark" (pair Pmark.pp pp) (m, r)
   | Ast a -> pp_ast pp fmt a
+  | Sem (sem, a) -> sexp fmt "Sem" (pair Automata.Sem.pp pp) (sem, a)
+  | Sem_greedy (k, re) -> sexp fmt "Sem_greedy" (pair Automata.pp_rep_kind pp) (k, re)
+  | No_group c -> var "No_group" c
 ;;
 
 let rec pp_cset fmt cset =
@@ -119,6 +116,8 @@ let rec equal cset x1 x2 =
   | Pmark (m1, r1), Pmark (m2, r2) -> Pmark.equal m1 m2 && equal cset r1 r2
   | Nest x, Nest y -> equal cset x y
   | Ast x, Ast y -> equal_ast (equal cset) x y
+  | Sem (sem, a), Sem (sem', a') -> Poly.equal sem sem' && equal cset a a'
+  | Sem_greedy (rep, a), Sem_greedy (rep', a') -> Poly.equal rep rep' && equal cset a a'
   | _ -> false
 ;;
 
@@ -137,8 +136,6 @@ let rec handle_case_cset ign_case = function
     Cset.inter
       (handle_case_cset ign_case r)
       (Cset.diff Cset.cany (handle_case_cset ign_case r'))
-  | Cast (No_group a) | Cast (Sem (_, a)) | Cast (Sem_greedy (_, a)) ->
-    handle_case_cset ign_case a
   | Intersection l -> List.map ~f:(handle_case_cset ign_case) l |> Cset.intersect_all
   | Cast (No_case a) -> handle_case_cset true a
   | Cast (Case a) -> handle_case_cset false a
@@ -164,12 +161,10 @@ let rec handle_case ign_case : t -> (Cset.t, [ `Uncased ]) gen = function
     | Last_end_of_line
     | Start
     | Stop ) as r -> r
-  | Ast (Sem (k, r)) ->
-    let r = handle_case ign_case r in
-    Ast (Sem (k, r))
-  | Ast (Sem_greedy (k, r)) -> Ast (Sem_greedy (k, handle_case ign_case r))
+  | Sem (k, r) -> Sem (k, handle_case ign_case r)
+  | Sem_greedy (k, r) -> Sem_greedy (k, handle_case ign_case r)
   | Group (n, r) -> Group (n, handle_case ign_case r)
-  | Ast (No_group r) -> Ast (No_group (handle_case ign_case r))
+  | No_group r -> No_group (handle_case ign_case r)
   | Nest r -> Nest (handle_case ign_case r)
   | Ast (Case r) -> handle_case false r
   | Ast (No_case r) -> handle_case true r
@@ -251,38 +246,19 @@ module Export = struct
     | _ -> Ast (f.f t)
   ;;
 
-  let longest =
-    let f = { f = (fun x -> Sem (`Longest, x)) } in
-    fun t -> make_set f t
+  let preserve_set f t =
+    match t with
+    | Set _ -> t
+    | _ -> f t
   ;;
 
-  let shortest =
-    let f = { f = (fun r -> Sem (`Shortest, r)) } in
-    fun t -> make_set f t
-  ;;
-
-  let first =
-    let f = { f = (fun r -> Sem (`First, r)) } in
-    fun t -> make_set f t
-  ;;
-
-  let greedy =
-    let f = { f = (fun r -> Sem_greedy (`Greedy, r)) } in
-    fun t -> make_set f t
-  ;;
-
-  let non_greedy =
-    let f = { f = (fun r -> Sem_greedy (`Non_greedy, r)) } in
-    fun t -> make_set f t
-  ;;
-
+  let longest = preserve_set (fun t -> Sem (`Longest, t))
+  let shortest = preserve_set (fun t -> Sem (`Shortest, t))
+  let first = preserve_set (fun t -> Sem (`First, t))
+  let greedy = preserve_set (fun t -> Sem_greedy (`Greedy, t))
+  let non_greedy = preserve_set (fun t -> Sem_greedy (`Non_greedy, t))
   let group ?name r = Group (name, r)
-
-  let no_group =
-    let f = { f = (fun r -> No_group r) } in
-    fun t -> make_set f t
-  ;;
-
+  let no_group = preserve_set (fun t -> No_group t)
   let nest r = Nest r
   let set str = cset (Cset.set str)
 
@@ -331,8 +307,8 @@ module Export = struct
           Buffer.add_string b w
         done;
         Buffer.contents b
-      | Ast (No_group r | Sem (_, r) | Sem_greedy (_, r)) -> witness r
-      | Nest r | Pmark (_, r) | Group (_, r) -> witness r
+      | No_group r -> witness r
+      | Sem_greedy (_, r) | Sem (_, r) | Nest r | Pmark (_, r) | Group (_, r) -> witness r
       | Beg_of_line
       | End_of_line
       | Beg_of_word
@@ -375,8 +351,8 @@ let colorize color_map (regexp : no_case) =
     | Beg_of_word | End_of_word | Not_bound -> Color_map.split color_map Cset.cword
     | Beg_of_str | End_of_str | Start | Stop -> ()
     | Last_end_of_line -> lnl := true
-    | Group (_, r) | Nest r | Pmark (_, r) -> colorize r
-    | Ast (Sem (_, r) | Sem_greedy (_, r) | No_group r) -> colorize r
+    | No_group r | Group (_, r) | Nest r | Pmark (_, r) -> colorize r
+    | Sem (_, r) | Sem_greedy (_, r) -> colorize r
   in
   colorize regexp;
   !lnl
@@ -384,13 +360,14 @@ let colorize color_map (regexp : no_case) =
 
 let rec anchored_ast : (t, _) ast -> bool = function
   | Alternative als -> List.for_all ~f:anchored als
-  | Sem (_, r) | Sem_greedy (_, r) | No_group r | No_case r | Case r -> anchored r
+  | No_case r | Case r -> anchored r
 
 and anchored : t -> bool = function
   | Ast a -> anchored_ast a
   | Sequence l -> List.exists ~f:anchored l
   | Repeat (r, i, _) -> i > 0 && anchored r
-  | Group (_, r) | Nest r | Pmark (_, r) -> anchored r
+  | No_group r | Sem (_, r) | Sem_greedy (_, r) | Group (_, r) | Nest r | Pmark (_, r) ->
+    anchored r
   | Set _
   | Beg_of_line
   | End_of_line

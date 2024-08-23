@@ -30,9 +30,6 @@ type t =
 let view_ast f (t : _ Ast.ast) : t =
   match t with
   | Alternative a -> Alternative (List.map ~f a)
-  | Sem (sem, a) -> Sem (sem, f a)
-  | Sem_greedy (sem, a) -> Sem_greedy (sem, f a)
-  | No_group a -> No_group (f a)
   | No_case a -> No_case (f a)
   | Case a -> Case (f a)
 ;;
@@ -49,6 +46,8 @@ let view_set (cset : Ast.cset) : t =
 let view : Ast.t -> t = function
   | Set s -> view_set s
   | Ast s -> view_ast (fun x -> x) s
+  | Sem (sem, a) -> Sem (sem, a)
+  | Sem_greedy (sem, a) -> Sem_greedy (sem, a)
   | Sequence s -> Sequence s
   | Repeat (t, x, y) -> Repeat (t, x, y)
   | Beg_of_line -> Beg_of_line
@@ -61,6 +60,7 @@ let view : Ast.t -> t = function
   | Last_end_of_line -> Last_end_of_line
   | Start -> Start
   | Stop -> Stop
+  | No_group a -> No_group a
   | Group (name, t) -> Group (name, t)
   | Nest t -> Nest t
   | Pmark (pmark, t) -> Pmark (pmark, t)
