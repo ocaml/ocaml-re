@@ -1,4 +1,5 @@
 include Core
+module View = View
 module Emacs = Emacs
 module Glob = Glob
 module Perl = Perl
