@@ -7,10 +7,9 @@ type ('a, _) ast =
 
 let empty_alternative : ('a, 'b) ast = Alternative []
 
-let equal_ast eq x y =
+let equal_ast (type a) eq (x : (a, [ `Uncased ]) ast) (y : (a, [ `Uncased ]) ast) =
   match x, y with
   | Alternative a, Alternative b -> List.equal ~eq a b
-  | _, _ -> false
 ;;
 
 let pp_ast (type a b) f fmt (ast : (a, b) ast) =
