@@ -417,6 +417,13 @@ let trans_set cache (cm : Color_map.Table.t) s =
        l)
 ;;
 
+let make_repeater ids cr kind greedy =
+  match greedy with
+  | `Greedy -> fun rem -> A.alt ids [ A.seq ids kind (A.rename ids cr) rem; A.eps ids ]
+  | `Non_greedy ->
+    fun rem -> A.alt ids [ A.eps ids; A.seq ids kind (A.rename ids cr) rem ]
+;;
+
 (* XXX should probably compute a category mask *)
 let rec translate
   ({ ids; kind; ign_group; greedy; pos; names; cache; colors } as ctx)
@@ -443,13 +450,7 @@ let rec translate
       match j with
       | None -> A.rep ids greedy kind' cr
       | Some j ->
-        let f =
-          match greedy with
-          | `Greedy ->
-            fun rem -> A.alt ids [ A.seq ids kind' (A.rename ids cr) rem; A.eps ids ]
-          | `Non_greedy ->
-            fun rem -> A.alt ids [ A.eps ids; A.seq ids kind' (A.rename ids cr) rem ]
-        in
+        let f = make_repeater ids cr kind' greedy in
         iter (j - i) f (A.eps ids)
     in
     iter i (fun rem -> A.seq ids kind' (A.rename ids cr) rem) rem, kind
