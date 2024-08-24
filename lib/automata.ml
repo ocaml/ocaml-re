@@ -313,10 +313,10 @@ module Desc = struct
   ;;
 
   let split_at_match =
-    let rec split_at_match_rec l' = function
+    let rec split_at_match_rec l = function
       | [] -> assert false
-      | TMatch _ :: r -> List.rev l', remove_matches r
-      | x :: r -> split_at_match_rec (x :: l') r
+      | TMatch _ :: r -> List.rev l, remove_matches r
+      | x :: r -> split_at_match_rec (x :: l) r
     in
     fun l -> split_at_match_rec [] l
   ;;
@@ -326,7 +326,7 @@ module Desc = struct
   let rec set_idx idx = function
     | [] -> []
     | TMatch marks :: r -> TMatch (Marks.marks_set_idx marks idx) :: set_idx idx r
-    | TSeq (l', x, kind) :: r -> TSeq (set_idx idx l', x, kind) :: set_idx idx r
+    | TSeq (l, x, kind) :: r -> TSeq (set_idx idx l, x, kind) :: set_idx idx r
     | TExp (marks, x) :: r -> TExp (Marks.marks_set_idx marks idx, x) :: set_idx idx r
   ;;
 end
@@ -383,10 +383,8 @@ module State = struct
       st
   ;;
 
-  type t' = t
-
   module Table = Hashtbl.Make (struct
-      type t = t'
+      type nonrec t = t
 
       let equal = equal
       let hash t = t.hash
@@ -431,22 +429,22 @@ let rec remove_duplicates prev l y =
   | (E.TMatch _ as x) :: _ ->
     (* Truncate after first match *)
     [ x ], prev
-  | E.TSeq (l', x, kind) :: r ->
-    let l'', prev' = remove_duplicates prev l' x in
-    let r', prev'' = remove_duplicates prev' r y in
-    E.tseq kind l'' x r', prev''
+  | E.TSeq (l, x, kind) :: r ->
+    let l, prev = remove_duplicates prev l x in
+    let r, prev = remove_duplicates prev r y in
+    E.tseq kind l x r, prev
   | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
     if List.memq y.id ~set:prev
     then remove_duplicates prev r y
     else (
-      let r', prev' = remove_duplicates (y.id :: prev) r y in
-      e :: r', prev')
+      let r, prev = remove_duplicates (y.id :: prev) r y in
+      e :: r, prev)
   | (E.TExp (_marks, x) as e) :: r ->
     if List.memq x.id ~set:prev
     then remove_duplicates prev r y
     else (
-      let r', prev' = remove_duplicates (x.id :: prev) r y in
-      e :: r', prev')
+      let r, prev = remove_duplicates (x.id :: prev) r y in
+      e :: r, prev)
 ;;
 
 let rec delta_1 marks c ~next_cat ~prev_cat x rem =
@@ -455,18 +453,18 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
   | Cst s -> if Cset.mem c s then E.texp marks eps_expr :: rem else rem
   | Alt l -> delta_alt marks c ~next_cat ~prev_cat l rem
   | Seq (kind, y, z) ->
-    let y' = delta_1 marks c ~next_cat ~prev_cat y [] in
-    delta_seq c ~next_cat ~prev_cat kind y' z rem
+    let y = delta_1 marks c ~next_cat ~prev_cat y [] in
+    delta_seq c ~next_cat ~prev_cat kind y z rem
   | Rep (rep_kind, kind, y) ->
-    let y' = delta_1 marks c ~next_cat ~prev_cat y [] in
-    let y'', marks' =
-      match Desc.first_match y' with
-      | None -> y', marks
-      | Some marks' -> Desc.remove_matches y', marks'
+    let y, marks' =
+      let y = delta_1 marks c ~next_cat ~prev_cat y [] in
+      match Desc.first_match y with
+      | None -> y, marks
+      | Some marks -> Desc.remove_matches y, marks
     in
     (match rep_kind with
-     | `Greedy -> E.tseq kind y'' x (E.TMatch marks' :: rem)
-     | `Non_greedy -> E.TMatch marks :: E.tseq kind y'' x rem)
+     | `Greedy -> E.tseq kind y x (E.TMatch marks' :: rem)
+     | `Non_greedy -> E.TMatch marks :: E.tseq kind y x rem)
   | Eps -> E.TMatch marks :: rem
   | Mark i ->
     let marks = Marks.set_mark marks i in
@@ -475,10 +473,8 @@ let rec delta_1 marks c ~next_cat ~prev_cat x rem =
     let marks = Marks.set_pmark marks i in
     E.TMatch marks :: rem
   | Erase (b, e) -> E.TMatch (Marks.filter marks b e) :: rem
-  | Before cat'' ->
-    if Category.intersect next_cat cat'' then E.TMatch marks :: rem else rem
-  | After cat'' ->
-    if Category.intersect prev_cat cat'' then E.TMatch marks :: rem else rem
+  | Before cat -> if Category.intersect next_cat cat then E.TMatch marks :: rem else rem
+  | After cat -> if Category.intersect prev_cat cat then E.TMatch marks :: rem else rem
 
 and delta_alt marks c ~next_cat ~prev_cat l rem =
   match l with
@@ -496,15 +492,15 @@ and delta_seq c ~next_cat ~prev_cat (kind : Sem.t) y z rem =
      | `Shortest ->
        delta_1 marks c ~next_cat ~prev_cat z (E.tseq kind (Desc.remove_matches y) z rem)
      | `First ->
-       let y', y'' = Desc.split_at_match y in
-       E.tseq kind y' z (delta_1 marks c ~next_cat ~prev_cat z (E.tseq kind y'' z rem)))
+       let y, y' = Desc.split_at_match y in
+       E.tseq kind y z (delta_1 marks c ~next_cat ~prev_cat z (E.tseq kind y' z rem)))
 ;;
 
 let rec delta_3 c ~next_cat ~prev_cat x rem =
   match x with
   | E.TSeq (y, z, kind) ->
-    let y' = delta_4 c ~next_cat ~prev_cat y [] in
-    delta_seq c ~next_cat ~prev_cat kind y' z rem
+    let y = delta_4 c ~next_cat ~prev_cat y [] in
+    delta_seq c ~next_cat ~prev_cat kind y z rem
   | E.TExp (marks, e) -> delta_1 marks c ~next_cat ~prev_cat e rem
   | E.TMatch _ -> x :: rem
 
@@ -515,13 +511,13 @@ and delta_4 c ~next_cat ~prev_cat l rem =
 ;;
 
 let delta tbl_ref next_cat char (st : State.t) =
-  let expr', _ =
+  let expr, _ =
     let prev_cat = st.category in
     remove_duplicates [] (delta_4 char ~next_cat ~prev_cat st.desc []) eps_expr
   in
-  let idx = Working_area.free_index tbl_ref expr' in
-  let expr'' = Desc.set_idx idx expr' in
-  State.mk idx next_cat expr''
+  let idx = Working_area.free_index tbl_ref expr in
+  let expr = Desc.set_idx idx expr in
+  State.mk idx next_cat expr
 ;;
 
 (****)
@@ -546,15 +542,15 @@ let prepend_deriv init = List.fold_right ~init ~f:(fun (s, x) l -> Cset.prepend 
 
 let rec restrict s = function
   | [] -> []
-  | (s', x') :: rem ->
-    let s'' = Cset.inter s s' in
-    if Cset.is_empty s'' then restrict s rem else (s'', x') :: restrict s rem
+  | (s', x) :: rem ->
+    let s' = Cset.inter s s' in
+    if Cset.is_empty s' then restrict s rem else (s', x) :: restrict s rem
 ;;
 
 let prepend_marks =
   let rec prepend_marks_expr m = function
-    | E.TSeq (l, e', s) -> E.TSeq (prepend_marks_expr_lst m l, e', s)
-    | E.TExp (m', e') -> E.TExp (Marks.merge m m', e')
+    | E.TSeq (l, e, s) -> E.TSeq (prepend_marks_expr_lst m l, e, s)
+    | E.TExp (m', e) -> E.TExp (Marks.merge m m', e)
     | E.TMatch m' -> E.TMatch (Marks.merge m m')
   and prepend_marks_expr_lst m l = List.map ~f:(prepend_marks_expr m) l in
   fun m -> List.map ~f:(fun (s, x) -> s, prepend_marks_expr_lst m x)
@@ -565,11 +561,11 @@ let rec deriv_1 all_chars categories marks cat x rem =
   | Cst s -> Cset.prepend s [ E.texp marks eps_expr ] rem
   | Alt l -> deriv_2 all_chars categories marks cat l rem
   | Seq (kind, y, z) ->
-    let y' = deriv_1 all_chars categories marks cat y [ all_chars, [] ] in
-    deriv_seq all_chars categories cat kind y' z rem
+    let y = deriv_1 all_chars categories marks cat y [ all_chars, [] ] in
+    deriv_seq all_chars categories cat kind y z rem
   | Rep (rep_kind, kind, y) ->
-    let y' = deriv_1 all_chars categories marks cat y [ all_chars, [] ] in
-    List.fold_right ~init:rem y' ~f:(fun (s, z) rem ->
+    let y = deriv_1 all_chars categories marks cat y [ all_chars, [] ] in
+    List.fold_right ~init:rem y ~f:(fun (s, z) rem ->
       let z', marks' =
         match Desc.first_match z with
         | None -> z, marks
@@ -585,7 +581,7 @@ let rec deriv_1 all_chars categories marks cat x rem =
   | Mark i -> Cset.prepend all_chars [ E.TMatch (Marks.set_mark marks i) ] rem
   | Pmark _ -> Cset.prepend all_chars [ E.TMatch marks ] rem
   | Erase (b, e) -> Cset.prepend all_chars [ E.TMatch (Marks.erase marks b e) ] rem
-  | Before cat' -> Cset.prepend (List.assq cat' categories) [ E.TMatch marks ] rem
+  | Before cat -> Cset.prepend (List.assq cat categories) [ E.TMatch marks ] rem
   | After cat' ->
     if Category.intersect cat cat'
     then Cset.prepend all_chars [ E.TMatch marks ] rem
