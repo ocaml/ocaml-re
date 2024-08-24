@@ -407,12 +407,7 @@ let trans_set cache (cm : Color_map.Table.t) s =
     let v = Cset.hash_rec s, s in
     (try Cset.CSetMap.find v !cache with
      | Not_found ->
-       let l =
-         Cset.fold_right s ~init:Cset.empty ~f:(fun (i, j) l ->
-           let start = Color_map.Table.get_char cm i in
-           let stop = Color_map.Table.get_char cm j in
-           Cset.union (Cset.cseq start stop) l)
-       in
+       let l = Color_map.Table.translate_colors cm s in
        cache := Cset.CSetMap.add v l !cache;
        l)
 ;;
