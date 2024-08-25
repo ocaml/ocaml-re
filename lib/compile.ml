@@ -393,7 +393,7 @@ type context =
   { ids : A.Ids.t
   ; kind : A.Sem.t
   ; ign_group : bool
-  ; greedy : A.rep_kind
+  ; greedy : A.Rep_kind.t
   ; pos : A.Mark.t ref
   ; names : (string * int) list ref
   ; cache : Cset.t Cset.CSetMap.t ref

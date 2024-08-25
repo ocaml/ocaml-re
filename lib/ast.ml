@@ -48,7 +48,7 @@ type ('a, 'case) gen =
   | Nest of ('a, 'case) gen
   | Pmark of Pmark.t * ('a, 'case) gen
   | Sem of Automata.Sem.t * ('a, 'case) gen
-  | Sem_greedy of Automata.rep_kind * ('a, 'case) gen
+  | Sem_greedy of Automata.Rep_kind.t * ('a, 'case) gen
 
 let rec pp_gen pp_cset fmt t =
   let open Format in
@@ -78,7 +78,7 @@ let rec pp_gen pp_cset fmt t =
   | Pmark (m, r) -> sexp fmt "Pmark" (pair Pmark.pp pp) (m, r)
   | Ast a -> pp_ast pp fmt a
   | Sem (sem, a) -> sexp fmt "Sem" (pair Automata.Sem.pp pp) (sem, a)
-  | Sem_greedy (k, re) -> sexp fmt "Sem_greedy" (pair Automata.pp_rep_kind pp) (k, re)
+  | Sem_greedy (k, re) -> sexp fmt "Sem_greedy" (pair Automata.Rep_kind.pp pp) (k, re)
   | No_group c -> var "No_group" c
 ;;
 

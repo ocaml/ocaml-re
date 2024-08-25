@@ -42,12 +42,14 @@ module Sem : sig
   val pp : Format.formatter -> t -> unit
 end
 
-type rep_kind =
-  [ `Greedy
-  | `Non_greedy
-  ]
+module Rep_kind : sig
+  type t =
+    [ `Greedy
+    | `Non_greedy
+    ]
 
-val pp_rep_kind : Format.formatter -> rep_kind -> unit
+  val pp : t Fmt.t
+end
 
 type expr
 
@@ -65,7 +67,7 @@ val empty : Ids.t -> expr
 val alt : Ids.t -> expr list -> expr
 val seq : Ids.t -> Sem.t -> expr -> expr -> expr
 val eps : Ids.t -> expr
-val rep : Ids.t -> rep_kind -> Sem.t -> expr -> expr
+val rep : Ids.t -> Rep_kind.t -> Sem.t -> expr -> expr
 val mark : Ids.t -> Mark.t -> expr
 val pmark : Ids.t -> Pmark.t -> expr
 val erase : Ids.t -> Mark.t -> Mark.t -> expr
