@@ -391,7 +391,7 @@ let enforce_kind ids kind kind' cr =
 
 type context =
   { ids : A.Ids.t
-  ; kind : A.sem
+  ; kind : A.Sem.t
   ; ign_group : bool
   ; greedy : A.rep_kind
   ; pos : A.Mark.t ref

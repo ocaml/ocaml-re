@@ -32,18 +32,21 @@ module Mark : sig
   val group_count : t -> int
 end
 
-type sem =
-  [ `Longest
-  | `Shortest
-  | `First
-  ]
+module Sem : sig
+  type t =
+    [ `Longest
+    | `Shortest
+    | `First
+    ]
+
+  val pp : Format.formatter -> t -> unit
+end
 
 type rep_kind =
   [ `Greedy
   | `Non_greedy
   ]
 
-val pp_sem : Format.formatter -> sem -> unit
 val pp_rep_kind : Format.formatter -> rep_kind -> unit
 
 type expr
@@ -60,9 +63,9 @@ end
 val cst : Ids.t -> Cset.t -> expr
 val empty : Ids.t -> expr
 val alt : Ids.t -> expr list -> expr
-val seq : Ids.t -> sem -> expr -> expr -> expr
+val seq : Ids.t -> Sem.t -> expr -> expr -> expr
 val eps : Ids.t -> expr
-val rep : Ids.t -> rep_kind -> sem -> expr -> expr
+val rep : Ids.t -> rep_kind -> Sem.t -> expr -> expr
 val mark : Ids.t -> Mark.t -> expr
 val pmark : Ids.t -> Pmark.t -> expr
 val erase : Ids.t -> Mark.t -> Mark.t -> expr

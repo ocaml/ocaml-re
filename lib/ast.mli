@@ -1,6 +1,6 @@
 type ('a, _) ast = private
   | Alternative : 'a list -> ('a, [> `Uncased ]) ast
-  | Sem : Automata.sem * 'a -> ('a, [> `Uncased ]) ast
+  | Sem : Automata.Sem.t * 'a -> ('a, [> `Uncased ]) ast
   | Sem_greedy : Automata.rep_kind * 'a -> ('a, [> `Uncased ]) ast
   | No_group : 'a -> ('a, [> `Uncased ]) ast
   | No_case : 'a -> ('a, [> `Cased ]) ast
