@@ -52,10 +52,17 @@ module Sem = struct
   ;;
 end
 
-type rep_kind =
-  [ `Greedy
-  | `Non_greedy
-  ]
+module Rep_kind = struct
+  type t =
+    [ `Greedy
+    | `Non_greedy
+    ]
+
+  let pp fmt = function
+    | `Greedy -> Format.pp_print_string fmt "Greedy"
+    | `Non_greedy -> Format.pp_print_string fmt "Non_greedy"
+  ;;
+end
 
 module Mark = struct
   type t = int
@@ -79,7 +86,7 @@ and def =
   | Alt of expr list
   | Seq of Sem.t * expr * expr
   | Eps
-  | Rep of rep_kind * Sem.t * expr
+  | Rep of Rep_kind.t * Sem.t * expr
   | Mark of int
   | Erase of int * int
   | Before of Category.t
@@ -152,11 +159,6 @@ module Marks = struct
 end
 
 (****)
-
-let pp_rep_kind fmt = function
-  | `Greedy -> Format.pp_print_string fmt "Greedy"
-  | `Non_greedy -> Format.pp_print_string fmt "Non_greedy"
-;;
 
 let rec pp ch e =
   let open Fmt in

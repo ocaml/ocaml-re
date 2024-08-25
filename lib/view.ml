@@ -16,7 +16,7 @@ type t =
   | Start
   | Stop
   | Sem of Automata.Sem.t * Ast.t
-  | Sem_greedy of Automata.rep_kind * Ast.t
+  | Sem_greedy of Automata.Rep_kind.t * Ast.t
   | Group of string option * Ast.t
   | No_group of Ast.t
   | Nest of Ast.t

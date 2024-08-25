@@ -30,7 +30,7 @@ type ('a, 'case) gen = private
   | Nest of ('a, 'case) gen
   | Pmark of Pmark.t * ('a, 'case) gen
   | Sem of Automata.Sem.t * ('a, 'case) gen
-  | Sem_greedy of Automata.rep_kind * ('a, 'case) gen
+  | Sem_greedy of Automata.Rep_kind.t * ('a, 'case) gen
 
 type t = (cset, [ `Cased | `Uncased ]) gen
 type no_case = (Cset.t, [ `Uncased ]) gen
