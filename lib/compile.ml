@@ -482,10 +482,10 @@ let rec translate
   | Last_end_of_line -> A.before ids Category.(inexistant ++ lastnewline), kind
   | Start -> A.after ids Category.search_boundary, kind
   | Stop -> A.before ids Category.search_boundary, kind
-  | Ast (Sem (kind', r')) ->
+  | Sem (kind', r') ->
     let cr, kind'' = translate { ctx with kind = kind' } r' in
     enforce_kind ids kind' kind'' cr, kind'
-  | Ast (Sem_greedy (greedy', r')) -> translate { ctx with greedy = greedy' } r'
+  | Sem_greedy (greedy', r') -> translate { ctx with greedy = greedy' } r'
   | Group (n, r') ->
     if ign_group
     then translate ctx r'
@@ -500,7 +500,7 @@ let rec translate
       let cr, kind' = translate ctx r' in
       ( A.seq ids `First (A.mark ids p) (A.seq ids `First cr (A.mark ids (A.Mark.next p)))
       , kind' ))
-  | Ast (No_group r') -> translate { ctx with ign_group = true } r'
+  | No_group r' -> translate { ctx with ign_group = true } r'
   | Nest r' ->
     let b = !pos in
     let cr, kind' = translate ctx r' in

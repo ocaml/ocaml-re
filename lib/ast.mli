@@ -1,8 +1,5 @@
 type ('a, _) ast = private
   | Alternative : 'a list -> ('a, [> `Uncased ]) ast
-  | Sem : Automata.Sem.t * 'a -> ('a, [> `Uncased ]) ast
-  | Sem_greedy : Automata.rep_kind * 'a -> ('a, [> `Uncased ]) ast
-  | No_group : 'a -> ('a, [> `Uncased ]) ast
   | No_case : 'a -> ('a, [> `Cased ]) ast
   | Case : 'a -> ('a, [> `Cased ]) ast
 
@@ -29,8 +26,11 @@ type ('a, 'case) gen = private
   | Start
   | Stop
   | Group of string option * ('a, 'case) gen
+  | No_group of ('a, 'case) gen
   | Nest of ('a, 'case) gen
   | Pmark of Pmark.t * ('a, 'case) gen
+  | Sem of Automata.Sem.t * ('a, 'case) gen
+  | Sem_greedy of Automata.rep_kind * ('a, 'case) gen
 
 type t = (cset, [ `Cased | `Uncased ]) gen
 type no_case = (Cset.t, [ `Uncased ]) gen
