@@ -1,6 +1,6 @@
 open Import
 
-let rec iter n f v = if n = 0 then v else iter (n - 1) f (f v)
+let rec iter n f v = if Int.equal n 0 then v else iter (n - 1) f (f v)
 let unknown = -2
 let break = -3
 
@@ -230,7 +230,7 @@ let get_color re (s : string) pos =
     let slen = String.length s in
     if pos >= slen
     then Cset.of_int (-1)
-    else if pos = slen - 1 && re.lnl <> -1 && s.[pos] = '\n'
+    else if pos = slen - 1 && re.lnl <> -1 && Char.equal s.[pos] '\n'
     then (* Special case for the last newline *)
       Cset.of_int re.lnl
     else Color_map.Table.get re.colors s.[pos])
@@ -268,7 +268,7 @@ let rec scan_str info (s : string) initial_state ~groups =
   if last = String.length s
      && info.re.lnl <> -1
      && last > pos
-     && String.get s (last - 1) = '\n'
+     && Char.equal (String.get s (last - 1)) '\n'
   then (
     let info = { info with last = last - 1 } in
     let st = scan_str info s initial_state ~groups in
