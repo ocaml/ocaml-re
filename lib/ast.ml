@@ -140,9 +140,6 @@ let rec handle_case_cset ign_case = function
   | Cast (Case a) -> handle_case_cset false a
 ;;
 
-(* CR rgrinberg: this function eliminates [Case]/[No_case] and simplifies
-   all char sets to their primitive representation. We should reflect that in
-   the types *)
 let rec handle_case ign_case : t -> (Cset.t, [ `Uncased ]) gen = function
   | Set s -> Set (handle_case_cset ign_case s)
   | Sequence l -> Sequence (List.map ~f:(handle_case ign_case) l)
