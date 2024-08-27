@@ -127,6 +127,14 @@ let string_traversal =
     | Not_found -> ())
 ;;
 
+let compile_clean_star =
+  let c = 'c' in
+  let s = String.make 10_000 c in
+  Bench.Test.create ~name:"kleene star compliation" (fun () ->
+    let re = Re.compile (Re.rep (Re.char 'c')) in
+    ignore (Re.execp re s))
+;;
+
 let benchmarks =
   let benches =
     benchmarks
@@ -167,6 +175,7 @@ let benchmarks =
     ]
   @ [ http_benches ]
   @ [ string_traversal ]
+  @ [ compile_clean_star ]
 ;;
 
 let () = Command_unix.run (Bench.make_command benchmarks)
