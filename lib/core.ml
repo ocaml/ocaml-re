@@ -24,9 +24,7 @@ open Import
 
 include struct
   let cset = Ast.cset
-  let char c = cset (Cset.csingle c)
   let rg c c' = cset (Cset.cseq c c')
-  let any = cset Cset.cany
   let notnl = cset Cset.notnl
   let lower = cset Cset.lower
   let upper = cset Cset.upper

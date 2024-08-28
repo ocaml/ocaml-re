@@ -551,8 +551,5 @@ let compile_1 regexp =
 
 let compile r =
   let open Ast.Export in
-  compile_1
-    (if Ast.anchored r
-     then group r
-     else seq [ shortest (rep (Ast.cset Cset.cany)); group r ])
+  compile_1 (if Ast.anchored r then group r else seq [ shortest (rep any); group r ])
 ;;
