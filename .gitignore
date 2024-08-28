@@ -9,3 +9,5 @@ setup.exe
 *.docdir
 .merlin
 *.install
+perf.data
+*.old
