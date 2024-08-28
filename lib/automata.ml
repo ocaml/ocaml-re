@@ -423,28 +423,32 @@ end
 
 (**** Computation of the next state ****)
 
-let rec remove_duplicates prev l y =
-  match l with
-  | [] -> [], prev
-  | (E.TMatch _ as x) :: _ ->
-    (* Truncate after first match *)
-    [ x ], prev
-  | E.TSeq (l, x, kind) :: r ->
-    let l, prev = remove_duplicates prev l x in
-    let r, prev = remove_duplicates prev r y in
-    E.tseq kind l x r, prev
-  | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
-    if List.memq y.id ~set:prev
-    then remove_duplicates prev r y
-    else (
-      let r, prev = remove_duplicates (y.id :: prev) r y in
-      e :: r, prev)
-  | (E.TExp (_marks, x) as e) :: r ->
-    if List.memq x.id ~set:prev
-    then remove_duplicates prev r y
-    else (
-      let r, prev = remove_duplicates (x.id :: prev) r y in
-      e :: r, prev)
+let remove_duplicates l y =
+  let seen = ref [] in
+  let rec loop l y =
+    match l with
+    | [] -> []
+    | (E.TMatch _ as x) :: _ ->
+      (* Truncate after first match *)
+      [ x ]
+    | E.TSeq (l, x, kind) :: r ->
+      let l = loop l x in
+      let r = loop r y in
+      E.tseq kind l x r
+    | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
+      if List.memq y.id ~set:!seen
+      then loop r y
+      else (
+        seen := y.id :: !seen;
+        e :: loop r y)
+    | (E.TExp (_marks, x) as e) :: r ->
+      if List.memq x.id ~set:!seen
+      then loop r y
+      else (
+        seen := x.id :: !seen;
+        e :: loop r y)
+  in
+  loop l y
 ;;
 
 type ctx =
@@ -518,10 +522,10 @@ and delta_4 ctx l rem =
 ;;
 
 let delta tbl_ref next_cat char (st : State.t) =
-  let expr, _ =
+  let expr =
     let prev_cat = st.category in
     let ctx = { c = char; next_cat; prev_cat; marks = Marks.empty } in
-    remove_duplicates [] (delta_4 ctx st.desc []) eps_expr
+    remove_duplicates (delta_4 ctx st.desc []) eps_expr
   in
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
@@ -655,7 +659,7 @@ let deriv tbl_ref all_chars categories (st : State.t) =
   let der = deriv_4 all_chars categories st.category st.desc [ all_chars, [] ] in
   simpl_tr
     (List.fold_right der ~init:[] ~f:(fun (s, expr) rem ->
-       let expr', _ = remove_duplicates [] expr eps_expr in
+       let expr' = remove_duplicates expr eps_expr in
        (*
           Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
        *)
