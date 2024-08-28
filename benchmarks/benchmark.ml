@@ -130,15 +130,14 @@ let string_traversal =
 let compile_clean_star =
   let c = 'c' in
   let s = String.make 10_000 c in
-  Bench.Test.create ~name:"kleene star compliation" (fun () ->
+  Bench.Test.create ~name:"kleene star compilation" (fun () ->
     let re = Re.compile (Re.rep (Re.char 'c')) in
     ignore (Re.execp re s))
 ;;
 
 let benchmarks =
   let benches =
-    benchmarks
-    |> List.map ~f:(fun (name, re, cases) ->
+    List.map benchmarks ~f:(fun (name, re, cases) ->
       Bench.Test.create_group
         ~name
         [ exec_bench Re.exec "exec" re cases
@@ -178,4 +177,15 @@ let benchmarks =
   @ [ compile_clean_star ]
 ;;
 
-let () = Command_unix.run (Bench.make_command benchmarks)
+let () =
+  let benchmarks =
+    match Sys.getenv_opt "RE_BENCH_FILTER" with
+    | None -> benchmarks
+    | Some only ->
+      let only = String.split_on_char ~sep:',' only in
+      List.filter benchmarks ~f:(fun bench ->
+        let name = Bench.Test.name bench in
+        List.mem name ~set:only)
+  in
+  Command_unix.run (Bench.make_command benchmarks)
+;;
