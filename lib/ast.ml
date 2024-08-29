@@ -177,10 +177,13 @@ module Export = struct
     | l -> Sequence l
   ;;
 
-  let str s =
+  let char c : t = cset (Cset.csingle c)
+  let any = cset Cset.cany
+
+  let str s : t =
     let l = ref [] in
     for i = String.length s - 1 downto 0 do
-      l := Set (Cset (Cset.csingle s.[i])) :: !l
+      l := char s.[i] :: !l
     done;
     seq !l
   ;;

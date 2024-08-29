@@ -53,6 +53,8 @@ module Export : sig
   val compl : t list -> t
   val repn : t -> int -> int option -> t
   val inter : t list -> t
+  val char : char -> t
+  val any : t
   val set : string -> t
   val mark : t -> Pmark.t * t
   val nest : t -> t
