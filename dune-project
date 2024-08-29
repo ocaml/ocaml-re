@@ -18,7 +18,7 @@
  (depends
   (ocaml (>= 4.12.0))
   seq
-  (ounit :with-test))
+  (ounit2 :with-test))
  (description "
 Pure OCaml regular expressions with:
 * Perl-style regular expressions (module Re.Perl)
