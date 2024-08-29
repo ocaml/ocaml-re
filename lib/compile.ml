@@ -90,7 +90,6 @@ type re =
   }
 
 let pp_re ch re = Automata.pp ch re.initial
-let print_re = pp_re
 let group_count re = re.group_count
 let group_names re = re.group_names
 
