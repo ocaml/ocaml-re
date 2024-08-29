@@ -19,7 +19,6 @@ module Table : sig
 
   val get_char : t -> Cset.c -> char
   val get : t -> char -> Cset.c
-
   val translate_colors : t -> Cset.t -> Cset.t
 end
 
