@@ -15,23 +15,32 @@
 
 (* $Id: re_str.ml,v 1.3 2002/07/03 15:47:54 vouillon Exp $ *)
 
-module Re = Core
+module Ast = Ast.Export
+
+include struct
+  open Core
+
+  let exec = exec
+  let exec_partial = exec_partial
+end
 
 type regexp =
-  { mtch : Re.re Lazy.t
-  ; srch : Re.re Lazy.t
+  { mtch : Compile.re Lazy.t
+  ; srch : Compile.re Lazy.t
   }
 
 let compile_regexp s c =
   let re = Emacs.re ~case:(not c) s in
-  { mtch = lazy (Re.compile (Re.seq [ Re.start; re ])); srch = lazy (Re.compile re) }
+  { mtch = lazy (Compile.compile (Ast.seq [ Ast.start; re ]))
+  ; srch = lazy (Compile.compile re)
+  }
 ;;
 
 let state = ref None
 
 let string_match re s p =
   try
-    state := Some (Re.exec ~pos:p (Lazy.force re.mtch) s);
+    state := Some (exec ~pos:p (Lazy.force re.mtch) s);
     true
   with
   | Not_found ->
@@ -40,7 +49,7 @@ let string_match re s p =
 ;;
 
 let string_partial_match re s p =
-  match Re.exec_partial ~pos:p (Lazy.force re.mtch) s with
+  match exec_partial ~pos:p (Lazy.force re.mtch) s with
   | `Full -> string_match re s p
   | `Partial -> true
   | `Mismatch -> false
@@ -48,9 +57,9 @@ let string_partial_match re s p =
 
 let search_forward re s p =
   try
-    let res = Re.exec ~pos:p (Lazy.force re.srch) s in
+    let res = exec ~pos:p (Lazy.force re.srch) s in
     state := Some res;
-    fst (Re.Group.offset res 0)
+    fst (Group.offset res 0)
   with
   | Not_found ->
     state := None;
@@ -59,7 +68,7 @@ let search_forward re s p =
 
 let rec search_backward re s p =
   try
-    let res = Re.exec ~pos:p (Lazy.force re.mtch) s in
+    let res = exec ~pos:p (Lazy.force re.mtch) s in
     state := Some res;
     p
   with
@@ -74,12 +83,12 @@ let valid_group n =
   &&
   match !state with
   | None -> false
-  | Some m -> n < Re.Group.nb_groups m
+  | Some m -> n < Group.nb_groups m
 ;;
 
 let offset_group i =
   match !state with
-  | Some m -> Re.Group.offset m i
+  | Some m -> Group.offset m i
   | None -> raise Not_found
 ;;
 

@@ -65,7 +65,6 @@ val cntrl : t
 val graph : t
 val print : t
 val punct : t
-
 val pp : Format.formatter -> t -> unit
 val one_char : t -> c option
 val fold_right : t -> init:'acc -> f:(c * c -> 'acc -> 'acc) -> 'acc
