@@ -1,5 +1,29 @@
-(lang dune 2.0)
+(lang dune 3.12)
 
 (name re)
 
+(generate_opam_files true)
+
 (implicit_transitive_deps false)
+
+(license "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception")
+(maintainers "Jane Street Group, LLC <opensource@janestreet.com>")
+(authors "Jane Street Group, LLC <opensource@janestreet.com>")
+(source (github ocaml/dune))
+(documentation "https://dune.readthedocs.io/")
+
+(package
+ (name re)
+ (synopsis "RE is a regular expression library for OCaml")
+ (depends
+  (ocaml (>= 4.12.0))
+  seq
+  (ounit :with-test))
+ (description "
+Pure OCaml regular expressions with:
+* Perl-style regular expressions (module Re.Perl)
+* Posix extended regular expressions (module Re.Posix)
+* Emacs-style regular expressions (module Re.Emacs)
+* Shell-style file globbing (module Re.Glob)
+* Compatibility layer for OCaml's built-in Str module (module Re.Str)
+"))
