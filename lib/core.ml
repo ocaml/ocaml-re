@@ -208,7 +208,7 @@ include struct
 
   let compile = compile
   let pp_re = pp_re
-  let print_re = print_re
+  let print_re = pp_re
   let group_names = group_names
   let group_count = group_count
 end
