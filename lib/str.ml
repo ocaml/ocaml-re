@@ -39,11 +39,11 @@ let compile_regexp s c =
 let state = ref None
 
 let string_match re s p =
-  try
-    state := Some (exec ~pos:p (Lazy.force re.mtch) s);
+  match exec ~pos:p (Lazy.force re.mtch) s with
+  | res ->
+    state := Some res;
     true
-  with
-  | Not_found ->
+  | exception Not_found ->
     state := None;
     false
 ;;
@@ -56,23 +56,21 @@ let string_partial_match re s p =
 ;;
 
 let search_forward re s p =
-  try
-    let res = exec ~pos:p (Lazy.force re.srch) s in
+  match exec ~pos:p (Lazy.force re.srch) s with
+  | res ->
     state := Some res;
     fst (Group.offset res 0)
-  with
-  | Not_found ->
+  | exception Not_found ->
     state := None;
     raise Not_found
 ;;
 
 let rec search_backward re s p =
-  try
-    let res = exec ~pos:p (Lazy.force re.mtch) s in
+  match exec ~pos:p (Lazy.force re.mtch) s with
+  | res ->
     state := Some res;
     p
-  with
-  | Not_found ->
+  | exception Not_found ->
     state := None;
     if p = 0 then raise Not_found else search_backward re s (p - 1)
 ;;
@@ -93,11 +91,9 @@ let offset_group i =
 ;;
 
 let group_len i =
-  try
-    let b, e = offset_group i in
-    e - b
-  with
-  | Not_found -> 0
+  match offset_group i with
+  | b, e -> e - b
+  | exception Not_found -> 0
 ;;
 
 let rec repl_length repl p q len =
@@ -133,13 +129,13 @@ let rec replace orig repl p res q len =
         replace orig repl (p + 2) res (q + 1) len
       | '0' .. '9' as c ->
         let d =
-          try
-            let b, e = offset_group (Char.code c - Char.code '0') in
+          let group = Char.code c - Char.code '0' in
+          match offset_group group with
+          | exception Not_found -> 0
+          | b, e ->
             let d = e - b in
             if d > 0 then String.blit orig b res q d;
             d
-          with
-          | Not_found -> 0
         in
         replace orig repl (p + 2) res (q + d) len
       | c ->
