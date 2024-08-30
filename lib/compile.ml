@@ -404,7 +404,7 @@ let trans_set cache (cm : Color_map.Table.t) s =
   match Cset.one_char s with
   | Some i -> Cset.csingle (Color_map.Table.get_char cm i)
   | None ->
-    let v = Cset.hash_rec s, s in
+    let v = Cset.hash s, s in
     (try Cset.CSetMap.find v !cache with
      | Not_found ->
        let l = Color_map.Table.translate_colors cm s in

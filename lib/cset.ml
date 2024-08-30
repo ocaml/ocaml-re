@@ -99,8 +99,6 @@ let rec mem (c : int) s =
 
 (****)
 
-type hash = int
-
 let rec hash_rec = function
   | [] -> 0
   | (i, j) :: r -> i + (13 * j) + (257 * hash_rec r)

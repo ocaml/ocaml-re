@@ -66,13 +66,10 @@ val graph : t
 val print : t
 val punct : t
 
-type hash
-
-val hash : t -> hash
 val pp : Format.formatter -> t -> unit
 val one_char : t -> c option
 val fold_right : t -> init:'acc -> f:(c * c -> 'acc -> 'acc) -> 'acc
-val hash_rec : t -> int
+val hash : t -> int
 
 module CSetMap : Map.S with type key = int * t
 
