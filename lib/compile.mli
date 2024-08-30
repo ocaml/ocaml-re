@@ -18,6 +18,6 @@ val compile : Ast.t -> re
 val group_count : re -> int
 val group_names : re -> (string * int) list
 
-(* CR rgrinberg: deprecate one of these *)
+(* CR-someday rgrinberg: deprecate one of these *)
 val print_re : re Fmt.t
 val pp_re : re Fmt.t

@@ -206,7 +206,7 @@ let set str =
 
 let blank = set "\t "
 
-(* CR rgrinberg: this [lower] doesn't match [clower] *)
+(* CR-someday rgrinberg: this [lower] doesn't match [clower] *)
 let lower = union_all [ rg 'a' 'z'; char '\181'; rg '\223' '\246'; rg '\248' '\255' ]
 let alpha = union_all [ lower; upper; char '\170'; char '\186' ]
 let alnum = union_all [ alpha; cdigit ]
