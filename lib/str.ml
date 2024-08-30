@@ -18,14 +18,13 @@
 module Re = Core
 
 type regexp =
-  { re : Re.t
-  ; mtch : Re.re Lazy.t
+  { mtch : Re.re Lazy.t
   ; srch : Re.re Lazy.t
   }
 
 let compile_regexp s c =
   let re = Emacs.re ~case:(not c) s in
-  { re; mtch = lazy (Re.compile (Re.seq [ Re.start; re ])); srch = lazy (Re.compile re) }
+  { mtch = lazy (Re.compile (Re.seq [ Re.start; re ])); srch = lazy (Re.compile re) }
 ;;
 
 let state = ref None
