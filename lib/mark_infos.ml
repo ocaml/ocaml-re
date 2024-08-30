@@ -1,9 +1,11 @@
+open Import
+
 type t = int array
 
 let make marks =
-  let len = 1 + List.fold_left (fun ma (i, _) -> max ma i) (-1) marks in
+  let len = 1 + List.fold_left ~f:(fun ma (i, _) -> max ma i) ~init:(-1) marks in
   let t = Array.make len (-1) in
-  List.iter (fun (i, v) -> t.(i) <- v) marks;
+  List.iter ~f:(fun (i, v) -> t.(i) <- v) marks;
   t
 ;;
 
