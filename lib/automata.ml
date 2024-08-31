@@ -424,7 +424,7 @@ end
 (**** Computation of the next state ****)
 
 let remove_duplicates l y =
-  let seen = ref [] in
+  let seen = Hashtbl.create 1 in
   let rec loop l y =
     match l with
     | [] -> []
@@ -436,16 +436,16 @@ let remove_duplicates l y =
       let r = loop r y in
       E.tseq kind l x r
     | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
-      if List.memq y.id ~set:!seen
+      if Hashtbl.mem seen y.id
       then loop r y
       else (
-        seen := y.id :: !seen;
+        Hashtbl.replace seen y.id ();
         e :: loop r y)
     | (E.TExp (_marks, x) as e) :: r ->
-      if List.memq x.id ~set:!seen
+      if Hashtbl.mem seen x.id
       then loop r y
       else (
-        seen := x.id :: !seen;
+        Hashtbl.replace seen x.id ();
         e :: loop r y)
   in
   loop l y
