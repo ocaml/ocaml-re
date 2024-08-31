@@ -12,6 +12,7 @@ val int : int t
 val pair : 'a t -> 'b t -> ('a * 'b) t
 val triple : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
 val list : ?pp_sep:unit t -> 'a t -> 'a list t
+val bytes : Bytes.t t
 val array : ?pp_sep:unit t -> 'a t -> 'a array t
 val lit : string -> unit t
 val to_to_string : 'a t -> 'a -> string

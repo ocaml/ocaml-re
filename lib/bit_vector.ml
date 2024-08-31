@@ -44,3 +44,9 @@ let create_zero len =
   in
   { len; bits }
 ;;
+
+let pp fmt { len; bits } =
+  let len fmt () = Fmt.sexp fmt "len" Fmt.int len in
+  let bits fmt () = Fmt.sexp fmt "bits" Fmt.bytes bits in
+  Format.fprintf fmt "%a@.%a@." len () bits ()
+;;
