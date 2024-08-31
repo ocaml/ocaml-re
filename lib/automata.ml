@@ -424,31 +424,39 @@ end
 (**** Computation of the next state ****)
 
 let remove_duplicates l y =
-  let seen = Hashtbl.create 1 in
-  let rec loop l y =
-    match l with
-    | [] -> []
-    | (E.TMatch _ as x) :: _ ->
-      (* Truncate after first match *)
-      [ x ]
-    | E.TSeq (l, x, kind) :: r ->
-      let l = loop l x in
-      let r = loop r y in
-      E.tseq kind l x r
-    | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
-      if Hashtbl.mem seen y.id
-      then loop r y
-      else (
-        Hashtbl.replace seen y.id ();
-        e :: loop r y)
-    | (E.TExp (_marks, x) as e) :: r ->
-      if Hashtbl.mem seen x.id
-      then loop r y
-      else (
-        Hashtbl.replace seen x.id ();
-        e :: loop r y)
-  in
-  loop l y
+  match l with
+  (* A little optimization to avoid allocating the hash table in some common
+     cases *)
+  | [] -> []
+  | (E.TMatch _ as x) :: _ ->
+    (* Truncate after first match *)
+    [ x ]
+  | _ ->
+    let seen = Hashtbl.create 1 in
+    let rec loop l y =
+      match l with
+      | [] -> []
+      | (E.TMatch _ as x) :: _ ->
+        (* Truncate after first match *)
+        [ x ]
+      | E.TSeq (l, x, kind) :: r ->
+        let l = loop l x in
+        let r = loop r y in
+        E.tseq kind l x r
+      | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
+        if Hashtbl.mem seen y.id
+        then loop r y
+        else (
+          Hashtbl.replace seen y.id ();
+          e :: loop r y)
+      | (E.TExp (_marks, x) as e) :: r ->
+        if Hashtbl.mem seen x.id
+        then loop r y
+        else (
+          Hashtbl.replace seen x.id ();
+          e :: loop r y)
+    in
+    loop l y
 ;;
 
 type ctx =
