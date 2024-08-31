@@ -29,11 +29,7 @@ let get v n =
   unsafe_get v n
 ;;
 
-let reset_zero t =
-  for i = 0 to Bytes.length t.bits - 1 do
-    Bytes.set t.bits i '\000'
-  done
-;;
+let reset_zero t = Bytes.fill t.bits 0 (Bytes.length t.bits) '\000'
 
 let create_zero len =
   let bits =
