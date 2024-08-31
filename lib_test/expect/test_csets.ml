@@ -106,11 +106,18 @@ let%expect_test "print" =
 
 let%expect_test "punct" =
   Format.printf "%a@." Cset.pp Cset.punct;
-  [%expect {|
+  [%expect
+    {|
     33-47, 58-64, 91-96, 123-126, 160-169, 171-180, 182-185, 187-191, 215, 247 |}]
 ;;
 
 let%expect_test "cany" =
   Format.printf "%a@." Cset.pp Cset.cany;
   [%expect {| 0-255 |}]
+;;
+
+let%expect_test "case_insens" =
+  let cset = Cset.diff (Cset.case_insens Cset.lower) (Cset.case_insens Cset.upper) in
+  Format.printf "%a@." Cset.pp cset;
+  [%expect {| 181, 223, 255 |}]
 ;;
