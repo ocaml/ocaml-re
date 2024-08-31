@@ -1,0 +1,24 @@
+(library
+ (name re_tests)
+ (libraries
+  re_private
+  ;; This is because of the (implicit_transitive_deps false)
+  ;; in dune-project
+  ppx_expect.config
+  ppx_expect.config_types
+  ppx_expect.common
+  base
+  ppx_inline_test.config)
+ (inline_tests)
+ (preprocess
+  (pps ppx_expect)))
+
+;; this hackery is needed because ppx_expect itself uses re, therefore we need to mangle
+;; the library name
+
+(subdir
+ private_re
+ (library
+  (name re_private)
+  (libraries seq))
+ (copy_files %{project_root}/lib/*.{ml,mli}))
