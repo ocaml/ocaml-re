@@ -45,6 +45,7 @@ let pp_olist pp_elem fmt =
 ;;
 
 let char fmt c = Format.fprintf fmt "%c" c
+let bool = Format.pp_print_bool
 let pp_str_list = pp_olist quote
 let lit s fmt () = pp_print_string fmt s
 

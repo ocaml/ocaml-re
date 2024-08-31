@@ -7,6 +7,7 @@ val str : string t
 val optint : int option t
 val opt : 'a t -> 'a option t
 val char : char t
+val bool : bool t
 val int : int t
 val pair : 'a t -> 'b t -> ('a * 'b) t
 val triple : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
