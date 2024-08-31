@@ -1,0 +1,3 @@
+(test
+ (libraries re fort_unit str ounit2)
+ (name test_str))
