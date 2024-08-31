@@ -432,7 +432,7 @@ let remove_duplicates l y =
     (* Truncate after first match *)
     [ x ]
   | _ ->
-    let seen = Hashtbl.create 1 in
+    let seen = Hash_set.create () in
     let rec loop l y =
       match l with
       | [] -> []
@@ -444,16 +444,16 @@ let remove_duplicates l y =
         let r = loop r y in
         E.tseq kind l x r
       | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
-        if Hashtbl.mem seen y.id
+        if Hash_set.mem seen y.id
         then loop r y
         else (
-          Hashtbl.replace seen y.id ();
+          Hash_set.add seen y.id;
           e :: loop r y)
       | (E.TExp (_marks, x) as e) :: r ->
-        if Hashtbl.mem seen x.id
+        if Hash_set.mem seen x.id
         then loop r y
         else (
-          Hashtbl.replace seen x.id ();
+          Hash_set.add seen x.id;
           e :: loop r y)
     in
     loop l y
