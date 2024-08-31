@@ -112,7 +112,7 @@ let print_one ch (c1, c2) =
   if Int.equal c1 c2 then Format.fprintf ch "%d" c1 else Format.fprintf ch "%d-%d" c1 c2
 ;;
 
-let pp = Fmt.list print_one
+let pp = Fmt.list ~pp_sep:(Fmt.lit ", ") print_one
 
 let rec iter t ~f =
   match t with
