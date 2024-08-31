@@ -309,7 +309,7 @@ let final_boundary_check ~last ~slen re s ~info ~st ~groups =
   res
 ;;
 
-let match_str ~groups ~partial re s ~pos ~len =
+let match_str_no_bounds ~groups ~partial re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let info =
@@ -361,6 +361,12 @@ let match_str ~groups ~partial re s ~pos ~len =
   | Running ->
     let no_match_starts_before = if groups then info.positions.(0) else 0 in
     Running { no_match_starts_before }
+;;
+
+let match_str ~groups ~partial re s ~pos ~len =
+  if pos < 0 || len < -1 || pos + len > String.length s
+  then invalid_arg "Re.exec: out of bounds";
+  match_str_no_bounds ~groups ~partial re s ~pos ~len
 ;;
 
 let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =

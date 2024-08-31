@@ -18,6 +18,7 @@
  (depends
   (ocaml (>= 4.12.0))
   seq
+  (ppx_expect :with-test)
   (ounit2 :with-test))
  (description "
 Pure OCaml regular expressions with:
