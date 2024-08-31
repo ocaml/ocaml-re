@@ -17,6 +17,7 @@ module Array = struct
   ;;
 
   let[@inline] make_absent len = Bytes.make (len * words) '\255'
+  let clear t = Bytes.fill t 0 (Bytes.length t) '\255'
 
   let fold_left t ~init ~f =
     let init = ref init in
@@ -64,6 +65,14 @@ let create () = ref Option.none
 let[@inline] index_of_offset slots index i =
   let i = index + !i in
   if i >= slots then i - slots else i
+;;
+
+let clear t =
+  match !t with
+  | None -> ()
+  | Some t ->
+    t.size <- 0;
+    Array.clear t.table
 ;;
 
 let add t x =

@@ -394,10 +394,13 @@ end
 (**** Find a free index ****)
 
 module Working_area = struct
-  type t = Bit_vector.t ref
+  type t =
+    { mutable ids : Bit_vector.t
+    ; seen : Hash_set.t
+    }
 
-  let create () = ref (Bit_vector.create_zero 1)
-  let index_count w = Bit_vector.length !w
+  let create () = { ids = Bit_vector.create_zero 1; seen = Hash_set.create () }
+  let index_count w = Bit_vector.length w.ids
 
   let rec mark_used_indices tbl =
     List.iter ~f:(function
@@ -410,53 +413,45 @@ module Working_area = struct
     if idx = len || not (Bit_vector.get tbl idx) then idx else find_free tbl (idx + 1) len
   ;;
 
-  let free_index tbl_ref l =
-    let tbl = !tbl_ref in
-    Bit_vector.reset_zero tbl;
-    mark_used_indices tbl l;
-    let len = Bit_vector.length tbl in
-    let idx = find_free tbl 0 len in
-    if idx = len then tbl_ref := Bit_vector.create_zero (2 * len);
+  let free_index t l =
+    Bit_vector.reset_zero t.ids;
+    mark_used_indices t.ids l;
+    let len = Bit_vector.length t.ids in
+    let idx = find_free t.ids 0 len in
+    if idx = len then t.ids <- Bit_vector.create_zero (2 * len);
     idx
   ;;
 end
 
 (**** Computation of the next state ****)
 
-let remove_duplicates l y =
-  match l with
-  (* A little optimization to avoid allocating the hash table in some common
-     cases *)
-  | [] -> []
-  | (E.TMatch _ as x) :: _ ->
-    (* Truncate after first match *)
-    [ x ]
-  | _ ->
-    let seen = Hash_set.create () in
-    let rec loop l y =
-      match l with
-      | [] -> []
-      | (E.TMatch _ as x) :: _ ->
-        (* Truncate after first match *)
-        [ x ]
-      | E.TSeq (l, x, kind) :: r ->
-        let l = loop l x in
-        let r = loop r y in
-        E.tseq kind l x r
-      | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
-        if Hash_set.mem seen y.id
-        then loop r y
-        else (
-          Hash_set.add seen y.id;
-          e :: loop r y)
-      | (E.TExp (_marks, x) as e) :: r ->
-        if Hash_set.mem seen x.id
-        then loop r y
-        else (
-          Hash_set.add seen x.id;
-          e :: loop r y)
-    in
-    loop l y
+let remove_duplicates =
+  let rec loop seen l y =
+    match l with
+    | [] -> []
+    | (E.TMatch _ as x) :: _ ->
+      (* Truncate after first match *)
+      [ x ]
+    | E.TSeq (l, x, kind) :: r ->
+      let l = loop seen l x in
+      let r = loop seen r y in
+      E.tseq kind l x r
+    | (E.TExp (_marks, { def = Eps; _ }) as e) :: r ->
+      if Hash_set.mem seen y.id
+      then loop seen r y
+      else (
+        Hash_set.add seen y.id;
+        e :: loop seen r y)
+    | (E.TExp (_marks, x) as e) :: r ->
+      if Hash_set.mem seen x.id
+      then loop seen r y
+      else (
+        Hash_set.add seen x.id;
+        e :: loop seen r y)
+  in
+  fun seen l y ->
+    Hash_set.clear seen;
+    loop seen l y
 ;;
 
 type ctx =
@@ -529,11 +524,11 @@ and delta_4 ctx l rem =
   | y :: r -> delta_3 ctx y (delta_4 ctx r rem)
 ;;
 
-let delta tbl_ref next_cat char (st : State.t) =
+let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
   let expr =
     let prev_cat = st.category in
     let ctx = { c = char; next_cat; prev_cat; marks = Marks.empty } in
-    remove_duplicates (delta_4 ctx st.desc []) eps_expr
+    remove_duplicates tbl_ref.seen (delta_4 ctx st.desc []) eps_expr
   in
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
@@ -663,11 +658,11 @@ and deriv_4 all_chars categories cat l rem =
   | y :: r -> deriv_3 all_chars categories cat y (deriv_4 all_chars categories cat r rem)
 ;;
 
-let deriv tbl_ref all_chars categories (st : State.t) =
+let deriv (tbl_ref : Working_area.t) all_chars categories (st : State.t) =
   let der = deriv_4 all_chars categories st.category st.desc [ all_chars, [] ] in
   simpl_tr
     (List.fold_right der ~init:[] ~f:(fun (s, expr) rem ->
-       let expr' = remove_duplicates expr eps_expr in
+       let expr' = remove_duplicates tbl_ref.seen expr eps_expr in
        (*
           Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
        *)
