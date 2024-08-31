@@ -1,4 +1,5 @@
 open! Import
+module Fmt = Re_private.Fmt
 module Cset = Re_private.Cset
 
 let%expect_test "empty" =
@@ -120,4 +121,20 @@ let%expect_test "case_insens" =
   let cset = Cset.diff (Cset.case_insens Cset.lower) (Cset.case_insens Cset.upper) in
   Format.printf "%a@." Cset.pp cset;
   [%expect {| 181, 223, 255 |}]
+;;
+
+let%expect_test "one_char" =
+  let test set =
+    let pp fmt c =
+      let c = Option.map Cset.to_char c in
+      Fmt.(opt char) fmt c
+    in
+    Format.printf "%a@." pp (Cset.one_char set)
+  in
+  test Cset.empty;
+  [%expect {| <None> |}];
+  test (Cset.csingle 'c');
+  [%expect {| c |}];
+  test Cset.cany;
+  [%expect {| <None> |}]
 ;;
