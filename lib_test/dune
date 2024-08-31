@@ -1,6 +1,5 @@
 (tests
  (libraries re fort_unit ounit2)
- (modules :standard \ test_str)
  (names
   test_easy
   test_view
@@ -10,8 +9,3 @@
   test_glob
   test_pcre
   test_posix))
-
-(test
- (libraries re fort_unit str ounit2)
- (modules test_str)
- (name test_str))
