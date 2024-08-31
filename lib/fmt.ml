@@ -8,6 +8,7 @@ let list = pp_print_list
 let array = pp_print_array
 let str = pp_print_string
 let sexp fmt s pp x = fprintf fmt "@[<3>(%s@ %a)@]" s pp x
+let bytes fmt t = Format.fprintf fmt "%S" (Bytes.to_string t)
 
 let pair pp1 pp2 fmt (v1, v2) =
   pp1 fmt v1;
