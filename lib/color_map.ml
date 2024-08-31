@@ -25,7 +25,7 @@ module Table = struct
   let get t c = Cset.of_int @@ Char.code t.[Char.code c]
 
   let translate_colors (cm : t) cset =
-    Cset.fold_right cset ~init:Cset.empty ~f:(fun (i, j) l ->
+    Cset.fold_right cset ~init:Cset.empty ~f:(fun i j l ->
       let start = get_char cm i in
       let stop = get_char cm j in
       Cset.union (Cset.cseq start stop) l)
