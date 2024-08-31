@@ -138,3 +138,13 @@ let%expect_test "one_char" =
   test Cset.cany;
   [%expect {| <None> |}]
 ;;
+
+let%expect_test "is_empty" =
+  let test set = Format.printf "%a@." Fmt.bool (Cset.is_empty set) in
+  test Cset.empty;
+  [%expect {| true |}];
+  test (Cset.csingle 'c');
+  [%expect {| false |}];
+  test Cset.cany;
+  [%expect {| false |}]
+;;
