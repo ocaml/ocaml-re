@@ -22,6 +22,12 @@ let triple pp1 pp2 pp3 fmt (v1, v2, v3) =
   pp3 fmt v3
 ;;
 
+let opt f fmt x =
+  match x with
+  | None -> pp_print_string fmt "<None>"
+  | Some x -> fprintf fmt "%a" f x
+;;
+
 let int = pp_print_int
 
 let optint fmt = function
@@ -38,6 +44,7 @@ let pp_olist pp_elem fmt =
     (pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt ";@ ") pp_elem)
 ;;
 
+let char fmt c = Format.fprintf fmt "%c" c
 let pp_str_list = pp_olist quote
 let lit s fmt () = pp_print_string fmt s
 
