@@ -39,6 +39,7 @@ let pp_olist pp_elem fmt =
 ;;
 
 let pp_str_list = pp_olist quote
+let lit s fmt () = pp_print_string fmt s
 
 let to_to_string pp x =
   let b = Buffer.create 16 in
