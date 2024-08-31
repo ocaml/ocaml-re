@@ -222,8 +222,6 @@ let rec rename ids x =
 
 (****)
 
-type hash = int
-
 type status =
   | Failed
   | Match of Mark_infos.t * Pmark.Set.t
@@ -337,7 +335,7 @@ module State = struct
     ; category : Category.t
     ; desc : Desc.t
     ; mutable status : status option
-    ; hash : hash
+    ; hash : int
     }
 
   let[@inline] idx t = t.idx
