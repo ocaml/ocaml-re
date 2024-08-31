@@ -5,6 +5,7 @@ include Format
 type 'a t = Format.formatter -> 'a -> unit
 
 let list = pp_print_list
+let array = pp_print_array
 let str = pp_print_string
 let sexp fmt s pp x = fprintf fmt "@[<3>(%s@ %a)@]" s pp x
 
