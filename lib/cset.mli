@@ -38,10 +38,8 @@ val union_all : t list -> t
 val intersect_all : t list -> t
 val inter : t -> t -> t
 val diff : t -> t -> t
-val offset : int -> t -> t
 val empty : t
 val single : c -> t
-val seq : c -> c -> t
 val add : c -> t -> t
 val mem : c -> t -> bool
 val case_insens : t -> t
