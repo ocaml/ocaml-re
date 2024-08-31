@@ -8,5 +8,5 @@ let%expect_test "bound errors" =
   [%expect {| |}];
   let (_ : bool) = Re.execp any ~pos:1 ~len:3 "foo" in
   [%expect.unreachable]
-[@@expect.uncaught_exn {| (Invalid_argument "index out of bounds") |}]
+[@@expect.uncaught_exn {| (Invalid_argument "Re.exec: out of bounds") |}]
 ;;
