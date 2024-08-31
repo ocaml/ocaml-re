@@ -67,7 +67,7 @@ val print : t
 val punct : t
 val pp : Format.formatter -> t -> unit
 val one_char : t -> c option
-val fold_right : t -> init:'acc -> f:(c * c -> 'acc -> 'acc) -> 'acc
+val fold_right : t -> init:'acc -> f:(c -> c -> 'acc -> 'acc) -> 'acc
 val hash : t -> int
 
 module CSetMap : Map.S with type key = int * t

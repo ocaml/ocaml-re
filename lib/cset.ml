@@ -136,7 +136,7 @@ module CSetMap = Map.Make (struct
     ;;
   end)
 
-let fold_right t ~init ~f = List.fold_right ~f t ~init
+let fold_right t ~init ~f = List.fold_right ~f:(fun (x, y) acc -> f x y acc) t ~init
 let csingle c = single (Char.code c)
 
 let is_empty = function
