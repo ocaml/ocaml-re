@@ -6,7 +6,8 @@ all:
 test:
 	@$(DUNE) runtest
 
-check: test
+check:
+	@$(DUNE) build @runtest @check
 
 .PHONY: check test all clean
 
