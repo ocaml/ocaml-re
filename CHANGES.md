@@ -1,3 +1,10 @@
+Unreleased
+----------
+
+* Re.execp and related function raise [Invalid_argument "$function"] when [pos]
+  or [len] arguments are out of bounds. In 1.12.0, a regerssion was introduced
+  that raised [Invalid_argument _] from [String.get].
+
 1.12.0 (29-Aug-2024)
 --------------------
 
