@@ -11,3 +11,4 @@ setup.exe
 *.install
 perf.data
 *.old
+*.ctf
