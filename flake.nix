@@ -7,23 +7,26 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages."${system}";
-        extraBuildInputs = [ pkgs.ocamlPackages.core_bench ];
-        checkInputs = with pkgs.ocamlPackages; [
-          ounit
-          js_of_ocaml
-          ppx_expect
-          pkgs.nodejs-slim
-        ];
-        devInputs = with pkgs.ocamlPackages; [
-          ocaml-lsp
-          pkgs.ocamlformat_0_26_2
-        ];
-        inherit (pkgs.ocamlPackages) buildDunePackage;
-      in rec {
-        packages = rec {
+        extraBuildInputs = pkgs:
+          with pkgs.ocamlPackages; [
+            core_bench
+            memtrace
+          ];
+        checkInputs = pkgs:
+          with pkgs.ocamlPackages; [
+            ounit
+            js_of_ocaml
+            ppx_expect
+            pkgs.nodejs-slim
+          ];
+        devInputs = pkgs:
+          with pkgs.ocamlPackages; [
+            ocaml-lsp
+            pkgs.ocamlformat_0_26_2
+          ];
+        makePackages = pkgs: rec {
           default = re;
-          re = buildDunePackage {
+          re = pkgs.ocamlPackages.buildDunePackage {
             pname = "re";
             version = "n/a";
             src = ./.;
@@ -34,13 +37,33 @@
             doCheck = true;
           };
         };
-        devShells.test = pkgs.mkShell {
+        ocamlVersionOverlay =
+          (ocaml: self: super: { ocamlPackages = ocaml super.ocaml-ng; });
+        makeNixpkgs = ocaml:
+        nixpkgs.legacyPackages.${system}.appendOverlays [ (ocamlVersionOverlay ocaml) ];
+      in rec {
+        # packages = makePackages pkgs;
+        devShells.test = let
+          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2);
+          packages = makePackages pkgs;
+        in pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
-          buildInputs = extraBuildInputs ++ checkInputs;
+          buildInputs = extraBuildInputs pkgs ++ checkInputs pkgs;
         };
-        devShells.default = pkgs.mkShell {
+        devShells.default = let
+          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2);
+          packages = makePackages pkgs;
+        in pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
-          buildInputs = extraBuildInputs ++ devInputs;
+          buildInputs = extraBuildInputs pkgs ++ devInputs pkgs;
+        };
+        devShells.memtrace = let
+          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_4_14);
+          packages = makePackages pkgs;
+        in pkgs.mkShell {
+          inputsFrom = pkgs.lib.attrValues packages;
+          buildInputs = extraBuildInputs pkgs
+            ++ [ pkgs.ocamlPackages.memtrace_viewer ];
         };
       });
 }
