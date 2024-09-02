@@ -77,8 +77,8 @@ type re =
   ; (* Table from colors to one character of this color *)
     ncolor : int
   ; (* Number of colors. *)
-    lnl : int
-  ; (* Color of the last newline. -1 if unnecessary *)
+    lnl : Cset.c
+  ; (* Color of the last newline. [Cset.null_char] if unnecessary *)
     tbl : Automata.Working_area.t
   ; (* Temporary table used to compute the first available index
        when computing a new state *)
@@ -108,9 +108,9 @@ type info =
 (****)
 
 let category re ~color =
-  if Cset.to_int color = -1
+  if Cset.equal_c color Cset.null_char
   then Category.inexistant (* Special category for the last newline *)
-  else if Cset.to_int color = re.lnl
+  else if Cset.equal_c color re.lnl
   then Category.(lastnewline ++ newline ++ not_letter)
   else Category.from_char (Color_map.Repr.repr re.color_repr color)
 ;;
@@ -229,14 +229,16 @@ let get_color re (s : string) pos =
     let slen = String.length s in
     if pos >= slen
     then Cset.null_char
-    else if pos = slen - 1 && re.lnl <> -1 && Char.equal s.[pos] '\n'
+    else if pos = slen - 1
+            && (not (Cset.equal_c re.lnl Cset.null_char))
+            && Char.equal s.[pos] '\n'
     then (* Special case for the last newline *)
-      Cset.of_int re.lnl
+      re.lnl
     else Color_map.Table.get re.colors s.[pos])
 ;;
 
 let rec handle_last_newline info ~pos st ~groups =
-  let st' = State.follow_transition st ~color:(Cset.of_int info.re.lnl) in
+  let st' = State.follow_transition st ~color:info.re.lnl in
   let info' = State.get_info st' in
   if info'.idx >= 0
   then (
@@ -248,7 +250,7 @@ let rec handle_last_newline info ~pos st ~groups =
     st')
   else (
     (* Unknown *)
-    let color = Cset.of_int info.re.lnl in
+    let color = info.re.lnl in
     let st' =
       let desc' =
         let cat = category info.re ~color in
@@ -265,7 +267,7 @@ let rec scan_str info (s : string) initial_state ~groups =
   let pos = info.pos in
   let last = info.last in
   if last = String.length s
-     && info.re.lnl <> -1
+     && (not (Cset.equal_c info.re.lnl Cset.null_char))
      && last > pos
      && Char.equal (String.get s (last - 1)) '\n'
   then (
@@ -528,7 +530,7 @@ let compile_1 regexp =
   let need_lnl = Ast.colorize color_map regexp in
   let colors, color_repr = Color_map.flatten color_map in
   let ncolor = Color_map.Repr.length color_repr in
-  let lnl = if need_lnl then ncolor else -1 in
+  let lnl = if need_lnl then Cset.of_int ncolor else Cset.null_char in
   let ncolor = if need_lnl then ncolor + 1 else ncolor in
   let ctx =
     { ids = A.Ids.create ()
