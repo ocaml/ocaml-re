@@ -45,4 +45,4 @@ val test : t -> int -> bool
     This function is experimental. *)
 val nb_groups : t -> int
 
-val pp : Format.formatter -> t -> unit
+val pp : t Fmt.t

@@ -39,7 +39,7 @@ module Sem : sig
     | `First
     ]
 
-  val pp : Format.formatter -> t -> unit
+  val pp : t Fmt.t
 end
 
 module Rep_kind : sig
@@ -54,7 +54,7 @@ end
 type expr
 
 val is_eps : expr -> bool
-val pp : Format.formatter -> expr -> unit
+val pp : expr Fmt.t
 
 module Ids : sig
   type t
