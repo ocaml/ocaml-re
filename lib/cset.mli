@@ -31,6 +31,9 @@ val of_char : char -> c
 
 type t
 
+(** special characters which isn't present in any set (not even in [cany]) *)
+val null_char : c
+
 val equal : t -> t -> bool
 val iter : t -> f:(c -> c -> unit) -> unit
 val union : t -> t -> t
