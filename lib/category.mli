@@ -3,7 +3,7 @@
 
     This is more restricted than Cset, but faster. *)
 
-type t
+type t [@@immediate]
 
 val ( ++ ) : t -> t -> t
 val from_char : char -> t
