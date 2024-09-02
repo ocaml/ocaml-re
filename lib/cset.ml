@@ -25,6 +25,7 @@ open Import
 
 type c = int
 
+let equal_c = Int.equal
 let to_int x = x
 let of_int x = x
 let to_char t = Char.chr t
