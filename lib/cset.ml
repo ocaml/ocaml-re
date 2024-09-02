@@ -29,6 +29,7 @@ let to_int x = x
 let of_int x = x
 let to_char t = Char.chr t
 let of_char c = Char.code c
+let null_char = -1
 
 type t = (c * c) list
 

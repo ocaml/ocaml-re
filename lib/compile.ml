@@ -208,7 +208,7 @@ let rec loop_no_mark info ~colors s ~pos ~last st0 st =
 let final info st cat =
   try List.assq cat st.final with
   | Not_found ->
-    let st' = delta info cat ~color:(Cset.of_int (-1)) st in
+    let st' = delta info cat ~color:Cset.null_char st in
     let res = Automata.State.idx st', Automata.State.status st' in
     st.final <- (cat, res) :: st.final;
     res
@@ -224,11 +224,11 @@ let find_initial_state re cat =
 
 let get_color re (s : string) pos =
   if pos < 0
-  then Cset.of_int @@ -1
+  then Cset.null_char
   else (
     let slen = String.length s in
     if pos >= slen
-    then Cset.of_int (-1)
+    then Cset.null_char
     else if pos = slen - 1 && re.lnl <> -1 && Char.equal s.[pos] '\n'
     then (* Special case for the last newline *)
       Cset.of_int re.lnl
