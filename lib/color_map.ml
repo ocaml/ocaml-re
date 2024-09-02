@@ -22,7 +22,7 @@ module Table = struct
   type t = string
 
   let get_char t c = t.[Cset.to_int c]
-  let get t c = Cset.of_int @@ Char.code t.[Char.code c]
+  let get t c = Cset.of_char t.[Char.code c]
 
   let translate_colors (cm : t) cset =
     Cset.fold_right cset ~init:Cset.empty ~f:(fun i j l ->
