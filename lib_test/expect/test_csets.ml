@@ -148,3 +148,16 @@ let%expect_test "is_empty" =
   test Cset.cany;
   [%expect {| false |}]
 ;;
+
+let%expect_test "Cset mem" =
+  let test set c = Format.printf "%a@." Fmt.bool (Cset.mem c set) in
+  test Cset.cany (Cset.of_int (-1));
+  [%expect {| false |}];
+  test Cset.cany (Cset.of_char 'a');
+  [%expect {| true |}];
+  let c = Cset.csingle 'c' in
+  test c (Cset.of_char 'c');
+  [%expect {| true |}];
+  test c (Cset.of_char '.');
+  [%expect {| false |}]
+;;
