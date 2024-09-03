@@ -25,6 +25,24 @@ module Re = Core
 exception Parse_error = Parse_buffer.Parse_error
 exception Not_supported
 
+let acc_digits =
+  let rec loop base digits acc i =
+    match digits with
+    | [] -> acc
+    | d :: digits ->
+      let acc = acc + (d * i) in
+      let i = i * i in
+      loop base digits acc i
+  in
+  fun ~base ~digits -> loop base digits 0 1
+;;
+
+let char_of_int x =
+  match char_of_int x with
+  | x -> x
+  | exception _ -> raise Parse_error
+;;
+
 let parse multiline dollar_endonly dotall ungreedy s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
@@ -44,6 +62,18 @@ let parse multiline dollar_endonly dotall ungreedy s =
     if eos () || test '|' || test ')'
     then Re.seq (List.rev left)
     else branch' (piece () :: left)
+  and in_brace ~f ~init =
+    match accept '{' with
+    | false -> None
+    | true ->
+      let rec loop acc =
+        if accept '}'
+        then acc
+        else (
+          let acc = f acc in
+          loop acc)
+      in
+      Some (loop init)
   and piece () =
     let r = atom () in
     if accept '*'
@@ -125,10 +155,27 @@ let parse multiline dollar_endonly dotall ungreedy s =
       | 'Q' -> quote (Buffer.create 12)
       | 'E' -> raise Parse_error
       | 'x' ->
-        let c1 = hexdigit () in
-        let c2 = hexdigit () in
+        let c1, c2 =
+          match in_brace ~init:[] ~f:(fun acc -> hexdigit () :: acc) with
+          | Some [ c1; c2 ] -> c1, c2
+          | Some [ c2 ] -> 0, c2
+          | Some _ -> raise Parse_error
+          | None ->
+            let c1 = hexdigit () in
+            let c2 = hexdigit () in
+            c1, c2
+        in
         let code = (c1 * 16) + c2 in
         Re.char (char_of_int code)
+      | 'o' ->
+        (match
+           in_brace ~init:[] ~f:(fun acc ->
+             match maybe_octaldigit () with
+             | None -> raise Parse_error
+             | Some p -> p :: acc)
+         with
+         | None -> raise Parse_error
+         | Some digits -> Re.char (char_of_int (acc_digits ~base:8 ~digits)))
       | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
       | '0' .. '7' as n1 ->
         let n2 = maybe_octaldigit () in
