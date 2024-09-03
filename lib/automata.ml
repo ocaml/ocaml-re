@@ -178,7 +178,7 @@ module Expr = struct
   let rec dyn_of_def =
     let open Dyn in
     function
-    | Cst cset -> variant "Cst" [ Cset.to_dyn cset ]
+    | Cst cset -> Cset.to_dyn cset
     | Alt alt -> variant "Alt" (List.map ~f:to_dyn alt)
     | Seq (sem, x, y) -> variant "Seq" [ Sem.to_dyn sem; to_dyn x; to_dyn y ]
     | Eps -> Enum "Eps"
@@ -191,14 +191,27 @@ module Expr = struct
 
   and to_dyn { id = _; def } = dyn_of_def def
 
-  let rec pp ch e =
+  let with_sem prev next fmt pp () =
+    let open Fmt in
+    let wrapped fmt () = sexp fmt (Format.asprintf "%a" Sem.pp next) pp () in
+    match prev with
+    | None -> wrapped fmt ()
+    | Some prev -> if Sem.equal prev next then pp fmt () else wrapped fmt ()
+  ;;
+
+  let rec pp_with_sem sem ch e =
     let open Fmt in
     match e.def with
     | Cst l -> sexp ch "cst" Cset.pp l
-    | Alt l -> sexp ch "alt" (list pp) l
-    | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
+    | Alt l -> sexp ch "alt" (list (pp_with_sem sem)) l
+    | Seq (k, e, e') ->
+      let pp ch () =
+        let sem = Some k in
+        sexp ch "seq" (pair (pp_with_sem sem) (pp_with_sem sem)) (e, e')
+      in
+      with_sem sem k ch pp ()
     | Eps -> str ch "eps"
-    | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
+    | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp (pp_with_sem (Some k))) (k, e)
     | Mark i -> sexp ch "mark" Mark.pp i
     | Pmark i -> sexp ch "pmark" Pmark.pp i
     | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
@@ -206,6 +219,7 @@ module Expr = struct
     | After c -> sexp ch "after" Category.pp c
   ;;
 
+  let pp = pp_with_sem None
   let eps_expr = { id = Id.zero; def = Eps }
   let mk ids def = { id = Ids.next ids; def }
   let empty ids = mk ids (Alt [])
@@ -340,6 +354,8 @@ end
 module Desc : sig
   type t
 
+  val pp : t Fmt.t
+
   module E : sig
     type nonrec t = private
       | TSeq of Sem.t * t * Expr.t
@@ -404,7 +420,12 @@ end = struct
     let open Dyn in
     function
     | E.TSeq (sem, x, y) -> variant "TSeq" [ Sem.to_dyn sem; to_dyn x; Expr.to_dyn y ]
-    | TExp (marks, e) -> variant "TExp" [ Marks.to_dyn marks; Expr.to_dyn e ]
+    | TExp (marks, e) ->
+      let e =
+        let base = [ Expr.to_dyn e ] in
+        if Marks.(equal empty marks) then base else Marks.to_dyn marks :: base
+      in
+      variant "TExp" e
     | TMatch m -> variant "TMarks" [ Marks.to_dyn m ]
   ;;
 
@@ -435,29 +456,41 @@ end = struct
       | TExp (marks, _) | TMatch marks -> f marks)
   ;;
 
-  let rec print_state_rec ch e (y : Expr.t) =
+  let rec print_state_rec sem ch e (y : Expr.t) =
     match e with
-    | TMatch marks -> Format.fprintf ch "@[<2>(Match@ %a)@]" Marks.pp marks
-    | TSeq (_kind, l', x) ->
-      Format.fprintf ch "@[<2>(Seq@ ";
-      print_state_lst ch l' x;
-      Format.fprintf ch "@ %a)@]" Expr.pp x
+    | TMatch marks -> Format.fprintf ch "@[<2>(TMatch@ %a)@]" Marks.pp marks
+    | TSeq (sem', l', x) ->
+      let pp ch () =
+        let sem = Some sem' in
+        Format.fprintf ch "@[<2>(TSeq@ ";
+        print_state_lst sem ch l' x;
+        Format.fprintf ch "@ %a)@]" (Expr.pp_with_sem sem) x
+      in
+      with_sem sem sem' ch pp ()
     | TExp (marks, { def = Eps; _ }) ->
-      Format.fprintf ch "@[<2>(Exp@ %a@ (%a)@ (eps))@]" Id.pp y.id Marks.pp marks
+      Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ (eps))@]" Id.pp y.id Marks.pp marks
     | TExp (marks, x) ->
-      Format.fprintf ch "@[<2>(Exp@ %a@ (%a)@ %a)@]" Id.pp x.id Marks.pp marks Expr.pp x
+      Format.fprintf
+        ch
+        "@[<2>(TExp@ %a@ (%a)@ %a)@]"
+        Id.pp
+        x.id
+        Marks.pp
+        marks
+        (Expr.pp_with_sem sem)
+        x
 
-  and print_state_lst ch l y =
+  and print_state_lst sem ch l y =
     match l with
     | [] -> Format.fprintf ch "()"
     | e :: rem ->
-      print_state_rec ch e y;
+      print_state_rec sem ch e y;
       List.iter rem ~f:(fun e ->
         Format.fprintf ch "@ | ";
-        print_state_rec ch e y)
+        print_state_rec sem ch e y)
   ;;
 
-  let pp ch t = print_state_lst ch [ t ] { id = Id.zero; def = Eps }
+  let pp ch t = print_state_lst None ch [ t ] { id = Id.zero; def = Eps }
 
   let rec first_match = function
     | [] -> None
@@ -546,6 +579,7 @@ module State = struct
     ; hash : int
     }
 
+  let pp fmt t = Desc.pp fmt t.desc
   let[@inline] idx t = t.idx
   let to_dyn t = Desc.to_dyn t.desc
 

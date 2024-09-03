@@ -96,6 +96,7 @@ end
 module State : sig
   type t
 
+  val pp : t Fmt.t
   val dummy : t
   val create : Category.t -> expr -> t
   val idx : t -> Idx.t
