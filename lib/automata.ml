@@ -351,20 +351,20 @@ module State = struct
 
   let create cat e = mk 0 cat [ E.TExp (Marks.empty, e) ]
 
-  let equal x y =
-    (x.hash : int) = y.hash
-    && (x.idx : int) = y.idx
-    && Category.equal x.category y.category
-    && E.equal x.desc y.desc
+  let equal { idx; category; desc; status = _; hash } t =
+    Int.equal hash t.hash
+    && Int.equal idx t.idx
+    && Category.equal category t.category
+    && E.equal desc t.desc
   ;;
 
-  let compare x y =
-    let c = compare (x.hash : int) y.hash in
-    if c <> 0
-    then c
-    else (
-      let c = Category.compare x.category y.category in
-      if c <> 0 then c else compare x.desc y.desc)
+  let compare { hash; category; desc; status = _; idx = _ } t =
+    match Int.compare hash t.hash with
+    | 0 ->
+      (match Category.compare category t.category with
+       | 0 -> compare desc t.desc
+       | x -> x)
+    | x -> x
   ;;
 
   let status s =
