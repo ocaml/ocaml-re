@@ -122,6 +122,8 @@ let parse multiline dollar_endonly dotall ungreedy s =
       | 'n' -> Re.char '\n'
       | 'r' -> Re.char '\r'
       | 't' -> Re.char '\t'
+      | 'Q' -> quote (Buffer.create 12)
+      | 'E' -> raise Parse_error
       | 'x' ->
         let c1 = hexdigit () in
         let c2 = hexdigit () in
@@ -135,6 +137,20 @@ let parse multiline dollar_endonly dotall ungreedy s =
       match get () with
       | '*' | '+' | '?' | '{' | '\\' -> raise Parse_error
       | c -> Re.char c)
+  and quote buf =
+    if accept '\\'
+    then (
+      if eos () then raise Parse_error;
+      match get () with
+      | 'E' -> Re.str (Buffer.contents buf)
+      | c ->
+        Buffer.add_char buf '\\';
+        Buffer.add_char buf c;
+        quote buf)
+    else (
+      if eos () then raise Parse_error;
+      Buffer.add_char buf (get ());
+      quote buf)
   and hexdigit () =
     if eos () then raise Parse_error;
     match get () with

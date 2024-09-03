@@ -1,6 +1,8 @@
 Unreleased
 ----------
 
+* Add support for `\Q...\E` quoted expressions in Pcre and Perl syntax (#401)
+
 * Re.execp and related function raise [Invalid_argument "$function"] when [pos]
   or [len] arguments are out of bounds. In 1.12.0, a regerssion was introduced
   that raised [Invalid_argument _] from [String.get].
