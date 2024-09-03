@@ -24,7 +24,7 @@
 
 type c [@@immediate]
 
-val[@inline always] equal_c : c -> c -> bool
+val equal_c : c -> c -> bool
 val to_int : c -> int
 val of_int : int -> c
 val to_char : c -> char
