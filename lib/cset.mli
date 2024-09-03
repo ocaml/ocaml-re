@@ -71,6 +71,7 @@ val pp : t Fmt.t
 val one_char : t -> c option
 val fold_right : t -> init:'acc -> f:(c -> c -> 'acc -> 'acc) -> 'acc
 val hash : t -> int
+val compare : t -> t -> int
 
 module CSetMap : Map.S with type key = int * t
 

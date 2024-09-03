@@ -35,6 +35,7 @@ let null_char = -1
 type t = (c * c) list
 
 let equal = List.equal ~eq:(fun (x, y) (x', y') -> Int.equal x x' && Int.equal y y')
+let compare : t -> t -> int = List.compare ~cmp:Poly.compare
 
 let rec union l l' =
   match l, l' with
@@ -133,7 +134,7 @@ module CSetMap = Map.Make (struct
     type t = int * (int * int) list
 
     let compare (i, u) (j, v) =
-      let c = compare i j in
+      let c = Int.compare i j in
       if c <> 0 then c else compare u v
     ;;
   end)
