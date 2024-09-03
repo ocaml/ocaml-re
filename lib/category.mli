@@ -18,4 +18,4 @@ val to_int : t -> int
 val equal : t -> t -> bool
 val compare : t -> t -> int
 val intersect : t -> t -> bool
-val pp : Format.formatter -> t -> unit
+val pp : t Fmt.t
