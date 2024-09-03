@@ -1,6 +1,8 @@
 Unreleased
 ----------
 
+* Add support for octal characters using `\0dd` and `\ddd` (#402)
+
 * Add support for `\Q...\E` quoted expressions in Pcre and Perl syntax (#401)
 
 * Re.execp and related function raise [Invalid_argument "$function"] when [pos]

@@ -130,7 +130,15 @@ let parse multiline dollar_endonly dotall ungreedy s =
         let code = (c1 * 16) + c2 in
         Re.char (char_of_int code)
       | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
-      | '0' .. '9' -> raise Not_supported
+      | '0' .. '7' as n1 ->
+        let n2 = maybe_octaldigit () in
+        let n3 = maybe_octaldigit () in
+        (match n2, n3 with
+         | Some n2, Some n3 ->
+           let n1 = Char.code n1 - Char.code '0' in
+           Re.char (char_of_int ((n1 * (8 * 8)) + (n2 * 8) + n3))
+         | _, _ -> raise Not_supported)
+      | '8' .. '9' -> raise Not_supported
       | c -> Re.char c)
     else (
       if eos () then raise Parse_error;
@@ -158,6 +166,13 @@ let parse multiline dollar_endonly dotall ungreedy s =
     | 'a' .. 'f' as d -> Char.code d - Char.code 'a' + 10
     | 'A' .. 'F' as d -> Char.code d - Char.code 'A' + 10
     | _ -> raise Parse_error
+  and maybe_octaldigit () =
+    if eos ()
+    then None
+    else (
+      match get () with
+      | '0' .. '7' as d -> Some (Char.code d - Char.code '0')
+      | _ -> None)
   and name () =
     if eos ()
     then raise Parse_error
