@@ -362,7 +362,7 @@ module State = struct
     match Int.compare hash t.hash with
     | 0 ->
       (match Category.compare category t.category with
-       | 0 -> compare desc t.desc
+       | 0 -> Poly.compare desc t.desc
        | x -> x)
     | x -> x
   ;;
@@ -545,7 +545,7 @@ let rec red_tr = function
 
 let simpl_tr l =
   List.sort
-    ~cmp:(fun (s1, _) (s2, _) -> compare s1 s2)
+    ~cmp:(fun (s1, _) (s2, _) -> Cset.compare s1 s2)
     (red_tr (List.sort ~cmp:(fun (_, st1) (_, st2) -> State.compare st1 st2) l))
 ;;
 
