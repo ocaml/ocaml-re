@@ -60,11 +60,7 @@ let exec_opt ?pos ?len re s =
   | _ -> None
 ;;
 
-let execp ?pos ?len re s =
-  match exec_internal ~groups:false ~partial:false ?pos ?len re s with
-  | Match _substr -> true
-  | _ -> false
-;;
+let execp ?(pos = 0) ?(len = -1) re s = Compile.match_str_p ~pos ~len re s
 
 let exec_partial ?pos ?len re s =
   match exec_internal ~groups:false ~partial:true ?pos ?len re s with

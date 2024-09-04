@@ -23,6 +23,7 @@ val match_str
   -> len:int
   -> match_info
 
+val match_str_p : re -> string -> pos:int -> len:int -> bool
 val compile : Ast.t -> re
 val group_count : re -> int
 val group_names : re -> (string * int) list

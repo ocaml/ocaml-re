@@ -311,21 +311,23 @@ let final_boundary_check ~last ~slen re s ~info ~st ~groups =
   res
 ;;
 
-let match_str_no_bounds ~groups ~partial re s ~pos ~len =
+let make_info ~groups re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
-  let info =
-    { re
-    ; pos
-    ; last
-    ; positions =
-        (if groups
-         then (
-           let n = Automata.Working_area.index_count re.tbl + 1 in
-           if n <= 10 then [| 0; 0; 0; 0; 0; 0; 0; 0; 0; 0 |] else Array.make n 0)
-         else [||])
-    }
-  in
+  { re
+  ; pos
+  ; last
+  ; positions =
+      (if groups
+       then (
+         let n = Automata.Working_area.index_count re.tbl + 1 in
+         if n <= 10 then [| 0; 0; 0; 0; 0; 0; 0; 0; 0; 0 |] else Array.make n 0)
+       else [||])
+  }
+;;
+
+let make_match_str info ~groups ~partial re s ~pos =
+  let slen = String.length s in
   let st =
     let initial_state =
       let initial_cat =
@@ -337,32 +339,46 @@ let match_str_no_bounds ~groups ~partial re s ~pos ~len =
     in
     scan_str info s initial_state ~groups
   in
-  match
-    let state_info = State.get_info st in
-    if state_info.idx = break || (partial && not groups)
-    then Automata.State.status state_info.desc
-    else if partial && groups
-    then (
-      match Automata.State.status state_info.desc with
-      | (Match _ | Failed) as status -> status
-      | Running ->
-        (* This could be because it's still not fully matched, or it
-           could be that because we need to run special end of input
-           checks. *)
-        (match final_boundary_check ~last ~slen re s ~info ~st ~groups with
-         | Match _ as status -> status
-         | Failed | Running ->
-           (* A failure here just means that we need more data, i.e.
-              it's a partial match. *)
-           Running))
-    else final_boundary_check ~last ~slen re s ~info ~st ~groups
-  with
+  let state_info = State.get_info st in
+  if state_info.idx = break || (partial && not groups)
+  then Automata.State.status state_info.desc
+  else if partial && groups
+  then (
+    match Automata.State.status state_info.desc with
+    | (Match _ | Failed) as status -> status
+    | Running ->
+      (* This could be because it's still not fully matched, or it
+         could be that because we need to run special end of input
+         checks. *)
+      (match final_boundary_check ~last:info.last ~slen re s ~info ~st ~groups with
+       | Match _ as status -> status
+       | Failed | Running ->
+         (* A failure here just means that we need more data, i.e.
+            it's a partial match. *)
+         Running))
+  else final_boundary_check ~last:info.last ~slen re s ~info ~st ~groups
+;;
+
+let match_str_no_bounds ~groups ~partial re s ~pos ~len =
+  let info = make_info ~groups re s ~pos ~len in
+  match make_match_str info ~groups ~partial re s ~pos with
   | Match (marks, pmarks) ->
     Match { s; marks; pmarks; gpos = info.positions; gcount = re.group_count }
   | Failed -> Failed
   | Running ->
     let no_match_starts_before = if groups then info.positions.(0) else 0 in
     Running { no_match_starts_before }
+;;
+
+let match_str_p re s ~pos ~len =
+  if pos < 0 || len < -1 || pos + len > String.length s
+  then invalid_arg "Re.exec: out of bounds";
+  let groups = false in
+  let partial = false in
+  let info = make_info ~groups re s ~pos ~len in
+  match make_match_str info ~groups ~partial re s ~pos with
+  | Match _ -> true
+  | _ -> false
 ;;
 
 let match_str ~groups ~partial re s ~pos ~len =
