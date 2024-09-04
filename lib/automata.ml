@@ -358,11 +358,14 @@ module State = struct
     && E.equal desc t.desc
   ;;
 
-  let compare { hash; category; desc; status = _; idx = _ } t =
-    match Int.compare hash t.hash with
+  let compare { hash; category; desc; status = _; idx } t =
+    match Int.compare idx t.idx with
     | 0 ->
-      (match Category.compare category t.category with
-       | 0 -> Poly.compare desc t.desc
+      (match Int.compare hash t.hash with
+       | 0 ->
+         (match Category.compare category t.category with
+          | 0 -> Poly.compare desc t.desc
+          | x -> x)
        | x -> x)
     | x -> x
   ;;
