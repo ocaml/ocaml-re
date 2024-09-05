@@ -23,6 +23,8 @@
           with pkgs.ocamlPackages; [
             ocaml-lsp
             pkgs.ocamlformat_0_26_2
+            csv
+            pkgs.tabview
           ];
         makePackages = pkgs: rec {
           default = re;
