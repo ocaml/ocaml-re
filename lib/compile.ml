@@ -382,7 +382,7 @@ let match_str_no_bounds ~groups ~partial re s ~pos ~len =
   let info = make_info ~groups re s ~pos ~len in
   match make_match_str info ~groups ~partial re s ~pos with
   | Match (marks, pmarks) ->
-    Match { s; marks; pmarks; gpos = info.positions; gcount = re.group_count }
+    Match (Group.create s marks pmarks ~gpos:info.positions ~gcount:re.group_count)
   | Failed -> Failed
   | Running ->
     let no_match_starts_before = if groups then info.positions.(0) else 0 in

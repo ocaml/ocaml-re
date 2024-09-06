@@ -7,6 +7,8 @@ type t =
   ; gcount : int
   }
 
+let create s ~gcount ~gpos marks pmarks = { s; gcount; gpos; marks; pmarks }
+
 let offset t i =
   match Mark_infos.offset t.marks i with
   | None -> raise Not_found

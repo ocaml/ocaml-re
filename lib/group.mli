@@ -1,5 +1,7 @@
-(* Result of a successful match. *)
-type t =
+(** Information about groups in a match. *)
+
+(** Result of a successful match. *)
+type t = private
   { s : string (* Input string. Matched strings are substrings of s *)
   ; marks : Mark_infos.t
       (* Mapping from group indices to positions in gpos. group i has positions 2*i
@@ -15,7 +17,7 @@ type t =
   ; gcount : int (* Number of groups the regular expression contains. Matched or not *)
   }
 
-(** Information about groups in a match. *)
+val create : string -> gcount:int -> gpos:int array -> Mark_infos.t -> Pmark.Set.t -> t
 
 (** Raise [Not_found] if the group did not match *)
 val get : t -> int -> string
