@@ -136,8 +136,8 @@ let category re ~color =
 let mk_state ncol desc =
   let break_state =
     match Automata.State.status desc with
-    | Automata.Running -> false
-    | Automata.Failed | Automata.Match _ -> true
+    | Running -> false
+    | Failed | Match _ -> true
   in
   let st =
     let real_idx = Automata.State.idx desc in
