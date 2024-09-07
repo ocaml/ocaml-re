@@ -1,7 +1,6 @@
 (tests
  (libraries re fort_unit ounit2)
  (names
-  test_easy
   test_view
   test_re
   test_perl

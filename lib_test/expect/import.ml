@@ -8,3 +8,6 @@ let t re s =
   let group = Re.exec_opt (Re.compile re) s in
   Format.printf "%a@." (Fmt.opt Re.Group.pp) group
 ;;
+
+let strings = Format.printf "[%a]@." Fmt.(list ~pp_sep:(Fmt.lit "; ") Fmt.quoted_string)
+let re_empty = Re.Posix.compile_pat ""
