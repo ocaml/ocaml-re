@@ -16,3 +16,4 @@ val bytes : Bytes.t t
 val array : ?pp_sep:unit t -> 'a t -> 'a array t
 val lit : string -> unit t
 val to_to_string : 'a t -> 'a -> string
+val quoted_string : string t

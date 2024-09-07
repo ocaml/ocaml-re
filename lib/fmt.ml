@@ -57,3 +57,5 @@ let to_to_string pp x =
   pp fmt x;
   Buffer.contents b
 ;;
+
+let quoted_string fmt s = Format.fprintf fmt "%S" s
