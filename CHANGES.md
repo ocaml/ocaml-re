@@ -1,6 +1,8 @@
 Unreleased
 ----------
 
+* Add non raising versions of all [Re.Group] functions (#414, fixes #150)
+
 * Add support for hex and octal of the form: `\o{...}` and `\x{...}` (#403)
 
 * Add support for octal characters using `\0dd` and `\ddd` (#402)
