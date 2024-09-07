@@ -9,19 +9,27 @@ type t =
 
 let create s ~gcount ~gpos marks pmarks = { s; gcount; gpos; marks; pmarks }
 
-let offset t i =
-  match Mark_infos.offset t.marks i with
+let offset_opt t i =
+  Mark_infos.offset t.marks i
+  |> Option.map (fun (start, stop) -> t.gpos.(start), t.gpos.(stop))
+;;
+
+let or_not_found = function
   | None -> raise Not_found
-  | Some (start, stop) -> t.gpos.(start), t.gpos.(stop)
+  | Some s -> s
 ;;
 
-let get t i =
-  let p1, p2 = offset t i in
-  String.sub t.s p1 (p2 - p1)
+let offset t i = offset_opt t i |> or_not_found
+
+let get_opt t i =
+  offset_opt t i |> Option.map (fun (p1, p2) -> String.sub t.s p1 (p2 - p1))
 ;;
 
-let start subs i = fst (offset subs i)
-let stop subs i = snd (offset subs i)
+let get t i = get_opt t i |> or_not_found
+let start_opt subs i = offset_opt subs i |> Option.map fst
+let start subs i = start_opt subs i |> or_not_found
+let stop_opt subs i = offset_opt subs i |> Option.map snd
+let stop subs i = stop_opt subs i |> or_not_found
 let test t i = Mark_infos.test t.marks i
 let get_opt t i = if test t i then Some (get t i) else None
 let dummy_offset = -1, -1

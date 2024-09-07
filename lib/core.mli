@@ -45,11 +45,20 @@ module Group : sig
   (** Raise [Not_found] if the group did not match *)
   val offset : t -> int -> int * int
 
+  (** Similar to {!offset}, but returns an option instead of using an exception. *)
+  val offset_opt : t -> int -> (int * int) option
+
   (** Return the start of the match. Raise [Not_found] if the group did not match. *)
   val start : t -> int -> int
 
+  (** Similar to {!start_opt}, but returns an option instead of using an exception. *)
+  val start_opt : t -> int -> int option
+
   (** Return the end of the match. Raise [Not_found] if the group did not match. *)
   val stop : t -> int -> int
+
+  (** Similar to {!stop_opt}, but returns an option instead of using an exception. *)
+  val stop_opt : t -> int -> int option
 
   (** Return the empty string for each group which did not match *)
   val all : t -> string array
