@@ -7,10 +7,15 @@
 (implicit_transitive_deps false)
 
 (license "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception")
-(maintainers "Jane Street Group, LLC <opensource@janestreet.com>")
-(authors "Jane Street Group, LLC <opensource@janestreet.com>")
-(source (github ocaml/dune))
-(documentation "https://dune.readthedocs.io/")
+(maintainers "Rudi Grinberg <me@rgrinberg.com>")
+(authors
+  "Jerome Vouillon"
+  "Thomas Gazagnaire"
+  "Anil Madhavapeddy"
+  "Rudi Grinberg"
+  "Gabriel Radanne")
+
+(source (github ocaml/ocaml-re))
 
 (package
  (name re)
