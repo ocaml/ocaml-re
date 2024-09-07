@@ -1,4 +1,28 @@
 (** A view of the top-level of a regex. This type is unstable and may change *)
+
+module Cset : sig
+  type t
+end
+
+module Sem : sig
+  type t =
+    [ `Longest
+    | `Shortest
+    | `First
+    ]
+
+  val pp : Format.formatter -> t -> unit
+end
+
+module Rep_kind : sig
+  type t =
+    [ `Greedy
+    | `Non_greedy
+    ]
+
+  val pp : Format.formatter -> t -> unit
+end
+
 type t =
   | Set of Cset.t
   | Sequence of Ast.t list
@@ -14,8 +38,8 @@ type t =
   | Last_end_of_line
   | Start
   | Stop
-  | Sem of Automata.Sem.t * Ast.t
-  | Sem_greedy of Automata.Rep_kind.t * Ast.t
+  | Sem of Sem.t * Ast.t
+  | Sem_greedy of Rep_kind.t * Ast.t
   | Group of string option * Ast.t
   | No_group of Ast.t
   | Nest of Ast.t

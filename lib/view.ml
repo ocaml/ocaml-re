@@ -1,4 +1,7 @@
 open Import
+module Cset = Cset
+module Sem = Automata.Sem
+module Rep_kind = Automata.Rep_kind
 
 type t =
   | Set of Cset.t
