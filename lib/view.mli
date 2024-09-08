@@ -19,8 +19,6 @@ module Sem : sig
     | `Shortest
     | `First
     ]
-
-  val pp : Format.formatter -> t -> unit
 end
 
 module Rep_kind : sig
@@ -28,8 +26,6 @@ module Rep_kind : sig
     [ `Greedy
     | `Non_greedy
     ]
-
-  val pp : Format.formatter -> t -> unit
 end
 
 type t =
