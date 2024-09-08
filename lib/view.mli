@@ -2,6 +2,15 @@
 
 module Cset : sig
   type t
+
+  module Range : sig
+    type t
+
+    val first : t -> Char.t
+    val last : t -> Char.t
+  end
+
+  val view : t -> Range.t list
 end
 
 module Sem : sig
