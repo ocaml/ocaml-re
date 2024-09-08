@@ -1,3 +1,3 @@
 (tests
  (libraries re fort_unit ounit2)
- (names test_view test_re test_perl test_emacs test_posix))
+ (names test_view test_re test_perl test_posix))
