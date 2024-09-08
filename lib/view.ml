@@ -1,5 +1,25 @@
 open Import
-module Cset = Cset
+
+module Cset = struct
+  include Cset
+
+  module Range = struct
+    type t =
+      { first : Char.t
+      ; last : Char.t
+      }
+
+    let first t = t.first
+    let last t = t.last
+  end
+
+  let view t =
+    fold_right t ~init:[] ~f:(fun first last acc ->
+      let range = { Range.first = Cset.to_char first; last = Cset.to_char last } in
+      range :: acc)
+  ;;
+end
+
 module Sem = Automata.Sem
 module Rep_kind = Automata.Rep_kind
 
