@@ -204,3 +204,9 @@ let%expect_test "sets in classes" =
   re "[a\\s]";
   [%expect {| (Alternative (Set 9-13, 32)(Set 97)) |}]
 ;;
+
+let%expect_test "fixed bug" =
+  (try ignore (Re.compile (Re.Perl.re "(.*?)(\\WPl|\\Bpl)(.*)")) with
+   | _ -> failwith "bug in Re.handle_case");
+  [%expect {||}]
+;;
