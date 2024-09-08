@@ -37,3 +37,47 @@ let%expect_test "\\x and \\o form" =
   test {|\x{ff|} "";
   [%expect {| failed to parse |}]
 ;;
+
+let%expect_test "substitute" =
+  let open Pcre in
+  let substitute ~rex ~subst s = substitute ~rex ~subst s |> print_endline in
+  let rex = regexp "[a-zA-Z]+" in
+  let subst = String.capitalize_ascii in
+  substitute ~rex ~subst " hello world; I love chips!";
+  [%expect {| Hello World; I Love Chips! |}];
+  substitute ~rex:re_empty ~subst:(fun _ -> "a") "";
+  [%expect {| a |}];
+  substitute ~rex:(regexp "a*") ~subst:(fun _ -> "*") "cat";
+  [%expect {| *c*t* |}];
+  let rex = regexp "^ *" in
+  substitute ~rex ~subst:(fun _ -> "A ") "test";
+  [%expect {| A test |}]
+;;
+
+let%expect_test "test_blank_class" =
+  let re = Re.Perl.compile_pat "\\d[[:blank:]]\\d[[:blank:]]+[a-z]" in
+  let successes = [ "1 2  a"; "2\t3 z"; "9\t0 \t a" ] in
+  let failures = [ ""; "123"; "  "; "1 3z" ] in
+  List.iter successes ~f:(fun s -> printf "String %S should match %b\n" s (Re.execp re s));
+  [%expect
+    {|
+    String "1 2  a" should match true
+    String "2\t3 z" should match true
+    String "9\t0 \t a" should match true |}];
+  List.iter failures ~f:(fun s ->
+    printf "String %S should not match %b\n" s (Re.execp re s));
+  [%expect
+    {|
+    String "" should not match false
+    String "123" should not match false
+    String "  " should not match false
+    String "1 3z" should not match false |}]
+;;
+
+let%expect_test "named groups" =
+  let open Pcre in
+  let rex = regexp "(?<many_x>x+)" in
+  let s = exec ~rex "testxxxyyy" in
+  print_endline (get_named_substring rex "many_x" s);
+  [%expect {| xxx |}]
+;;
