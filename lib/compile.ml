@@ -133,26 +133,24 @@ let category re ~color =
 
 (****)
 
-let mk_state ~ncolor desc =
-  let break_state =
-    match Automata.State.status desc with
-    | Running -> false
-    | Failed | Match _ -> true
-  in
-  let st =
-    let real_idx = Automata.State.idx desc in
-    { idx = (if break_state then Idx.make_break real_idx else Idx.of_idx real_idx)
-    ; final = []
-    ; desc
-    }
-  in
-  State.make ~ncol:(if break_state then 0 else ncolor) st
-;;
-
 let find_state re desc =
   try Automata.State.Table.find re.states desc with
   | Not_found ->
-    let st = mk_state ~ncolor:re.ncolor desc in
+    let st =
+      let break_state =
+        match Automata.State.status desc with
+        | Running -> false
+        | Failed | Match _ -> true
+      in
+      let st =
+        let real_idx = Automata.State.idx desc in
+        { idx = (if break_state then Idx.make_break real_idx else Idx.of_idx real_idx)
+        ; final = []
+        ; desc
+        }
+      in
+      State.make ~ncol:(if break_state then 0 else re.ncolor) st
+    in
     Automata.State.Table.add re.states desc st;
     st
 ;;
