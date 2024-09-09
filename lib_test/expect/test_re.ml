@@ -1,10 +1,5 @@
 open Import
 
-let t re s =
-  let group = Re.exec_opt (Re.compile re) s in
-  Format.printf "%a@." (Fmt.opt Re.Group.pp) group
-;;
-
 let%expect_test "fixed repetition" =
   let re = Re.compile @@ Re.(repn (char 'a') 3 (Some 3)) in
   let test s = printf "%b\n" (Re.execp re s) in
