@@ -54,6 +54,7 @@ module State : sig
   type t
 
   val make : ncol:int -> state_info -> t
+  val make_break : state_info -> t
   val get_info : t -> state_info
   val follow_transition : t -> color:Cset.c -> t
   val set_transition : t -> color:Cset.c -> t -> unit
@@ -79,6 +80,8 @@ end = struct
     set_info st state;
     st
   ;;
+
+  let make_break state = Table [| Obj.magic state |]
 end
 
 (* Automata (compiled regular expression) *)
@@ -149,7 +152,7 @@ let find_state re desc =
         ; desc
         }
       in
-      State.make ~ncol:(if break_state then 0 else re.ncolor) st
+      if break_state then State.make_break st else State.make ~ncol:re.ncolor st
     in
     Automata.State.Table.add re.states desc st;
     st
