@@ -117,9 +117,8 @@ type info =
   { re : re
   ; (* The automata *)
     mutable positions : int array
-  ; (* Array of mark positions
-       The mark are off by one for performance reasons *)
-    last : int (* Position where the match should stop *)
+  (* Array of mark positions
+     The mark are off by one for performance reasons *)
   }
 
 (****)
@@ -281,18 +280,17 @@ let rec handle_last_newline info ~pos st ~groups =
     handle_last_newline info ~pos st ~groups)
 ;;
 
-let rec scan_str info (s : string) initial_state ~pos ~groups =
-  let last = info.last in
+let rec scan_str info (s : string) initial_state ~last ~pos ~groups =
   if last = String.length s
      && (not (Cset.equal_c info.re.lnl Cset.null_char))
      && last > pos
      && Char.equal (String.get s (last - 1)) '\n'
   then (
-    let info = { info with last = last - 1 } in
-    let st = scan_str ~pos info s initial_state ~groups in
+    let last = last - 1 in
+    let st = scan_str ~pos info s initial_state ~last ~groups in
     if Idx.is_break (State.get_info st).idx
     then st
-    else handle_last_newline info ~pos:(last - 1) st ~groups)
+    else handle_last_newline info ~pos:last st ~groups)
   else if groups
   then
     loop
@@ -328,11 +326,8 @@ let final_boundary_check ~last ~slen re s ~info ~st ~groups =
   res
 ;;
 
-let make_info ~groups re s ~pos ~len =
-  let slen = String.length s in
-  let last = if len = -1 then slen else pos + len in
+let make_info ~groups re =
   { re
-  ; last
   ; positions =
       (if groups
        then (
@@ -342,8 +337,9 @@ let make_info ~groups re s ~pos ~len =
   }
 ;;
 
-let make_match_str info ~groups ~partial re s ~pos =
+let make_match_str info ~len ~groups ~partial re s ~pos =
   let slen = String.length s in
+  let last = if len = -1 then slen else pos + len in
   let st =
     let initial_state =
       let initial_cat =
@@ -353,7 +349,7 @@ let make_match_str info ~groups ~partial re s ~pos =
       in
       find_initial_state re initial_cat
     in
-    scan_str info s initial_state ~pos ~groups
+    scan_str info s initial_state ~pos ~last ~groups
   in
   let state_info = State.get_info st in
   if Idx.is_break state_info.idx || (partial && not groups)
@@ -366,18 +362,18 @@ let make_match_str info ~groups ~partial re s ~pos =
       (* This could be because it's still not fully matched, or it
          could be that because we need to run special end of input
          checks. *)
-      (match final_boundary_check ~last:info.last ~slen re s ~info ~st ~groups with
+      (match final_boundary_check ~last ~slen re s ~info ~st ~groups with
        | Match _ as status -> status
        | Failed | Running ->
          (* A failure here just means that we need more data, i.e.
             it's a partial match. *)
          Running))
-  else final_boundary_check ~last:info.last ~slen re s ~info ~st ~groups
+  else final_boundary_check ~last ~slen re s ~info ~st ~groups
 ;;
 
 let match_str_no_bounds ~groups ~partial re s ~pos ~len =
-  let info = make_info ~groups re s ~pos ~len in
-  match make_match_str info ~groups ~partial re s ~pos with
+  let info = make_info ~groups re in
+  match make_match_str info ~len ~groups ~partial re s ~pos with
   | Match (marks, pmarks) ->
     Match (Group.create s marks pmarks ~gpos:info.positions ~gcount:re.group_count)
   | Failed -> Failed
@@ -391,8 +387,8 @@ let match_str_p re s ~pos ~len =
   then invalid_arg "Re.exec: out of bounds";
   let groups = false in
   let partial = false in
-  let info = make_info ~groups re s ~pos ~len in
-  match make_match_str info ~groups ~partial re s ~pos with
+  let info = make_info ~groups re in
+  match make_match_str info ~len ~groups ~partial re s ~pos with
   | Match _ -> true
   | _ -> false
 ;;
