@@ -133,7 +133,7 @@ let category re ~color =
 
 (****)
 
-let mk_state ncol desc =
+let mk_state ~ncolor desc =
   let break_state =
     match Automata.State.status desc with
     | Running -> false
@@ -146,13 +146,13 @@ let mk_state ncol desc =
     ; desc
     }
   in
-  State.make ~ncol:(if break_state then 0 else ncol) st
+  State.make ~ncol:(if break_state then 0 else ncolor) st
 ;;
 
 let find_state re desc =
   try Automata.State.Table.find re.states desc with
   | Not_found ->
-    let st = mk_state re.ncolor desc in
+    let st = mk_state ~ncolor:re.ncolor desc in
     Automata.State.Table.add re.states desc st;
     st
 ;;
