@@ -97,9 +97,8 @@ let exec_bench exec name (re : Re.t) cases =
          then Printf.sprintf "%s .. (%d)" (String.sub data ~pos:0 ~len:10) len
          else data
        in
-       Bench.Test.create ~name (fun () ->
-         let re = Re.compile re in
-         ignore (exec re data))))
+       let re = Re.compile re in
+       Bench.Test.create ~name (fun () -> ignore (exec re data))))
 ;;
 
 let exec_bench_many exec name re cases =
@@ -134,9 +133,9 @@ let string_traversal =
 let compile_clean_star =
   let c = 'c' in
   let s = String.make 10_000 c in
-  Bench.Test.create ~name:"kleene star compilation" (fun () ->
-    let re = Re.compile (Re.rep (Re.char 'c')) in
-    ignore (Re.execp re s))
+  let re = Re.rep (Re.char 'c') in
+  let re = Re.compile re in
+  Bench.Test.create ~name:"kleene star compilation" (fun () -> ignore (Re.execp re s))
 ;;
 
 let benchmarks =
@@ -155,17 +154,16 @@ let benchmarks =
     let manual =
       [ request, "no group"; request_g, "group" ]
       |> List.map ~f:(fun (re, name) ->
-        Test.create ~name (fun () ->
-          let re = Re.compile re in
-          read_all_http 0 re http_requests))
+        let re = Re.compile re in
+        Test.create ~name (fun () -> read_all_http 0 re http_requests))
       |> Test.create_group ~name:"manual"
     in
     let many =
+      let requests = Re.compile requests in
+      let requests_g = Re.compile requests_g in
       [ Test.create ~name:"execp no group" (fun () ->
-          let requests = Re.compile requests in
           ignore (Re.execp requests http_requests))
       ; Test.create ~name:"all_gen group" (fun () ->
-          let requests_g = Re.compile requests_g in
           http_requests |> Re.Seq.all requests_g |> drain_gen)
       ]
       |> Test.create_group ~name:"auto"
