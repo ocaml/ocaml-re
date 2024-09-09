@@ -89,17 +89,20 @@ let benchmarks =
 ;;
 
 let exec_bench exec name (re : Re.t) cases =
-  let re = Re.compile re in
   Bench.Test.create_group
     ~name
     (List.mapi cases ~f:(fun i case ->
        let name = Printf.sprintf "case %i" i in
-       Bench.Test.create ~name (fun () -> ignore (exec re case))))
+       Bench.Test.create ~name (fun () ->
+         let re = Re.compile re in
+         ignore (exec re case))))
 ;;
 
 let exec_bench_many exec name re cases =
-  let re = Re.compile re in
-  Bench.Test.create ~name (fun () -> List.iter cases ~f:(fun x -> ignore (exec re x)))
+  Bench.Test.create ~name (fun () ->
+    List.iter cases ~f:(fun x ->
+      let re = Re.compile re in
+      ignore (exec re x)))
 ;;
 
 let rec read_all_http pos re reqs =
@@ -122,9 +125,7 @@ let string_traversal =
   let len = 1000 * 1000 in
   let s = String.make len 'a' in
   let re = Re.Pcre.regexp "aaaaaaaaaaaaaaaaz" in
-  Test.create ~name:"string traversal from #210" (fun () ->
-    try ignore (Re.execp re s ~pos:0) with
-    | Not_found -> ())
+  Test.create ~name:"string traversal from #210" (fun () -> ignore (Re.execp re s ~pos:0))
 ;;
 
 let compile_clean_star =
@@ -151,16 +152,17 @@ let benchmarks =
     let manual =
       [ request, "no group"; request_g, "group" ]
       |> List.map ~f:(fun (re, name) ->
-        let re = Re.compile re in
-        Test.create ~name (fun () -> read_all_http 0 re http_requests))
+        Test.create ~name (fun () ->
+          let re = Re.compile re in
+          read_all_http 0 re http_requests))
       |> Test.create_group ~name:"manual"
     in
     let many =
-      let requests = Re.compile requests in
-      let requests_g = Re.compile requests_g in
       [ Test.create ~name:"execp no group" (fun () ->
+          let requests = Re.compile requests in
           ignore (Re.execp requests http_requests))
       ; Test.create ~name:"all_gen group" (fun () ->
+          let requests_g = Re.compile requests_g in
           http_requests |> Re.Seq.all requests_g |> drain_gen)
       ]
       |> Test.create_group ~name:"auto"
