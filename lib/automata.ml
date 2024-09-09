@@ -499,12 +499,8 @@ let rec delta_expr ({ c; _ } as ctx) marks x rem =
      | `Greedy -> E.tseq kind y x (TMatch marks' :: rem)
      | `Non_greedy -> TMatch marks :: E.tseq kind y x rem)
   | Eps -> TMatch marks :: rem
-  | Mark i ->
-    let marks = Marks.set_mark marks i in
-    TMatch marks :: rem
-  | Pmark i ->
-    let marks = Marks.set_pmark marks i in
-    TMatch marks :: rem
+  | Mark i -> TMatch (Marks.set_mark marks i) :: rem
+  | Pmark i -> TMatch (Marks.set_pmark marks i) :: rem
   | Erase (b, e) -> TMatch (Marks.filter marks b e) :: rem
   | Before cat -> if Category.intersect ctx.next_cat cat then TMatch marks :: rem else rem
   | After cat -> if Category.intersect ctx.prev_cat cat then TMatch marks :: rem else rem
