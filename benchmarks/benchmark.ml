@@ -103,10 +103,9 @@ let exec_bench exec name (re : Re.t) cases =
 ;;
 
 let exec_bench_many exec name re cases =
+    let re = Re.compile re in
   Bench.Test.create ~name (fun () ->
-    List.iter cases ~f:(fun x ->
-      let re = Re.compile re in
-      ignore (exec re x)))
+    List.iter cases ~f:(fun x -> ignore (exec re x)))
 ;;
 
 let rec read_all_http pos re reqs =
