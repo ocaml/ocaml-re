@@ -12,3 +12,4 @@ setup.exe
 perf.data
 *.old
 *.ctf
+*.bench.sexp
