@@ -185,9 +185,19 @@ let () =
     | None -> benchmarks
     | Some only ->
       let only = String.split_on_char ~sep:',' only in
-      List.filter benchmarks ~f:(fun bench ->
-        let name = Bench.Test.name bench in
-        List.mem name ~set:only)
+      let filtered =
+        List.filter benchmarks ~f:(fun bench ->
+          let name = Bench.Test.name bench in
+          List.mem name ~set:only)
+      in
+      (match filtered with
+       | _ :: _ -> filtered
+       | [] ->
+         print_endline "No benchmarks to run. Your options are:";
+         List.iter benchmarks ~f:(fun bench ->
+           let name = Bench.Test.name bench in
+           Printf.printf "- %s\n" name);
+         exit 1)
   in
   Command_unix.run (Bench.make_command benchmarks)
 ;;
