@@ -35,3 +35,20 @@ let exec_partial_detailed ?pos re s =
     |> String.concat ";"
     |> Format.printf "`Full [|%s|]@."
 ;;
+
+let or_not_found f fmt v =
+  match v () with
+  | exception Not_found -> Format.fprintf fmt "Not_found"
+  | s -> f fmt s
+;;
+
+let array f fmt v =
+  Format.fprintf fmt "[| %a |]" (Fmt.list ~pp_sep:(Fmt.lit "; ") f) (Array.to_list v)
+;;
+
+let offset fmt (x, y) = Format.fprintf fmt "(%d, %d)" x y
+
+let test_re ?pos ?len r s =
+  let offsets () = Re.Group.all_offset (Re.exec ?pos ?len (Re.compile r) s) in
+  Format.printf "%a@." (or_not_found (array offset)) offsets
+;;
