@@ -91,11 +91,16 @@ let benchmarks =
 let exec_bench exec name (re : Re.t) cases =
   Bench.Test.create_group
     ~name
-    (List.mapi cases ~f:(fun i case ->
-       let name = Printf.sprintf "case %i" i in
+    (List.map cases ~f:(fun data ->
+       let name =
+         let len = String.length data in
+         if len > 40
+         then Printf.sprintf "%s .. (%d)" (String.sub data ~pos:0 ~len:10) len
+         else data
+       in
        Bench.Test.create ~name (fun () ->
          let re = Re.compile re in
-         ignore (exec re case))))
+         ignore (exec re data))))
 ;;
 
 let exec_bench_many exec name re cases =
