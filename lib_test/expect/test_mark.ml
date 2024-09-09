@@ -42,3 +42,12 @@ let%expect_test "mark alt" =
   test_mark r "ab" [ ia; ib ] [];
   [%expect {| true |}]
 ;;
+
+let%expect_test "mark prefers lhs" =
+  let two_chars = seq [ any; any ] in
+  let lhs, x = mark two_chars in
+  let rhs, x' = mark two_chars in
+  let r = alt [ x; x' ] in
+  test_mark r "aa" [ lhs ] [ rhs ];
+  [%expect {| true |}]
+;;
