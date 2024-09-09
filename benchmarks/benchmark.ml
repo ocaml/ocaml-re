@@ -1,6 +1,5 @@
+open Core
 open Core_bench
-module List = ListLabels
-module String = StringLabels
 
 module Http = struct
   open Re
@@ -186,14 +185,14 @@ let benchmarks =
 
 let () =
   let benchmarks =
-    match Sys.getenv_opt "RE_BENCH_FILTER" with
+    match Sys.getenv "RE_BENCH_FILTER" with
     | None -> benchmarks
     | Some only ->
-      let only = String.split_on_char ~sep:',' only in
+      let only = String.split ~on:',' only in
       let filtered =
         List.filter benchmarks ~f:(fun bench ->
           let name = Bench.Test.name bench in
-          List.mem name ~set:only)
+          List.mem only name ~equal:String.equal)
       in
       (match filtered with
        | _ :: _ -> filtered
