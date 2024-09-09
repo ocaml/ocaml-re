@@ -64,9 +64,19 @@ module Rep_kind = struct
   ;;
 end
 
-module Mark = struct
+module Mark : sig
+  type t = private int
+
+  val pp : t Fmt.t
+  val start : t
+  val prev : t -> t
+  val next : t -> t
+  val next2 : t -> t
+  val group_count : t -> int
+end = struct
   type t = int
 
+  let pp = Format.pp_print_int
   let start = 0
   let prev x = pred x
   let next x = succ x
@@ -87,8 +97,8 @@ and def =
   | Seq of Sem.t * expr * expr
   | Eps
   | Rep of Rep_kind.t * Sem.t * expr
-  | Mark of int
-  | Erase of int * int
+  | Mark of Mark.t
+  | Erase of Mark.t * Mark.t
   | Before of Category.t
   | After of Category.t
   | Pmark of Pmark.t
@@ -141,12 +151,20 @@ module Marks = struct
     if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
   ;;
 
-  let filter t b e =
-    { t with marks = List.filter ~f:(fun (i, _) -> i < b || i > e) t.marks }
+  let remove_marks (b : Mark.t) (e : Mark.t) rem = remove_marks (b :> int) (e :> int) rem
+
+  let filter t (b : Mark.t) (e : Mark.t) =
+    { t with
+      marks = List.filter ~f:(fun (i, _) -> i < (b :> int) || i > (e :> int)) t.marks
+    }
   ;;
 
   let erase t b e = { t with marks = remove_marks b e (filter t b e).marks }
-  let set_mark t i = { t with marks = (i, -1) :: List.remove_assq i t.marks }
+
+  let set_mark t (i : Mark.t) =
+    { t with marks = ((i :> int), -1) :: List.remove_assq (i :> int) t.marks }
+  ;;
+
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
 
   let pp_marks ch t =
@@ -168,9 +186,9 @@ let rec pp ch e =
   | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
   | Eps -> str ch "eps"
   | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
-  | Mark i -> sexp ch "mark" int i
+  | Mark i -> sexp ch "mark" int (i :> int)
   | Pmark i -> sexp ch "pmark" int (i :> int)
-  | Erase (b, e) -> sexp ch "erase" (pair int int) (b, e)
+  | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
   | Before c -> sexp ch "before" Category.pp c
   | After c -> sexp ch "after" Category.pp c
 ;;
