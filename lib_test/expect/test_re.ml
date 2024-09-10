@@ -84,21 +84,28 @@ let%expect_test "rep1" =
 ;;
 
 let%expect_test "repn" =
-  test_re (repn (char 'a') 0 None) "";
+  let a = char 'a' in
+  test_re (repn a 0 None) "";
   [%expect {| [| (0, 0) |] |}];
-  test_re (repn (char 'a') 0 (Some 0)) "";
-  [%expect {| [| (0, 0) |] |}];
-  test_re (repn (char 'a') 1 (Some 2)) "a";
-  [%expect {| [| (0, 1) |] |}];
-  test_re (repn (char 'a') 1 (Some 2)) "aa";
-  [%expect {| [| (0, 2) |] |}];
-  test_re (repn (char 'a') 1 (Some 2)) "";
+  test_re (repn a 2 None) "a";
   [%expect {| Not_found |}];
-  test_re (repn (char 'a') 1 (Some 2)) "aaa";
+  test_re (repn a 2 None) "aa";
+  [%expect {| [| (0, 2) |] |}];
+  test_re (repn a 0 (Some 0)) "";
+  [%expect {| [| (0, 0) |] |}];
+  test_re (repn a 1 (Some 2)) "a";
+  [%expect {| [| (0, 1) |] |}];
+  test_re (repn a 1 (Some 2)) "aa";
+  [%expect {| [| (0, 2) |] |}];
+  test_re (repn a 1 (Some 2)) "";
+  [%expect {| Not_found |}];
+  test_re (repn a 1 (Some 2)) "aaa";
   [%expect {| [| (0, 2) |] |}];
   invalid_argument (fun () -> repn empty (-1) None);
   [%expect {| Invalid_argument "Re.repn" |}];
   invalid_argument (fun () -> repn empty 1 (Some 0));
+  [%expect {| Invalid_argument "Re.repn" |}];
+  invalid_argument (fun () -> repn empty 4 (Some 3));
   [%expect {| Invalid_argument "Re.repn" |}]
 ;;
 
