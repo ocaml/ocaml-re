@@ -119,8 +119,6 @@ type info =
     mutable positions : int array
   ; (* Array of mark positions
        The mark are off by one for performance reasons *)
-    pos : int
-  ; (* Position where the match is started *)
     last : int (* Position where the match should stop *)
   }
 
@@ -283,8 +281,7 @@ let rec handle_last_newline info ~pos st ~groups =
     handle_last_newline info ~pos st ~groups)
 ;;
 
-let rec scan_str info (s : string) initial_state ~groups =
-  let pos = info.pos in
+let rec scan_str info (s : string) initial_state ~pos ~groups =
   let last = info.last in
   if last = String.length s
      && (not (Cset.equal_c info.re.lnl Cset.null_char))
@@ -292,7 +289,7 @@ let rec scan_str info (s : string) initial_state ~groups =
      && Char.equal (String.get s (last - 1)) '\n'
   then (
     let info = { info with last = last - 1 } in
-    let st = scan_str info s initial_state ~groups in
+    let st = scan_str ~pos info s initial_state ~groups in
     if Idx.is_break (State.get_info st).idx
     then st
     else handle_last_newline info ~pos:(last - 1) st ~groups)
@@ -335,7 +332,6 @@ let make_info ~groups re s ~pos ~len =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   { re
-  ; pos
   ; last
   ; positions =
       (if groups
@@ -357,7 +353,7 @@ let make_match_str info ~groups ~partial re s ~pos =
       in
       find_initial_state re initial_cat
     in
-    scan_str info s initial_state ~groups
+    scan_str info s initial_state ~pos ~groups
   in
   let state_info = State.get_info st in
   if Idx.is_break state_info.idx || (partial && not groups)
