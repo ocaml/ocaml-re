@@ -215,7 +215,7 @@ val exec_partial_detailed
 (** Marks *)
 module Mark : sig
   (** Mark id *)
-  type t
+  type t = Pmark.t
 
   (** Tell if a mark was matched. *)
   val test : Group.t -> t -> bool
@@ -773,3 +773,41 @@ val marked : Group.t -> Mark.t -> bool
 (** Same as {!Mark.all}. Deprecated *)
 val mark_set : Group.t -> Mark.Set.t
 [@@ocaml.deprecated "Use Mark.all"]
+
+module Stream : sig
+  (** An experimental for matching a regular expression by feeding individual
+      string chunks.
+
+      This module is not covered by semver's stability guarantee. *)
+
+  type t
+
+  type 'a feed =
+    | Ok of 'a
+    | No_match
+
+  val create : re -> t
+  val feed : t -> string -> pos:int -> len:int -> t feed
+
+  (** [finalize s ~pos ~len] feed [s] from [pos] to [len] and return whether
+      the regular expression matched. *)
+  val finalize : t -> string -> pos:int -> len:int -> bool
+
+  module Group : sig
+    (** Match a string against a regular expression with capture groups *)
+
+    type stream := t
+    type t
+
+    module Match : sig
+      type t
+
+      val get : t -> int -> string option
+      val test_mark : t -> Pmark.t -> bool
+    end
+
+    val create : stream -> t
+    val feed : t -> string -> pos:int -> len:int -> t feed
+    val finalize : t -> string -> pos:int -> len:int -> Match.t feed
+  end
+end

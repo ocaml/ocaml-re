@@ -7,6 +7,8 @@ Unreleased
 * Introduce parsing functions in `Re.{Perl,Pcre,Emacs,Glob}` that return a
   result instead of raising. (#542)
 
+* Introduce experimental streaming API `Re.Stream`. (#456)
+
 1.13.1 (30-Sep-2024)
 --------------------
 

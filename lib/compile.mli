@@ -1,5 +1,34 @@
 type re
 
+module Stream : sig
+  type t
+
+  type 'a feed =
+    | Ok of 'a
+    | No_match
+
+  val create : re -> t
+  val feed : t -> string -> pos:int -> len:int -> t feed
+  val finalize : t -> string -> pos:int -> len:int -> bool
+
+  module Group : sig
+    type stream := t
+    type t
+
+    module Match : sig
+      type t
+
+      val get : t -> int -> string option
+      val test_mark : t -> Pmark.t -> bool
+    end
+
+    val create : stream -> t
+    val feed : t -> string -> pos:int -> len:int -> t feed
+    val finalize : t -> string -> pos:int -> len:int -> Match.t feed
+    val no_match_starts_before : t -> int
+  end
+end
+
 type match_info =
   | Match of Group.t
   | Failed

@@ -1,5 +1,6 @@
 (library
  (name re_tests)
+ (modules import test_stream)
  (libraries
   re_private
   ;; This is because of the (implicit_transitive_deps false)

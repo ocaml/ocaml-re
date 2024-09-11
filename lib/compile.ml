@@ -371,6 +371,182 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
   else final_boundary_check re positions ~last ~slen s state_info ~groups
 ;;
 
+module Stream = struct
+  type nonrec t =
+    { state : State.t
+    ; re : re
+    }
+
+  type 'a feed =
+    | Ok of 'a
+    | No_match
+
+  let create re =
+    let category = Category.(search_boundary ++ inexistant) in
+    let state = find_initial_state re category in
+    { state; re }
+  ;;
+
+  let feed t s ~pos ~len =
+    (* TODO bound checks? *)
+    let last = pos + len in
+    let state = loop_no_mark t.re ~colors:t.re.colors s ~last ~pos t.state t.state in
+    let info = State.get_info state in
+    if Idx.is_break info.idx
+       &&
+       match Automata.State.status info.desc with
+       | Failed -> true
+       | Match _ | Running -> false
+    then No_match
+    else Ok { t with state }
+  ;;
+
+  let finalize t s ~pos ~len =
+    (* TODO bound checks? *)
+    let last = pos + len in
+    let state = scan_str t.re Positions.empty s t.state ~last ~pos ~groups:false in
+    let info = State.get_info state in
+    match
+      let _idx, res =
+        let final_cat = Category.(search_boundary ++ inexistant) in
+        final t.re Positions.empty info final_cat
+      in
+      res
+    with
+    | Running | Failed -> false
+    | Match _ -> true
+  ;;
+
+  module Group = struct
+    type nonrec t =
+      { t : t
+      ; positions : Positions.t
+      ; slices : Slice.L.t
+      ; abs_pos : int
+      ; first_match_pos : int
+      }
+
+    let no_match_starts_before t = t.first_match_pos
+
+    let create t =
+      { t
+      ; positions = Positions.make ~groups:true t.re
+      ; slices = []
+      ; abs_pos = 0
+      ; first_match_pos = 0
+      }
+    ;;
+
+    module Match = struct
+      type t =
+        { pmarks : Pmark.Set.t
+        ; slices : Slice.L.t
+        ; marks : Mark_infos.t
+        ; positions : int array
+        ; start_pos : int
+        }
+
+      let test_mark t mark = Pmark.Set.mem mark t.pmarks
+
+      let get t i =
+        Mark_infos.offset t.marks i
+        |> Option.map (fun (start, stop) ->
+          let start = t.positions.(start) - t.start_pos in
+          let stop = t.positions.(stop) - t.start_pos in
+          Slice.L.get_substring t.slices ~start ~stop)
+      ;;
+
+      let make ~start_pos ~pmarks ~slices ~marks ~positions =
+        let positions = Positions.all positions in
+        { pmarks; slices; positions; marks; start_pos }
+      ;;
+    end
+
+    let rec loop re ~abs_pos ~colors ~positions s ~pos ~last st0 st =
+      if pos < last
+      then (
+        let st' = next colors st s pos in
+        let idx = (State.get_info st').idx in
+        if Idx.is_idx idx
+        then (
+          Positions.set positions (Idx.idx idx) (abs_pos + pos);
+          loop re ~abs_pos ~colors ~positions s ~pos:(pos + 1) ~last st' st')
+        else if Idx.is_break idx
+        then (
+          Positions.set positions (Idx.break_idx idx) (abs_pos + pos);
+          st')
+        else (
+          (* Unknown *)
+          validate re positions s ~pos st0;
+          loop re ~abs_pos ~colors ~positions s ~pos ~last st0 st0))
+      else st
+    ;;
+
+    let feed ({ t; positions; slices; abs_pos; first_match_pos = _ } as tt) s ~pos ~len =
+      let state =
+        (* TODO bound checks? *)
+        let last = pos + len in
+        loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
+      in
+      let info = State.get_info state in
+      if Idx.is_break info.idx
+         &&
+         match Automata.State.status info.desc with
+         | Failed -> true
+         | Match _ | Running -> false
+      then No_match
+      else (
+        let t = { t with state } in
+        let slices = { Slice.s; pos; len } :: slices in
+        let first_match_pos = Positions.first positions in
+        let slices = Slice.L.drop_rev slices (first_match_pos - tt.first_match_pos) in
+        let abs_pos = abs_pos + len in
+        Ok { tt with t; slices; abs_pos; first_match_pos })
+    ;;
+
+    let finalize
+      ({ t; positions; slices; abs_pos; first_match_pos = _ } as tt)
+      s
+      ~pos
+      ~len
+      : Match.t feed
+      =
+      (* TODO bound checks? *)
+      let last = pos + len in
+      let info =
+        let state =
+          loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
+        in
+        State.get_info state
+      in
+      match
+        match Automata.State.status info.desc with
+        | (Match _ | Failed) as s -> s
+        | Running ->
+          let idx, res =
+            let final_cat = Category.(search_boundary ++ inexistant) in
+            final t.re positions info final_cat
+          in
+          (match res with
+           | Running | Failed -> ()
+           | Match _ -> Positions.set positions (Automata.Idx.to_int idx) (abs_pos + last));
+          res
+      with
+      | Running | Failed -> No_match
+      | Match (marks, pmarks) ->
+        let first_match_position = Positions.first positions in
+        let slices =
+          let slices =
+            let slices = { Slice.s; pos; len } :: slices in
+            Slice.L.drop_rev slices (first_match_position - tt.first_match_pos)
+          in
+          List.rev slices
+        in
+        Ok (Match.make ~start_pos:first_match_position ~pmarks ~marks ~slices ~positions)
+    ;;
+  end
+end
+
 let match_str_no_bounds ~groups ~partial re s ~pos ~len =
   let positions = Positions.make ~groups re in
   match make_match_str re positions ~len ~groups ~partial s ~pos with
