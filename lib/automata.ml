@@ -584,15 +584,15 @@ let prepend_marks =
   fun m -> List.map ~f:(fun (s, x) -> s, prepend_marks_expr_lst m x)
 ;;
 
-let rec deriv_1 all_chars categories marks cat x rem =
+let rec deriv_expr all_chars categories marks cat x rem =
   match x.def with
   | Cst s -> Cset.prepend s [ E.texp marks eps_expr ] rem
-  | Alt l -> deriv_2 all_chars categories marks cat l rem
+  | Alt l -> deriv_alt all_chars categories marks cat l rem
   | Seq (kind, y, z) ->
-    let y = deriv_1 all_chars categories marks cat y [ all_chars, [] ] in
+    let y = deriv_expr all_chars categories marks cat y [ all_chars, [] ] in
     deriv_seq all_chars categories cat kind y z rem
   | Rep (rep_kind, kind, y) ->
-    let y = deriv_1 all_chars categories marks cat y [ all_chars, [] ] in
+    let y = deriv_expr all_chars categories marks cat y [ all_chars, [] ] in
     List.fold_right ~init:rem y ~f:(fun (s, z) rem ->
       let z', marks' =
         match Desc.first_match z with
@@ -615,22 +615,22 @@ let rec deriv_1 all_chars categories marks cat x rem =
     then Cset.prepend all_chars [ E.TMatch marks ] rem
     else rem
 
-and deriv_2 all_chars categories marks cat l rem =
+and deriv_alt all_chars categories marks cat l rem =
   match l with
   | [] -> rem
   | y :: r ->
-    deriv_1
+    deriv_expr
       all_chars
       categories
       marks
       cat
       y
-      (deriv_2 all_chars categories marks cat r rem)
+      (deriv_alt all_chars categories marks cat r rem)
 
 and deriv_seq all_chars categories cat kind y z rem =
   if List.exists y ~f:(fun (_s, xl) -> Desc.exists_tmatch xl)
   then (
-    let z' = deriv_1 all_chars categories Marks.empty cat z [ all_chars, [] ] in
+    let z' = deriv_expr all_chars categories Marks.empty cat z [ all_chars, [] ] in
     List.fold_right ~init:rem y ~f:(fun (s, y) rem ->
       match Desc.first_match y with
       | None -> Cset.prepend s (E.tseq kind y z []) rem
@@ -657,22 +657,22 @@ and deriv_seq all_chars categories cat kind y z rem =
       Cset.prepend s (E.tseq kind xl z []) rem)
 ;;
 
-let rec deriv_3 all_chars categories cat x rem =
+let rec deriv_e all_chars categories cat x rem =
   match x with
   | E.TSeq (kind, y, z) ->
-    let y' = deriv_4 all_chars categories cat y [ all_chars, [] ] in
+    let y' = deriv_desc all_chars categories cat y [ all_chars, [] ] in
     deriv_seq all_chars categories cat kind y' z rem
-  | E.TExp (marks, e) -> deriv_1 all_chars categories marks cat e rem
+  | E.TExp (marks, e) -> deriv_expr all_chars categories marks cat e rem
   | E.TMatch _ -> Cset.prepend all_chars [ x ] rem
 
-and deriv_4 all_chars categories cat l rem =
+and deriv_desc all_chars categories cat l rem =
   match l with
   | [] -> rem
-  | y :: r -> deriv_3 all_chars categories cat y (deriv_4 all_chars categories cat r rem)
+  | y :: r -> deriv_e all_chars categories cat y (deriv_desc all_chars categories cat r rem)
 ;;
 
 let deriv (tbl_ref : Working_area.t) all_chars categories (st : State.t) =
-  let der = deriv_4 all_chars categories st.category st.desc [ all_chars, [] ] in
+  let der = deriv_desc all_chars categories st.category st.desc [ all_chars, [] ] in
   simpl_tr
     (List.fold_right der ~init:[] ~f:(fun (s, expr) rem ->
        let expr' = remove_duplicates tbl_ref.seen expr eps_expr in
