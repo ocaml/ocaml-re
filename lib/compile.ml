@@ -112,14 +112,38 @@ let pp_re ch re = Automata.pp ch re.initial
 let group_count re = re.group_count
 let group_names re = re.group_names
 
-(* Information used during matching *)
-type info =
-  { re : re
-  ; (* The automata *)
-    mutable positions : int array
-  (* Array of mark positions
-     The mark are off by one for performance reasons *)
-  }
+module Positions = struct
+  (* Information used during matching *)
+  type t =
+    { mutable positions : int array
+    (* Array of mark positions
+       The mark are off by one for performance reasons *)
+    }
+
+  let empty = { positions = [||] }
+  let length t = Array.length t.positions
+  let set t idx pos = Array.unsafe_set t.positions idx pos
+
+  let resize t =
+    let len = Array.length t.positions in
+    let pos = t.positions in
+    t.positions <- Array.make (2 * len) 0;
+    Array.blit pos 0 t.positions 0 len
+  ;;
+
+  let all t = t.positions
+  let first t = t.positions.(0)
+
+  let make ~groups re =
+    if groups
+    then
+      { positions =
+          (let n = Automata.Working_area.index_count re.tbl + 1 in
+           if n <= 10 then [| 0; 0; 0; 0; 0; 0; 0; 0; 0; 0 |] else Array.make n 0)
+      }
+    else empty
+  ;;
+end
 
 (****)
 
@@ -157,25 +181,21 @@ let find_state re desc =
 
 (**** Match with marks ****)
 
-let delta info cat ~color st =
-  let desc = Automata.delta info.re.tbl cat color st.desc in
-  let len = Array.length info.positions in
-  if Automata.State.idx desc = len && len > 0
-  then (
-    let pos = info.positions in
-    info.positions <- Array.make (2 * len) 0;
-    Array.blit pos 0 info.positions 0 len);
+let delta re positions cat ~color st =
+  let desc = Automata.delta re.tbl cat color st.desc in
+  let len = Positions.length positions in
+  if Automata.State.idx desc = len && len > 0 then Positions.resize positions;
   desc
 ;;
 
-let validate info (s : string) ~pos st =
-  let color = Color_map.Table.get info.re.colors s.[pos] in
+let validate re positions (s : string) ~pos st =
+  let color = Color_map.Table.get re.colors s.[pos] in
   let st' =
     let desc' =
-      let cat = category info.re ~color in
-      delta info cat ~color (State.get_info st)
+      let cat = category re ~color in
+      delta re positions cat ~color (State.get_info st)
     in
-    find_state info.re desc'
+    find_state re desc'
   in
   State.set_transition st ~color st'
 ;;
@@ -184,48 +204,46 @@ let next colors st s pos =
   State.follow_transition st ~color:(Color_map.Table.get colors (String.unsafe_get s pos))
 ;;
 
-let rec loop info ~colors ~positions s ~pos ~last st0 st =
+let rec loop re ~colors ~positions s ~pos ~last st0 st =
   if pos < last
   then (
     let st' = next colors st s pos in
-    let state_info = State.get_info st' in
-    let idx = state_info.idx in
+    let idx = (State.get_info st').idx in
     if Idx.is_idx idx
     then (
-      Array.unsafe_set positions (Idx.idx idx) pos;
-      loop info ~colors ~positions s ~pos:(pos + 1) ~last st' st')
+      Positions.set positions (Idx.idx idx) pos;
+      loop re ~colors ~positions s ~pos:(pos + 1) ~last st' st')
     else if Idx.is_break idx
     then (
-      Array.unsafe_set positions (Idx.break_idx state_info.idx) pos;
+      Positions.set positions (Idx.break_idx idx) pos;
       st')
     else (
       (* Unknown *)
-      validate info s ~pos st0;
-      loop info ~colors ~positions:info.positions s ~pos ~last st0 st0))
+      validate re positions s ~pos st0;
+      loop re ~colors ~positions s ~pos ~last st0 st0))
   else st
 ;;
 
-let rec loop_no_mark info ~colors s ~pos ~last st0 st =
+let rec loop_no_mark re ~colors s ~pos ~last st0 st =
   if pos < last
   then (
     let st' = next colors st s pos in
-    let state_info = State.get_info st' in
-    let idx = state_info.idx in
+    let idx = (State.get_info st').idx in
     if Idx.is_idx idx
-    then loop_no_mark info ~colors s ~pos:(pos + 1) ~last st' st'
+    then loop_no_mark re ~colors s ~pos:(pos + 1) ~last st' st'
     else if Idx.is_break idx
     then st'
     else (
       (* Unknown *)
-      validate info s ~pos st0;
-      loop_no_mark info ~colors s ~pos ~last st0 st0))
+      validate re Positions.empty s ~pos st0;
+      loop_no_mark re ~colors s ~pos ~last st0 st0))
   else st
 ;;
 
-let final info st cat =
+let final re positions st cat =
   try List.assq cat st.final with
   | Not_found ->
-    let st' = delta info cat ~color:Cset.null_char st in
+    let st' = delta re positions cat ~color:Cset.null_char st in
     let res = Automata.State.idx st', Automata.State.status st' in
     st.final <- (cat, res) :: st.final;
     res
@@ -254,55 +272,46 @@ let get_color re (s : string) pos =
     else Color_map.Table.get re.colors s.[pos])
 ;;
 
-let rec handle_last_newline info ~pos st ~groups =
-  let st' = State.follow_transition st ~color:info.re.lnl in
+let rec handle_last_newline re positions ~pos st ~groups =
+  let st' = State.follow_transition st ~color:re.lnl in
   let info' = State.get_info st' in
   if Idx.is_idx info'.idx
   then (
-    if groups then info.positions.(Idx.idx info'.idx) <- pos;
+    if groups then Positions.set positions (Idx.idx info'.idx) pos;
     st')
   else if Idx.is_break info'.idx
   then (
-    if groups then info.positions.(Idx.break_idx info'.idx) <- pos;
+    if groups then Positions.set positions (Idx.break_idx info'.idx) pos;
     st')
   else (
     (* Unknown *)
-    let color = info.re.lnl in
+    let color = re.lnl in
     let st' =
       let desc' =
-        let cat = category info.re ~color in
-        let real_c = Color_map.Table.get info.re.colors '\n' in
-        delta info cat ~color:real_c (State.get_info st)
+        let cat = category re ~color in
+        let real_c = Color_map.Table.get re.colors '\n' in
+        delta re positions cat ~color:real_c (State.get_info st)
       in
-      find_state info.re desc'
+      find_state re desc'
     in
     State.set_transition st ~color st';
-    handle_last_newline info ~pos st ~groups)
+    handle_last_newline re positions ~pos st ~groups)
 ;;
 
-let rec scan_str info (s : string) initial_state ~last ~pos ~groups =
+let rec scan_str re positions (s : string) initial_state ~last ~pos ~groups =
   if last = String.length s
-     && (not (Cset.equal_c info.re.lnl Cset.null_char))
+     && (not (Cset.equal_c re.lnl Cset.null_char))
      && last > pos
      && Char.equal (String.get s (last - 1)) '\n'
   then (
     let last = last - 1 in
-    let st = scan_str ~pos info s initial_state ~last ~groups in
+    let st = scan_str re positions ~pos s initial_state ~last ~groups in
     if Idx.is_break (State.get_info st).idx
     then st
-    else handle_last_newline info ~pos:last st ~groups)
+    else handle_last_newline re positions ~pos:last st ~groups)
   else if groups
-  then
-    loop
-      info
-      ~colors:info.re.colors
-      ~positions:info.positions
-      s
-      ~pos
-      ~last
-      initial_state
-      initial_state
-  else loop_no_mark info ~colors:info.re.colors s ~pos ~last initial_state initial_state
+  then loop re ~colors:re.colors ~positions s ~pos ~last initial_state initial_state
+  else loop_no_mark re ~colors:re.colors s ~pos ~last initial_state initial_state
 ;;
 
 (* This function adds a final boundary check on the input.
@@ -311,33 +320,22 @@ let rec scan_str info (s : string) initial_state ~last ~pos ~groups =
    matches for regex that have boundary conditions with respect
    to the input string.
 *)
-let final_boundary_check ~last ~slen re s ~info ~st ~groups =
+let final_boundary_check re positions ~last ~slen s ~st ~groups =
   let idx, res =
     let final_cat =
       Category.(
         search_boundary
         ++ if last = slen then inexistant else category re ~color:(get_color re s last))
     in
-    final info (State.get_info st) final_cat
+    final re positions (State.get_info st) final_cat
   in
   (match groups, res with
-   | true, Match _ -> info.positions.(idx) <- last
+   | true, Match _ -> Positions.set positions idx last
    | _ -> ());
   res
 ;;
 
-let make_info ~groups re =
-  { re
-  ; positions =
-      (if groups
-       then (
-         let n = Automata.Working_area.index_count re.tbl + 1 in
-         if n <= 10 then [| 0; 0; 0; 0; 0; 0; 0; 0; 0; 0 |] else Array.make n 0)
-       else [||])
-  }
-;;
-
-let make_match_str info ~len ~groups ~partial re s ~pos =
+let make_match_str re positions ~len ~groups ~partial s ~pos =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let st =
@@ -349,7 +347,7 @@ let make_match_str info ~len ~groups ~partial re s ~pos =
       in
       find_initial_state re initial_cat
     in
-    scan_str info s initial_state ~pos ~last ~groups
+    scan_str re positions s initial_state ~pos ~last ~groups
   in
   let state_info = State.get_info st in
   if Idx.is_break state_info.idx || (partial && not groups)
@@ -362,33 +360,31 @@ let make_match_str info ~len ~groups ~partial re s ~pos =
       (* This could be because it's still not fully matched, or it
          could be that because we need to run special end of input
          checks. *)
-      (match final_boundary_check ~last ~slen re s ~info ~st ~groups with
+      (match final_boundary_check re positions ~last ~slen s ~st ~groups with
        | Match _ as status -> status
        | Failed | Running ->
          (* A failure here just means that we need more data, i.e.
             it's a partial match. *)
          Running))
-  else final_boundary_check ~last ~slen re s ~info ~st ~groups
+  else final_boundary_check re positions ~last ~slen s ~st ~groups
 ;;
 
 let match_str_no_bounds ~groups ~partial re s ~pos ~len =
-  let info = make_info ~groups re in
-  match make_match_str info ~len ~groups ~partial re s ~pos with
+  let positions = Positions.make ~groups re in
+  match make_match_str re positions ~len ~groups ~partial s ~pos with
   | Match (marks, pmarks) ->
-    Match (Group.create s marks pmarks ~gpos:info.positions ~gcount:re.group_count)
+    Match
+      (Group.create s marks pmarks ~gpos:(Positions.all positions) ~gcount:re.group_count)
   | Failed -> Failed
   | Running ->
-    let no_match_starts_before = if groups then info.positions.(0) else 0 in
+    let no_match_starts_before = if groups then Positions.first positions else 0 in
     Running { no_match_starts_before }
 ;;
 
 let match_str_p re s ~pos ~len =
   if pos < 0 || len < -1 || pos + len > String.length s
   then invalid_arg "Re.exec: out of bounds";
-  let groups = false in
-  let partial = false in
-  let info = make_info ~groups re in
-  match make_match_str info ~len ~groups ~partial re s ~pos with
+  match make_match_str re Positions.empty ~len ~groups:false ~partial:false s ~pos with
   | Match _ -> true
   | _ -> false
 ;;
