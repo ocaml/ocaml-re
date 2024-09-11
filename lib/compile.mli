@@ -1,5 +1,17 @@
 type re
 
+module Stream : sig
+  type t
+
+  type feed =
+    | Ok of t
+    | No_match
+
+  val create : re -> t
+  val feed : t -> string -> pos:int -> len:int -> feed
+  val finalize : t -> string -> pos:int -> len:int -> bool
+end
+
 type match_info =
   | Match of Group.t
   | Failed
