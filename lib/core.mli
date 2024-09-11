@@ -215,7 +215,7 @@ val exec_partial_detailed
 (** Marks *)
 module Mark : sig
   (** Mark id *)
-  type t
+  type t = Pmark.t
 
   (** Tell if a mark was matched. *)
   val test : Group.t -> t -> bool
@@ -227,6 +227,34 @@ module Mark : sig
 
   val equal : t -> t -> bool
   val compare : t -> t -> int
+end
+
+module Stream : sig
+  type t
+
+  type 'a feed =
+    | Ok of 'a
+    | No_match
+
+  val create : re -> t
+  val feed : t -> string -> pos:int -> len:int -> t feed
+  val finalize : t -> string -> pos:int -> len:int -> bool
+
+  module Group : sig
+    type stream := t
+    type t
+
+    module Match : sig
+      type t
+
+      val get : t -> int -> string option
+      val test_mark : t -> Pmark.t -> bool
+    end
+
+    val create : stream -> t
+    val feed : t -> string -> pos:int -> len:int -> t feed
+    val finalize : t -> string -> pos:int -> len:int -> Match.t feed
+  end
 end
 
 (** {2 High Level Operations} *)
