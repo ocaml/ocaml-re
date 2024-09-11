@@ -320,14 +320,14 @@ let rec scan_str re positions (s : string) initial_state ~last ~pos ~groups =
    matches for regex that have boundary conditions with respect
    to the input string.
 *)
-let final_boundary_check re positions ~last ~slen s ~st ~groups =
+let final_boundary_check re positions ~last ~slen s state_info ~groups =
   let idx, res =
     let final_cat =
       Category.(
         search_boundary
         ++ if last = slen then inexistant else category re ~color:(get_color re s last))
     in
-    final re positions (State.get_info st) final_cat
+    final re positions state_info final_cat
   in
   (match groups, res with
    | true, Match _ -> Positions.set positions idx last
@@ -360,13 +360,13 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
       (* This could be because it's still not fully matched, or it
          could be that because we need to run special end of input
          checks. *)
-      (match final_boundary_check re positions ~last ~slen s ~st ~groups with
+      (match final_boundary_check re positions ~last ~slen s state_info ~groups with
        | Match _ as status -> status
        | Failed | Running ->
          (* A failure here just means that we need more data, i.e.
             it's a partial match. *)
          Running))
-  else final_boundary_check re positions ~last ~slen s ~st ~groups
+  else final_boundary_check re positions ~last ~slen s state_info ~groups
 ;;
 
 let match_str_no_bounds ~groups ~partial re s ~pos ~len =
