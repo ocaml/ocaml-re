@@ -558,9 +558,9 @@ let rec red_tr = function
 ;;
 
 let simpl_tr l =
-  List.sort
-    ~cmp:(fun (s1, _) (s2, _) -> Cset.compare s1 s2)
-    (red_tr (List.sort ~cmp:(fun (_, st1) (_, st2) -> State.compare st1 st2) l))
+  List.sort ~cmp:(fun (_, st1) (_, st2) -> State.compare st1 st2) l
+  |> red_tr
+  |> List.sort ~cmp:(fun (s1, _) (s2, _) -> Cset.compare s1 s2)
 ;;
 
 (****)
@@ -657,33 +657,34 @@ and deriv_seq all_chars categories cat kind y z rem =
       Cset.prepend s (E.tseq kind xl z []) rem)
 ;;
 
-let rec deriv_e all_chars categories cat x rem =
+let rec deriv_e all_chars categories cat (x : E.t) rem =
   match x with
-  | E.TSeq (kind, y, z) ->
-    let y' = deriv_desc all_chars categories cat y [ all_chars, [] ] in
-    deriv_seq all_chars categories cat kind y' z rem
-  | E.TExp (marks, e) -> deriv_expr all_chars categories marks cat e rem
-  | E.TMatch _ -> Cset.prepend all_chars [ x ] rem
+  | TSeq (kind, y, z) ->
+    let y = deriv_desc all_chars categories cat y [ all_chars, [] ] in
+    deriv_seq all_chars categories cat kind y z rem
+  | TExp (marks, e) -> deriv_expr all_chars categories marks cat e rem
+  | TMatch _ -> Cset.prepend all_chars [ x ] rem
 
 and deriv_desc all_chars categories cat l rem =
   match l with
   | [] -> rem
-  | y :: r -> deriv_e all_chars categories cat y (deriv_desc all_chars categories cat r rem)
+  | y :: r ->
+    deriv_e all_chars categories cat y (deriv_desc all_chars categories cat r rem)
 ;;
 
 let deriv (tbl_ref : Working_area.t) all_chars categories (st : State.t) =
-  let der = deriv_desc all_chars categories st.category st.desc [ all_chars, [] ] in
-  simpl_tr
-    (List.fold_right der ~init:[] ~f:(fun (s, expr) rem ->
-       let expr' = remove_duplicates tbl_ref.seen expr eps_expr in
-       (*
-          Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
-       *)
-       let idx = Working_area.free_index tbl_ref expr' in
-       let expr'' = Desc.set_idx idx expr' in
-       List.fold_right categories ~init:rem ~f:(fun (cat', s') rem ->
-         let s'' = Cset.inter s s' in
-         if Cset.is_empty s'' then rem else (s'', State.mk idx cat' expr'') :: rem)))
+  deriv_desc all_chars categories st.category st.desc [ all_chars, [] ]
+  |> List.fold_right ~init:[] ~f:(fun (s, expr) rem ->
+    let expr' = remove_duplicates tbl_ref.seen expr eps_expr in
+    (*
+       Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
+    *)
+    let idx = Working_area.free_index tbl_ref expr' in
+    let expr'' = Desc.set_idx idx expr' in
+    List.fold_right categories ~init:rem ~f:(fun (cat', s') rem ->
+      let s'' = Cset.inter s s' in
+      if Cset.is_empty s'' then rem else (s'', State.mk idx cat' expr'') :: rem))
+  |> simpl_tr
 ;;
 
 (****)
