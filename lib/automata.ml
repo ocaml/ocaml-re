@@ -308,7 +308,7 @@ module E = struct
         print_state_rec ch e y)
   ;;
 
-  let _pp ch t = print_state_lst ch [ t ] { id = 0; def = Eps }
+  let pp ch t = print_state_lst ch [ t ] { id = 0; def = Eps }
 end
 
 module Desc = struct
@@ -344,6 +344,10 @@ module Desc = struct
     | TMatch marks :: r -> TMatch (Marks.marks_set_idx marks idx) :: set_idx idx r
     | TSeq (kind, l, x) :: r -> TSeq (kind, set_idx idx l, x) :: set_idx idx r
     | TExp (marks, x) :: r -> TExp (Marks.marks_set_idx marks idx, x) :: set_idx idx r
+  ;;
+
+  let[@ocaml.warning "-32"] pp fmt t =
+    Format.fprintf fmt "[%a]" (Format.pp_print_list ~pp_sep:(Fmt.lit "; ") E.pp) t
   ;;
 end
 
