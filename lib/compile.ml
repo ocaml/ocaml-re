@@ -275,25 +275,25 @@ let get_color re (s : string) pos =
 
 let rec handle_last_newline re positions ~pos st ~groups =
   let st' = State.follow_transition st ~color:re.lnl in
-  let info' = State.get_info st' in
-  if Idx.is_idx info'.idx
+  let info = State.get_info st' in
+  if Idx.is_idx info.idx
   then (
-    if groups then Positions.set positions (Idx.idx info'.idx) pos;
+    if groups then Positions.set positions (Idx.idx info.idx) pos;
     st')
-  else if Idx.is_break info'.idx
+  else if Idx.is_break info.idx
   then (
-    if groups then Positions.set positions (Idx.break_idx info'.idx) pos;
+    if groups then Positions.set positions (Idx.break_idx info.idx) pos;
     st')
   else (
     (* Unknown *)
     let color = re.lnl in
     let st' =
-      let desc' =
+      let desc =
         let cat = category re ~color in
         let real_c = Color_map.Table.get re.colors '\n' in
         delta re positions cat ~color:real_c (State.get_info st)
       in
-      find_state re desc'
+      find_state re desc
     in
     State.set_transition st ~color st';
     handle_last_newline re positions ~pos st ~groups)
