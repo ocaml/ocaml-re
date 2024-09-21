@@ -167,8 +167,9 @@ let find_state re desc =
         | Failed | Match _ -> true
       in
       let st =
-        let real_idx = Automata.State.idx desc in
-        { idx = (if break_state then Idx.make_break real_idx else Idx.of_idx real_idx)
+        { idx =
+            (let idx = Automata.State.idx desc in
+             if break_state then Idx.make_break idx else Idx.of_idx idx)
         ; final = []
         ; desc
         }
