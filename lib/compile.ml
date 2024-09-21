@@ -184,7 +184,7 @@ let find_state re desc =
 let delta re positions cat ~color st =
   let desc = Automata.delta re.tbl cat color st.desc in
   let len = Positions.length positions in
-  if Automata.State.idx desc = len && len > 0 then Positions.resize positions;
+  if len > 0 && Automata.State.idx desc = len then Positions.resize positions;
   desc
 ;;
 
