@@ -141,46 +141,6 @@ type markid = Mark.t
 let marked = Mark.test
 let mark_set = Mark.all
 
-(**********************************)
-
-(*
-   Information about the previous character:
-   - does not exists
-   - is a letter
-   - is not a letter
-   - is a newline
-   - is last newline
-
-   Beginning of word:
-   - previous is not a letter or does not exist
-   - current is a letter or does not exist
-
-   End of word:
-   - previous is a letter or does not exist
-   - current is not a letter or does not exist
-
-   Beginning of line:
-   - previous is a newline or does not exist
-
-   Beginning of buffer:
-   - previous does not exist
-
-   End of buffer
-   - current does not exist
-
-   End of line
-   - current is a newline or does not exist
-*)
-
-(*
-   Rep: e = T,e | ()
-  - semantics of the comma (shortest/longest/first)
-  - semantics of the union (greedy/non-greedy)
-
-Bounded repetition
-  a{0,3} = (a,(a,a?)?)?
-*)
-
 type groups = Group.t
 
 module List = struct
