@@ -267,10 +267,10 @@ let get_color re (s : string) pos =
     then Cset.null_char
     else if pos = slen - 1
             && (not (Cset.equal_c re.lnl Cset.null_char))
-            && Char.equal s.[pos] '\n'
+            && Char.equal (String.unsafe_get s pos) '\n'
     then (* Special case for the last newline *)
       re.lnl
-    else Color_map.Table.get re.colors s.[pos])
+    else Color_map.Table.get re.colors (String.unsafe_get s pos))
 ;;
 
 let rec handle_last_newline re positions ~pos st ~groups =
