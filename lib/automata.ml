@@ -112,22 +112,84 @@ end = struct
   let initial = 0
 end
 
-type expr =
-  { id : int
-  ; def : def
-  }
+module Expr = struct
+  type t =
+    { id : int
+    ; def : def
+    }
 
-and def =
-  | Cst of Cset.t
-  | Alt of expr list
-  | Seq of Sem.t * expr * expr
-  | Eps
-  | Rep of Rep_kind.t * Sem.t * expr
-  | Mark of Mark.t
-  | Erase of Mark.t * Mark.t
-  | Before of Category.t
-  | After of Category.t
-  | Pmark of Pmark.t
+  and def =
+    | Cst of Cset.t
+    | Alt of t list
+    | Seq of Sem.t * t * t
+    | Eps
+    | Rep of Rep_kind.t * Sem.t * t
+    | Mark of Mark.t
+    | Erase of Mark.t * Mark.t
+    | Before of Category.t
+    | After of Category.t
+    | Pmark of Pmark.t
+
+  let rec pp ch e =
+    let open Fmt in
+    match e.def with
+    | Cst l -> sexp ch "cst" Cset.pp l
+    | Alt l -> sexp ch "alt" (list pp) l
+    | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
+    | Eps -> str ch "eps"
+    | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
+    | Mark i -> sexp ch "mark" int (i :> int)
+    | Pmark i -> sexp ch "pmark" int (i :> int)
+    | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
+    | Before c -> sexp ch "before" Category.pp c
+    | After c -> sexp ch "after" Category.pp c
+  ;;
+
+  let eps_expr = { id = 0; def = Eps }
+  let mk ids def = { id = Ids.next ids; def }
+  let empty ids = mk ids (Alt [])
+  let cst ids s = if Cset.is_empty s then empty ids else mk ids (Cst s)
+  let eps ids = mk ids Eps
+  let rep ids kind sem x = mk ids (Rep (kind, sem, x))
+  let mark ids m = mk ids (Mark m)
+  let pmark ids i = mk ids (Pmark i)
+  let erase ids m m' = mk ids (Erase (m, m'))
+  let before ids c = mk ids (Before c)
+  let after ids c = mk ids (After c)
+
+  let alt ids = function
+    | [] -> empty ids
+    | [ c ] -> c
+    | l -> mk ids (Alt l)
+  ;;
+
+  let seq ids (kind : Sem.t) x y =
+    match x.def, y.def with
+    | Alt [], _ -> x
+    | _, Alt [] -> y
+    | Eps, _ -> y
+    | _, Eps when Sem.equal kind `First -> x
+    | _ -> mk ids (Seq (kind, x, y))
+  ;;
+
+  let is_eps expr =
+    match expr.def with
+    | Eps -> true
+    | _ -> false
+  ;;
+
+  let rec rename ids x =
+    match x.def with
+    | Cst _ | Eps | Mark _ | Pmark _ | Erase _ | Before _ | After _ -> mk ids x.def
+    | Alt l -> mk ids (Alt (List.map ~f:(rename ids) l))
+    | Seq (k, y, z) -> mk ids (Seq (k, rename ids y, rename ids z))
+    | Rep (g, k, y) -> mk ids (Rep (g, k, rename ids y))
+  ;;
+end
+
+type expr = Expr.t
+
+include Expr
 
 let hash_combine h accu = (accu * 65599) + h
 
@@ -203,70 +265,6 @@ module Marks = struct
   ;;
 end
 
-(****)
-
-let rec pp ch e =
-  let open Fmt in
-  match e.def with
-  | Cst l -> sexp ch "cst" Cset.pp l
-  | Alt l -> sexp ch "alt" (list pp) l
-  | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
-  | Eps -> str ch "eps"
-  | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
-  | Mark i -> sexp ch "mark" int (i :> int)
-  | Pmark i -> sexp ch "pmark" int (i :> int)
-  | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
-  | Before c -> sexp ch "before" Category.pp c
-  | After c -> sexp ch "after" Category.pp c
-;;
-
-(****)
-let eps_expr = { id = 0; def = Eps }
-let mk_expr ids def = { id = Ids.next ids; def }
-let empty ids = mk_expr ids (Alt [])
-let cst ids s = if Cset.is_empty s then empty ids else mk_expr ids (Cst s)
-
-let alt ids = function
-  | [] -> empty ids
-  | [ c ] -> c
-  | l -> mk_expr ids (Alt l)
-;;
-
-let seq ids (kind : Sem.t) x y =
-  match x.def, y.def with
-  | Alt [], _ -> x
-  | _, Alt [] -> y
-  | Eps, _ -> y
-  | _, Eps when Sem.equal kind `First -> x
-  | _ -> mk_expr ids (Seq (kind, x, y))
-;;
-
-let is_eps expr =
-  match expr.def with
-  | Eps -> true
-  | _ -> false
-;;
-
-let eps ids = mk_expr ids Eps
-let rep ids kind sem x = mk_expr ids (Rep (kind, sem, x))
-let mark ids m = mk_expr ids (Mark m)
-let pmark ids i = mk_expr ids (Pmark i)
-let erase ids m m' = mk_expr ids (Erase (m, m'))
-let before ids c = mk_expr ids (Before c)
-let after ids c = mk_expr ids (After c)
-
-(****)
-
-let rec rename ids x =
-  match x.def with
-  | Cst _ | Eps | Mark _ | Pmark _ | Erase _ | Before _ | After _ -> mk_expr ids x.def
-  | Alt l -> mk_expr ids (Alt (List.map ~f:(rename ids) l))
-  | Seq (k, y, z) -> mk_expr ids (Seq (k, rename ids y, rename ids z))
-  | Rep (g, k, y) -> mk_expr ids (Rep (g, k, rename ids y))
-;;
-
-(****)
-
 type status =
   | Failed
   | Match of Mark_infos.t * Pmark.Set.t
@@ -274,8 +272,8 @@ type status =
 
 module E = struct
   type t =
-    | TSeq of Sem.t * t list * expr
-    | TExp of Marks.t * expr
+    | TSeq of Sem.t * t list * Expr.t
+    | TExp of Marks.t * Expr.t
     | TMatch of Marks.t
 
   let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
@@ -324,17 +322,17 @@ module Desc = struct
   let equal = E.equal_list
   let hash = E.hash_list
 
-  let rec print_state_rec ch e y =
+  let rec print_state_rec ch e (y : Expr.t) =
     match e with
     | TMatch marks -> Format.fprintf ch "@[<2>(Match@ %a)@]" Marks.pp_marks marks
     | TSeq (_kind, l', x) ->
       Format.fprintf ch "@[<2>(Seq@ ";
       print_state_lst ch l' x;
-      Format.fprintf ch "@ %a)@]" pp x
+      Format.fprintf ch "@ %a)@]" Expr.pp x
     | TExp (marks, { def = Eps; _ }) ->
       Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ (eps))@]" y.id Marks.pp_marks marks
     | TExp (marks, x) ->
-      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ %a)@]" x.id Marks.pp_marks marks pp x
+      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ %a)@]" x.id Marks.pp_marks marks Expr.pp x
 
   and print_state_lst ch l y =
     match l with
@@ -535,10 +533,10 @@ type ctx =
   ; next_cat : Category.t
   }
 
-let rec delta_expr ({ c; _ } as ctx) marks x rem =
+let rec delta_expr ({ c; _ } as ctx) marks (x : Expr.t) rem =
   (*Format.eprintf "%d@." x.id;*)
   match x.def with
-  | Cst s -> if Cset.mem c s then E.texp marks eps_expr :: rem else rem
+  | Cst s -> if Cset.mem c s then E.texp marks Expr.eps_expr :: rem else rem
   | Alt l -> delta_alt ctx marks l rem
   | Seq (kind, y, z) ->
     let y = delta_expr ctx marks y [] in
@@ -595,7 +593,7 @@ let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
   let expr =
     let prev_cat = st.category in
     let ctx = { c = char; next_cat; prev_cat } in
-    remove_duplicates tbl_ref.seen (delta_desc ctx Marks.empty st.desc []) eps_expr
+    remove_duplicates tbl_ref.seen (delta_desc ctx Marks.empty st.desc []) Expr.eps_expr
   in
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
@@ -639,9 +637,9 @@ let prepend_marks =
   fun m -> List.map ~f:(fun (s, x) -> s, prepend_marks_expr_lst m x)
 ;;
 
-let rec deriv_expr all_chars categories marks cat x rem =
+let rec deriv_expr all_chars categories marks cat (x : Expr.t) rem =
   match x.def with
-  | Cst s -> Cset.prepend s [ E.texp marks eps_expr ] rem
+  | Cst s -> Cset.prepend s [ E.texp marks Expr.eps_expr ] rem
   | Alt l -> deriv_alt all_chars categories marks cat l rem
   | Seq (kind, y, z) ->
     let y = deriv_expr all_chars categories marks cat y [ all_chars, [] ] in
@@ -730,7 +728,7 @@ and deriv_desc all_chars categories cat l rem =
 let deriv (tbl_ref : Working_area.t) all_chars categories (st : State.t) =
   deriv_desc all_chars categories st.category st.desc [ all_chars, [] ]
   |> List.fold_right ~init:[] ~f:(fun (s, expr) rem ->
-    let expr' = remove_duplicates tbl_ref.seen expr eps_expr in
+    let expr' = remove_duplicates tbl_ref.seen expr Expr.eps_expr in
     (*
        Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
     *)
