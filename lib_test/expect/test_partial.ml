@@ -49,21 +49,21 @@ let%expect_test "partial detailed" =
   t (str "hello") "goodbye";
   [%expect {| `Partial 6 |}];
   t (str "hello") "hello";
-  [%expect {| `Full [|0,5|] |}];
+  [%expect {| `Full [|0,5,"hello"|] |}];
   t (whole_string (str "hello")) "hello";
-  [%expect {| `Full [|0,5|] |}];
+  [%expect {| `Full [|0,5,"hello"|] |}];
   t (whole_string (str "hello")) "goodbye";
   [%expect {| `Mismatch |}];
   t (str "hello") "";
   [%expect {| `Partial 0 |}];
   t (str "") "hello";
-  [%expect {| `Full [|0,0|] |}];
+  [%expect {| `Full [|0,0,""|] |}];
   t (whole_string (str "hello")) "";
   [%expect {| `Partial 0 |}];
   t (str "abc") ".ab.ab";
   [%expect {| `Partial 4 |}];
   t ~pos:1 (seq [ not_boundary; str "b" ]) "ab";
-  [%expect {| `Full [|1,2|] |}];
+  [%expect {| `Full [|1,2,"b"|] |}];
   t (seq [ group (str "a"); rep any; group (str "b") ]) ".acb.";
-  [%expect {| `Full [|1,4;1,2;3,4|] |}]
+  [%expect {| `Full [|1,4,"acb";1,2,"a";3,4,"b"|] |}]
 ;;

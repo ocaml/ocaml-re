@@ -58,14 +58,14 @@ let%expect_test "group choice" =
     alt [ group (char 'a'); char 'b' ]
   in
   t lhs_group "a";
-  [%expect {| `Full [|0,1;0,1|] |}];
+  [%expect {| `Full [|0,1,"a";0,1,"a"|] |}];
   t lhs_group "b";
-  [%expect {| `Full [|0,1;-1,-1|] |}];
+  [%expect {| `Full [|0,1,"b";-1,-1,<No match>|] |}];
   t
     (let open Re in
      alt [ group (char 'a'); group (char 'b') ])
     "b";
-  [%expect {| `Full [|0,1;-1,-1;0,1|] |}];
+  [%expect {| `Full [|0,1,"b";-1,-1,<No match>;0,1,"b"|] |}];
   (* No_group inside char set: *)
   let no_group_charset =
     let a = Re.group (Re.char 'a') in
@@ -73,9 +73,9 @@ let%expect_test "group choice" =
     Re.no_group (Re.alt [ a; b ])
   in
   t no_group_charset "a";
-  [%expect {| `Full [|0,1|] |}];
+  [%expect {| `Full [|0,1,"a"|] |}];
   t no_group_charset "b";
-  [%expect {| `Full [|0,1|] |}];
+  [%expect {| `Full [|0,1,"b"|] |}];
   (* No_group outside char set *)
   let no_group_string =
     let aa = Re.group (Re.str "aa") in
@@ -83,9 +83,9 @@ let%expect_test "group choice" =
     Re.no_group (Re.alt [ aa; bb ])
   in
   t no_group_string "aa";
-  [%expect {| `Full [|0,2|] |}];
+  [%expect {| `Full [|0,2,"aa"|] |}];
   t no_group_string "bb";
-  [%expect {| `Full [|0,2|] |}]
+  [%expect {| `Full [|0,2,"bb"|] |}]
 ;;
 
 let%expect_test "Group.{get,get_opt,offset,test}" =
