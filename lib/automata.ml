@@ -344,11 +344,13 @@ module Desc = struct
   let exists_tmatch = List.exists ~f:is_tmatch
   let compare x y = List.compare ~cmp:E.compare x y
 
-  let rec set_idx idx = function
-    | [] -> []
-    | TMatch marks :: r -> TMatch (Marks.marks_set_idx marks idx) :: set_idx idx r
-    | TSeq (kind, l, x) :: r -> TSeq (kind, set_idx idx l, x) :: set_idx idx r
-    | TExp (marks, x) :: r -> TExp (Marks.marks_set_idx marks idx, x) :: set_idx idx r
+  let set_idx =
+    let rec f idx = function
+      | TMatch marks -> TMatch (Marks.marks_set_idx marks idx)
+      | TSeq (kind, l, x) -> TSeq (kind, set_idx idx l, x)
+      | TExp (marks, x) -> TExp (Marks.marks_set_idx marks idx, x)
+    and set_idx idx xs = List.map xs ~f:(f idx) in
+    set_idx
   ;;
 
   let[@ocaml.warning "-32"] pp fmt t =
