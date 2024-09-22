@@ -31,7 +31,14 @@ let exec_partial_detailed ?pos re s =
   | `Full groups ->
     Re.Group.all_offset groups
     |> Array.to_list
-    |> List.map ~f:(fun (a, b) -> Printf.sprintf "%d,%d" a b)
+    |> List.map ~f:(fun (a, b) ->
+      Printf.sprintf
+        "%d,%d,%s"
+        a
+        b
+        (match String.sub s a (b - a) with
+         | exception Invalid_argument _ -> "<No match>"
+         | s -> Printf.sprintf "%S" s))
     |> String.concat ";"
     |> Format.printf "`Full [|%s|]@."
 ;;
