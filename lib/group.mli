@@ -1,21 +1,7 @@
 (** Information about groups in a match. *)
 
 (** Result of a successful match. *)
-type t = private
-  { s : string (* Input string. Matched strings are substrings of s *)
-  ; marks : Mark_infos.t
-      (* Mapping from group indices to positions in gpos. group i has positions 2*i
-         - 1, 2*i + 1 in gpos. If the group wasn't matched, then its corresponding
-           values in marks will be -1,-1 *)
-  ; pmarks : Pmark.Set.t (* Marks positions. i.e. those marks created with Re.marks *)
-  ; gpos : int array
-      (* Group positions. Adjacent elements are (start, stop) of group match.
-         indexed by the values in marks. So group i in an re would be the substring:
-
-         start = t.gpos.(marks.(2*i)) - 1
-         stop = t.gpos.(marks.(2*i + 1)) - 1 *)
-  ; gcount : int (* Number of groups the regular expression contains. Matched or not *)
-  }
+type t
 
 val create : string -> gcount:int -> gpos:int array -> Mark_infos.t -> Pmark.Set.t -> t
 
@@ -48,6 +34,8 @@ val all_offset : t -> (int * int) array
 
 (** Test whether a group matched *)
 val test : t -> int -> bool
+
+val pmarks : t -> Pmark.Set.t
 
 (** Returns the total number of groups defined - matched or not.
     This function is experimental. *)
