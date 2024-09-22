@@ -1,10 +1,21 @@
 (* Result of a successful match. *)
 type t =
-  { s : string
+  { (* Input string. Matched strings are substrings of s *)
+    s : string
+      (* Mapping from group indices to positions in gpos. group i has positions 2*i
+         - 1, 2*i + 1 in gpos. If the group wasn't matched, then its corresponding
+           values in marks will be -1,-1 *)
   ; marks : Mark_infos.t
-  ; pmarks : Pmark.Set.t
-  ; gpos : int array
-  ; gcount : int
+  ; (* Marks positions. i.e. those marks created with Re.marks *)
+    pmarks : Pmark.Set.t
+  ; (* Group positions. Adjacent elements are (start, stop) of group match.
+       indexed by the values in marks. So group i in an re would be the substring:
+
+       start = t.gpos.(marks.(2*i)) - 1
+       stop = t.gpos.(marks.(2*i + 1)) - 1 *)
+    gpos : int array
+  ; (* Number of groups the regular expression contains. Matched or not *)
+    gcount : int
   }
 
 let create s ~gcount ~gpos marks pmarks = { s; gcount; gpos; marks; pmarks }
@@ -25,6 +36,7 @@ let get_opt t i =
   offset_opt t i |> Option.map (fun (p1, p2) -> String.sub t.s p1 (p2 - p1))
 ;;
 
+let pmarks t = t.pmarks
 let get t i = get_opt t i |> or_not_found
 let start_opt subs i = offset_opt subs i |> Option.map fst
 let start subs i = start_opt subs i |> or_not_found

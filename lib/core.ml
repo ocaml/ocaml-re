@@ -79,8 +79,8 @@ let exec_partial_detailed ?pos ?len re s =
 module Mark = struct
   type t = Pmark.t
 
-  let test (g : Group.t) p = Pmark.Set.mem p g.pmarks
-  let all (g : Group.t) = g.pmarks
+  let test (g : Group.t) p = Pmark.Set.mem p (Group.pmarks g)
+  let all (g : Group.t) = Group.pmarks g
 
   module Set = Pmark.Set
 
