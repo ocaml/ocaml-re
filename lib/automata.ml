@@ -253,34 +253,35 @@ module E = struct
     | TExp of Marks.t * expr
     | TMatch of Marks.t
 
+  let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
+
+  and equal x y =
+    match x, y with
+    | TSeq (_, l1, e1), TSeq (_, l2, e2) -> e1.id = e2.id && equal_list l1 l2
+    | TExp (marks1, e1), TExp (marks2, e2) -> e1.id = e2.id && Marks.equal marks1 marks2
+    | TMatch marks1, TMatch marks2 -> Marks.equal marks1 marks2
+    | _, _ -> false
+  ;;
+
+  let rec hash (t : t) accu =
+    match t with
+    | TSeq (_, l, e) -> hash_combine 0x172a1bce (hash_combine e.id (hash_list l accu))
+    | TExp (marks, e) ->
+      hash_combine 0x2b4c0d77 (hash_combine e.id (Marks.hash marks accu))
+    | TMatch marks -> hash_combine 0x1c205ad5 (Marks.hash marks accu)
+
+  and hash_list l acc =
+    match l with
+    | [] -> acc
+    | x :: xs -> hash_list xs (hash x acc)
+  ;;
+
   let is_tmatch = function
     | TMatch _ -> true
     | TSeq _ | TExp _ -> false
   ;;
 
   let compare = Poly.compare
-
-  let rec equal l1 l2 =
-    match l1, l2 with
-    | [], [] -> true
-    | TSeq (_, l1', e1) :: r1, TSeq (_, l2', e2) :: r2 ->
-      e1.id = e2.id && equal l1' l2' && equal r1 r2
-    | TExp (marks1, e1) :: r1, TExp (marks2, e2) :: r2 ->
-      e1.id = e2.id && Marks.equal marks1 marks2 && equal r1 r2
-    | TMatch marks1 :: r1, TMatch marks2 :: r2 -> Marks.equal marks1 marks2 && equal r1 r2
-    | _ -> false
-  ;;
-
-  let rec hash l accu =
-    match l with
-    | [] -> accu
-    | TSeq (_, l', e) :: r ->
-      hash r (hash_combine 0x172a1bce (hash_combine e.id (hash l' accu)))
-    | TExp (marks, e) :: r ->
-      hash r (hash_combine 0x2b4c0d77 (hash_combine e.id (Marks.hash marks accu)))
-    | TMatch marks :: r -> hash r (hash_combine 0x1c205ad5 (Marks.hash marks accu))
-  ;;
-
   let texp marks x = TExp (marks, x)
 
   let tseq kind x y rem =
@@ -289,6 +290,15 @@ module E = struct
     | [ TExp (marks, { def = Eps; _ }) ] -> TExp (marks, y) :: rem
     | _ -> TSeq (kind, x, y) :: rem
   ;;
+end
+
+module Desc = struct
+  type t = E.t list
+
+  open E
+
+  let equal = E.equal_list
+  let hash = E.hash_list
 
   let rec print_state_rec ch e y =
     match e with
@@ -313,12 +323,6 @@ module E = struct
   ;;
 
   let pp ch t = print_state_lst ch [ t ] { id = 0; def = Eps }
-end
-
-module Desc = struct
-  type t = E.t list
-
-  open E
 
   let rec first_match = function
     | [] -> None
@@ -352,7 +356,7 @@ module Desc = struct
   ;;
 
   let[@ocaml.warning "-32"] pp fmt t =
-    Format.fprintf fmt "[%a]" (Format.pp_print_list ~pp_sep:(Fmt.lit "; ") E.pp) t
+    Format.fprintf fmt "[%a]" (Format.pp_print_list ~pp_sep:(Fmt.lit "; ") pp) t
   ;;
 end
 
@@ -377,7 +381,8 @@ module State = struct
   ;;
 
   let hash idx cat desc =
-    E.hash desc (hash_combine idx (hash_combine (Category.to_int cat) 0)) land 0x3FFFFFFF
+    Desc.hash desc (hash_combine idx (hash_combine (Category.to_int cat) 0))
+    land 0x3FFFFFFF
   ;;
 
   let mk idx cat desc =
@@ -390,7 +395,7 @@ module State = struct
     Int.equal hash t.hash
     && Int.equal idx t.idx
     && Category.equal category t.category
-    && E.equal desc t.desc
+    && Desc.equal desc t.desc
   ;;
 
   let compare { hash; category; desc; status = _; idx } t =
