@@ -361,19 +361,27 @@ module State = struct
     { idx : idx
     ; category : Category.t
     ; desc : Desc.t
-    ; mutable status : status option
+    ; mutable status : status Option.Unboxed.t
     ; hash : int
     }
 
   let[@inline] idx t = t.idx
-  let dummy = { idx = -1; category = Category.dummy; desc = []; status = None; hash = -1 }
+
+  let dummy =
+    { idx = -1
+    ; category = Category.dummy
+    ; desc = []
+    ; status = Option.Unboxed.none
+    ; hash = -1
+    }
+  ;;
 
   let hash idx cat desc =
     E.hash desc (hash_combine idx (hash_combine (Category.to_int cat) 0)) land 0x3FFFFFFF
   ;;
 
   let mk idx cat desc =
-    { idx; category = cat; desc; status = None; hash = hash idx cat desc }
+    { idx; category = cat; desc; status = Option.Unboxed.none; hash = hash idx cat desc }
   ;;
 
   let create cat e = mk 0 cat [ TExp (Marks.empty, e) ]
@@ -398,16 +406,17 @@ module State = struct
   ;;
 
   let status s =
-    match s.status with
-    | Some st -> st
-    | None ->
+    let status = s.status in
+    match Option.Unboxed.is_some status with
+    | true -> Option.Unboxed.value_exn status
+    | false ->
       let st =
         match s.desc with
         | [] -> Failed
         | TMatch m :: _ -> Match (Mark_infos.make m.marks, m.pmarks)
         | _ -> Running
       in
-      s.status <- Some st;
+      s.status <- Option.Unboxed.some st;
       st
   ;;
 
