@@ -104,16 +104,21 @@ end
 module Mark : sig
   type t = private int
 
+  val ( > ) : t -> t -> bool
   val compare : t -> t -> int
+  val equal : t -> t -> bool
   val pp : t Fmt.t
   val start : t
   val prev : t -> t
   val next : t -> t
   val next2 : t -> t
   val group_count : t -> int
+  val outside_range : t -> start_inclusive:t -> stop_inclusive:t -> bool
 end = struct
   type t = int
 
+  let ( > ) x y = x > y
+  let equal = Int.equal
   let compare = Int.compare
   let pp = Format.pp_print_int
   let start = 0
@@ -121,6 +126,10 @@ end = struct
   let next x = succ x
   let next2 x = x + 2
   let group_count x = x / 2
+
+  let outside_range t ~start_inclusive ~stop_inclusive =
+    t < start_inclusive || t > stop_inclusive
+  ;;
 end
 
 module Idx : sig
@@ -175,8 +184,8 @@ module Expr = struct
     | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
     | Eps -> str ch "eps"
     | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
-    | Mark i -> sexp ch "mark" int (i :> int)
-    | Pmark i -> sexp ch "pmark" int (i :> int)
+    | Mark i -> sexp ch "mark" Mark.pp i
+    | Pmark i -> sexp ch "pmark" Pmark.pp i
     | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
     | Before c -> sexp ch "before" Category.pp c
     | After c -> sexp ch "after" Category.pp c
@@ -232,12 +241,15 @@ let hash_combine h accu = (accu * 65599) + h
 
 module Marks = struct
   type t =
-    { marks : (int * Idx.t) list
+    { marks : (Mark.t * Idx.t) list
     ; pmarks : Pmark.Set.t
     }
 
   let equal { marks; pmarks } t =
-    List.equal ~eq:(fun (x, y) (x', y') -> Int.equal x x' && Idx.equal y y') marks t.marks
+    List.equal
+      ~eq:(fun (x, y) (x', y') -> Mark.equal x x' && Idx.equal y y')
+      marks
+      t.marks
     && Pmark.Set.equal pmarks t.pmarks
   ;;
 
@@ -257,7 +269,9 @@ module Marks = struct
   ;;
 
   let hash_marks_offset =
-    let f acc (a, (i : Idx.t)) = hash_combine a (hash_combine (i :> int) acc) in
+    let f acc ((a : Mark.t), (i : Idx.t)) =
+      hash_combine (a :> int) (hash_combine (i :> int) acc)
+    in
     fun l init -> List.fold_left l ~init ~f
   ;;
 
@@ -273,22 +287,24 @@ module Marks = struct
     fun marks idx -> { marks with marks = marks_set_idx idx marks.marks }
   ;;
 
-  let rec remove_marks b e rem =
-    if b > e then rem else remove_marks b (e - 1) ((e, Idx.removed) :: rem)
+  let rec remove_marks (b : Mark.t) (e : Mark.t) rem =
+    if Mark.(b > e) then rem else remove_marks b (Mark.prev e) ((e, Idx.removed) :: rem)
   ;;
 
-  let remove_marks (b : Mark.t) (e : Mark.t) rem = remove_marks (b :> int) (e :> int) rem
+  let remove_marks (b : Mark.t) (e : Mark.t) rem = remove_marks b e rem
 
   let filter t (b : Mark.t) (e : Mark.t) =
     { t with
-      marks = List.filter ~f:(fun (i, _) -> i < (b :> int) || i > (e :> int)) t.marks
+      marks =
+        List.filter t.marks ~f:(fun ((i : Mark.t), _) ->
+          Mark.outside_range i ~start_inclusive:b ~stop_inclusive:e)
     }
   ;;
 
   let erase t b e = { t with marks = remove_marks b e (filter t b e).marks }
 
   let set_mark t (i : Mark.t) =
-    { t with marks = ((i :> int), Idx.unknown) :: List.remove_assq (i :> int) t.marks }
+    { t with marks = (i, Idx.unknown) :: List.remove_assq i t.marks }
   ;;
 
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
@@ -297,7 +313,8 @@ module Marks = struct
     Format.fprintf
       fmt
       "@[(@[<2>marks@ %a@] @[<2>pmarks %a@])@]"
-      (Format.pp_print_list (fun fmt (a, i) -> Format.fprintf fmt "%d-%a" a Idx.pp i))
+      (Format.pp_print_list (fun fmt (a, i) ->
+         Format.fprintf fmt "%a-%a" Mark.pp a Idx.pp i))
       marks
       (Format.pp_print_list Pmark.pp)
       (Pmark.Set.to_list pmarks)
