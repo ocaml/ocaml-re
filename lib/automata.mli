@@ -25,6 +25,7 @@
 module Mark : sig
   type t [@@immediate]
 
+  val compare : t -> t -> int
   val start : t
   val prev : t -> t
   val next : t -> t
