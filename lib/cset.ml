@@ -34,8 +34,15 @@ let null_char = -1
 
 type t = (c * c) list
 
-let equal = List.equal ~eq:(fun (x, y) (x', y') -> Int.equal x x' && Int.equal y y')
-let compare : t -> t -> int = List.compare ~cmp:Poly.compare
+let compare_pair (x, y) (x', y') =
+  match Int.compare x x' with
+  | 0 -> Int.compare y y'
+  | x -> x
+;;
+
+let equal_pair (x, y) (x', y') = Int.equal x x' && Int.equal y y'
+let equal = List.equal ~eq:equal_pair
+let compare : t -> t -> int = List.compare ~cmp:compare_pair
 
 let rec union l l' =
   match l, l' with
