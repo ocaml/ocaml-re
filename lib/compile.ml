@@ -533,7 +533,9 @@ let rec translate
     let b = !pos in
     let cr, kind' = translate ctx r' in
     let e = A.Mark.prev !pos in
-    if e < b then cr, kind' else A.seq ids `First (A.erase ids b e) cr, kind'
+    if A.Mark.compare e b = -1
+    then cr, kind'
+    else A.seq ids `First (A.erase ids b e) cr, kind'
   | Pmark (i, r') ->
     let cr, kind' = translate ctx r' in
     A.seq ids `First (A.pmark ids i) cr, kind'

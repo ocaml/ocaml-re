@@ -67,6 +67,7 @@ end
 module Mark : sig
   type t = private int
 
+  val compare : t -> t -> int
   val pp : t Fmt.t
   val start : t
   val prev : t -> t
@@ -76,6 +77,7 @@ module Mark : sig
 end = struct
   type t = int
 
+  let compare = Int.compare
   let pp = Format.pp_print_int
   let start = 0
   let prev x = pred x
