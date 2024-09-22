@@ -256,6 +256,8 @@ module E = struct
     | TSeq _ | TExp _ -> false
   ;;
 
+  let compare = Poly.compare
+
   let rec equal l1 l2 =
     match l1, l2 with
     | [], [] -> true
@@ -338,6 +340,7 @@ module Desc = struct
   ;;
 
   let exists_tmatch = List.exists ~f:is_tmatch
+  let compare x y = List.compare ~cmp:E.compare x y
 
   let rec set_idx idx = function
     | [] -> []
@@ -386,7 +389,7 @@ module State = struct
       (match Int.compare hash t.hash with
        | 0 ->
          (match Category.compare category t.category with
-          | 0 -> Poly.compare desc t.desc
+          | 0 -> Desc.compare desc t.desc
           | x -> x)
        | x -> x)
     | x -> x
