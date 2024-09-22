@@ -22,7 +22,42 @@ open Import
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-module Ids = struct
+module Ids : sig
+  module Id : sig
+    type t
+
+    val equal : t -> t -> bool
+    val zero : t
+    val to_int : t -> int
+    val pp : t Fmt.t
+
+    module Hash_set : sig
+      type id := t
+      type t
+
+      val create : unit -> t
+      val mem : t -> id -> bool
+      val add : t -> id -> unit
+      val clear : t -> unit
+    end
+  end
+
+  type t
+
+  val create : unit -> t
+  val next : t -> Id.t
+end = struct
+  module Id = struct
+    type t = int
+
+    module Hash_set = Hash_set
+
+    let equal = Int.equal
+    let zero = 0
+    let to_int x = x
+    let pp = Fmt.int
+  end
+
   type t = int ref
 
   let create () = ref 0
@@ -32,6 +67,8 @@ module Ids = struct
     !t
   ;;
 end
+
+module Id = Ids.Id
 
 module Sem = struct
   type t =
@@ -114,7 +151,7 @@ end
 
 module Expr = struct
   type t =
-    { id : int
+    { id : Id.t
     ; def : def
     }
 
@@ -145,7 +182,7 @@ module Expr = struct
     | After c -> sexp ch "after" Category.pp c
   ;;
 
-  let eps_expr = { id = 0; def = Eps }
+  let eps_expr = { id = Id.zero; def = Eps }
   let mk ids def = { id = Ids.next ids; def }
   let empty ids = mk ids (Alt [])
   let cst ids s = if Cset.is_empty s then empty ids else mk ids (Cst s)
@@ -282,17 +319,19 @@ module E = struct
 
   and equal x y =
     match x, y with
-    | TSeq (_, l1, e1), TSeq (_, l2, e2) -> e1.id = e2.id && equal_list l1 l2
-    | TExp (marks1, e1), TExp (marks2, e2) -> e1.id = e2.id && Marks.equal marks1 marks2
+    | TSeq (_, l1, e1), TSeq (_, l2, e2) -> Id.equal e1.id e2.id && equal_list l1 l2
+    | TExp (marks1, e1), TExp (marks2, e2) ->
+      Id.equal e1.id e2.id && Marks.equal marks1 marks2
     | TMatch marks1, TMatch marks2 -> Marks.equal marks1 marks2
     | _, _ -> false
   ;;
 
   let rec hash (t : t) accu =
     match t with
-    | TSeq (_, l, e) -> hash_combine 0x172a1bce (hash_combine e.id (hash_list l accu))
+    | TSeq (_, l, e) ->
+      hash_combine 0x172a1bce (hash_combine (Id.to_int e.id) (hash_list l accu))
     | TExp (marks, e) ->
-      hash_combine 0x2b4c0d77 (hash_combine e.id (Marks.hash marks accu))
+      hash_combine 0x2b4c0d77 (hash_combine (Id.to_int e.id) (Marks.hash marks accu))
     | TMatch marks -> hash_combine 0x1c205ad5 (Marks.hash marks accu)
 
   and hash_list =
@@ -332,9 +371,9 @@ module Desc = struct
       print_state_lst ch l' x;
       Format.fprintf ch "@ %a)@]" Expr.pp x
     | TExp (marks, { def = Eps; _ }) ->
-      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ (eps))@]" y.id Marks.pp marks
+      Format.fprintf ch "@[<2>(Exp@ %a@ (%a)@ (eps))@]" Id.pp y.id Marks.pp marks
     | TExp (marks, x) ->
-      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ %a)@]" x.id Marks.pp marks Expr.pp x
+      Format.fprintf ch "@[<2>(Exp@ %a@ (%a)@ %a)@]" Id.pp x.id Marks.pp marks Expr.pp x
 
   and print_state_lst ch l y =
     match l with
@@ -346,7 +385,7 @@ module Desc = struct
         print_state_rec ch e y)
   ;;
 
-  let pp ch t = print_state_lst ch [ t ] { id = 0; def = Eps }
+  let pp ch t = print_state_lst ch [ t ] { id = Id.zero; def = Eps }
 
   let rec first_match = function
     | [] -> None
@@ -469,10 +508,10 @@ end
 module Working_area = struct
   type t =
     { mutable ids : Bit_vector.t
-    ; seen : Hash_set.t
+    ; seen : Id.Hash_set.t
     }
 
-  let create () = { ids = Bit_vector.create_zero 1; seen = Hash_set.create () }
+  let create () = { ids = Bit_vector.create_zero 1; seen = Id.Hash_set.create () }
   let index_count w = Bit_vector.length w.ids
 
   let rec mark_used_indices tbl =
@@ -512,20 +551,20 @@ let remove_duplicates =
       let r = loop seen r y in
       E.tseq kind l x r
     | (TExp (_marks, { def = Eps; _ }) as e) :: r ->
-      if Hash_set.mem seen y.id
+      if Id.Hash_set.mem seen y.id
       then loop seen r y
       else (
-        Hash_set.add seen y.id;
+        Id.Hash_set.add seen y.id;
         e :: loop seen r y)
     | (TExp (_marks, x) as e) :: r ->
-      if Hash_set.mem seen x.id
+      if Id.Hash_set.mem seen x.id
       then loop seen r y
       else (
-        Hash_set.add seen x.id;
+        Id.Hash_set.add seen x.id;
         e :: loop seen r y)
   in
   fun seen l y ->
-    Hash_set.clear seen;
+    Id.Hash_set.clear seen;
     loop seen l y
 ;;
 
