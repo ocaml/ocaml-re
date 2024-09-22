@@ -133,10 +133,9 @@ module Marks = struct
       }
   ;;
 
-  let rec hash_marks_offset l accu =
-    match l with
-    | [] -> accu
-    | (a, i) :: r -> hash_marks_offset r (hash_combine a (hash_combine i accu))
+  let hash_marks_offset =
+    let f acc (a, i) = hash_combine a (hash_combine i acc) in
+    fun l init -> List.fold_left l ~init ~f
   ;;
 
   let hash m accu = hash_marks_offset m.marks (hash_combine (Hashtbl.hash m.pmarks) accu)
@@ -270,10 +269,9 @@ module E = struct
       hash_combine 0x2b4c0d77 (hash_combine e.id (Marks.hash marks accu))
     | TMatch marks -> hash_combine 0x1c205ad5 (Marks.hash marks accu)
 
-  and hash_list l acc =
-    match l with
-    | [] -> acc
-    | x :: xs -> hash_list xs (hash x acc)
+  and hash_list =
+    let f acc x = hash x acc in
+    fun l init -> List.fold_left l ~init ~f
   ;;
 
   let is_tmatch = function
