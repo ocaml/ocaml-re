@@ -321,10 +321,12 @@ module Marks = struct
   ;;
 end
 
-type status =
-  | Failed
-  | Match of Mark_infos.t * Pmark.Set.t
-  | Running
+module Status = struct
+  type t =
+    | Failed
+    | Match of Mark_infos.t * Pmark.Set.t
+    | Running
+end
 
 module E = struct
   type t =
@@ -447,7 +449,7 @@ module State = struct
     { idx : Idx.t
     ; category : Category.t
     ; desc : Desc.t
-    ; mutable status : status Option.Unboxed.t
+    ; mutable status : Status.t Option.Unboxed.t
     ; hash : int
     }
 
@@ -502,7 +504,7 @@ module State = struct
     match Option.Unboxed.is_some status with
     | true -> Option.Unboxed.value_exn status
     | false ->
-      let st =
+      let st : Status.t =
         match s.desc with
         | [] -> Failed
         | TMatch m :: _ -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)

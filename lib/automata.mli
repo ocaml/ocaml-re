@@ -86,10 +86,12 @@ module Idx : sig
   val to_int : t -> int
 end
 
-type status =
-  | Failed
-  | Match of Mark_infos.t * Pmark.Set.t
-  | Running
+module Status : sig
+  type t =
+    | Failed
+    | Match of Mark_infos.t * Pmark.Set.t
+    | Running
+end
 
 module State : sig
   type t
@@ -97,7 +99,7 @@ module State : sig
   val dummy : t
   val create : Category.t -> expr -> t
   val idx : t -> Idx.t
-  val status : t -> status
+  val status : t -> Status.t
 
   module Table : Hashtbl.S with type key = t
 end
