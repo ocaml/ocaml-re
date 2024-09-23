@@ -22,6 +22,8 @@ open Import
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
+let hash_combine h accu = (accu * 65599) + h
+
 module Ids : sig
   module Id : sig
     type t
@@ -236,8 +238,6 @@ end
 type expr = Expr.t
 
 include Expr
-
-let hash_combine h accu = (accu * 65599) + h
 
 module Marks = struct
   type t =
