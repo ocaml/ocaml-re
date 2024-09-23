@@ -439,6 +439,12 @@ module Desc = struct
     set_idx
   ;;
 
+  let status : _ -> Status.t = function
+    | [] -> Failed
+    | TMatch m :: _ -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)
+    | _ -> Running
+  ;;
+
   let[@ocaml.warning "-32"] pp fmt t =
     Format.fprintf fmt "[%a]" (Format.pp_print_list ~pp_sep:(Fmt.lit "; ") pp) t
   ;;
@@ -504,12 +510,7 @@ module State = struct
     match Option.Unboxed.is_some status with
     | true -> Option.Unboxed.value_exn status
     | false ->
-      let st : Status.t =
-        match s.desc with
-        | [] -> Failed
-        | TMatch m :: _ -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)
-        | _ -> Running
-      in
+      let st = Desc.status s.desc in
       s.status <- Option.Unboxed.some st;
       st
   ;;
