@@ -366,12 +366,14 @@ module E = struct
   let compare = Poly.compare
   let texp marks x = TExp (marks, x)
 
-  let tseq kind x y rem =
+  let tseq' kind x y =
     match x with
-    | [] -> rem
-    | [ TExp (marks, { def = Eps; _ }) ] -> TExp (marks, y) :: rem
-    | _ -> TSeq (kind, x, y) :: rem
+    | [] -> []
+    | [ TExp (marks, { def = Eps; _ }) ] -> [ TExp (marks, y) ]
+    | _ -> [ TSeq (kind, x, y) ]
   ;;
+
+  let tseq kind x y rem = tseq' kind x y @ rem
 end
 
 module Desc = struct
@@ -717,7 +719,7 @@ let rec deriv_expr all_chars categories marks cat (x : Expr.t) rem =
         s
         (match rep_kind with
          | `Greedy -> E.tseq kind z' x [ TMatch marks' ]
-         | `Non_greedy -> TMatch marks :: E.tseq kind z' x [])
+         | `Non_greedy -> TMatch marks :: E.tseq' kind z' x)
         rem)
   | Eps -> Cset.prepend all_chars [ E.TMatch marks ] rem
   | Mark i -> Cset.prepend all_chars [ E.TMatch (Marks.set_mark marks i) ] rem
@@ -747,28 +749,23 @@ and deriv_seq all_chars categories cat kind y z rem =
     let z' = deriv_expr all_chars categories Marks.empty cat z [ all_chars, [] ] in
     List.fold_right ~init:rem y ~f:(fun (s, y) rem ->
       match Desc.first_match y with
-      | None -> Cset.prepend s (E.tseq kind y z []) rem
+      | None -> Cset.prepend s (E.tseq' kind y z) rem
       | Some marks ->
         let z'' = prepend_marks marks z' |> restrict s in
         (match kind with
          | `Longest ->
-           Cset.prepend
-             s
-             (E.tseq kind (Desc.remove_matches y) z [])
-             (prepend_deriv z'' rem)
+           Cset.prepend s (E.tseq' kind (Desc.remove_matches y) z) (prepend_deriv z'' rem)
          | `Shortest ->
-           prepend_deriv
-             z''
-             (Cset.prepend s (E.tseq kind (Desc.remove_matches y) z []) rem)
+           prepend_deriv z'' (Cset.prepend s (E.tseq' kind (Desc.remove_matches y) z) rem)
          | `First ->
            let y', y'' = Desc.split_at_match y in
            Cset.prepend
              s
-             (E.tseq kind y' z [])
-             (prepend_deriv z'' (Cset.prepend s (E.tseq kind y'' z []) rem)))))
+             (E.tseq' kind y' z)
+             (prepend_deriv z'' (Cset.prepend s (E.tseq' kind y'' z) rem)))))
   else
     List.fold_right y ~init:rem ~f:(fun (s, xl) rem ->
-      Cset.prepend s (E.tseq kind xl z []) rem)
+      Cset.prepend s (E.tseq' kind xl z) rem)
 ;;
 
 let rec deriv_e all_chars categories cat (x : E.t) rem =
