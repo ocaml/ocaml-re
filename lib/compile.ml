@@ -37,7 +37,7 @@ type state_info =
        [idx] is set to [unknown];
        If [idx] is set to [break] for states that either always
        succeed or always fail. *)
-    mutable final : (Category.t * (Automata.Idx.t * Automata.status)) list
+    mutable final : (Category.t * (Automata.Idx.t * Automata.Status.t)) list
   ; (* Mapping from the category of the next character to
        - the index where the next position should be saved
        - possibly, the list of marks (and the corresponding indices)
