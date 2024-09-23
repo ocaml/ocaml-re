@@ -6,8 +6,8 @@ module Idx : sig
   type t [@@immediate]
 
   val unknown : t
-  val make_break : int -> t
-  val of_idx : Automata.idx -> t
+  val make_break : Automata.Idx.t -> t
+  val of_idx : Automata.Idx.t -> t
   val is_idx : t -> bool
   val is_break : t -> bool
   val idx : t -> int
@@ -17,11 +17,11 @@ end = struct
 
   let unknown = -2
   let break = -3
-  let of_idx x = x [@@inline always]
+  let of_idx (x : Automata.Idx.t) = Automata.Idx.to_int x [@@inline always]
   let is_idx t = t >= 0 [@@inline always]
   let is_break x = x <= break [@@inline always]
   let idx t = t [@@inline always]
-  let make_break idx = -5 - idx [@@inline always]
+  let make_break (idx : Automata.Idx.t) = -5 - Automata.Idx.to_int idx [@@inline always]
   let break_idx t = (t + 5) * -1 [@@inline always]
 end
 
@@ -37,7 +37,7 @@ type state_info =
        [idx] is set to [unknown];
        If [idx] is set to [break] for states that either always
        succeed or always fail. *)
-    mutable final : (Category.t * (Automata.idx * Automata.status)) list
+    mutable final : (Category.t * (Automata.Idx.t * Automata.status)) list
   ; (* Mapping from the category of the next character to
        - the index where the next position should be saved
        - possibly, the list of marks (and the corresponding indices)
@@ -185,7 +185,8 @@ let find_state re desc =
 let delta re positions cat ~color st =
   let desc = Automata.delta re.tbl cat color st.desc in
   let len = Positions.length positions in
-  if len > 0 && Automata.State.idx desc = len then Positions.resize positions;
+  if len > 0 && Automata.State.idx desc |> Automata.Idx.to_int = len
+  then Positions.resize positions;
   desc
 ;;
 
@@ -331,7 +332,7 @@ let final_boundary_check re positions ~last ~slen s state_info ~groups =
     final re positions state_info final_cat
   in
   (match groups, res with
-   | true, Match _ -> Positions.set positions idx last
+   | true, Match _ -> Positions.set positions (Automata.Idx.to_int idx) last
    | _ -> ());
   res
 ;;

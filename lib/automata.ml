@@ -86,7 +86,31 @@ end = struct
   let group_count x = x / 2
 end
 
-type idx = int
+module Idx : sig
+  type t = private int
+
+  val pp : t Fmt.t
+  val to_int : t -> int
+  val unknown : t
+  val removed : t
+  val initial : t
+  val used : t -> bool
+  val make : int -> t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+end = struct
+  type t = int
+
+  let to_int x = x
+  let pp = Format.pp_print_int
+  let used t = t >= 0
+  let make x = x
+  let equal = Int.equal
+  let compare = Int.compare
+  let unknown = -1
+  let removed = -2
+  let initial = 0
+end
 
 type expr =
   { id : int
@@ -109,12 +133,12 @@ let hash_combine h accu = (accu * 65599) + h
 
 module Marks = struct
   type t =
-    { marks : (int * int) list
+    { marks : (int * Idx.t) list
     ; pmarks : Pmark.Set.t
     }
 
   let equal { marks; pmarks } t =
-    List.equal ~eq:(fun (x, y) (x', y') -> Int.equal x x' && Int.equal y y') marks t.marks
+    List.equal ~eq:(fun (x, y) (x', y') -> Int.equal x x' && Idx.equal y y') marks t.marks
     && Pmark.Set.equal pmarks t.pmarks
   ;;
 
@@ -125,7 +149,7 @@ module Marks = struct
       | [] -> old
       | (i, v) :: rem ->
         let nw' = merge_marks_offset (List.remove_assq i old) rem in
-        if v = -2 then nw' else (i, v) :: nw'
+        if Idx.(equal v removed) then nw' else (i, v) :: nw'
     in
     fun old nw ->
       { marks = merge_marks_offset old.marks nw.marks
@@ -134,22 +158,24 @@ module Marks = struct
   ;;
 
   let hash_marks_offset =
-    let f acc (a, i) = hash_combine a (hash_combine i acc) in
+    let f acc (a, (i : Idx.t)) = hash_combine a (hash_combine (i :> int) acc) in
     fun l init -> List.fold_left l ~init ~f
   ;;
 
   let hash m accu = hash_marks_offset m.marks (hash_combine (Hashtbl.hash m.pmarks) accu)
 
   let marks_set_idx =
-    let rec marks_set_idx idx = function
-      | (a, -1) :: rem -> (a, idx) :: marks_set_idx idx rem
-      | marks -> marks
+    let rec marks_set_idx idx marks =
+      match marks with
+      | [] -> []
+      | (a, idx') :: rem ->
+        if Idx.equal idx' Idx.unknown then (a, idx) :: marks_set_idx idx rem else marks
     in
     fun marks idx -> { marks with marks = marks_set_idx idx marks.marks }
   ;;
 
   let rec remove_marks b e rem =
-    if b > e then rem else remove_marks b (e - 1) ((e, -2) :: rem)
+    if b > e then rem else remove_marks b (e - 1) ((e, Idx.removed) :: rem)
   ;;
 
   let remove_marks (b : Mark.t) (e : Mark.t) rem = remove_marks (b :> int) (e :> int) rem
@@ -163,7 +189,7 @@ module Marks = struct
   let erase t b e = { t with marks = remove_marks b e (filter t b e).marks }
 
   let set_mark t (i : Mark.t) =
-    { t with marks = ((i :> int), -1) :: List.remove_assq (i :> int) t.marks }
+    { t with marks = ((i :> int), Idx.unknown) :: List.remove_assq (i :> int) t.marks }
   ;;
 
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
@@ -172,8 +198,8 @@ module Marks = struct
     match t.marks with
     | [] -> ()
     | (a, i) :: r ->
-      Format.fprintf ch "%d-%d" a i;
-      List.iter ~f:(fun (a, i) -> Format.fprintf ch " %d-%d" a i) r
+      Format.fprintf ch "%d-%a" a Idx.pp i;
+      List.iter ~f:(fun (a, i) -> Format.fprintf ch " %d-%a" a Idx.pp i) r
   ;;
 end
 
@@ -362,7 +388,7 @@ end
 
 module State = struct
   type t =
-    { idx : idx
+    { idx : Idx.t
     ; category : Category.t
     ; desc : Desc.t
     ; mutable status : status Option.Unboxed.t
@@ -372,7 +398,7 @@ module State = struct
   let[@inline] idx t = t.idx
 
   let dummy =
-    { idx = -1
+    { idx = Idx.unknown
     ; category = Category.dummy
     ; desc = []
     ; status = Option.Unboxed.none
@@ -386,20 +412,25 @@ module State = struct
   ;;
 
   let mk idx cat desc =
-    { idx; category = cat; desc; status = Option.Unboxed.none; hash = hash idx cat desc }
+    { idx
+    ; category = cat
+    ; desc
+    ; status = Option.Unboxed.none
+    ; hash = hash (idx :> int) cat desc
+    }
   ;;
 
-  let create cat e = mk 0 cat [ TExp (Marks.empty, e) ]
+  let create cat e = mk Idx.initial cat [ TExp (Marks.empty, e) ]
 
   let equal { idx; category; desc; status = _; hash } t =
     Int.equal hash t.hash
-    && Int.equal idx t.idx
+    && Idx.equal idx t.idx
     && Category.equal category t.category
     && Desc.equal desc t.desc
   ;;
 
   let compare { hash; category; desc; status = _; idx } t =
-    match Int.compare idx t.idx with
+    match Idx.compare idx t.idx with
     | 0 ->
       (match Int.compare hash t.hash with
        | 0 ->
@@ -418,7 +449,7 @@ module State = struct
       let st =
         match s.desc with
         | [] -> Failed
-        | TMatch m :: _ -> Match (Mark_infos.make m.marks, m.pmarks)
+        | TMatch m :: _ -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)
         | _ -> Running
       in
       s.status <- Option.Unboxed.some st;
@@ -449,7 +480,8 @@ module Working_area = struct
       match e with
       | TSeq (_, l, _) -> mark_used_indices tbl l
       | TExp (marks, _) | TMatch marks ->
-        List.iter marks.marks ~f:(fun (_, i) -> if i >= 0 then Bit_vector.set tbl i true))
+        List.iter marks.marks ~f:(fun (_, i) ->
+          if Idx.used i then Bit_vector.set tbl (i :> int) true))
   ;;
 
   let rec find_free tbl idx len =
@@ -462,7 +494,7 @@ module Working_area = struct
     let len = Bit_vector.length t.ids in
     let idx = find_free t.ids 0 len in
     if idx = len then t.ids <- Bit_vector.create_zero (2 * len);
-    idx
+    Idx.make idx
   ;;
 end
 

@@ -80,7 +80,11 @@ val rename : Ids.t -> expr -> expr
 
 (* States of the automata *)
 
-type idx = int
+module Idx : sig
+  type t
+
+  val to_int : t -> int
+end
 
 type status =
   | Failed
@@ -92,7 +96,7 @@ module State : sig
 
   val dummy : t
   val create : Category.t -> expr -> t
-  val idx : t -> idx
+  val idx : t -> Idx.t
   val status : t -> status
 
   module Table : Hashtbl.S with type key = t
