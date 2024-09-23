@@ -256,12 +256,14 @@ module Marks = struct
 
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
 
-  let pp_marks ch t =
-    match t.marks with
-    | [] -> ()
-    | (a, i) :: r ->
-      Format.fprintf ch "%d-%a" a Idx.pp i;
-      List.iter ~f:(fun (a, i) -> Format.fprintf ch " %d-%a" a Idx.pp i) r
+  let pp fmt { marks; pmarks } =
+    Format.fprintf
+      fmt
+      "@[(@[<2>marks@ %a@] @[<2>pmarks %a@])@]"
+      (Format.pp_print_list (fun fmt (a, i) -> Format.fprintf fmt "%d-%a" a Idx.pp i))
+      marks
+      (Format.pp_print_list Pmark.pp)
+      (Pmark.Set.to_list pmarks)
   ;;
 end
 
@@ -324,15 +326,15 @@ module Desc = struct
 
   let rec print_state_rec ch e (y : Expr.t) =
     match e with
-    | TMatch marks -> Format.fprintf ch "@[<2>(Match@ %a)@]" Marks.pp_marks marks
+    | TMatch marks -> Format.fprintf ch "@[<2>(Match@ %a)@]" Marks.pp marks
     | TSeq (_kind, l', x) ->
       Format.fprintf ch "@[<2>(Seq@ ";
       print_state_lst ch l' x;
       Format.fprintf ch "@ %a)@]" Expr.pp x
     | TExp (marks, { def = Eps; _ }) ->
-      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ (eps))@]" y.id Marks.pp_marks marks
+      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ (eps))@]" y.id Marks.pp marks
     | TExp (marks, x) ->
-      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ %a)@]" x.id Marks.pp_marks marks Expr.pp x
+      Format.fprintf ch "@[<2>(Exp@ %d@ (%a)@ %a)@]" x.id Marks.pp marks Expr.pp x
 
   and print_state_lst ch l y =
     match l with
