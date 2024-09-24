@@ -177,6 +177,7 @@ let benchmarks =
   @ [ http_benches ]
   @ [ string_traversal ]
   @ [ compile_clean_star ]
+  @ Memory.benchmarks
 ;;
 
 let () =
