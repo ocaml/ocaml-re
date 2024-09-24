@@ -13,3 +13,4 @@ perf.data
 *.old
 *.ctf
 *.bench.sexp
+*.trace
