@@ -57,18 +57,11 @@ let exec_bench_many exec name re cases =
 ;;
 
 let rec read_all_http pos re reqs =
-  if pos >= String.length reqs
-  then ()
-  else (
+  if pos < String.length reqs
+  then (
     let g = Re.exec ~pos re reqs in
     let _, pos = Re.Group.offset g 0 in
     read_all_http (pos + 1) re reqs)
-;;
-
-let rec drain_gen gen =
-  match gen () with
-  | Seq.Nil -> ()
-  | Cons (_, tail) -> drain_gen tail
 ;;
 
 let string_traversal =
@@ -112,8 +105,7 @@ let benchmarks =
       let requests_g = Re.compile requests_g in
       [ Test.create ~name:"execp no group" (fun () ->
           ignore (Re.execp requests Http.requests))
-      ; Test.create ~name:"all_gen group" (fun () ->
-          Http.requests |> Re.Seq.all requests_g |> drain_gen)
+      ; Test.create ~name:"all_gen" (fun () -> Http.requests |> Re.all requests_g)
       ]
       |> Test.create_group ~name:"auto"
     in
