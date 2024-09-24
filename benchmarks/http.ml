@@ -30,3 +30,11 @@ module Export = struct
 end
 
 let requests = Stdio.In_channel.read_all "benchmarks/http-requests.txt"
+
+let rec read_all pos re reqs =
+  if pos < String.length reqs
+  then (
+    let g = Re.exec ~pos re reqs in
+    let _, pos = Re.Group.offset g 0 in
+    read_all (pos + 1) re reqs)
+;;

@@ -56,14 +56,6 @@ let exec_bench_many exec name re cases =
   Bench.Test.create ~name (fun () -> List.iter cases ~f:(fun x -> ignore (exec re x)))
 ;;
 
-let rec read_all_http pos re reqs =
-  if pos < String.length reqs
-  then (
-    let g = Re.exec ~pos re reqs in
-    let _, pos = Re.Group.offset g 0 in
-    read_all_http (pos + 1) re reqs)
-;;
-
 let string_traversal =
   let open Bench in
   let len = 1000 * 1000 in
@@ -97,7 +89,7 @@ let benchmarks =
       [ request, "no group"; request_g, "group" ]
       |> List.map ~f:(fun (re, name) ->
         let re = Re.compile re in
-        Test.create ~name (fun () -> read_all_http 0 re Http.requests))
+        Test.create ~name (fun () -> Http.read_all 0 re Http.requests))
       |> Test.create_group ~name:"manual"
     in
     let many =
