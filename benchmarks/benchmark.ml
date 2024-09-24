@@ -38,22 +38,6 @@ let http_requests = Stdio.In_channel.read_all "benchmarks/http-requests.txt"
 let str_20_zeroes = String.make 20 '0'
 let re_20_zeroes = Re.(str str_20_zeroes)
 
-let tex_ignore_re =
-  Stdio.In_channel.read_lines "benchmarks/tex.gitignore"
-  |> List.map ~f:(fun s ->
-    match Base.String.lsplit2 s ~on:'#' with
-    | Some (pattern, _comment) -> pattern
-    | None -> s)
-  |> List.filter_map ~f:(fun s ->
-    match Base.String.strip s with
-    | "" -> None
-    | s -> Some s)
-  |> List.map ~f:Re.Glob.glob
-  |> Re.alt
-;;
-
-let tex_ignore_filesnames = Stdio.In_channel.read_lines "benchmarks/files"
-
 let lots_of_a's =
   String.init 101 ~f:(function
     | 100 -> 'b'
@@ -171,7 +155,7 @@ let benchmarks =
   in
   benches
   @ [ [ exec_bench_many Re.execp "execp"; exec_bench_many Re.exec_opt "exec_opt" ]
-      |> List.map ~f:(fun f -> f tex_ignore_re tex_ignore_filesnames)
+      |> List.map ~f:(fun f -> f Tex.ignore_re Tex.ignore_filesnames)
       |> Bench.Test.create_group ~name:"tex gitignore"
     ]
   @ [ http_benches ]
