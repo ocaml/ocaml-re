@@ -1,40 +1,6 @@
 open Core
 open Core_bench
 
-module Http = struct
-  open Re
-
-  let space = rep blank
-  let crlf = str "\r\n"
-  let token = rep1 @@ compl [ rg '\000' '\031'; set "\127)(<>@,;:\\/[]?={}" ]
-  let meth = token
-
-  let version =
-    let digits = rep1 digit in
-    let decimal = seq [ digits; opt (seq [ char '.'; digits ]) ] in
-    seq [ str "HTTP/"; decimal ]
-  ;;
-
-  let uri = rep1 (compl [ char '\n' ])
-  let request_line = [ space; group meth; space; group uri; group version; space ] |> seq
-
-  let header =
-    let key = group (rep1 (Re.compl [ char ':' ])) in
-    let value = group (rep1 (Re.compl [ char '\n' ])) in
-    seq [ space; key; space; char ':'; space; value; space; crlf ]
-  ;;
-
-  let request' = seq [ request_line; crlf; rep header; crlf ]
-
-  module Export = struct
-    let request = request'
-    let request_g = request' |> no_group
-    let requests = request' |> rep1
-    let requests_g = request' |> no_group |> rep1
-  end
-end
-
-let http_requests = Stdio.In_channel.read_all "benchmarks/http-requests.txt"
 let str_20_zeroes = String.make 20 '0'
 let re_20_zeroes = Re.(str str_20_zeroes)
 
@@ -138,16 +104,16 @@ let benchmarks =
       [ request, "no group"; request_g, "group" ]
       |> List.map ~f:(fun (re, name) ->
         let re = Re.compile re in
-        Test.create ~name (fun () -> read_all_http 0 re http_requests))
+        Test.create ~name (fun () -> read_all_http 0 re Http.requests))
       |> Test.create_group ~name:"manual"
     in
     let many =
       let requests = Re.compile requests in
       let requests_g = Re.compile requests_g in
       [ Test.create ~name:"execp no group" (fun () ->
-          ignore (Re.execp requests http_requests))
+          ignore (Re.execp requests Http.requests))
       ; Test.create ~name:"all_gen group" (fun () ->
-          http_requests |> Re.Seq.all requests_g |> drain_gen)
+          Http.requests |> Re.Seq.all requests_g |> drain_gen)
       ]
       |> Test.create_group ~name:"auto"
     in
