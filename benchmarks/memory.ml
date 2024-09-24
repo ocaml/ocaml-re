@@ -20,7 +20,7 @@ let re2 () =
 let str = "01" ^ String.make size '1'
 
 let benchmarks =
-  [ "re", re; "re2", re2 ]
+  [ "memory 1", re; "memory 2", re2 ]
   |> ListLabels.map ~f:(fun (name, re) ->
     Bench.Test.create_indexed ~name ~args:[ 10; 20; 40; 80; 100; size ] (fun len ->
       Base.Staged.stage (fun () ->
@@ -28,5 +28,3 @@ let benchmarks =
         let len = Base.Int.min (String.length str) len in
         ignore (Re.execp ~pos:0 ~len re str))))
 ;;
-
-let () = Command_unix.run (Bench.make_command benchmarks)
