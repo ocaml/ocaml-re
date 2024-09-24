@@ -1,3 +1,4 @@
+open Core
 (* This set of benchmarks is designed for testing re's memory usage rather than
    speed. *)
 
@@ -23,8 +24,8 @@ let benchmarks =
   [ "memory 1", re; "memory 2", re2 ]
   |> ListLabels.map ~f:(fun (name, re) ->
     Bench.Test.create_indexed ~name ~args:[ 10; 20; 40; 80; 100; size ] (fun len ->
-      Base.Staged.stage (fun () ->
+      Staged.stage (fun () ->
         let re = re () in
-        let len = Base.Int.min (String.length str) len in
+        let len = Int.min (String.length str) len in
         ignore (Re.execp ~pos:0 ~len re str))))
 ;;
