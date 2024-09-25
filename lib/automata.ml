@@ -30,7 +30,7 @@ module Ids : sig
 
     val equal : t -> t -> bool
     val zero : t
-    val to_int : t -> int
+    val hash : t -> int
     val pp : t Fmt.t
 
     module Hash_set : sig
@@ -56,7 +56,7 @@ end = struct
 
     let equal = Int.equal
     let zero = 0
-    let to_int x = x
+    let hash x = x
     let pp = Fmt.int
   end
 
@@ -348,9 +348,9 @@ module E = struct
   let rec hash (t : t) accu =
     match t with
     | TSeq (_, l, e) ->
-      hash_combine 0x172a1bce (hash_combine (Id.to_int e.id) (hash_list l accu))
+      hash_combine 0x172a1bce (hash_combine (Id.hash e.id) (hash_list l accu))
     | TExp (marks, e) ->
-      hash_combine 0x2b4c0d77 (hash_combine (Id.to_int e.id) (Marks.hash marks accu))
+      hash_combine 0x2b4c0d77 (hash_combine (Id.hash e.id) (Marks.hash marks accu))
     | TMatch marks -> hash_combine 0x1c205ad5 (Marks.hash marks accu)
 
   and hash_list =
