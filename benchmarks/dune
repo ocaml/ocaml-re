@@ -1,3 +1,7 @@
+(env
+ (dev
+  (flags (:standard -w -58))))
+
 (executables
  (libraries re core base stdio threads core_bench core_unix.command_unix)
  (names benchmark))
