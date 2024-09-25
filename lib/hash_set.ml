@@ -76,7 +76,7 @@ let clear t =
 ;;
 
 let add t x =
-  let hash = Hashtbl.hash x in
+  let hash = Int.hash x in
   let slots = Array.length t.table in
   let index = hash land (slots - 1) in
   let inserting = ref true in
@@ -125,7 +125,7 @@ let mem t x =
   then false
   else (
     let t = Option.get t in
-    let hash = Hashtbl.hash x in
+    let hash = Int.hash x in
     let slots = Array.length t.table in
     let index = hash land (slots - 1) in
     let i = ref 0 in
