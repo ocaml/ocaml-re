@@ -48,3 +48,9 @@ module Option = struct
     let iter t ~f = if is_none t then () else f (value_exn t)
   end
 end
+
+module Int = struct
+  let[@warning "-32"] hash (x : int) = Hashtbl.hash x
+
+  include Stdlib.Int
+end
