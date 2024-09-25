@@ -1,3 +1,7 @@
+(env
+ (_
+  (flags (:standard -w -53))))
+
 (library
  (name re_str)
  (public_name re.str)
