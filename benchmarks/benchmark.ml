@@ -37,39 +37,56 @@ let benchmarks =
   ]
 ;;
 
+let test ~name re f =
+  [ Bench.Test.create ~name (fun () -> f re)
+  ; (let re () =
+       let re = lazy (re ()) in
+       Lazy.force re
+     in
+     Bench.Test.create ~name:(sprintf "%s (compiled)" name) (fun () -> f re))
+  ]
+;;
+
 let exec_bench exec name (re : Re.t) cases =
   Bench.Test.create_group
     ~name
-    (List.map cases ~f:(fun data ->
+    (List.concat_map cases ~f:(fun data ->
        let name =
          let len = String.length data in
          if len > 40
          then Printf.sprintf "%s .. (%d)" (String.sub data ~pos:0 ~len:10) len
          else data
        in
-       let re = Re.compile re in
-       Bench.Test.create ~name (fun () -> ignore (exec re data))))
+       let re () = Re.compile re in
+       test ~name re (fun re -> ignore (exec (re ()) data))))
 ;;
 
 let exec_bench_many exec name re cases =
-  let re = Re.compile re in
-  Bench.Test.create ~name (fun () -> List.iter cases ~f:(fun x -> ignore (exec re x)))
+  test
+    ~name
+    (fun () -> Re.compile re)
+    (fun re ->
+      let re = re () in
+      List.iter cases ~f:(fun x -> ignore (exec re x)))
 ;;
 
 let string_traversal =
-  let open Bench in
   let len = 1000 * 1000 in
   let s = String.make len 'a' in
-  let re = Re.Pcre.regexp "aaaaaaaaaaaaaaaaz" in
-  Test.create ~name:"string traversal from #210" (fun () -> ignore (Re.execp re s ~pos:0))
+  let re =
+    let re = Re.Pcre.re "aaaaaaaaaaaaaaaaz" in
+    fun () -> Re.compile re
+  in
+  test ~name:"string traversal from #210" re (fun re ->
+    ignore (Re.execp (re ()) s ~pos:0))
 ;;
 
 let compile_clean_star =
   let c = 'c' in
   let s = String.make 10_000 c in
   let re = Re.rep (Re.char 'c') in
-  let re = Re.compile re in
-  Bench.Test.create ~name:"kleene star compilation" (fun () -> ignore (Re.execp re s))
+  let re () = Re.compile re in
+  test ~name:"kleene star compilation" re (fun re -> ignore (Re.execp (re ()) s))
 ;;
 
 let benchmarks =
@@ -83,34 +100,39 @@ let benchmarks =
         ])
   in
   let http_benches =
-    let open Bench in
     let open Http.Export in
     let manual =
       [ request, "no group"; request_g, "group" ]
-      |> List.map ~f:(fun (re, name) ->
-        let re = Re.compile re in
-        Test.create ~name (fun () -> Http.read_all 0 re Http.requests))
-      |> Test.create_group ~name:"manual"
+      |> List.concat_map ~f:(fun (re, name) ->
+        let re () = Re.compile re in
+        test ~name re (fun re ->
+          let re = re () in
+          Http.read_all 0 re Http.requests))
+      |> Bench.Test.create_group ~name:"manual"
     in
     let many =
-      let requests = Re.compile requests in
-      let requests_g = Re.compile requests_g in
-      [ Test.create ~name:"execp no group" (fun () ->
-          ignore (Re.execp requests Http.requests))
-      ; Test.create ~name:"all_gen" (fun () -> Http.requests |> Re.all requests_g)
+      [ test
+          ~name:"execp no group"
+          (fun () -> Re.compile requests)
+          (fun re -> ignore (Re.execp (re ()) Http.requests))
+      ; test
+          ~name:"all_gen"
+          (fun () -> Re.compile requests_g)
+          (fun re -> Http.requests |> Re.all (re ()))
       ]
-      |> Test.create_group ~name:"auto"
+      |> List.concat
+      |> Bench.Test.create_group ~name:"auto"
     in
-    Test.create_group ~name:"http" [ manual; many ]
+    Bench.Test.create_group ~name:"http" [ manual; many ]
   in
   benches
   @ [ [ exec_bench_many Re.execp "execp"; exec_bench_many Re.exec_opt "exec_opt" ]
-      |> List.map ~f:(fun f -> f Tex.ignore_re Tex.ignore_filesnames)
+      |> List.concat_map ~f:(fun f -> f Tex.ignore_re Tex.ignore_filesnames)
       |> Bench.Test.create_group ~name:"tex gitignore"
     ]
   @ [ http_benches ]
-  @ [ string_traversal ]
-  @ [ compile_clean_star ]
+  @ string_traversal
+  @ compile_clean_star
   @ Memory.benchmarks
 ;;
 
