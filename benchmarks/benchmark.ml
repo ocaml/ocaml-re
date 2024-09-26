@@ -53,7 +53,7 @@ let exec_bench exec name (re : Re.t) cases =
     (List.concat_map cases ~f:(fun data ->
        let name =
          let len = String.length data in
-         if len > 40
+         if len > 70
          then Printf.sprintf "%s .. (%d)" (String.sub data ~pos:0 ~len:10) len
          else data
        in
