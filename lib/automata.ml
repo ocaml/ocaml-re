@@ -339,11 +339,12 @@ module E : sig
   val equal_list : t list -> t list -> bool
   val compare : t -> t -> int
   val hash_list : t list -> int -> int
-  val texp : Marks.t -> Expr.t -> t
   val is_tmatch : t -> bool
   val tseq' : Sem.t -> t list -> Expr.t -> t list
   val tseq : Sem.t -> t list -> Expr.t -> t list -> t list
   val prepend_marks : Marks.t -> ('a * t list) list -> ('a * t list) list
+  val initial : Expr.t -> t
+  val eps : Marks.t -> t
 end = struct
   type t =
     | TSeq of Sem.t * t list * Expr.t
@@ -351,6 +352,8 @@ end = struct
     | TMatch of Marks.t
 
   let tmatch marks = TMatch marks
+  let initial expr = TExp (Marks.empty, expr)
+  let eps marks = TExp (marks, eps_expr)
 
   let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
 
@@ -382,7 +385,6 @@ end = struct
   ;;
 
   let compare = Poly.compare
-  let texp marks x = TExp (marks, x)
 
   let tseq' kind x y =
     match x with
@@ -514,7 +516,7 @@ module State = struct
     }
   ;;
 
-  let create cat e = mk Idx.initial cat [ E.texp Marks.empty e ]
+  let create cat e = mk Idx.initial cat [ E.initial e ]
 
   let equal { idx; category; desc; status = _; hash } t =
     Int.equal hash t.hash
@@ -627,7 +629,7 @@ type ctx =
 let rec delta_expr ({ c; _ } as ctx) marks (x : Expr.t) rem =
   (*Format.eprintf "%d@." x.id;*)
   match x.def with
-  | Cst s -> if Cset.mem c s then E.texp marks Expr.eps_expr :: rem else rem
+  | Cst s -> if Cset.mem c s then E.eps marks :: rem else rem
   | Alt l -> delta_alt ctx marks l rem
   | Seq (kind, y, z) ->
     let y = delta_expr ctx marks y [] in
@@ -722,7 +724,7 @@ let rec restrict s = function
 
 let rec deriv_expr all_chars categories marks cat (x : Expr.t) rem =
   match x.def with
-  | Cst s -> Cset.prepend s [ E.texp marks Expr.eps_expr ] rem
+  | Cst s -> Cset.prepend s [ E.eps marks ] rem
   | Alt l -> deriv_alt all_chars categories marks cat l rem
   | Seq (kind, y, z) ->
     let y = deriv_expr all_chars categories marks cat y [ all_chars, [] ] in
