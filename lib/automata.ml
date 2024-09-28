@@ -283,14 +283,21 @@ module Marks = struct
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
 
   let pp fmt { marks; pmarks } =
-    Format.fprintf
-      fmt
-      "@[(@[<2>marks@ %a@] @[<2>pmarks %a@])@]"
-      (Format.pp_print_list (fun fmt (a, i) ->
-         Format.fprintf fmt "%a-%a" Mark.pp a Idx.pp i))
-      marks
-      (Format.pp_print_list Pmark.pp)
-      (Pmark.Set.to_list pmarks)
+    Format.pp_open_box fmt 1;
+    (match marks with
+     | [] -> ()
+     | _ :: _ ->
+       Format.fprintf
+         fmt
+         "@[<2>marks@ %a@]"
+         (Format.pp_print_list (fun fmt (a, i) ->
+            Format.fprintf fmt "%a-%a" Mark.pp a Idx.pp i))
+         marks);
+    (match Pmark.Set.to_list pmarks with
+     | [] -> ()
+     | pmarks ->
+       Format.fprintf fmt "@[<2>pmarks %a@]" (Format.pp_print_list Pmark.pp) pmarks);
+    Format.pp_close_box fmt ()
   ;;
 end
 
