@@ -328,94 +328,94 @@ module Status = struct
     | Running
 end
 
-module E : sig
-  type t = private
-    | TSeq of Sem.t * t list * Expr.t
-    | TExp of Marks.t * Expr.t
-    | TMatch of Marks.t
+module Desc : sig
+  module E : sig
+    type t = private
+      | TSeq of Sem.t * t list * Expr.t
+      | TExp of Marks.t * Expr.t
+      | TMatch of Marks.t
 
-  val tmatch : Marks.t -> t
-  val set_idx : Idx.t -> t list -> t list
-  val equal_list : t list -> t list -> bool
+    val tmatch : Marks.t -> t
+    val tseq' : Sem.t -> t list -> Expr.t -> t list
+    val tseq : Sem.t -> t list -> Expr.t -> t list -> t list
+    val prepend_marks : Marks.t -> ('a * t list) list -> ('a * t list) list
+    val initial : Expr.t -> t
+    val eps : Marks.t -> t
+  end
+
+  type t = E.t list
+
+  val set_idx : Idx.t -> t -> t
+  val hash : t -> int -> int
+  val equal : t -> t -> bool
   val compare : t -> t -> int
-  val hash_list : t list -> int -> int
-  val is_tmatch : t -> bool
-  val tseq' : Sem.t -> t list -> Expr.t -> t list
-  val tseq : Sem.t -> t list -> Expr.t -> t list -> t list
-  val prepend_marks : Marks.t -> ('a * t list) list -> ('a * t list) list
-  val initial : Expr.t -> t
-  val eps : Marks.t -> t
+  val status : t -> Status.t
+  val first_match : t -> Marks.t option
+  val remove_matches : t -> t
+  val split_at_match : t -> t * t
+  val exists_tmatch : t -> bool
 end = struct
-  type t =
-    | TSeq of Sem.t * t list * Expr.t
-    | TExp of Marks.t * Expr.t
-    | TMatch of Marks.t
+  module E = struct
+    type t =
+      | TSeq of Sem.t * t list * Expr.t
+      | TExp of Marks.t * Expr.t
+      | TMatch of Marks.t
 
-  let tmatch marks = TMatch marks
-  let initial expr = TExp (Marks.empty, expr)
-  let eps marks = TExp (marks, eps_expr)
+    let tmatch marks = TMatch marks
+    let initial expr = TExp (Marks.empty, expr)
+    let eps marks = TExp (marks, eps_expr)
 
-  let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
+    let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
 
-  and equal x y =
-    match x, y with
-    | TSeq (_, l1, e1), TSeq (_, l2, e2) -> Id.equal e1.id e2.id && equal_list l1 l2
-    | TExp (marks1, e1), TExp (marks2, e2) ->
-      Id.equal e1.id e2.id && Marks.equal marks1 marks2
-    | TMatch marks1, TMatch marks2 -> Marks.equal marks1 marks2
-    | _, _ -> false
-  ;;
+    and equal x y =
+      match x, y with
+      | TSeq (_, l1, e1), TSeq (_, l2, e2) -> Id.equal e1.id e2.id && equal_list l1 l2
+      | TExp (marks1, e1), TExp (marks2, e2) ->
+        Id.equal e1.id e2.id && Marks.equal marks1 marks2
+      | TMatch marks1, TMatch marks2 -> Marks.equal marks1 marks2
+      | _, _ -> false
+    ;;
 
-  let rec hash (t : t) accu =
-    match t with
-    | TSeq (_, l, e) ->
-      hash_combine 0x172a1bce (hash_combine (Id.hash e.id) (hash_list l accu))
-    | TExp (marks, e) ->
-      hash_combine 0x2b4c0d77 (hash_combine (Id.hash e.id) (Marks.hash marks accu))
-    | TMatch marks -> hash_combine 0x1c205ad5 (Marks.hash marks accu)
+    let rec hash (t : t) accu =
+      match t with
+      | TSeq (_, l, e) ->
+        hash_combine 0x172a1bce (hash_combine (Id.hash e.id) (hash_list l accu))
+      | TExp (marks, e) ->
+        hash_combine 0x2b4c0d77 (hash_combine (Id.hash e.id) (Marks.hash marks accu))
+      | TMatch marks -> hash_combine 0x1c205ad5 (Marks.hash marks accu)
 
-  and hash_list =
-    let f acc x = hash x acc in
-    fun l init -> List.fold_left l ~init ~f
-  ;;
+    and hash_list =
+      let f acc x = hash x acc in
+      fun l init -> List.fold_left l ~init ~f
+    ;;
 
-  let is_tmatch = function
-    | TMatch _ -> true
-    | TSeq _ | TExp _ -> false
-  ;;
+    let is_tmatch = function
+      | TMatch _ -> true
+      | TSeq _ | TExp _ -> false
+    ;;
 
-  let compare = Poly.compare
+    let compare = Poly.compare
 
-  let tseq' kind x y =
-    match x with
-    | [] -> []
-    | [ TExp (marks, { def = Eps; _ }) ] -> [ TExp (marks, y) ]
-    | _ -> [ TSeq (kind, x, y) ]
-  ;;
+    let tseq' kind x y =
+      match x with
+      | [] -> []
+      | [ TExp (marks, { def = Eps; _ }) ] -> [ TExp (marks, y) ]
+      | _ -> [ TSeq (kind, x, y) ]
+    ;;
 
-  let tseq kind x y rem = tseq' kind x y @ rem
+    let tseq kind x y rem = tseq' kind x y @ rem
 
-  let set_idx =
-    let rec f idx = function
-      | TMatch marks -> TMatch (Marks.marks_set_idx marks idx)
-      | TSeq (kind, l, x) -> TSeq (kind, set_idx idx l, x)
-      | TExp (marks, x) -> TExp (Marks.marks_set_idx marks idx, x)
-    and set_idx idx xs = List.map xs ~f:(f idx) in
-    set_idx
-  ;;
+    let prepend_marks =
+      let rec prepend_marks_expr m e =
+        match e with
+        | TSeq (s, l, e) -> TSeq (s, prepend_marks_expr_lst m l, e)
+        | TExp (m', e) -> TExp (Marks.merge m m', e)
+        | TMatch m' -> TMatch (Marks.merge m m')
+      and prepend_marks_expr_lst m l = List.map ~f:(prepend_marks_expr m) l in
+      fun m -> List.map ~f:(fun (s, x) -> s, prepend_marks_expr_lst m x)
+    ;;
+  end
 
-  let prepend_marks =
-    let rec prepend_marks_expr m e =
-      match e with
-      | TSeq (s, l, e) -> TSeq (s, prepend_marks_expr_lst m l, e)
-      | TExp (m', e) -> TExp (Marks.merge m m', e)
-      | TMatch m' -> TMatch (Marks.merge m m')
-    and prepend_marks_expr_lst m l = List.map ~f:(prepend_marks_expr m) l in
-    fun m -> List.map ~f:(fun (s, x) -> s, prepend_marks_expr_lst m x)
-  ;;
-end
-
-module Desc = struct
   type t = E.t list
 
   open E
@@ -477,10 +477,21 @@ module Desc = struct
     | _ -> Running
   ;;
 
+  let set_idx =
+    let rec f idx = function
+      | TMatch marks -> TMatch (Marks.marks_set_idx marks idx)
+      | TSeq (kind, l, x) -> TSeq (kind, set_idx idx l, x)
+      | TExp (marks, x) -> TExp (Marks.marks_set_idx marks idx, x)
+    and set_idx idx xs = List.map xs ~f:(f idx) in
+    set_idx
+  ;;
+
   let[@ocaml.warning "-32"] pp fmt t =
     Format.fprintf fmt "[%a]" (Format.pp_print_list ~pp_sep:(Fmt.lit "; ") pp) t
   ;;
 end
+
+module E = Desc.E
 
 module State = struct
   type t =
@@ -691,7 +702,7 @@ let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
     remove_duplicates tbl_ref.seen (delta_desc ctx Marks.empty st.desc []) Expr.eps_expr
   in
   let idx = Working_area.free_index tbl_ref expr in
-  let expr = E.set_idx idx expr in
+  let expr = Desc.set_idx idx expr in
   State.mk idx next_cat expr
 ;;
 
@@ -813,7 +824,7 @@ let deriv (tbl_ref : Working_area.t) all_chars categories (st : State.t) =
        Format.eprintf "@[<3>@[%a@]: %a / %a@]@." Cset.print s print_state expr print_state expr';
     *)
     let idx = Working_area.free_index tbl_ref expr' in
-    let expr'' = E.set_idx idx expr' in
+    let expr'' = Desc.set_idx idx expr' in
     List.fold_right categories ~init:rem ~f:(fun (cat', s') rem ->
       let s'' = Cset.inter s s' in
       if Cset.is_empty s'' then rem else (s'', State.mk idx cat' expr'') :: rem))
