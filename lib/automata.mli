@@ -116,12 +116,3 @@ module Working_area : sig
 end
 
 val delta : Working_area.t -> Category.t -> Cset.c -> State.t -> State.t
-
-val deriv
-  :  Working_area.t
-  -> Cset.t
-  -> (Category.t * Cset.t) list
-  -> State.t
-  -> (Cset.t * State.t) list
-
-(****)
