@@ -10,8 +10,7 @@
       let
         pkgs = nixpkgs.legacyPackages."${system}";
         inherit (pkgs.ocamlPackages) buildDunePackage;
-      in
-      rec {
+      in rec {
         packages = rec {
           default = re;
           re = buildDunePackage {
@@ -26,7 +25,13 @@
         };
         devShells.default = pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
-          buildInputs = with pkgs.ocamlPackages; [ ocaml-lsp core_bench pkgs.ocamlformat_0_26_2 js_of_ocaml pkgs.nodejs-slim ];
+          buildInputs = with pkgs.ocamlPackages; [
+            ocaml-lsp
+            core_bench
+            pkgs.ocamlformat_0_26_2
+            js_of_ocaml
+            pkgs.nodejs-slim
+          ];
         };
       });
 }
