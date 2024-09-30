@@ -3,7 +3,7 @@ open Import
 module Array = struct
   type nonrec t = Bytes.t
 
-  let words = Sys.word_size / 8
+  let words = 8
   let[@inline] length t = Bytes.length t / words
   let[@inline] unsafe_get t i = Int64.to_int (Bytes.get_int64_ne t (i * words))
   let[@inline] unsafe_set t i x = Bytes.set_int64_ne t (i * words) (Int64.of_int x)
