@@ -9,7 +9,8 @@
   ppx_expect
   base
   ppx_inline_test.config)
- (inline_tests)
+ (inline_tests
+  (modes native js))
  (preprocess
   (pps ppx_expect)))
 
