@@ -1,5 +1,5 @@
-Unreleased
-----------
+1.13.0 (30-Sep-2024)
+--------------------
 
 * Add non raising versions of all [Re.Group] functions (#414, fixes #150)
 
