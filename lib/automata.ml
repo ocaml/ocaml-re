@@ -454,19 +454,14 @@ module State = struct
     { idx : Idx.t
     ; category : Category.t
     ; desc : Desc.t
-    ; mutable status : Status.t Option.Unboxed.t
+    ; mutable status : Status.t option
     ; hash : int
     }
 
   let[@inline] idx t = t.idx
 
   let dummy =
-    { idx = Idx.unknown
-    ; category = Category.dummy
-    ; desc = []
-    ; status = Option.Unboxed.none
-    ; hash = -1
-    }
+    { idx = Idx.unknown; category = Category.dummy; desc = []; status = None; hash = -1 }
   ;;
 
   let hash idx cat desc =
@@ -475,12 +470,7 @@ module State = struct
   ;;
 
   let mk idx cat desc =
-    { idx
-    ; category = cat
-    ; desc
-    ; status = Option.Unboxed.none
-    ; hash = hash (idx :> int) cat desc
-    }
+    { idx; category = cat; desc; status = None; hash = hash (idx :> int) cat desc }
   ;;
 
   let create cat e = mk Idx.initial cat [ E.initial e ]
@@ -493,12 +483,11 @@ module State = struct
   ;;
 
   let status s =
-    let status = s.status in
-    match Option.Unboxed.is_some status with
-    | true -> Option.Unboxed.value_exn status
-    | false ->
+    match s.status with
+    | Some s -> s
+    | None ->
       let st = Desc.status s.desc in
-      s.status <- Option.Unboxed.some st;
+      s.status <- Some st;
       st
   ;;
 
