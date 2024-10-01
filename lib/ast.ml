@@ -177,7 +177,11 @@ module Export = struct
     | l -> Sequence l
   ;;
 
-  let char c : t = cset (Cset.csingle c)
+  let char =
+    let f = Dense_map.make ~size:256 ~f:(fun i -> cset (Cset.csingle (Char.chr i))) in
+    fun c -> f (Char.code c)
+  ;;
+
   let any = cset Cset.cany
 
   let str s : t =
