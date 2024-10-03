@@ -57,3 +57,22 @@ let%expect_test "opt" =
   test_re (opt (char 'a')) "a";
   [%expect {| [| (0, 1) |] |}]
 ;;
+
+let copy s n =
+  let len = String.length s in
+  let b = Bytes.make (len * n) '\000' in
+  for i = 0 to n - 1 do
+    Bytes.blit_string s 0 b (i * len) len
+  done;
+  Bytes.to_string b
+;;
+
+let%expect_test "repeat sequence" =
+  let s = "abcde" in
+  let re = str s |> rep |> whole_string |> compile in
+  for i = 0 to 3 do
+    let r = copy s i in
+    assert (Re.execp re r)
+  done;
+  [%expect {||}]
+;;
