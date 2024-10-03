@@ -309,20 +309,19 @@ module Status = struct
 end
 
 module Desc : sig
+  type t
+
   module E : sig
-    type t = private
-      | TSeq of Sem.t * t list * Expr.t
+    type nonrec t = private
+      | TSeq of Sem.t * t * Expr.t
       | TExp of Marks.t * Expr.t
       | TMatch of Marks.t
-
-    val tmatch : Marks.t -> t
-    val tseq : Sem.t -> t list -> Expr.t -> t list -> t list
-    val initial : Expr.t -> t
-    val eps : Marks.t -> t
   end
 
-  type t = E.t list
-
+  val fold_right : t -> init:'acc -> f:(E.t -> 'acc -> 'acc) -> 'acc
+  val tseq : Sem.t -> t -> Expr.t -> t -> t
+  val initial : Expr.t -> t
+  val empty : t
   val set_idx : Idx.t -> t -> t
   val hash : t -> int -> int
   val equal : t -> t -> bool
@@ -330,16 +329,17 @@ module Desc : sig
   val first_match : t -> Marks.t option
   val remove_matches : t -> t
   val split_at_match : t -> t * t
+  val add_match : t -> Marks.t -> t
+  val add_eps : t -> Marks.t -> t
+  val add_expr : t -> E.t -> t
+  val iter_marks : t -> f:(Marks.t -> unit) -> unit
+  val remove_duplicates : Id.Hash_set.t -> t -> Expr.t -> t
 end = struct
   module E = struct
     type t =
       | TSeq of Sem.t * t list * Expr.t
       | TExp of Marks.t * Expr.t
       | TMatch of Marks.t
-
-    let tmatch marks = TMatch marks
-    let initial expr = TExp (Marks.empty, expr)
-    let eps marks = TExp (marks, eps_expr)
 
     let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
 
@@ -364,15 +364,6 @@ end = struct
       let f acc x = hash x acc in
       fun l init -> List.fold_left l ~init ~f
     ;;
-
-    let tseq' kind x y =
-      match x with
-      | [] -> []
-      | [ TExp (marks, { def = Eps; _ }) ] -> [ TExp (marks, y) ]
-      | _ -> [ TSeq (kind, x, y) ]
-    ;;
-
-    let tseq kind x y rem = tseq' kind x y @ rem
   end
 
   type t = E.t list
@@ -381,6 +372,28 @@ end = struct
 
   let equal = E.equal_list
   let hash = E.hash_list
+
+  let tseq' kind x y =
+    match x with
+    | [] -> []
+    | [ TExp (marks, { def = Eps; _ }) ] -> [ TExp (marks, y) ]
+    | _ -> [ TSeq (kind, x, y) ]
+  ;;
+
+  let tseq kind x y rem = tseq' kind x y @ rem
+
+  let rec fold_right t ~init ~f =
+    match t with
+    | [] -> init
+    | x :: xs -> f x (fold_right xs ~init ~f)
+  ;;
+
+  let rec iter_marks t ~f =
+    List.iter t ~f:(fun (e : E.t) ->
+      match e with
+      | TSeq (_, l, _) -> iter_marks l ~f
+      | TExp (marks, _) | TMatch marks -> f marks)
+  ;;
 
   let rec print_state_rec ch e (y : Expr.t) =
     match e with
@@ -445,6 +458,41 @@ end = struct
   let[@ocaml.warning "-32"] pp fmt t =
     Format.fprintf fmt "[%a]" (Format.pp_print_list ~pp_sep:(Fmt.lit "; ") pp) t
   ;;
+
+  let empty = []
+  let initial expr = [ TExp (Marks.empty, expr) ]
+  let add_match t marks = TMatch marks :: t
+  let add_eps t marks = TExp (marks, eps_expr) :: t
+  let add_expr t expr = expr :: t
+
+  let remove_duplicates =
+    let rec loop seen l y =
+      match l with
+      | [] -> []
+      | (TMatch _ as x) :: _ ->
+        (* Truncate after first match *)
+        [ x ]
+      | TSeq (kind, l, x) :: r ->
+        let l = loop seen l x in
+        let r = loop seen r y in
+        tseq kind l x r
+      | (TExp (_marks, { def = Eps; _ }) as e) :: r ->
+        if Id.Hash_set.mem seen y.id
+        then loop seen r y
+        else (
+          Id.Hash_set.add seen y.id;
+          e :: loop seen r y)
+      | (TExp (_marks, x) as e) :: r ->
+        if Id.Hash_set.mem seen x.id
+        then loop seen r y
+        else (
+          Id.Hash_set.add seen x.id;
+          e :: loop seen r y)
+    in
+    fun seen l y ->
+      Id.Hash_set.clear seen;
+      loop seen l y
+  ;;
 end
 
 module E = Desc.E
@@ -461,7 +509,12 @@ module State = struct
   let[@inline] idx t = t.idx
 
   let dummy =
-    { idx = Idx.unknown; category = Category.dummy; desc = []; status = None; hash = -1 }
+    { idx = Idx.unknown
+    ; category = Category.dummy
+    ; desc = Desc.empty
+    ; status = None
+    ; hash = -1
+    }
   ;;
 
   let hash idx cat desc =
@@ -473,7 +526,7 @@ module State = struct
     { idx; category = cat; desc; status = None; hash = hash (idx :> int) cat desc }
   ;;
 
-  let create cat e = mk Idx.initial cat [ E.initial e ]
+  let create cat e = mk Idx.initial cat (Desc.initial e)
 
   let equal { idx; category; desc; status = _; hash } t =
     Int.equal hash t.hash
@@ -510,13 +563,10 @@ module Working_area = struct
   let create () = { ids = Bit_vector.create_zero 1; seen = Id.Hash_set.create () }
   let index_count w = Bit_vector.length w.ids
 
-  let rec mark_used_indices tbl =
-    List.iter ~f:(fun (e : E.t) ->
-      match e with
-      | TSeq (_, l, _) -> mark_used_indices tbl l
-      | TExp (marks, _) | TMatch marks ->
-        List.iter marks.marks ~f:(fun (_, i) ->
-          if Idx.used i then Bit_vector.set tbl (i :> int) true))
+  let mark_used_indices tbl =
+    Desc.iter_marks ~f:(fun marks ->
+      List.iter marks.marks ~f:(fun (_, i) ->
+        if Idx.used i then Bit_vector.set tbl (i :> int) true))
   ;;
 
   let rec find_free tbl idx len =
@@ -535,35 +585,6 @@ end
 
 (**** Computation of the next state ****)
 
-let remove_duplicates =
-  let rec loop seen (l : Desc.t) y =
-    match l with
-    | [] -> []
-    | (TMatch _ as x) :: _ ->
-      (* Truncate after first match *)
-      [ x ]
-    | TSeq (kind, l, x) :: r ->
-      let l = loop seen l x in
-      let r = loop seen r y in
-      E.tseq kind l x r
-    | (TExp (_marks, { def = Eps; _ }) as e) :: r ->
-      if Id.Hash_set.mem seen y.id
-      then loop seen r y
-      else (
-        Id.Hash_set.add seen y.id;
-        e :: loop seen r y)
-    | (TExp (_marks, x) as e) :: r ->
-      if Id.Hash_set.mem seen x.id
-      then loop seen r y
-      else (
-        Id.Hash_set.add seen x.id;
-        e :: loop seen r y)
-  in
-  fun seen l y ->
-    Id.Hash_set.clear seen;
-    loop seen l y
-;;
-
 type ctx =
   { c : Cset.c
   ; prev_cat : Category.t
@@ -573,29 +594,29 @@ type ctx =
 let rec delta_expr ({ c; _ } as ctx) marks (x : Expr.t) rem =
   (*Format.eprintf "%d@." x.id;*)
   match x.def with
-  | Cst s -> if Cset.mem c s then E.eps marks :: rem else rem
+  | Cst s -> if Cset.mem c s then Desc.add_eps rem marks else rem
   | Alt l -> delta_alt ctx marks l rem
   | Seq (kind, y, z) ->
-    let y = delta_expr ctx marks y [] in
+    let y = delta_expr ctx marks y Desc.empty in
     delta_seq ctx kind y z rem
   | Rep (rep_kind, kind, y) ->
     let y, marks' =
-      let y = delta_expr ctx marks y [] in
+      let y = delta_expr ctx marks y Desc.empty in
       match Desc.first_match y with
       | None -> y, marks
       | Some marks -> Desc.remove_matches y, marks
     in
     (match rep_kind with
-     | `Greedy -> E.tseq kind y x (E.tmatch marks' :: rem)
-     | `Non_greedy -> E.tmatch marks :: E.tseq kind y x rem)
-  | Eps -> E.tmatch marks :: rem
-  | Mark i -> E.tmatch (Marks.set_mark marks i) :: rem
-  | Pmark i -> E.tmatch (Marks.set_pmark marks i) :: rem
-  | Erase (b, e) -> E.tmatch (Marks.filter marks b e) :: rem
+     | `Greedy -> Desc.tseq kind y x (Desc.add_match rem marks')
+     | `Non_greedy -> Desc.add_match (Desc.tseq kind y x rem) marks)
+  | Eps -> Desc.add_match rem marks
+  | Mark i -> Desc.add_match rem (Marks.set_mark marks i)
+  | Pmark i -> Desc.add_match rem (Marks.set_pmark marks i)
+  | Erase (b, e) -> Desc.add_match rem (Marks.filter marks b e)
   | Before cat ->
-    if Category.intersect ctx.next_cat cat then E.tmatch marks :: rem else rem
+    if Category.intersect ctx.next_cat cat then Desc.add_match rem marks else rem
   | After cat ->
-    if Category.intersect ctx.prev_cat cat then E.tmatch marks :: rem else rem
+    if Category.intersect ctx.prev_cat cat then Desc.add_match rem marks else rem
 
 and delta_alt ctx marks l rem =
   match l with
@@ -604,35 +625,36 @@ and delta_alt ctx marks l rem =
 
 and delta_seq ctx (kind : Sem.t) y z rem =
   match Desc.first_match y with
-  | None -> E.tseq kind y z rem
+  | None -> Desc.tseq kind y z rem
   | Some marks ->
     (match kind with
-     | `Longest -> E.tseq kind (Desc.remove_matches y) z (delta_expr ctx marks z rem)
-     | `Shortest -> delta_expr ctx marks z (E.tseq kind (Desc.remove_matches y) z rem)
+     | `Longest -> Desc.tseq kind (Desc.remove_matches y) z (delta_expr ctx marks z rem)
+     | `Shortest -> delta_expr ctx marks z (Desc.tseq kind (Desc.remove_matches y) z rem)
      | `First ->
        let y, y' = Desc.split_at_match y in
-       E.tseq kind y z (delta_expr ctx marks z (E.tseq kind y' z rem)))
+       Desc.tseq kind y z (delta_expr ctx marks z (Desc.tseq kind y' z rem)))
 ;;
 
 let rec delta_e ctx marks (x : E.t) rem =
   match x with
   | TSeq (kind, y, z) ->
-    let y = delta_desc ctx marks y [] in
+    let y = delta_desc ctx marks y Desc.empty in
     delta_seq ctx kind y z rem
   | TExp (marks, e) -> delta_expr ctx marks e rem
-  | TMatch _ -> x :: rem
+  | TMatch _ -> Desc.add_expr rem x
 
-and delta_desc ctx marks l rem =
-  match l with
-  | [] -> rem
-  | y :: r -> delta_e ctx marks y (delta_desc ctx marks r rem)
+and delta_desc ctx marks (l : Desc.t) rem =
+  Desc.fold_right l ~init:rem ~f:(fun y acc -> delta_e ctx marks y acc)
 ;;
 
 let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
   let expr =
     let prev_cat = st.category in
     let ctx = { c = char; next_cat; prev_cat } in
-    remove_duplicates tbl_ref.seen (delta_desc ctx Marks.empty st.desc []) Expr.eps_expr
+    Desc.remove_duplicates
+      tbl_ref.seen
+      (delta_desc ctx Marks.empty st.desc Desc.empty)
+      Expr.eps_expr
   in
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
