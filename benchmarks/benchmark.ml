@@ -89,6 +89,15 @@ let compile_clean_star =
   test ~name:"kleene star compilation" re (fun re -> ignore (Re.execp (re ()) s))
 ;;
 
+let repeated_sequence =
+  let s = String.init 256 ~f:Char.of_int_exn in
+  let re () = Re.repn (Re.str s) 50 (Some 50) |> Re.compile in
+  let s = List.init 50 ~f:(fun _ -> s) |> String.concat ~sep:"" in
+  test ~name:"repeated sequence re" re (fun re ->
+    let re = re () in
+    ignore (Re.execp re s))
+;;
+
 let benchmarks =
   let benches =
     List.map benchmarks ~f:(fun (name, re, cases) ->
@@ -134,6 +143,7 @@ let benchmarks =
   @ string_traversal
   @ compile_clean_star
   @ Memory.benchmarks
+  @ repeated_sequence
 ;;
 
 let () =
