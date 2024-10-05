@@ -620,10 +620,7 @@ and delta_rep ctx marks x rep_kind kind y rem =
   | `Greedy -> Desc.tseq kind y x (Desc.add_match rem marks')
   | `Non_greedy -> Desc.add_match (Desc.tseq kind y x rem) marks
 
-and delta_alt ctx marks l rem =
-  match l with
-  | [] -> rem
-  | y :: r -> delta_expr ctx marks y (delta_alt ctx marks r rem)
+and delta_alt ctx marks l rem = List.fold_right l ~init:rem ~f:(delta_expr ctx marks)
 
 and delta_seq ctx (kind : Sem.t) y z rem =
   match Desc.first_match y with
