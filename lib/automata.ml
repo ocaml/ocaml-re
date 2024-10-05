@@ -599,16 +599,7 @@ let rec delta_expr ({ c; _ } as ctx) marks (x : Expr.t) rem =
   | Seq (kind, y, z) ->
     let y = delta_expr ctx marks y Desc.empty in
     delta_seq ctx kind y z rem
-  | Rep (rep_kind, kind, y) ->
-    let y, marks' =
-      let y = delta_expr ctx marks y Desc.empty in
-      match Desc.first_match y with
-      | None -> y, marks
-      | Some marks -> Desc.remove_matches y, marks
-    in
-    (match rep_kind with
-     | `Greedy -> Desc.tseq kind y x (Desc.add_match rem marks')
-     | `Non_greedy -> Desc.add_match (Desc.tseq kind y x rem) marks)
+  | Rep (rep_kind, kind, y) -> delta_rep ctx marks x rep_kind kind y rem
   | Eps -> Desc.add_match rem marks
   | Mark i -> Desc.add_match rem (Marks.set_mark marks i)
   | Pmark i -> Desc.add_match rem (Marks.set_pmark marks i)
@@ -617,6 +608,17 @@ let rec delta_expr ({ c; _ } as ctx) marks (x : Expr.t) rem =
     if Category.intersect ctx.next_cat cat then Desc.add_match rem marks else rem
   | After cat ->
     if Category.intersect ctx.prev_cat cat then Desc.add_match rem marks else rem
+
+and delta_rep ctx marks x rep_kind kind y rem =
+  let y, marks' =
+    let y = delta_expr ctx marks y Desc.empty in
+    match Desc.first_match y with
+    | None -> y, marks
+    | Some marks -> Desc.remove_matches y, marks
+  in
+  match rep_kind with
+  | `Greedy -> Desc.tseq kind y x (Desc.add_match rem marks')
+  | `Non_greedy -> Desc.add_match (Desc.tseq kind y x rem) marks
 
 and delta_alt ctx marks l rem =
   match l with
