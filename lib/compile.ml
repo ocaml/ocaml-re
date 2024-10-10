@@ -371,6 +371,51 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
   else final_boundary_check re positions ~last ~slen s state_info ~groups
 ;;
 
+module Stream = struct
+  type nonrec t =
+    { state : State.t
+    ; re : re
+    }
+
+  type feed =
+    | Ok of t
+    | No_match
+
+  let create re =
+    let category = Category.(search_boundary ++ inexistant) in
+    let state = find_initial_state re category in
+    { state; re }
+  ;;
+
+  let feed t s ~pos ~len =
+    let last = pos + len in
+    let state = loop_no_mark t.re ~colors:t.re.colors s ~last ~pos t.state t.state in
+    let info = State.get_info state in
+    if Idx.is_break info.idx
+       &&
+       match Automata.State.status info.desc with
+       | Failed -> true
+       | Match _ | Running -> false
+    then No_match
+    else Ok { t with state }
+  ;;
+
+  let finalize t s ~pos ~len =
+    let last = pos + len in
+    let state = scan_str t.re Positions.empty s t.state ~last ~pos ~groups:false in
+    let info = State.get_info state in
+    match
+      let _idx, res =
+        let final_cat = Category.(search_boundary ++ inexistant) in
+        final t.re Positions.empty info final_cat
+      in
+      res
+    with
+    | Running | Failed -> false
+    | Match _ -> true
+  ;;
+end
+
 let match_str_no_bounds ~groups ~partial re s ~pos ~len =
   let positions = Positions.make ~groups re in
   match make_match_str re positions ~len ~groups ~partial s ~pos with

@@ -76,6 +76,18 @@ module Group : sig
   val pp : Format.formatter -> t -> unit
 end
 
+module Stream : sig
+  type t
+
+  type feed =
+    | Ok of t
+    | No_match
+
+  val create : re -> t
+  val feed : t -> string -> pos:int -> len:int -> feed
+  val finalize : t -> string -> pos:int -> len:int -> bool
+end
+
 type groups = Group.t [@@ocaml.deprecated "Use Group.t"]
 
 (** {2 Compilation and execution of a regular expression} *)

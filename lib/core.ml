@@ -170,3 +170,4 @@ include struct
 end
 
 module Seq = Search
+module Stream = Compile.Stream
