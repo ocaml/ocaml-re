@@ -43,6 +43,10 @@ let char_of_int x =
   | exception _ -> raise Parse_error
 ;;
 
+type elem =
+  | Char of char
+  | Set of Ast.t
+
 let parse multiline dollar_endonly dotall ungreedy s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
@@ -245,8 +249,8 @@ let parse multiline dollar_endonly dotall ungreedy s =
     then s
     else (
       match char () with
-      | `Set st -> bracket (st :: s)
-      | `Char c ->
+      | Set st -> bracket (st :: s)
+      | Char c ->
         if accept '-'
         then
           if accept ']'
@@ -254,8 +258,8 @@ let parse multiline dollar_endonly dotall ungreedy s =
           else
             bracket
               (match char () with
-               | `Char c' -> Re.rg c c' :: s
-               | `Set st' -> Re.char c :: Re.char '-' :: st' :: s)
+               | Char c' -> Re.rg c c' :: s
+               | Set st' -> Re.char c :: Re.char '-' :: st' :: s)
         else bracket (Re.char c :: s))
   and char () =
     if eos () then raise Parse_error;
@@ -264,7 +268,7 @@ let parse multiline dollar_endonly dotall ungreedy s =
     then (
       if accept '=' then raise Not_supported;
       match Posix_class.parse buf with
-      | Some set -> `Set set
+      | Some set -> Set set
       | None ->
         if accept '.'
         then (
@@ -272,8 +276,8 @@ let parse multiline dollar_endonly dotall ungreedy s =
           let c = get () in
           if not (accept '.') then raise Not_supported;
           if not (accept ']') then raise Parse_error;
-          `Char c)
-        else `Char c)
+          Char c)
+        else Char c)
     else if c = '\\'
     then (
       if eos () then raise Parse_error;
@@ -282,20 +286,20 @@ let parse multiline dollar_endonly dotall ungreedy s =
          \127, ...
       *)
       match c with
-      | 'b' -> `Char '\008'
-      | 'n' -> `Char '\n' (*XXX*)
-      | 'r' -> `Char '\r' (*XXX*)
-      | 't' -> `Char '\t' (*XXX*)
-      | 'w' -> `Set (Re.alt [ Re.alnum; Re.char '_' ])
-      | 'W' -> `Set (Re.compl [ Re.alnum; Re.char '_' ])
-      | 's' -> `Set Re.space
-      | 'S' -> `Set (Re.compl [ Re.space ])
-      | 'd' -> `Set Re.digit
-      | 'D' -> `Set (Re.compl [ Re.digit ])
+      | 'b' -> Char '\008'
+      | 'n' -> Char '\n' (*XXX*)
+      | 'r' -> Char '\r' (*XXX*)
+      | 't' -> Char '\t' (*XXX*)
+      | 'w' -> Set (Re.alt [ Re.alnum; Re.char '_' ])
+      | 'W' -> Set (Re.compl [ Re.alnum; Re.char '_' ])
+      | 's' -> Set Re.space
+      | 'S' -> Set (Re.compl [ Re.space ])
+      | 'd' -> Set Re.digit
+      | 'D' -> Set (Re.compl [ Re.digit ])
       | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
       | '0' .. '9' -> raise Not_supported
-      | _ -> `Char c)
-    else `Char c
+      | _ -> Char c)
+    else Char c
   and comment () =
     if eos () then raise Parse_error;
     if accept ')'
