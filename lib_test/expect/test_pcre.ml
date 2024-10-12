@@ -81,3 +81,25 @@ let%expect_test "named groups" =
   print_endline (get_named_substring rex "many_x" s);
   [%expect {| xxx |}]
 ;;
+
+let%expect_test "quote" =
+  let test s = Printf.printf "%S\n" (Re.Pcre.quote s) in
+  test "";
+  [%expect {| "" |}];
+  test "\000";
+  [%expect {| "\000" |}];
+  test "";
+  [%expect {| "" |}];
+  test (String.init (126 - 32) (fun x -> Char.chr (x + 32)));
+  [%expect
+    {xxx| " !\"#\\$%&'\\(\\)\\*\\+,-\\./0123456789:;<=>\\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\]\\^_`abcdefghijklmnopqrstuvwxyz\\{\\|}" |xxx}];
+  let b = Buffer.create 100 in
+  for i = 0 to 255 do
+    let c = Char.chr i in
+    let s = Pcre.quote (String.make 1 c) in
+    if String.length s > 1 then Buffer.add_char b c
+  done;
+  let b = Buffer.contents b in
+  Printf.printf "%S\n" b;
+  [%expect {xxx| "$()*+.?[\\^{|" |xxx}]
+;;
