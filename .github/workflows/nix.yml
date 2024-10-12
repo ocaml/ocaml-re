@@ -13,4 +13,4 @@ jobs:
       - uses: cachix/install-nix-action@v30
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix develop -c dune runtest
+      - run: nix develop .#test -c dune runtest
