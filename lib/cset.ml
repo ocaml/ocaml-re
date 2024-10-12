@@ -86,7 +86,12 @@ let rec diff l l' =
       if c1 < c1' then (c1, c1' - 1) :: diff r'' r' else diff r'' r')
 ;;
 
-let single c = [ c, c ]
+let single =
+  let single c = [ c, c ] in
+  Dense_map.make (* an extra color for lnl *) ~size:257 ~f:single
+;;
+
+let csingle i = single (Char.code i)
 let add c l = union (single c) l
 let seq c c' = if c <= c' then [ c, c' ] else [ c', c ]
 
@@ -147,7 +152,6 @@ module CSetMap = Map.Make (struct
   end)
 
 let fold_right t ~init ~f = List.fold_right ~f:(fun (x, y) acc -> f x y acc) t ~init
-let csingle c = single (Char.code c)
 
 let is_empty = function
   | [] -> true
