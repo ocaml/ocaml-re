@@ -39,8 +39,12 @@ val get_substring : groups -> int -> string
 (** Return the names of named groups. *)
 val names : regexp -> string array
 
-(** Return the first matched named group, or raise [Not_found]. *)
+(** Return the first matched named group, or raise [Not_found]. Prefer to use
+    the non-raising version [get_named_substring_opt] *)
 val get_named_substring : regexp -> string -> groups -> string
+
+(** Return the first matched named group, or raise [Not_found]. *)
+val get_named_substring_opt : regexp -> string -> groups -> string option
 
 (** Equivalent to {!Core.Group.offset}. *)
 val get_substring_ofs : groups -> int -> int * int

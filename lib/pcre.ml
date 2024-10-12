@@ -36,15 +36,15 @@ let re ?(flags = []) pat =
 let regexp ?flags pat = Re.compile (re ?flags pat)
 let extract ~rex s = Re.Group.all (Re.exec rex s)
 let exec ~rex ?pos s = Re.exec rex ?pos s
-let get_substring s i = Re.Group.get s i
 let names rex = Re.group_names rex |> List.map fst |> Array.of_list
 
-let get_named_substring rex name s =
+let get_named_substring_opt rex name s =
   let rec loop = function
-    | [] -> raise Not_found
+    | [] -> None
     | (n, i) :: rem when n = name ->
-      (try get_substring s i with
-       | Not_found -> loop rem)
+      (match Re.Group.get_opt s i with
+       | None -> loop rem
+       | Some _ as s -> s)
     | _ :: rem -> loop rem
   in
   loop (Re.group_names rex)
@@ -169,3 +169,11 @@ let full_split ?(max = 0) ~rex s =
 ;;
 
 type substrings = Group.t
+
+let get_substring s i = Re.Group.get s i
+
+let get_named_substring rex name s =
+  match get_named_substring_opt rex name s with
+  | None -> raise Not_found
+  | Some s -> s
+;;
