@@ -166,5 +166,6 @@ let () =
            Printf.printf "- %s\n" name);
          exit 1)
   in
+  Memtrace.trace_if_requested ();
   Command_unix.run (Bench.make_command benchmarks)
 ;;
