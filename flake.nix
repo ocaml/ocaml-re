@@ -39,10 +39,15 @@
         };
         ocamlVersionOverlay =
           (ocaml: self: super: { ocamlPackages = ocaml super.ocaml-ng; });
+        framePointers = ocaml: ocaml.override { framePointerSupport = true; };
+        framePointersOverlay = self: super: {
+          ocamlPackages = super.ocamlPackages.overrideScope
+            (oself: osuper: { ocaml = framePointers osuper.ocaml; });
+        };
         makeNixpkgs = ocaml:
-        nixpkgs.legacyPackages.${system}.appendOverlays [ (ocamlVersionOverlay ocaml) ];
+          nixpkgs.legacyPackages.${system}.appendOverlays
+          [ (ocamlVersionOverlay ocaml) ];
       in rec {
-        # packages = makePackages pkgs;
         devShells.test = let
           pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2);
           packages = makePackages pkgs;
@@ -52,6 +57,14 @@
         };
         devShells.default = let
           pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2);
+          packages = makePackages pkgs;
+        in pkgs.mkShell {
+          inputsFrom = pkgs.lib.attrValues packages;
+          buildInputs = extraBuildInputs pkgs ++ devInputs pkgs;
+        };
+        devShells.fp = let
+          pkgs = (makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2)).appendOverlays
+            [ framePointersOverlay ];
           packages = makePackages pkgs;
         in pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
