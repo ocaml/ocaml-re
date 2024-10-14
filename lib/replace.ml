@@ -17,7 +17,8 @@ let replace ?(pos = 0) ?len ?(all = true) re ~f s =
         Compile.match_str ~groups:true ~partial:false re s ~pos ~len:(limit - pos)
       with
       | Match substr ->
-        let p1, p2 = Group.offset substr 0 in
+        let p1 = Group.start_offset substr 0 |> Group.Offset.get_no_check in
+        let p2 = Group.stop_offset substr 0 |> Group.Offset.get_no_check in
         if pos = p1 && p1 = p2 && on_match
         then (
           (* if we matched an empty string right after a match,

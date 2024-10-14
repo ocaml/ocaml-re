@@ -20,6 +20,28 @@ type t =
 
 let create s ~gcount ~gpos marks pmarks = { s; gcount; gpos; marks; pmarks }
 
+module Offset = struct
+  type t = int
+
+  let absent = -1
+  let is_present t = t >= 0
+  let get_no_check t = t
+end
+
+let start_offset t i =
+  let i = Mark_infos.start_offset t.marks i in
+  if Mark_infos.Offset.is_present i
+  then t.gpos.(Mark_infos.Offset.get_no_check i)
+  else Offset.absent
+;;
+
+let stop_offset t i =
+  let i = Mark_infos.stop_offset t.marks i in
+  if Mark_infos.Offset.is_present i
+  then t.gpos.(Mark_infos.Offset.get_no_check i)
+  else Offset.absent
+;;
+
 let offset_opt t i =
   Mark_infos.offset t.marks i
   |> Option.map (fun (start, stop) -> t.gpos.(start), t.gpos.(stop))

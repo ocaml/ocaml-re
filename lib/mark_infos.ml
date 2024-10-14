@@ -11,6 +11,23 @@ let make marks =
 
 let test t i = if 2 * i >= Array.length t then false else t.(2 * i) <> -1
 
+module Offset = struct
+  type t = int
+
+  let is_present t = t >= 0
+  let get_no_check t = t
+end
+
+let start_offset t i =
+  let start_i = 2 * i in
+  if start_i + 1 >= Array.length t then -1 else t.(start_i)
+;;
+
+let stop_offset t i =
+  let stop_i = (2 * i) + 1 in
+  if stop_i >= Array.length t then -1 else t.(stop_i)
+;;
+
 let offset t i =
   let start_i = 2 * i in
   let stop_i = start_i + 1 in
