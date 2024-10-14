@@ -60,7 +60,8 @@
           packages = makePackages pkgs;
         in pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
-          buildInputs = extraBuildInputs pkgs ++ devInputs pkgs;
+          buildInputs = extraBuildInputs pkgs ++ devInputs pkgs
+            ++ checkInputs pkgs;
         };
         devShells.fp = let
           pkgs = (makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2)).appendOverlays
