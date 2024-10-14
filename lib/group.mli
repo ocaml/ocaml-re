@@ -42,3 +42,13 @@ val pmarks : t -> Pmark.Set.t
 val nb_groups : t -> int
 
 val pp : t Fmt.t
+
+module Offset : sig
+  type t
+
+  val is_present : t -> bool
+  val get_no_check : t -> int
+end
+
+val start_offset : t -> int -> Offset.t
+val stop_offset : t -> int -> Offset.t

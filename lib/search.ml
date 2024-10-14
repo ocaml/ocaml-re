@@ -19,7 +19,8 @@ let all ?(pos = 0) ?len re s : _ Seq.t =
         Compile.match_str ~groups:true ~partial:false re s ~pos ~len:(limit - pos)
       with
       | Match substr ->
-        let p1, p2 = Group.offset substr 0 in
+        let p1 = Group.start_offset substr 0 |> Group.Offset.get_no_check in
+        let p2 = Group.stop_offset substr 0 |> Group.Offset.get_no_check in
         if on_match && p1 = pos && p1 = p2
         then (* skip empty match right after a match *)
           aux (pos + 1) false ()
@@ -59,7 +60,8 @@ let split_full ?(pos = 0) ?len re s : _ Seq.t =
          Compile.match_str ~groups:true ~partial:false re s ~pos ~len:(limit - pos)
        with
        | Match substr ->
-         let p1, p2 = Group.offset substr 0 in
+         let p1 = Group.start_offset substr 0 |> Group.Offset.get_no_check in
+         let p2 = Group.stop_offset substr 0 |> Group.Offset.get_no_check in
          let pos = if p1 = p2 then p2 + 1 else p2 in
          let old_i = i in
          let i = p2 in
