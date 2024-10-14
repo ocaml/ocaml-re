@@ -139,7 +139,7 @@ module Positions = struct
     then
       { positions =
           (let n = Automata.Working_area.index_count re.tbl + 1 in
-           if n <= 10 then [| 0; 0; 0; 0; 0; 0; 0; 0; 0; 0 |] else Array.make n 0)
+           Array.make n 0)
       }
     else empty
   ;;
