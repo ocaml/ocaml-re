@@ -29,5 +29,3 @@ let benchmarks =
         let len = Int.min (String.length str) len in
         ignore (Re.execp ~pos:0 ~len re str))))
 ;;
-
-let () = Command_unix.run (Bench.make_command benchmarks)
