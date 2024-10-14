@@ -98,6 +98,16 @@ let repeated_sequence =
     ignore (Re.execp re s))
 ;;
 
+let split =
+  let s = Bytes.make 1_000 '_' in
+  for i = 0 to 100 do
+    Bytes.set s (i * 9) ' '
+  done;
+  let s = Bytes.to_string s in
+  let re () = Re.(rep1 space |> compile) in
+  test ~name:"split on whitespace" re (fun re -> ignore (Re.split_full (re ()) s))
+;;
+
 let benchmarks =
   let benches =
     List.map benchmarks ~f:(fun (name, re, cases) ->
@@ -144,6 +154,7 @@ let benchmarks =
   @ compile_clean_star
   @ Memory.benchmarks
   @ repeated_sequence
+  @ split
 ;;
 
 let () =
