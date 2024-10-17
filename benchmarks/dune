@@ -13,4 +13,19 @@
   core_bench
   core_unix.command_unix
   memtrace)
+ (modules :standard \ compare)
  (names benchmark))
+
+(executable
+ (name compare)
+ (modules compare)
+ (libraries
+  core
+  csv
+  base
+  core_unix
+  core_unix.command_unix
+  core_unix.filename_unix
+  spawn
+  stdio
+  sexplib))
