@@ -23,6 +23,10 @@
  (depends
   (ocaml (>= 4.12.0))
   seq
+  (core_bench :with-test)
+  (core_unix :with-test)
+  (memtrace :with-test)
+  (csv :with-test)
   (ppx_expect :with-test)
   (ounit2 :with-test))
  (description "
