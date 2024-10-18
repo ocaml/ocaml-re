@@ -1,5 +1,8 @@
 (library
  (name re_tests)
+ ;; The ppx_expect dependencies only work with ppx_expect >= v0.17.0
+ ;; which requires OCaml >= 5.1.0
+ (enabled_if (>= %{ocaml_version} 5.1.0))
  (libraries
   re_private
   ;; This is because of the (implicit_transitive_deps false)

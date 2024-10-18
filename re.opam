@@ -25,7 +25,12 @@ depends: [
   "dune" {>= "3.12"}
   "ocaml" {>= "4.12.0"}
   "seq"
+  "core_bench" {>= "v0.16.0" & with-test}
+  "core_unix" {with-test}
+  "memtrace" {with-test}
+  "csv" {with-test}
   "ppx_expect" {with-test}
+  "js_of_ocaml" {with-test}
   "ounit2" {with-test}
   "odoc" {with-doc}
 ]

@@ -23,7 +23,12 @@
  (depends
   (ocaml (>= 4.12.0))
   seq
+  (core_bench (and (>= v0.16.0) :with-test))
+  (core_unix :with-test)
+  (memtrace :with-test)
+  (csv :with-test)
   (ppx_expect :with-test)
+  (js_of_ocaml :with-test)
   (ounit2 :with-test))
  (description "
 Pure OCaml regular expressions with:
