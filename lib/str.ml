@@ -245,11 +245,9 @@ let bounded_split expr text num =
     else if n = 1
     then string_after text start :: accu
     else (
-      try
-        let pos = search_forward_progress expr text start in
-        split (String.sub text start (pos - start) :: accu) (match_end ()) (n - 1)
-      with
-      | Not_found -> string_after text start :: accu)
+      match search_forward_progress expr text start with
+      | pos -> split (String.sub text start (pos - start) :: accu) (match_end ()) (n - 1)
+      | exception Not_found -> string_after text start :: accu)
   in
   List.rev (split [] start num)
 ;;
@@ -263,11 +261,9 @@ let bounded_split_delim expr text num =
     else if n = 1
     then string_after text start :: accu
     else (
-      try
-        let pos = search_forward_progress expr text start in
-        split (String.sub text start (pos - start) :: accu) (match_end ()) (n - 1)
-      with
-      | Not_found -> string_after text start :: accu)
+      match search_forward_progress expr text start with
+      | pos -> split (String.sub text start (pos - start) :: accu) (match_end ()) (n - 1)
+      | exception Not_found -> string_after text start :: accu)
   in
   if text = "" then [] else List.rev (split [] 0 num)
 ;;
@@ -285,8 +281,8 @@ let bounded_full_split expr text num =
     else if n = 1
     then Text (string_after text start) :: accu
     else (
-      try
-        let pos = search_forward_progress expr text start in
+      match search_forward_progress expr text start with
+      | pos ->
         let s = matched_string text in
         if pos > start
         then
@@ -295,8 +291,7 @@ let bounded_full_split expr text num =
             (match_end ())
             (n - 1)
         else split (Delim s :: accu) (match_end ()) (n - 1)
-      with
-      | Not_found -> Text (string_after text start) :: accu)
+      | exception Not_found -> Text (string_after text start) :: accu)
   in
   List.rev (split [] 0 num)
 ;;
