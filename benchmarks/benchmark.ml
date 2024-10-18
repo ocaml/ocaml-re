@@ -108,6 +108,45 @@ let split =
   test ~name:"split on whitespace" re (fun re -> ignore (Re.split_full (re ()) s))
 ;;
 
+let prefixes =
+  let make_ext =
+    let chars = "abcdefghiklmnopqrstuvwxyz" in
+    let buf = Buffer.create 4 in
+    let rec loop remains =
+      match remains with
+      | 0 -> Buffer.contents buf
+      | _ ->
+        let char = remains mod String.length chars in
+        Buffer.add_char buf chars.[char];
+        loop (remains / String.length chars)
+    in
+    fun n ->
+      Buffer.clear buf;
+      loop n
+  in
+  let n_extensions = 100 in
+  let n_base = 20 in
+  let base = String.make n_base 'x' ^ "." in
+  let extensions = List.init n_extensions ~f:make_ext in
+  let re () =
+    (* This regular expression can be heavily optimized by computing the shared prefix *)
+    List.init 100 ~f:(fun i ->
+      let ext = make_ext i in
+      let open Re in
+      seq [ rep1 any; char '.'; str ext ])
+    |> Re.alt
+    |> Re.compile
+  in
+  let extensions = Array.of_list extensions in
+  test ~name:"shared prefixes" re (fun re ->
+    let re = re () in
+    for i = 0 to Array.length extensions - 1 do
+      let extension = extensions.(i) in
+      let str = base ^ extension in
+      ignore (Re.execp re str)
+    done)
+;;
+
 let benchmarks =
   let benches =
     List.map benchmarks ~f:(fun (name, re, cases) ->
@@ -155,6 +194,7 @@ let benchmarks =
   @ Memory.benchmarks
   @ repeated_sequence
   @ split
+  @ prefixes
 ;;
 
 let () =
