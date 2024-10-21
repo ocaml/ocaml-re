@@ -47,7 +47,7 @@ type elem =
   | Char of char
   | Set of Ast.t
 
-let parse multiline dollar_endonly dotall ungreedy s =
+let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
   let eos () = Parse_buffer.eos buf in
@@ -325,10 +325,10 @@ type opt =
 let re ?(opts = []) s =
   let r =
     parse
-      (List.memq `Multiline opts)
-      (List.memq `Dollar_endonly opts)
-      (List.memq `Dotall opts)
-      (List.memq `Ungreedy opts)
+      ~multiline:(List.memq `Multiline opts)
+      ~dollar_endonly:(List.memq `Dollar_endonly opts)
+      ~dotall:(List.memq `Dotall opts)
+      ~ungreedy:(List.memq `Ungreedy opts)
       s
   in
   let r = if List.memq `Anchored opts then Re.seq [ Re.start; r ] else r in
