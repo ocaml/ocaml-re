@@ -81,3 +81,4 @@ val is_empty : t -> bool
 val prepend : t -> 'a list -> (t * 'a list) list -> (t * 'a list) list
 val pick : t -> c
 val offset : int -> t -> t
+val to_dyn : t -> Dyn.t

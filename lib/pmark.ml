@@ -25,3 +25,5 @@ module Set = struct
 
   include Set
 end
+
+let to_dyn = Dyn.int

@@ -100,6 +100,7 @@ module State : sig
   val create : Category.t -> expr -> t
   val idx : t -> Idx.t
   val status : t -> Status.t
+  val to_dyn : t -> Dyn.t
 
   module Table : Hashtbl.S with type key = t
 end
