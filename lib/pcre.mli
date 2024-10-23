@@ -24,6 +24,11 @@ type split_result =
 (** [re ~flags s] creates the regexp [s] using the pcre syntax. *)
 val re : ?flags:flag list -> string -> Core.t
 
+val re_result
+  :  ?flags:flag list
+  -> string
+  -> (Core.t, [ `Not_supported | `Parse_error ]) result
+
 (** [re ~flags s] compiles the regexp [s] using the pcre syntax. *)
 val regexp : ?flags:flag list -> string -> regexp
 

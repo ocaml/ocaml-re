@@ -33,6 +33,13 @@ let re ?(flags = []) pat =
   Perl.re ~opts pat
 ;;
 
+let re_result ?flags s =
+  match re ?flags s with
+  | s -> Ok s
+  | exception Not_supported -> Error `Not_supported
+  | exception Parse_error -> Error `Parse_error
+;;
+
 let regexp ?flags pat = Re.compile (re ?flags pat)
 let extract ~rex s = Re.Group.all (Re.exec rex s)
 let exec ~rex ?pos s = Re.exec rex ?pos s
