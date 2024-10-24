@@ -59,3 +59,16 @@ let test_re ?pos ?len r s =
   let offsets () = Re.Group.all_offset (Re.exec ?pos ?len (Re.compile r) s) in
   Format.printf "%a@." (or_not_found (array offset)) offsets
 ;;
+
+let rec sexp_of_dyn (t : Re_private.Dyn.t) : Base.Sexp.t =
+  match t with
+  | Int i -> Atom (Int.to_string i)
+  | Pair (x, y) -> List [ sexp_of_dyn x; sexp_of_dyn y ]
+  | Enum s -> Atom s
+  | List xs -> List (List.map ~f:sexp_of_dyn xs)
+  | Constructor (name, []) -> Atom name
+  | Constructor (name, xs) -> List (Atom name :: List.map xs ~f:sexp_of_dyn)
+  | Record fields ->
+    List
+      (List.map fields ~f:(fun (name, v) -> Base.Sexp.List [ Atom name; sexp_of_dyn v ]))
+;;
