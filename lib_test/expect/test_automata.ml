@@ -49,18 +49,17 @@ let%expect_test "string" =
   loop (State.create cat re) 'a';
   [%expect
     {|
-    ((TExp (Seq first 97 (Seq first 97 (Seq first 97 97)))))
-    ((TExp (Seq first 97 (Seq first 97 97))))
-    ((TExp (Seq first 97 97)))
+    ((TExp (first (Seq 97 97 97 97))))
+    ((TExp (first (Seq 97 97 97))))
+    ((TExp (first (Seq 97 97))))
     ((TExp 97))
     ((TExp Eps))
     ((TMarks ()))
     > matched
     |}];
   loop (State.create cat re) 'b';
-  [%expect
-    {|
-    ((TExp (Seq first 97 (Seq first 97 (Seq first 97 97)))))
+  [%expect {|
+    ((TExp (first (Seq 97 97 97 97))))
     ()
     > failed
     |}]
@@ -71,7 +70,14 @@ let%expect_test "alternation" =
   let n = 5 in
   let s = String.make n c in
   let ids = Ids.create () in
-  let re = Automata.alt ids (List.init ~len:n ~f:(fun _ -> str ids `First s)) in
+  let re =
+    Automata.alt
+      ids
+      (List.init ~len:n ~f:(fun _ ->
+         let prefix = str ids `First s in
+         let suffix = cst ids (Cset.csingle 'd') in
+         seq ids `First prefix suffix))
+  in
   let wa = Working_area.create () in
   let rec loop d c =
     Format.printf "%a@." pp_state d;
@@ -86,26 +92,31 @@ let%expect_test "alternation" =
   [%expect
     {|
     ((TExp
-      (Alt (Seq first 97 (Seq first 97 (Seq first 97 (Seq first 97 97))))
-       (Seq first 97 (Seq first 97 (Seq first 97 (Seq first 97 97))))
-       (Seq first 97 (Seq first 97 (Seq first 97 (Seq first 97 97))))
-       (Seq first 97 (Seq first 97 (Seq first 97 (Seq first 97 97))))
-       (Seq first 97 (Seq first 97 (Seq first 97 (Seq first 97 97)))))))
-    ((TExp (Seq first 97 (Seq first 97 (Seq first 97 97))))
-     (TExp (Seq first 97 (Seq first 97 (Seq first 97 97))))
-     (TExp (Seq first 97 (Seq first 97 (Seq first 97 97))))
-     (TExp (Seq first 97 (Seq first 97 (Seq first 97 97))))
-     (TExp (Seq first 97 (Seq first 97 (Seq first 97 97)))))
-    ((TExp (Seq first 97 (Seq first 97 97)))
-     (TExp (Seq first 97 (Seq first 97 97)))
-     (TExp (Seq first 97 (Seq first 97 97)))
-     (TExp (Seq first 97 (Seq first 97 97)))
-     (TExp (Seq first 97 (Seq first 97 97))))
-    ((TExp (Seq first 97 97)) (TExp (Seq first 97 97)) (TExp (Seq first 97 97))
-     (TExp (Seq first 97 97)) (TExp (Seq first 97 97)))
-    ((TExp 97) (TExp 97) (TExp 97) (TExp 97) (TExp 97))
-    ((TExp Eps))
-    ((TMarks ()))
-    > matched
+      (Alt (first (Seq (Seq 97 97 97 97 97) 100))
+       (first (Seq (Seq 97 97 97 97 97) 100))
+       (first (Seq (Seq 97 97 97 97 97) 100))
+       (first (Seq (Seq 97 97 97 97 97) 100))
+       (first (Seq (Seq 97 97 97 97 97) 100)))))
+    ((first (TSeq ((TExp (Seq 97 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97 97))) 100)))
+    ((first (TSeq ((TExp (Seq 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97))) 100)))
+    ((first (TSeq ((TExp (Seq 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97))) 100)))
+    ((first (TSeq ((TExp 97)) 100)) (first (TSeq ((TExp 97)) 100))
+     (first (TSeq ((TExp 97)) 100)) (first (TSeq ((TExp 97)) 100))
+     (first (TSeq ((TExp 97)) 100)))
+    ((TExp 100) (TExp 100) (TExp 100) (TExp 100) (TExp 100))
+    ()
+    > failed
     |}]
 ;;

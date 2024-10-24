@@ -85,7 +85,6 @@ module Sem = struct
     | `First -> "first"
   ;;
 
-  let to_dyn t : Dyn.t = Enum (to_string t)
   let equal = Poly.equal
   let pp ch k = Format.pp_print_string ch (to_string k)
 end
@@ -175,21 +174,55 @@ module Expr = struct
     | After of Category.t
     | Pmark of Pmark.t
 
-  let rec dyn_of_def =
+  let wrap_sem sem sem' v =
+    let open Dyn in
+    let name = Sem.to_string sem' in
+    match sem with
+    | Some sem when Sem.equal sem sem' -> v
+    | None | Some _ ->
+      (match v with
+       | List v -> variant name v
+       | _ -> variant name [ v ])
+  ;;
+
+  let rec seq_as_list sem = function
+    | Eps -> []
+    | Cst cs -> [ Cst cs ]
+    | Seq (sem', x, y) ->
+      if Sem.equal sem sem'
+      then x.def :: seq_as_list sem y.def
+      else raise_notrace Not_found
+    | _ -> raise_notrace Not_found
+  ;;
+
+  let seq_as_list sem t =
+    match seq_as_list sem t with
+    | exception Not_found -> None
+    | s -> Some s
+  ;;
+
+  let rec dyn_of_def sem =
     let open Dyn in
     function
     | Cst cset -> Cset.to_dyn cset
-    | Alt alt -> variant "Alt" (List.map ~f:to_dyn alt)
-    | Seq (sem, x, y) -> variant "Seq" [ Sem.to_dyn sem; to_dyn x; to_dyn y ]
+    | Alt alt -> variant "Alt" (List.map ~f:(to_dyn sem) alt)
+    | Seq (sem', x, y) ->
+      let to_dyn = to_dyn (Some sem') in
+      let x =
+        match seq_as_list sem' y.def with
+        | None -> variant "Seq" [ to_dyn x; to_dyn y ]
+        | Some y -> variant "Seq" (to_dyn x :: List.map y ~f:(dyn_of_def sem))
+      in
+      wrap_sem sem sem' x
     | Eps -> Enum "Eps"
-    | Rep (_, sem, t) -> variant "Rep" [ Sem.to_dyn sem; to_dyn t ]
+    | Rep (_, sem', t) -> wrap_sem sem sem' (variant "Rep" [ to_dyn (Some sem') t ])
     | Mark m -> variant "Mark" [ Mark.to_dyn m ]
     | Pmark m -> variant "Pmark" [ Pmark.to_dyn m ]
     | Erase (x, y) -> variant "Erase" [ Mark.to_dyn x; Mark.to_dyn y ]
     | Before c -> variant "Before" [ Category.to_dyn c ]
     | After c -> variant "After" [ Category.to_dyn c ]
 
-  and to_dyn { id = _; def } = dyn_of_def def
+  and to_dyn sem { id = _; def } = dyn_of_def sem def
 
   let with_sem prev next fmt pp () =
     let open Fmt in
@@ -414,20 +447,26 @@ end = struct
 
   type t = E.t list
 
-  let rec to_dyn t = Dyn.list (List.map ~f:dyn_of_e t)
+  let rec to_dyn sem t = Dyn.list (List.map ~f:(dyn_of_e sem) t)
 
-  and dyn_of_e =
+  and dyn_of_e sem =
     let open Dyn in
     function
-    | E.TSeq (sem, x, y) -> variant "TSeq" [ Sem.to_dyn sem; to_dyn x; Expr.to_dyn y ]
+    | E.TSeq (sem', x, y) ->
+      wrap_sem
+        sem
+        sem'
+        (variant "TSeq" [ to_dyn (Some sem') x; Expr.to_dyn (Some sem') y ])
     | TExp (marks, e) ->
       let e =
-        let base = [ Expr.to_dyn e ] in
+        let base = [ Expr.to_dyn sem e ] in
         if Marks.(equal empty marks) then base else Marks.to_dyn marks :: base
       in
       variant "TExp" e
     | TMatch m -> variant "TMarks" [ Marks.to_dyn m ]
   ;;
+
+  let to_dyn = to_dyn None
 
   open E
 
