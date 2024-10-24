@@ -4,6 +4,9 @@ Unreleased
 * Introduce [Re.Pcre.get_named_substring_opt]. A non raising version of
   [Re.Pcre.get_named_substring] (#525)
 
+* Introduce parsing functions in `Re.{Perl,Pcre,Emacs,Glob}` that return a
+  result instead of raising. (#542)
+
 1.13.1 (30-Sep-2024)
 --------------------
 

@@ -39,6 +39,11 @@ type opt =
 (** Parsing of a Perl-style regular expression *)
 val re : ?opts:opt list -> string -> Core.t
 
+val re_result
+  :  ?opts:opt list
+  -> string
+  -> (Core.t, [ `Not_supported | `Parse_error ]) result
+
 (** (Same as [Re.compile]) *)
 val compile : Core.t -> Core.re
 

@@ -30,6 +30,8 @@ exception Not_supported
 (** Parsing of an Emacs-style regular expression *)
 val re : ?case:bool -> string -> Core.t
 
+val re_result : ?case:bool -> string -> (Core.t, [ `Not_supported | `Parse_error ]) result
+
 (** Regular expression compilation *)
 val compile : Core.t -> Core.re
 
