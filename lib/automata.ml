@@ -79,16 +79,15 @@ module Sem = struct
     | `First
     ]
 
-  let equal = Poly.equal
-
-  let pp ch k =
-    Format.pp_print_string
-      ch
-      (match k with
-       | `Shortest -> "short"
-       | `Longest -> "long"
-       | `First -> "first")
+  let to_string = function
+    | `Shortest -> "short"
+    | `Longest -> "long"
+    | `First -> "first"
   ;;
+
+  let to_dyn t : Dyn.t = Enum (to_string t)
+  let equal = Poly.equal
+  let pp ch k = Format.pp_print_string ch (to_string k)
 end
 
 module Rep_kind = struct
@@ -109,6 +108,7 @@ module Mark : sig
   val compare : t -> t -> int
   val equal : t -> t -> bool
   val pp : t Fmt.t
+  val to_dyn : t -> Dyn.t
   val start : t
   val prev : t -> t
   val next : t -> t
@@ -121,6 +121,7 @@ end = struct
   let equal = Int.equal
   let compare = Int.compare
   let pp = Format.pp_print_int
+  let to_dyn = Dyn.int
   let start = 0
   let prev x = pred x
   let next x = succ x
@@ -136,6 +137,7 @@ module Idx : sig
   type t = private int
 
   val pp : t Fmt.t
+  val to_dyn : t -> Dyn.t
   val to_int : t -> int
   val unknown : t
   val initial : t
@@ -145,6 +147,7 @@ module Idx : sig
 end = struct
   type t = int
 
+  let to_dyn = Dyn.int
   let to_int x = x
   let pp = Format.pp_print_int
   let used t = t >= 0
@@ -171,6 +174,22 @@ module Expr = struct
     | Before of Category.t
     | After of Category.t
     | Pmark of Pmark.t
+
+  let rec dyn_of_def =
+    let open Dyn in
+    function
+    | Cst cset -> variant "Cst" [ Cset.to_dyn cset ]
+    | Alt alt -> variant "Alt" (List.map ~f:to_dyn alt)
+    | Seq (sem, x, y) -> variant "Seq" [ Sem.to_dyn sem; to_dyn x; to_dyn y ]
+    | Eps -> Enum "Eps"
+    | Rep (_, sem, t) -> variant "Rep" [ Sem.to_dyn sem; to_dyn t ]
+    | Mark m -> variant "Mark" [ Mark.to_dyn m ]
+    | Pmark m -> variant "Pmark" [ Pmark.to_dyn m ]
+    | Erase (x, y) -> variant "Erase" [ Mark.to_dyn x; Mark.to_dyn y ]
+    | Before c -> variant "Before" [ Category.to_dyn c ]
+    | After c -> variant "After" [ Category.to_dyn c ]
+
+  and to_dyn { id = _; def } = dyn_of_def def
 
   let rec pp ch e =
     let open Fmt in
@@ -238,6 +257,16 @@ module Marks = struct
     { marks : (Mark.t * Idx.t) list
     ; pmarks : Pmark.Set.t
     }
+
+  let to_dyn { marks; pmarks } : Dyn.t =
+    let open Dyn in
+    record
+      [ ( "marks"
+        , List.map marks ~f:(fun (m, idx) -> pair (Mark.to_dyn m) (Idx.to_dyn idx))
+          |> list )
+      ; "pmarks", Pmark.Set.to_list pmarks |> List.map ~f:Pmark.to_dyn |> list
+      ]
+  ;;
 
   let equal { marks; pmarks } t =
     List.equal
@@ -318,6 +347,7 @@ module Desc : sig
       | TMatch of Marks.t
   end
 
+  val to_dyn : t -> Dyn.t
   val fold_right : t -> init:'acc -> f:(E.t -> 'acc -> 'acc) -> 'acc
   val tseq : Sem.t -> t -> Expr.t -> t -> t
   val initial : Expr.t -> t
@@ -367,6 +397,16 @@ end = struct
   end
 
   type t = E.t list
+
+  let rec to_dyn t = Dyn.list (List.map ~f:dyn_of_e t)
+
+  and dyn_of_e =
+    let open Dyn in
+    function
+    | E.TSeq (sem, x, y) -> variant "TSeq" [ Sem.to_dyn sem; to_dyn x; Expr.to_dyn y ]
+    | TExp (marks, e) -> variant "TExp" [ Marks.to_dyn marks; Expr.to_dyn e ]
+    | TMatch m -> variant "TMarks" [ Marks.to_dyn m ]
+  ;;
 
   open E
 
@@ -507,6 +547,7 @@ module State = struct
     }
 
   let[@inline] idx t = t.idx
+  let to_dyn t = Desc.to_dyn t.desc
 
   let dummy =
     { idx = Idx.unknown

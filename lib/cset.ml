@@ -129,6 +129,11 @@ let print_one ch (c1, c2) =
 
 let pp = Fmt.list ~pp_sep:(Fmt.lit ", ") print_one
 
+let to_dyn t =
+  let open Dyn in
+  List.map t ~f:(fun (x, y) -> pair (int x) (int y)) |> list
+;;
+
 let rec iter t ~f =
   match t with
   | [] -> ()

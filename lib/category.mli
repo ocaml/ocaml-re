@@ -19,3 +19,4 @@ val equal : t -> t -> bool
 val compare : t -> t -> int
 val intersect : t -> t -> bool
 val pp : t Fmt.t
+val to_dyn : t -> Dyn.t

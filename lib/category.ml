@@ -13,6 +13,7 @@ let not_letter = 4
 let newline = 8
 let lastnewline = 16
 let search_boundary = 32
+let to_dyn = Dyn.int
 
 let from_char = function
   (* Should match [cword] definition *)
