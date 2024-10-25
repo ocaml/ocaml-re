@@ -131,7 +131,9 @@ let pp = Fmt.list ~pp_sep:(Fmt.lit ", ") print_one
 
 let to_dyn t =
   let open Dyn in
-  List.map t ~f:(fun (x, y) -> pair (int x) (int y)) |> list
+  match t with
+  | [ (x, y) ] when Int.equal x y -> int x
+  | _ -> List.map t ~f:(fun (x, y) -> pair (int x) (int y)) |> list
 ;;
 
 let rec iter t ~f =

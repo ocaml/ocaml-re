@@ -67,8 +67,15 @@ let rec sexp_of_dyn (t : Re_private.Dyn.t) : Base.Sexp.t =
   | Enum s -> Atom s
   | List xs -> List (List.map ~f:sexp_of_dyn xs)
   | Variant (name, []) -> Atom name
-  | Variant (name, xs) -> List (Atom name :: List.map xs ~f:sexp_of_dyn)
+  | Variant (name, xs) ->
+    let xs = List.map xs ~f:sexp_of_dyn in
+    (match xs with
+     | [] -> List []
+     | xs -> List (Atom name :: xs))
   | Record fields ->
     List
-      (List.map fields ~f:(fun (name, v) -> Base.Sexp.List [ Atom name; sexp_of_dyn v ]))
+      (List.filter_map fields ~f:(fun (name, v) ->
+         match sexp_of_dyn v with
+         | List [] -> None
+         | sexp -> Some (Base.Sexp.List [ Atom name; sexp ])))
 ;;
