@@ -224,25 +224,13 @@ module Expr = struct
 
   and to_dyn sem { id = _; def } = dyn_of_def sem def
 
-  let with_sem prev next fmt pp () =
-    let open Fmt in
-    let wrapped fmt () = sexp fmt (Format.asprintf "%a" Sem.pp next) pp () in
-    match prev with
-    | None -> wrapped fmt ()
-    | Some prev -> if Sem.equal prev next then pp fmt () else wrapped fmt ()
-  ;;
-
   let rec pp_with_sem sem ch e =
     let open Fmt in
     match e.def with
     | Cst l -> sexp ch "cst" Cset.pp l
     | Alt l -> sexp ch "alt" (list (pp_with_sem sem)) l
     | Seq (k, e, e') ->
-      let pp ch () =
-        let sem = Some k in
-        sexp ch "seq" (pair (pp_with_sem sem) (pp_with_sem sem)) (e, e')
-      in
-      with_sem sem k ch pp ()
+      sexp ch "seq" (triple Sem.pp (pp_with_sem sem) (pp_with_sem sem)) (k, e, e')
     | Eps -> str ch "eps"
     | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp (pp_with_sem (Some k))) (k, e)
     | Mark i -> sexp ch "mark" Mark.pp i
@@ -495,41 +483,29 @@ end = struct
       | TExp (marks, _) | TMatch marks -> f marks)
   ;;
 
-  let rec print_state_rec sem ch e (y : Expr.t) =
+  let rec print_state_rec ch e (y : Expr.t) =
     match e with
     | TMatch marks -> Format.fprintf ch "@[<2>(TMatch@ %a)@]" Marks.pp marks
-    | TSeq (sem', l', x) ->
-      let pp ch () =
-        let sem = Some sem' in
-        Format.fprintf ch "@[<2>(TSeq@ ";
-        print_state_lst sem ch l' x;
-        Format.fprintf ch "@ %a)@]" (Expr.pp_with_sem sem) x
-      in
-      with_sem sem sem' ch pp ()
+    | TSeq (sem, l', x) ->
+      Format.fprintf ch "@[<2>(TSeq@ %a@ " Sem.pp sem;
+      print_state_lst ch l' x;
+      Format.fprintf ch "@ %a)@]" Expr.pp x
     | TExp (marks, { def = Eps; _ }) ->
       Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ (eps))@]" Id.pp y.id Marks.pp marks
     | TExp (marks, x) ->
-      Format.fprintf
-        ch
-        "@[<2>(TExp@ %a@ (%a)@ %a)@]"
-        Id.pp
-        x.id
-        Marks.pp
-        marks
-        (Expr.pp_with_sem sem)
-        x
+      Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ %a)@]" Id.pp x.id Marks.pp marks Expr.pp x
 
-  and print_state_lst sem ch l y =
+  and print_state_lst ch l y =
     match l with
     | [] -> Format.fprintf ch "()"
     | e :: rem ->
-      print_state_rec sem ch e y;
+      print_state_rec ch e y;
       List.iter rem ~f:(fun e ->
         Format.fprintf ch "@ | ";
-        print_state_rec sem ch e y)
+        print_state_rec ch e y)
   ;;
 
-  let pp ch t = print_state_lst None ch [ t ] { id = Id.zero; def = Eps }
+  let pp ch t = print_state_lst ch [ t ] { id = Id.zero; def = Eps }
 
   let rec first_match = function
     | [] -> None
