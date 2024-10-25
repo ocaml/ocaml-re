@@ -67,15 +67,16 @@ let%expect_test "string" =
 
 let%expect_test "alternation" =
   let c = 'a' in
-  let n = 5 in
+  let n = 4 in
   let s = String.make n c in
   let ids = Ids.create () in
   let re =
     Automata.alt
       ids
-      (List.init ~len:n ~f:(fun _ ->
+      (List.init ~len:n ~f:(fun i ->
          let prefix = str ids `First s in
-         let suffix = cst ids (Cset.csingle 'd') in
+         let c = Char.chr (Char.code 'b' + i) in
+         let suffix = cst ids (Cset.csingle c) in
          seq ids `First prefix suffix))
   in
   let wa = Working_area.create () in
@@ -92,30 +93,58 @@ let%expect_test "alternation" =
   [%expect
     {|
     ((TExp
-      (Alt (first (Seq (Seq 97 97 97 97 97) 100))
-       (first (Seq (Seq 97 97 97 97 97) 100))
-       (first (Seq (Seq 97 97 97 97 97) 100))
-       (first (Seq (Seq 97 97 97 97 97) 100))
-       (first (Seq (Seq 97 97 97 97 97) 100)))))
-    ((first (TSeq ((TExp (Seq 97 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97 97))) 100)))
-    ((first (TSeq ((TExp (Seq 97 97 97))) 100))
+      (Alt (first (Seq (Seq 97 97 97 97) 98)) (first (Seq (Seq 97 97 97 97) 99))
+       (first (Seq (Seq 97 97 97 97) 100)) (first (Seq (Seq 97 97 97 97) 101)))))
+    ((first (TSeq ((TExp (Seq 97 97 97))) 98))
+     (first (TSeq ((TExp (Seq 97 97 97))) 99))
      (first (TSeq ((TExp (Seq 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97))) 100)))
-    ((first (TSeq ((TExp (Seq 97 97))) 100))
+     (first (TSeq ((TExp (Seq 97 97 97))) 101)))
+    ((first (TSeq ((TExp (Seq 97 97))) 98))
+     (first (TSeq ((TExp (Seq 97 97))) 99))
      (first (TSeq ((TExp (Seq 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97))) 100)))
-    ((first (TSeq ((TExp 97)) 100)) (first (TSeq ((TExp 97)) 100))
-     (first (TSeq ((TExp 97)) 100)) (first (TSeq ((TExp 97)) 100))
-     (first (TSeq ((TExp 97)) 100)))
-    ((TExp 100) (TExp 100) (TExp 100) (TExp 100) (TExp 100))
+     (first (TSeq ((TExp (Seq 97 97))) 101)))
+    ((first (TSeq ((TExp 97)) 98)) (first (TSeq ((TExp 97)) 99))
+     (first (TSeq ((TExp 97)) 100)) (first (TSeq ((TExp 97)) 101)))
+    ((TExp 98) (TExp 99) (TExp 100) (TExp 101))
+    ()
+    > failed
+    |}]
+;;
+
+let%expect_test "alternation shared prefix" =
+  let c = 'a' in
+  let n = 4 in
+  let s = String.make n c in
+  let ids = Ids.create () in
+  let re =
+    let prefix = str ids `First s in
+    let suffix =
+      Automata.alt
+        ids
+        (List.init ~len:n ~f:(fun i ->
+           let c = Char.chr (Char.code 'b' + i) in
+           cst ids (Cset.csingle c)))
+    in
+    seq ids `First prefix suffix
+  in
+  let wa = Working_area.create () in
+  let rec loop d c =
+    Format.printf "%a@." pp_state d;
+    match State.status d with
+    | Failed -> Format.printf "> failed@."
+    | Match _ -> Format.printf "> matched@."
+    | Running ->
+      let d = Automata.delta wa cat (Cset.of_char c) d in
+      loop d c
+  in
+  loop (State.create cat re) 'a';
+  [%expect
+    {|
+    ((TExp (first (Seq (Seq 97 97 97 97) (Alt 98 99 100 101)))))
+    ((first (TSeq ((TExp (Seq 97 97 97))) (Alt 98 99 100 101))))
+    ((first (TSeq ((TExp (Seq 97 97))) (Alt 98 99 100 101))))
+    ((first (TSeq ((TExp 97)) (Alt 98 99 100 101))))
+    ((TExp (Alt 98 99 100 101)))
     ()
     > failed
     |}]
