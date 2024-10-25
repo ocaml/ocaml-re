@@ -92,34 +92,26 @@ let substitute ~rex ~subst str =
   Buffer.contents b
 ;;
 
-let split ~rex str =
-  let finish str last accu =
-    let accu = String.sub str last (String.length str - last) :: accu in
-    List.rev accu
+let split ~rex s =
+  let rec split accu start =
+    if start = String.length s
+    then accu
+    else (
+      match
+        let g = Re.exec rex s ~pos:start in
+        if Group.stop g 0 = start then Re.exec rex s ~pos:(start + 1) else g
+      with
+      | exception Not_found -> String.sub s start (String.length s - start) :: accu
+      | g ->
+        let next = Group.stop g 0 in
+        split (String.sub s start (Group.start g 0 - start) :: accu) next)
   in
-  let rec loop accu last pos on_match =
-    if Re.execp ~pos rex str
-    then (
-      let ss = Re.exec ~pos rex str in
-      let start, fin = Re.Group.offset ss 0 in
-      if on_match && start = pos && start = fin
-      then
-        if (* Empty match following a match *)
-           pos = String.length str
-        then finish str last accu
-        else loop accu last (pos + 1) false
-      else (
-        let accu = String.sub str last (start - last) :: accu in
-        if start = fin
-        then
-          if (* Manually advance by one after an empty match *)
-             fin = String.length str
-          then finish str fin accu
-          else loop accu fin (fin + 1) false
-        else loop accu fin fin true))
-    else finish str last accu
-  in
-  loop [] 0 0 false
+  match Re.exec rex s ~pos:0 with
+  | g ->
+    if Group.start g 0 = 0
+    then List.rev (split [] (Group.stop g 0))
+    else split [ String.sub s 0 (Group.start g 0) ] (Group.stop g 0)
+  | exception Not_found -> if s = "" then [] else [ s ]
 ;;
 
 (* From PCRE *)
