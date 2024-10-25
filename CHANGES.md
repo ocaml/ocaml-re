@@ -9,6 +9,8 @@ Unreleased
 
 * Introduce experimental streaming API `Re.Stream`. (#456)
 
+* Make [Re.Str] functions tail recursive (#539)
+
 1.13.1 (30-Sep-2024)
 --------------------
 
