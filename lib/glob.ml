@@ -316,6 +316,22 @@ let glob
   if expand_braces then Re.alt (List.map to_re (explode s)) else to_re s
 ;;
 
+let glob_result
+  ?anchored
+  ?pathname
+  ?match_backslashes
+  ?period
+  ?expand_braces
+  ?double_asterisk
+  s
+  =
+  match
+    glob ?anchored ?pathname ?match_backslashes ?period ?expand_braces ?double_asterisk s
+  with
+  | re -> Ok re
+  | exception Parse_error -> Error `Parse_error
+;;
+
 let glob' ?anchored period s = glob ?anchored ~period s
 let globx ?anchored s = glob ?anchored ~expand_braces:true s
 let globx' ?anchored period s = glob ?anchored ~expand_braces:true ~period s

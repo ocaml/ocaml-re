@@ -121,5 +121,12 @@ let re ?(case = true) s =
   if case then r else Re.no_case r
 ;;
 
+let re_result ?case s =
+  match re ?case s with
+  | s -> Ok s
+  | exception Not_supported -> Error `Not_supported
+  | exception Parse_error -> Error `Parse_error
+;;
+
 let compile = Re.compile
 let compile_pat ?(case = true) s = compile (re ~case s)

@@ -68,6 +68,16 @@ val glob
   -> string
   -> Core.t
 
+val glob_result
+  :  ?anchored:bool
+  -> ?pathname:bool
+  -> ?match_backslashes:bool
+  -> ?period:bool
+  -> ?expand_braces:bool
+  -> ?double_asterisk:bool
+  -> string
+  -> (Core.t, [ `Parse_error ]) result
+
 (** Same, but allows to choose whether dots at the beginning of a
     file name need to be explicitly matched (true) or not (false)
 

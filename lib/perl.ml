@@ -338,3 +338,10 @@ let re ?(opts = []) s =
 
 let compile = Re.compile
 let compile_pat ?(opts = []) s = compile (re ~opts s)
+
+let re_result ?opts s =
+  match re ?opts s with
+  | s -> Ok s
+  | exception Not_supported -> Error `Not_supported
+  | exception Parse_error -> Error `Parse_error
+;;
