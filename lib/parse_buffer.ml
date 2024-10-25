@@ -37,6 +37,7 @@ let accept_s t s' =
   let len = String.length s' in
   try
     for j = 0 to len - 1 do
+      (* CR-someday rgrinberg: stop relying on bound checks *)
       try if s'.[j] <> t.str.[t.pos + j] then raise_notrace Exit with
       | _ -> raise_notrace Exit
     done;
