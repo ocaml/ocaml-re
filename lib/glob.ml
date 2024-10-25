@@ -22,7 +22,7 @@
 
 module Re = Core
 
-exception Parse_error
+exception Parse_error = Parse_buffer.Parse_error
 
 type enclosed =
   | Char of char
