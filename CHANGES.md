@@ -11,6 +11,9 @@ Unreleased
 
 * Make [Re.Str] functions tail recursive (#539)
 
+* Fix [Re.Pcre.split]. Regression introduced in 1.12 and a previous bug with
+  [Re.Pcre.split] (#538).
+
 1.13.1 (30-Sep-2024)
 --------------------
 
