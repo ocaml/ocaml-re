@@ -63,6 +63,11 @@ type opt =
 (** Parsing of a Posix extended regular expression *)
 val re : ?opts:opt list -> string -> Core.t
 
+val re_result
+  :  ?opts:opt list
+  -> string
+  -> (Core.t, [ `Not_supported | `Parse_error ]) result
+
 (** [compile r] is defined as [Core.compile (Core.longest r)] *)
 val compile : Core.t -> Core.re
 
