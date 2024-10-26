@@ -25,6 +25,12 @@ module Re = Core
 exception Parse_error
 exception Not_supported
 
+let by_code f c c' =
+  let c = Char.code c in
+  let c' = Char.code c' in
+  Char.chr (f c c')
+;;
+
 let parse s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
@@ -105,6 +111,7 @@ let parse s =
         then Re.char c :: Re.char '-' :: s
         else (
           let c' = char () in
+          let c' = by_code Int.max c c' in
           bracket (Re.rg c c' :: s))
       else bracket (Re.char c :: s))
   and char () =
