@@ -198,7 +198,10 @@ let _ =
   (* Character set *)
   expect_pass "rg" (fun () ->
     eq_match "[0-9]+" "0123456789";
-    eq_match "[0-9]+" "a");
+    eq_match "[0-9]+" "a";
+    eq_match "[9-0]+" "2";
+    eq_match "[5-5]" "5";
+    eq_match "[5-4]" "1");
   expect_pass "compl" (fun () ->
     eq_match "[^0-9a-z]+" "A:Z+";
     eq_match "[^0-9a-z]+" "0";
