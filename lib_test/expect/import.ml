@@ -80,3 +80,5 @@ let rec sexp_of_dyn (t : Re_private.Dyn.t) : Base.Sexp.t =
          | List [] -> None
          | sexp -> Some (Base.Sexp.List [ Atom name; sexp ])))
 ;;
+
+let print_dyn dyn = sexp_of_dyn dyn |> Base.Sexp.to_string_hum |> print_endline
