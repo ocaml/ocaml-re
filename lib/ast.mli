@@ -35,6 +35,7 @@ type ('a, 'case) gen = private
 type t = (cset, [ `Cased | `Uncased ]) gen
 type no_case = (Cset.t, [ `Uncased ]) gen
 
+val to_dyn : t -> Dyn.t
 val pp : t Fmt.t
 val merge_sequences : (Cset.t, [ `Uncased ]) gen list -> (Cset.t, [ `Uncased ]) gen list
 val handle_case : bool -> t -> (Cset.t, [ `Uncased ]) gen

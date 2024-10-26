@@ -85,6 +85,7 @@ module Sem = struct
     | `First -> "first"
   ;;
 
+  let to_dyn t = Dyn.enum (to_string t)
   let equal = Poly.equal
   let pp ch k = Format.pp_print_string ch (to_string k)
 end
@@ -95,10 +96,13 @@ module Rep_kind = struct
     | `Non_greedy
     ]
 
-  let pp fmt = function
-    | `Greedy -> Format.pp_print_string fmt "Greedy"
-    | `Non_greedy -> Format.pp_print_string fmt "Non_greedy"
+  let to_string = function
+    | `Greedy -> "Greedy"
+    | `Non_greedy -> "Non_greedy"
   ;;
+
+  let to_dyn t = Dyn.enum (to_string t)
+  let pp fmt t = Format.pp_print_string fmt (to_string t)
 end
 
 module Mark : sig

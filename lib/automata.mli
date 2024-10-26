@@ -40,6 +40,7 @@ module Sem : sig
     | `First
     ]
 
+  val to_dyn : t -> Dyn.t
   val pp : t Fmt.t
 end
 
@@ -49,6 +50,7 @@ module Rep_kind : sig
     | `Non_greedy
     ]
 
+  val to_dyn : t -> Dyn.t
   val pp : t Fmt.t
 end
 
