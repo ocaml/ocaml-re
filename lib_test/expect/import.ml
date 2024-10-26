@@ -63,6 +63,7 @@ let test_re ?pos ?len r s =
 let rec sexp_of_dyn (t : Re_private.Dyn.t) : Base.Sexp.t =
   match t with
   | Int i -> Atom (Int.to_string i)
+  | String s -> Atom s
   | Tuple xs -> List (List.map xs ~f:sexp_of_dyn)
   | Enum s -> Atom s
   | List xs -> List (List.map ~f:sexp_of_dyn xs)

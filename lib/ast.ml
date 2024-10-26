@@ -5,6 +5,14 @@ type ('a, _) ast =
   | No_case : 'a -> ('a, [> `Cased ]) ast
   | Case : 'a -> ('a, [> `Cased ]) ast
 
+let dyn_of_ast f =
+  let open Dyn in
+  function
+  | Alternative xs -> variant "Alternative" (List.map xs ~f)
+  | No_case a -> variant "No_case" [ f a ]
+  | Case a -> variant "Case" [ f a ]
+;;
+
 let empty_alternative : ('a, 'b) ast = Alternative []
 
 let equal_ast (type a) eq (x : (a, [ `Uncased ]) ast) (y : (a, [ `Uncased ]) ast) =
@@ -28,6 +36,16 @@ type cset =
   | Difference of cset * cset
   | Cast of (cset, [ `Cased | `Uncased ]) ast
 
+let rec dyn_of_cset =
+  let open Dyn in
+  function
+  | Cset cset -> variant "Cset" [ Cset.to_dyn cset ]
+  | Intersection xs -> variant "Intersection" (List.map xs ~f:dyn_of_cset)
+  | Complement xs -> variant "Complement" (List.map xs ~f:dyn_of_cset)
+  | Difference (x, y) -> variant "Difference" [ dyn_of_cset x; dyn_of_cset y ]
+  | Cast c -> variant "Cast" [ dyn_of_ast dyn_of_cset c ]
+;;
+
 type ('a, 'case) gen =
   | Set of 'a
   | Ast of (('a, 'case) gen, 'case) ast
@@ -49,6 +67,45 @@ type ('a, 'case) gen =
   | Pmark of Pmark.t * ('a, 'case) gen
   | Sem of Automata.Sem.t * ('a, 'case) gen
   | Sem_greedy of Automata.Rep_kind.t * ('a, 'case) gen
+
+let rec dyn_of_gen f =
+  let open Dyn in
+  function
+  | Set a -> variant "Set" [ f a ]
+  | Ast ast -> variant "Ast" [ dyn_of_ast (dyn_of_gen f) ast ]
+  | Sequence xs -> variant "Sequence" (List.map xs ~f:(dyn_of_gen f))
+  | Repeat (gen, min, max) ->
+    let base =
+      match max with
+      | None -> []
+      | Some x -> [ int x ]
+    in
+    variant "Repeat" (dyn_of_gen f gen :: int min :: base)
+  | Beg_of_line -> enum "Beg_of_line"
+  | End_of_line -> enum "End_of_line"
+  | Beg_of_word -> enum "Beg_of_word"
+  | End_of_word -> enum "End_of_word"
+  | Not_bound -> enum "Not_bound"
+  | Beg_of_str -> enum "Beg_of_str"
+  | End_of_str -> enum "End_of_str"
+  | Last_end_of_line -> enum "Last_end_of_line"
+  | Start -> enum "Start"
+  | Stop -> enum "Stop"
+  | Group (name, t) ->
+    let args =
+      let args = [ dyn_of_gen f t ] in
+      match name with
+      | None -> args
+      | Some name -> string name :: args
+    in
+    variant "Group" args
+  | No_group x -> variant "No_group" [ dyn_of_gen f x ]
+  | Nest x -> variant "Nest" [ dyn_of_gen f x ]
+  | Pmark (pmark, t) -> variant "Pmark" [ Pmark.to_dyn pmark; dyn_of_gen f t ]
+  | Sem (sem, t) -> variant "Sem" [ Automata.Sem.to_dyn sem; dyn_of_gen f t ]
+  | Sem_greedy (rep, t) ->
+    variant "Sem_greedy" [ Automata.Rep_kind.to_dyn rep; dyn_of_gen f t ]
+;;
 
 let rec pp_gen pp_cset fmt t =
   let open Format in
@@ -123,6 +180,7 @@ let rec equal cset x1 x2 =
 type t = (cset, [ `Cased | `Uncased ]) gen
 type no_case = (Cset.t, [ `Uncased ]) gen
 
+let to_dyn = dyn_of_gen dyn_of_cset
 let pp = pp_gen pp_cset
 let cset cset = Set (Cset cset)
 

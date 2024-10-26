@@ -2,6 +2,7 @@ type t =
   | Int of int
   | Tuple of t list
   | Enum of string
+  | String of string
   | List of t list
   | Variant of string * t list
   | Record of (string * t) list
@@ -11,3 +12,5 @@ let list x = List x
 let int x = Int x
 let pair x y = Tuple [ x; y ]
 let record fields = Record fields
+let enum x = Enum x
+let string s = String s
