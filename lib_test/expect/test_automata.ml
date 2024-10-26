@@ -15,7 +15,7 @@ include struct
   let seq = seq
 end
 
-let pp_state fmt state = Base.Sexp.pp_hum fmt (sexp_of_dyn (State.to_dyn state))
+let pp_state state = print_dyn (State.to_dyn state)
 let pp_expr fmt expr = Automata.pp fmt expr
 let cat = Category.dummy
 
@@ -38,7 +38,7 @@ let%expect_test "string" =
   let re = str ids `First s in
   let wa = Working_area.create () in
   let rec loop d c =
-    Format.printf "%a@." pp_state d;
+    pp_state d;
     match State.status d with
     | Failed -> Format.printf "> failed@."
     | Match _ -> Format.printf "> matched@."
@@ -81,7 +81,7 @@ let%expect_test "alternation" =
   in
   let wa = Working_area.create () in
   let rec loop d c =
-    Format.printf "%a@." pp_state d;
+    pp_state d;
     match State.status d with
     | Failed -> Format.printf "> failed@."
     | Match _ -> Format.printf "> matched@."
@@ -129,7 +129,7 @@ let%expect_test "alternation shared prefix" =
   in
   let wa = Working_area.create () in
   let rec loop d c =
-    Format.printf "%a@." pp_state d;
+    pp_state d;
     match State.status d with
     | Failed -> Format.printf "> failed@."
     | Match _ -> Format.printf "> matched@."
