@@ -40,8 +40,9 @@ let parse newline s =
   let test c = Parse_buffer.test buf c in
   let unget () = Parse_buffer.unget buf in
   let get () = Parse_buffer.get buf in
-  let rec regexp () = regexp' (branch ())
-  and regexp' left = if accept '|' then regexp' (Re.alt [ left; branch () ]) else left
+  let rec regexp () = regexp' [ branch () ]
+  and regexp' left =
+    if accept '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
   and branch () = branch' []
   and branch' left =
     if eos () || test '|' || test ')'

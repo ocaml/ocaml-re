@@ -38,9 +38,9 @@ let parse s =
   let eos () = Parse_buffer.eos buf in
   let test2 = Parse_buffer.test2 buf in
   let get () = Parse_buffer.get buf in
-  let rec regexp () = regexp' (branch ())
+  let rec regexp () = regexp' [ branch () ]
   and regexp' left =
-    if accept2 '\\' '|' then regexp' (Re.alt [ left; branch () ]) else left
+    if accept2 '\\' '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
   and branch () = branch' []
   and branch' left =
     if eos () || test2 '\\' '|' || test2 '\\' ')'
