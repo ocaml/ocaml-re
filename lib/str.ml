@@ -30,7 +30,7 @@ type regexp =
   }
 
 let compile_regexp s c =
-  let re = Emacs.re ~case:(not c) s in
+  let re = Emacs.re_no_emacs ~case:(not c) s in
   { mtch = lazy (Compile.compile (Ast.seq [ Ast.start; re ]))
   ; srch = lazy (Compile.compile re)
   }

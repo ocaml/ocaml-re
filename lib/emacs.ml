@@ -31,7 +31,7 @@ let by_code f c c' =
   Char.chr (f c c')
 ;;
 
-let parse s =
+let parse ~emacs_only s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
   let eos () = Parse_buffer.eos buf in
@@ -72,19 +72,19 @@ let parse s =
         let r = regexp () in
         if not (Parse_buffer.accept_s buf {|\)|}) then raise Parse_error;
         Re.group r)
-      else if accept '`'
+      else if emacs_only && accept '`'
       then Re.bos
-      else if accept '\''
+      else if emacs_only && accept '\''
       then Re.eos
       else if accept '='
       then Re.start
       else if accept 'b'
       then Re.alt [ Re.bow; Re.eow ]
-      else if accept 'B'
+      else if emacs_only && accept 'B'
       then Re.not_boundary
-      else if accept '<'
+      else if emacs_only && accept '<'
       then Re.bow
-      else if accept '>'
+      else if emacs_only && accept '>'
       then Re.eow
       else if accept 'w'
       then Re.alt [ Re.alnum; Re.char '_' ]
@@ -95,7 +95,7 @@ let parse s =
         match get () with
         | ('*' | '+' | '?' | '[' | ']' | '.' | '^' | '$' | '\\') as c -> Re.char c
         | '0' .. '9' -> raise Not_supported
-        | _ -> raise Parse_error)
+        | c -> if emacs_only then raise Parse_error else Re.char c)
     else (
       if eos () then raise Parse_error;
       match get () with
@@ -125,7 +125,12 @@ let parse s =
 ;;
 
 let re ?(case = true) s =
-  let r = parse s in
+  let r = parse s ~emacs_only:true in
+  if case then r else Re.no_case r
+;;
+
+let re_no_emacs ~case s =
+  let r = parse s ~emacs_only:false in
   if case then r else Re.no_case r
 ;;
 

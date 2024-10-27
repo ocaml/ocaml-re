@@ -27,6 +27,15 @@ module Test_matches (R : Str_intf) = struct
     with
     | Not_found -> None
   ;;
+
+  let eq_match' ?(pos = 0) ?(case = true) r s =
+    let pat = if case then R.regexp r else R.regexp_case_fold r in
+    try
+      ignore (R.string_match pat s pos);
+      Some (groups ())
+    with
+    | Not_found -> None
+  ;;
 end
 
 module T_str = Test_matches (Str)
@@ -39,6 +48,16 @@ let eq_match ?pos ?case r s =
     (fun () -> T_str.eq_match ?pos ?case r s)
     ()
     (fun () -> T_re.eq_match ?pos ?case r s)
+    ()
+;;
+
+let eq_match' ?pos ?case r s =
+  expect_equal_app
+    ~msg:(str_printer s)
+    ~printer:(opt_printer (list_printer ofs_printer))
+    (fun () -> T_str.eq_match' ?pos ?case r s)
+    ()
+    (fun () -> T_re.eq_match' ?pos ?case r s)
     ()
 ;;
 
@@ -206,6 +225,14 @@ let _ =
     eq_match "[^0-9a-z]+" "A:Z+";
     eq_match "[^0-9a-z]+" "0";
     eq_match "[^0-9a-z]+" "a");
+  (* Word modifiers *)
+  expect_pass "word boundaries" (fun () ->
+    eq_match' "\\bfoo" "foo";
+    eq_match' "\\<foo" "foo";
+    eq_match' "foo\\>" "foo";
+    eq_match' "z\\Bfoo" "zfoo";
+    eq_match' "\\`foo" "foo";
+    eq_match' "foo\\'" "foo");
   (* Case modifiers *)
   expect_pass "no_case" (fun () ->
     eq_match ~case:false "abc" "abc";

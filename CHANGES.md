@@ -14,6 +14,8 @@ Unreleased
 * Fix [Re.Pcre.split]. Regression introduced in 1.12 and a previous bug with
   [Re.Pcre.split] (#538).
 
+* Avoid parsing unnecessary patterns supported `Re.Emacs` in `Re.Str` (#563)
+
 1.13.1 (30-Sep-2024)
 --------------------
 
