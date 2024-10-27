@@ -37,3 +37,5 @@ val compile : Core.t -> Core.re
 
 (** Same as [Core.compile] *)
 val compile_pat : ?case:bool -> string -> Core.re
+
+val re_no_emacs : case:bool -> string -> Core.t
