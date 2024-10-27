@@ -20,33 +20,38 @@ let pp_expr fmt expr = Automata.pp fmt expr
 let cat = Category.dummy
 
 let str ids sem str =
-  let rec loop (s : Stdlib.Char.t Seq.t) =
-    match s () with
-    | Seq.Nil -> eps ids
-    | Seq.Cons (c, rest) ->
+  let rec loop (s : Char.t Seq.t) =
+    match (s () : _ Seq.node) with
+    | Nil -> eps ids
+    | Cons (c, rest) ->
       let c = cst ids (Cset.csingle c) in
       seq ids sem c (loop rest)
   in
   loop (String.to_seq str)
 ;;
 
+let rec loop wa d c =
+  print_dyn (State.to_dyn d);
+  match State.status d with
+  | Failed -> Format.printf "> failed@."
+  | Match _ -> Format.printf "> matched@."
+  | Running ->
+    let d = Automata.delta wa cat (Cset.of_char c) d in
+    loop wa d c
+;;
+
 let%expect_test "string" =
-  let c = 'a' in
-  let n = 4 in
-  let s = String.make n c in
-  let ids = Ids.create () in
-  let re = str ids `First s in
-  let wa = Working_area.create () in
-  let rec loop d c =
-    pp_state d;
-    match State.status d with
-    | Failed -> Format.printf "> failed@."
-    | Match _ -> Format.printf "> matched@."
-    | Running ->
-      let d = Automata.delta wa cat (Cset.of_char c) d in
-      loop d c
+  let re =
+    let n = 4 in
+    let s =
+      let c = 'a' in
+      String.make n c
+    in
+    let ids = Ids.create () in
+    str ids `First s
   in
-  loop (State.create cat re) 'a';
+  let wa = Working_area.create () in
+  loop wa (State.create cat re) 'a';
   [%expect
     {|
     ((TExp (first (Seq 97 97 97 97))))
@@ -57,7 +62,7 @@ let%expect_test "string" =
     ((TMarks ()))
     > matched
     |}];
-  loop (State.create cat re) 'b';
+  loop wa (State.create cat re) 'b';
   [%expect {|
     ((TExp (first (Seq 97 97 97 97))))
     ()
@@ -66,30 +71,24 @@ let%expect_test "string" =
 ;;
 
 let%expect_test "alternation" =
-  let c = 'a' in
-  let n = 4 in
-  let s = String.make n c in
   let ids = Ids.create () in
   let re =
-    Automata.alt
-      ids
-      (List.init ~len:n ~f:(fun i ->
-         let prefix = str ids `First s in
-         let c = Char.chr (Char.code 'b' + i) in
-         let suffix = cst ids (Cset.csingle c) in
-         seq ids `First prefix suffix))
+    let n = 4 in
+    let s =
+      let c = 'a' in
+      String.make n c
+    in
+    List.init ~len:n ~f:(fun i ->
+      let prefix = str ids `First s in
+      let suffix =
+        let c = Char.chr (Char.code 'b' + i) in
+        cst ids (Cset.csingle c)
+      in
+      seq ids `First prefix suffix)
+    |> Automata.alt ids
   in
   let wa = Working_area.create () in
-  let rec loop d c =
-    pp_state d;
-    match State.status d with
-    | Failed -> Format.printf "> failed@."
-    | Match _ -> Format.printf "> matched@."
-    | Running ->
-      let d = Automata.delta wa cat (Cset.of_char c) d in
-      loop d c
-  in
-  loop (State.create cat re) 'a';
+  loop wa (State.create cat re) 'a';
   [%expect
     {|
     ((TExp
@@ -112,32 +111,26 @@ let%expect_test "alternation" =
 ;;
 
 let%expect_test "alternation shared prefix" =
-  let c = 'a' in
   let n = 4 in
-  let s = String.make n c in
   let ids = Ids.create () in
   let re =
-    let prefix = str ids `First s in
+    let prefix =
+      let s =
+        let c = 'a' in
+        String.make n c
+      in
+      str ids `First s
+    in
     let suffix =
-      Automata.alt
-        ids
-        (List.init ~len:n ~f:(fun i ->
-           let c = Char.chr (Char.code 'b' + i) in
-           cst ids (Cset.csingle c)))
+      List.init ~len:n ~f:(fun i ->
+        let c = Char.chr (Char.code 'b' + i) in
+        cst ids (Cset.csingle c))
+      |> Automata.alt ids
     in
     seq ids `First prefix suffix
   in
   let wa = Working_area.create () in
-  let rec loop d c =
-    pp_state d;
-    match State.status d with
-    | Failed -> Format.printf "> failed@."
-    | Match _ -> Format.printf "> matched@."
-    | Running ->
-      let d = Automata.delta wa cat (Cset.of_char c) d in
-      loop d c
-  in
-  loop (State.create cat re) 'a';
+  loop wa (State.create cat re) 'a';
   [%expect
     {|
     ((TExp (first (Seq (Seq 97 97 97 97) (Alt 98 99 100 101)))))
