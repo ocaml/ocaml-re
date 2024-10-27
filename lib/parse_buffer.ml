@@ -21,12 +21,6 @@ let accept t c =
   r
 ;;
 
-let accept2 t c c' =
-  let r = test2 t c c' in
-  if r then t.pos <- t.pos + 2;
-  r
-;;
-
 let get t =
   let r = t.str.[t.pos] in
   t.pos <- t.pos + 1;
