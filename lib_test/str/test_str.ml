@@ -220,7 +220,16 @@ let _ =
     eq_match "[0-9]+" "a";
     eq_match "[9-0]+" "2";
     eq_match "[5-5]" "5";
-    eq_match "[5-4]" "1");
+    eq_match "[5-4]" "1";
+    eq_match' "[]]" "]";
+    eq_match' "[a-]" "-";
+    eq_match' "[-a]" "-";
+    eq_match' "]" "]";
+    eq_match' "[^b-f]" "z";
+    eq_match' "[^b-f]" "a"
+    (* These errors aren't correct *)
+    (* eq_match' "[]" "x" *)
+    (* eq_match' "[" "[" *));
   expect_pass "compl" (fun () ->
     eq_match "[^0-9a-z]+" "A:Z+";
     eq_match "[^0-9a-z]+" "0";
