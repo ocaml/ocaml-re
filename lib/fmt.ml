@@ -37,18 +37,8 @@ let optint fmt = function
   | Some i -> fprintf fmt "@ %d" i
 ;;
 
-let quote fmt s = Format.fprintf fmt "\"%s\"" s
-
-let pp_olist pp_elem fmt =
-  Format.fprintf
-    fmt
-    "@[<3>[@ %a@ ]@]"
-    (pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt ";@ ") pp_elem)
-;;
-
 let char fmt c = Format.fprintf fmt "%c" c
 let bool = Format.pp_print_bool
-let pp_str_list = pp_olist quote
 let lit s fmt () = pp_print_string fmt s
 
 let to_to_string pp x =

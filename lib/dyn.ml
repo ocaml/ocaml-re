@@ -14,3 +14,13 @@ let pair x y = Tuple [ x; y ]
 let record fields = Record fields
 let enum x = Enum x
 let string s = String s
+
+let result ok err = function
+  | Ok s -> variant "Ok" [ ok s ]
+  | Error e -> variant "Error" [ err e ]
+;;
+
+let option f = function
+  | None -> enum "None"
+  | Some s -> variant "Some" [ f s ]
+;;
