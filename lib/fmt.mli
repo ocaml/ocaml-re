@@ -1,7 +1,6 @@
 type formatter := Format.formatter
 type 'a t = formatter -> 'a -> unit
 
-val pp_str_list : string list t
 val sexp : formatter -> string -> 'a t -> 'a -> unit
 val str : string t
 val optint : int option t

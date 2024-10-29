@@ -1,6 +1,7 @@
 module Re = Re_private.Re
 include Re_private.Import
 module Fmt = Re_private.Fmt
+module Dyn = Re_private.Dyn
 
 let printf = Printf.printf
 
