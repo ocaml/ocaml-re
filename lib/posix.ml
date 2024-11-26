@@ -91,7 +91,7 @@ let parse newline s =
     then (
       if eos () then raise Parse_error;
       match get () with
-      | ('|' | '(' | ')' | '*' | '+' | '?' | '[' | '.' | '^' | '$' | '{' | '\\') as c ->
+      | ('|' | '(' | ')' | '*' | '+' | '?' | '[' | ']' | '.' | '^' | '$' | '{' | '}' | '\\') as c ->
         Re.char c
       | _ -> raise Parse_error)
     else (
