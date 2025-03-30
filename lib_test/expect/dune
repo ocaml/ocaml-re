@@ -21,6 +21,5 @@
 (subdir
  private_re
  (library
-  (name re_private)
-  (libraries seq))
+  (name re_private))
  (copy_files %{project_root}/lib/*.{ml,mli}))

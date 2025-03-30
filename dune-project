@@ -22,7 +22,6 @@
  (synopsis "RE is a regular expression library for OCaml")
  (depends
   (ocaml (>= 4.12.0))
-  seq
   (ppx_expect :with-test)
   (ounit2 :with-test))
  (description "
