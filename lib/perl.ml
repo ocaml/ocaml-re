@@ -47,6 +47,18 @@ type elem =
   | Char of char
   | Set of Ast.t
 
+let char_b = Char '\008'
+let char_newline = Char '\n'
+let char_cr = Char '\r'
+let char_tab = Char '\t'
+let word_char = [ Re.alnum; Re.char '_' ]
+let word = Set (Re.alt word_char)
+let not_word = Set (Re.alt word_char)
+let space = Set Re.space
+let not_space = Set (Re.compl [ Re.space ])
+let digit = Set Re.digit
+let not_digit = Set (Re.compl [ Re.digit ])
+
 let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
@@ -287,16 +299,16 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
          \127, ...
       *)
       match c with
-      | 'b' -> Char '\008'
-      | 'n' -> Char '\n' (*XXX*)
-      | 'r' -> Char '\r' (*XXX*)
-      | 't' -> Char '\t' (*XXX*)
-      | 'w' -> Set (Re.alt [ Re.alnum; Re.char '_' ])
-      | 'W' -> Set (Re.compl [ Re.alnum; Re.char '_' ])
-      | 's' -> Set Re.space
-      | 'S' -> Set (Re.compl [ Re.space ])
-      | 'd' -> Set Re.digit
-      | 'D' -> Set (Re.compl [ Re.digit ])
+      | 'b' -> char_b
+      | 'n' -> char_newline (*XXX*)
+      | 'r' -> char_cr (*XXX*)
+      | 't' -> char_tab (*XXX*)
+      | 'w' -> word
+      | 'W' -> not_word
+      | 's' -> space
+      | 'S' -> not_space
+      | 'd' -> digit
+      | 'D' -> not_digit
       | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
       | '0' .. '9' -> raise Not_supported
       | _ -> Char c)
