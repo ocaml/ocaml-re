@@ -1,0 +1,9 @@
+(test
+ (name test)
+ (build_if
+  (>= %{ocaml_version} 5.0))
+ (action
+  (pipe-outputs
+   (run %{test})
+   (run cat)))
+ (libraries re))
