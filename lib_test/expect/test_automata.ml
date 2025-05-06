@@ -37,7 +37,7 @@ let loop ?(max = 100) wa d c =
     if n > 0
     then (
       print_dyn (State.to_dyn d);
-      match State.status d with
+      match State.status_no_mutex d with
       | Failed -> Format.printf "> failed@."
       | Match _ -> Format.printf "> matched@."
       | Running ->

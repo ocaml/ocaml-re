@@ -105,7 +105,9 @@ type re =
   ; (* States of the deterministic automata *)
     group_names : (string * int) list
   ; (* Named groups in the regular expression *)
-    group_count : int (* Number of groups in the regular expression *)
+    group_count : int
+  ; (* Number of groups in the regular expression *)
+    mutex : Mutex.t
   }
 
 let pp_re ch re = Automata.pp ch re.initial
@@ -169,7 +171,7 @@ let find_state re desc =
   | Not_found ->
     let st =
       let break_state =
-        match Automata.State.status desc with
+        match Automata.State.status_no_mutex desc with
         | Running -> false
         | Failed | Match _ -> true
       in
@@ -193,6 +195,7 @@ let delta re cat ~color st = Automata.delta re.tbl cat color st.desc
 
 let validate re (s : string) ~pos st =
   let color = Color_map.Table.get re.colors s.[pos] in
+  Mutex.lock re.mutex;
   let st' =
     let desc' =
       let cat = category re ~color in
@@ -200,17 +203,23 @@ let validate re (s : string) ~pos st =
     in
     find_state re desc'
   in
-  State.set_transition st ~color st'
+  State.set_transition st ~color st';
+  Mutex.unlock re.mutex
 ;;
 
-let next colors st s pos =
-  State.follow_transition st ~color:(Color_map.Table.get colors (String.unsafe_get s pos))
+let next mutex colors st s pos =
+  Mutex.lock mutex;
+  let res =
+    State.follow_transition st ~color:(Color_map.Table.get colors (String.unsafe_get s pos))
+  in
+  Mutex.unlock mutex;
+  res
 ;;
 
 let rec loop re ~colors ~positions s ~pos ~last st0 st =
   if pos < last
   then (
-    let st' = next colors st s pos in
+    let st' = next re.mutex colors st s pos in
     let idx = (State.get_info st').idx in
     if Idx.is_idx idx
     then
@@ -236,7 +245,7 @@ let rec loop re ~colors ~positions s ~pos ~last st0 st =
 let rec loop_no_mark re ~colors s ~pos ~last st0 st =
   if pos < last
   then (
-    let st' = next colors st s pos in
+    let st' = next re.mutex colors st s pos in
     let idx = (State.get_info st').idx in
     if Idx.is_idx idx
     then loop_no_mark re ~colors s ~pos:(pos + 1) ~last st' st'
@@ -250,20 +259,30 @@ let rec loop_no_mark re ~colors s ~pos ~last st0 st =
 ;;
 
 let final re st cat =
-  try List.assq cat st.final with
-  | Not_found ->
-    let st' = delta re cat ~color:Cset.null_char st in
-    let res = Automata.State.idx st', Automata.State.status st' in
-    st.final <- (cat, res) :: st.final;
-    res
+  Mutex.lock re.mutex;
+  let res =
+    try List.assq cat st.final with
+    | Not_found ->
+      let st' = delta re cat ~color:Cset.null_char st in
+      let res = Automata.State.idx st', Automata.State.status_no_mutex st' in
+      st.final <- (cat, res) :: st.final;
+      res
+  in
+  Mutex.unlock re.mutex;
+  res
 ;;
 
 let find_initial_state re cat =
-  try List.assq cat re.initial_states with
-  | Not_found ->
-    let st = find_state re (Automata.State.create cat re.initial) in
-    re.initial_states <- (cat, st) :: re.initial_states;
-    st
+  Mutex.lock re.mutex;
+  let res =
+    try List.assq cat re.initial_states with
+    | Not_found ->
+      let st = find_state re (Automata.State.create cat re.initial) in
+      re.initial_states <- (cat, st) :: re.initial_states;
+      st
+  in
+  Mutex.unlock re.mutex;
+  res
 ;;
 
 let get_color re (s : string) pos =
@@ -295,6 +314,7 @@ let rec handle_last_newline re positions ~pos st ~groups =
   else (
     (* Unknown *)
     let color = re.lnl in
+    Mutex.lock re.mutex;
     let st' =
       let desc =
         let cat = category re ~color in
@@ -304,6 +324,7 @@ let rec handle_last_newline re positions ~pos st ~groups =
       find_state re desc
     in
     State.set_transition st ~color st';
+    Mutex.unlock re.mutex;
     handle_last_newline re positions ~pos st ~groups)
 ;;
 
@@ -360,10 +381,10 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
   in
   let state_info = State.get_info st in
   if Idx.is_break state_info.idx || (partial && not groups)
-  then Automata.State.status state_info.desc
+  then Automata.State.status re.mutex state_info.desc
   else if partial && groups
   then (
-    match Automata.State.status state_info.desc with
+    match Automata.State.status re.mutex state_info.desc with
     | (Match _ | Failed) as status -> status
     | Running ->
       (* This could be because it's still not fully matched, or it
@@ -401,7 +422,7 @@ module Stream = struct
     let info = State.get_info state in
     if Idx.is_break info.idx
        &&
-       match Automata.State.status info.desc with
+       match Automata.State.status t.re.mutex info.desc with
        | Failed -> true
        | Match _ | Running -> false
     then No_match
@@ -472,7 +493,7 @@ module Stream = struct
     let rec loop re ~abs_pos ~colors ~positions s ~pos ~last st0 st =
       if pos < last
       then (
-        let st' = next colors st s pos in
+        let st' = next re.mutex colors st s pos in
         let idx = (State.get_info st').idx in
         if Idx.is_idx idx
         then
@@ -504,7 +525,7 @@ module Stream = struct
       let info = State.get_info state in
       if Idx.is_break info.idx
          &&
-         match Automata.State.status info.desc with
+         match Automata.State.status t.re.mutex info.desc with
          | Failed -> true
          | Match _ | Running -> false
       then No_match
@@ -533,7 +554,7 @@ module Stream = struct
         State.get_info state
       in
       match
-        match Automata.State.status info.desc with
+        match Automata.State.status t.re.mutex info.desc with
         | (Match _ | Failed) as s -> s
         | Running ->
           let idx, res =
@@ -597,6 +618,7 @@ let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =
   ; states = Automata.State.Table.create 97
   ; group_names
   ; group_count
+  ; mutex = Mutex.create ()
   }
 ;;
 

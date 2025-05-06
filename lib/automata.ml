@@ -629,13 +629,21 @@ module State = struct
     && Desc.equal desc t.desc
   ;;
 
-  let status s =
+  (* To be called when the mutex has already been acquired *)
+  let status_no_mutex s =
     match s.status with
     | Some s -> s
     | None ->
       let st = Desc.status s.desc in
       s.status <- Some st;
       st
+  ;;
+
+  let status m s =
+    Mutex.lock m;
+    let st = status_no_mutex s in
+    Mutex.unlock m;
+    st
   ;;
 
   module Table = Hashtbl.Make (struct
