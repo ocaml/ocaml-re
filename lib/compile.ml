@@ -10,6 +10,7 @@ module Idx : sig
   val of_idx : Automata.Idx.t -> t
   val is_idx : t -> bool
   val is_break : t -> bool
+  val is_unknown : t -> bool
   val idx : t -> int
   val break_idx : t -> int
 end = struct
@@ -20,6 +21,7 @@ end = struct
   let of_idx (x : Automata.Idx.t) = Automata.Idx.to_int x [@@inline always]
   let is_idx t = t >= 0 [@@inline always]
   let is_break x = x <= break [@@inline always]
+  let is_unknown x = x = unknown [@@inline always]
   let idx t = t [@@inline always]
   let make_break (idx : Automata.Idx.t) = -5 - Automata.Idx.to_int idx [@@inline always]
   let break_idx t = (t + 5) * -1 [@@inline always]
@@ -45,6 +47,8 @@ type state_info =
     desc : Automata.State.t (* Description of this state of the automata *)
   }
 
+(* Thread-safety: we use double-checked locking to access field [final]. *)
+
 (* A state [t] is a pair composed of some information about the
    state [state_info] and a transition table [t array], indexed by
    color. For performance reason, to avoid an indirection, we manually
@@ -58,8 +62,14 @@ module State : sig
   val get_info : t -> state_info
   val follow_transition : t -> color:Cset.c -> t
   val set_transition : t -> color:Cset.c -> t -> unit
+  val is_unknown_transition : t -> color:Cset.c -> bool
 end = struct
   type t = Table of t array [@@unboxed]
+
+  (* Thread-safety:
+     We store the state information at index 0. For other elements
+     of the transition table, which are lazily computed, we use
+     double-checked locking. *)
 
   let get_info (Table st) : state_info = Obj.magic (Array.unsafe_get st 0)
   [@@inline always]
@@ -72,6 +82,13 @@ end = struct
   ;;
 
   let set_transition (Table st) ~color st' = st.(1 + Cset.to_int color) <- st'
+
+  let is_unknown_transition st ~color =
+    let st' = follow_transition st ~color in
+    let info = get_info st' in
+    Idx.is_unknown info.idx
+  ;;
+
   let dummy (info : state_info) = Table [| Obj.magic info |]
   let unknown_state = dummy { idx = Idx.unknown; final = []; desc = Automata.State.dummy }
 
@@ -109,6 +126,17 @@ type re =
   ; (* Number of groups in the regular expression *)
     mutex : Mutex.t
   }
+
+(* Thread-safety:
+   We use double-checked locking to access field [initial_states]. The
+   state table [states] and the working area [tbl] are only accessed
+   with the mutex [mutex] locked.
+   The working area is shared between all threads. This might be
+   inefficient if many threads are updating the automaton. It seems
+   complicated to manage a working area per domain and per regular
+   expression. So, if this becomes an issue, it might just be simpler
+   to allocate a fresh working area whenever needed.
+*)
 
 let pp_re ch re = Automata.pp ch re.initial
 let group_count re = re.group_count
@@ -148,6 +176,9 @@ module Positions = struct
   let make ~groups re =
     if groups
     then (
+      (* We initialize this table with a reasonable size. The required
+         size may change when the automaton gets updated. So we are
+         always checking whether it is large enough before modifying it. *)
       let length = Automata.Working_area.index_count re.tbl + 1 in
       { positions = Array.make length 0; length })
     else empty
@@ -196,30 +227,27 @@ let delta re cat ~color st = Automata.delta re.tbl cat color st.desc
 let validate re (s : string) ~pos st =
   let color = Color_map.Table.get re.colors s.[pos] in
   Mutex.lock re.mutex;
-  let st' =
-    let desc' =
-      let cat = category re ~color in
-      delta re cat ~color (State.get_info st)
+  if State.is_unknown_transition st ~color
+  then (
+    let st' =
+      let desc' =
+        let cat = category re ~color in
+        delta re cat ~color (State.get_info st)
+      in
+      find_state re desc'
     in
-    find_state re desc'
-  in
-  State.set_transition st ~color st';
+    State.set_transition st ~color st');
   Mutex.unlock re.mutex
 ;;
 
-let next mutex colors st s pos =
-  Mutex.lock mutex;
-  let res =
-    State.follow_transition st ~color:(Color_map.Table.get colors (String.unsafe_get s pos))
-  in
-  Mutex.unlock mutex;
-  res
+let next colors st s pos =
+  State.follow_transition st ~color:(Color_map.Table.get colors (String.unsafe_get s pos))
 ;;
 
 let rec loop re ~colors ~positions s ~pos ~last st0 st =
   if pos < last
   then (
-    let st' = next re.mutex colors st s pos in
+    let st' = next colors st s pos in
     let idx = (State.get_info st').idx in
     if Idx.is_idx idx
     then
@@ -245,7 +273,7 @@ let rec loop re ~colors ~positions s ~pos ~last st0 st =
 let rec loop_no_mark re ~colors s ~pos ~last st0 st =
   if pos < last
   then (
-    let st' = next re.mutex colors st s pos in
+    let st' = next colors st s pos in
     let idx = (State.get_info st').idx in
     if Idx.is_idx idx
     then loop_no_mark re ~colors s ~pos:(pos + 1) ~last st' st'
@@ -259,30 +287,34 @@ let rec loop_no_mark re ~colors s ~pos ~last st0 st =
 ;;
 
 let final re st cat =
-  Mutex.lock re.mutex;
-  let res =
-    try List.assq cat st.final with
-    | Not_found ->
-      let st' = delta re cat ~color:Cset.null_char st in
-      let res = Automata.State.idx st', Automata.State.status_no_mutex st' in
-      st.final <- (cat, res) :: st.final;
-      res
-  in
-  Mutex.unlock re.mutex;
-  res
+  try List.assq cat st.final with
+  | Not_found ->
+    Mutex.lock re.mutex;
+    let res =
+      try List.assq cat st.final with
+      | Not_found ->
+        let st' = delta re cat ~color:Cset.null_char st in
+        let res = Automata.State.idx st', Automata.State.status_no_mutex st' in
+        st.final <- (cat, res) :: st.final;
+        res
+    in
+    Mutex.unlock re.mutex;
+    res
 ;;
 
 let find_initial_state re cat =
-  Mutex.lock re.mutex;
-  let res =
-    try List.assq cat re.initial_states with
-    | Not_found ->
-      let st = find_state re (Automata.State.create cat re.initial) in
-      re.initial_states <- (cat, st) :: re.initial_states;
-      st
-  in
-  Mutex.unlock re.mutex;
-  res
+  try List.assq cat re.initial_states with
+  | Not_found ->
+    Mutex.lock re.mutex;
+    let res =
+      try List.assq cat re.initial_states with
+      | Not_found ->
+        let st = find_state re (Automata.State.create cat re.initial) in
+        re.initial_states <- (cat, st) :: re.initial_states;
+        st
+    in
+    Mutex.unlock re.mutex;
+    res
 ;;
 
 let get_color re (s : string) pos =
@@ -315,15 +347,17 @@ let rec handle_last_newline re positions ~pos st ~groups =
     (* Unknown *)
     let color = re.lnl in
     Mutex.lock re.mutex;
-    let st' =
-      let desc =
-        let cat = category re ~color in
-        let real_c = Color_map.Table.get re.colors '\n' in
-        delta re cat ~color:real_c (State.get_info st)
+    if State.is_unknown_transition st ~color
+    then (
+      let st' =
+        let desc =
+          let cat = category re ~color in
+          let real_c = Color_map.Table.get re.colors '\n' in
+          delta re cat ~color:real_c (State.get_info st)
+        in
+        find_state re desc
       in
-      find_state re desc
-    in
-    State.set_transition st ~color st';
+      State.set_transition st ~color st');
     Mutex.unlock re.mutex;
     handle_last_newline re positions ~pos st ~groups)
 ;;
@@ -493,7 +527,7 @@ module Stream = struct
     let rec loop re ~abs_pos ~colors ~positions s ~pos ~last st0 st =
       if pos < last
       then (
-        let st' = next re.mutex colors st s pos in
+        let st' = next colors st s pos in
         let idx = (State.get_info st').idx in
         if Idx.is_idx idx
         then

@@ -597,6 +597,8 @@ module State = struct
     ; mutable status : Status.t option
     ; hash : int
     }
+  (* Thread-safety: We use double-checked locking to access field
+     [status] in function [status] below. *)
 
   let pp fmt t = Desc.pp fmt t.desc
   let[@inline] idx t = t.idx
@@ -640,10 +642,13 @@ module State = struct
   ;;
 
   let status m s =
-    Mutex.lock m;
-    let st = status_no_mutex s in
-    Mutex.unlock m;
-    st
+    match s.status with
+    | Some s -> s
+    | None ->
+      Mutex.lock m;
+      let st = status_no_mutex s in
+      Mutex.unlock m;
+      st
   ;;
 
   module Table = Hashtbl.Make (struct
@@ -690,6 +695,9 @@ module Working_area = struct
     if idx = len
     then (
       t.ids <- Bit_vector.create_zero (2 * len);
+      (* This function is only called when the mutex is locked. So we
+         are sure that this is always coherent with the length of
+         [t.ids]. *)
       Atomic.set t.index_count (2 * len));
     Idx.make idx
   ;;
