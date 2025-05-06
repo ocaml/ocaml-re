@@ -652,10 +652,17 @@ module Working_area = struct
   type t =
     { mutable ids : Bit_vector.t
     ; seen : Id.Hash_set.t
+    ; index_count : int Atomic.t
     }
 
-  let create () = { ids = Bit_vector.create_zero 1; seen = Id.Hash_set.create () }
-  let index_count w = Bit_vector.length w.ids
+  let create () =
+    { ids = Bit_vector.create_zero 1
+    ; seen = Id.Hash_set.create ()
+    ; index_count = Atomic.make 0
+    }
+  ;;
+
+  let index_count w = Atomic.get w.index_count
 
   let mark_used_indices tbl =
     Desc.iter_marks ~f:(fun marks ->
@@ -672,7 +679,10 @@ module Working_area = struct
     mark_used_indices t.ids l;
     let len = Bit_vector.length t.ids in
     let idx = find_free t.ids 0 len in
-    if idx = len then t.ids <- Bit_vector.create_zero (2 * len);
+    if idx = len
+    then (
+      t.ids <- Bit_vector.create_zero (2 * len);
+      Atomic.set t.index_count (2 * len));
     Idx.make idx
   ;;
 end

@@ -116,19 +116,28 @@ module Positions = struct
   (* Information used during matching *)
   type t =
     { mutable positions : int array
-    (* Array of mark positions
-       The mark are off by one for performance reasons *)
+    ; (* Array of mark positions
+         The mark are off by one for performance reasons *)
+      mutable length : int
     }
 
-  let empty = { positions = [||] }
-  let length t = Array.length t.positions
-  let set t idx pos = Array.unsafe_set t.positions idx pos
+  let empty = { positions = [||]; length = 0 }
+  let length t = t.length
+  let unsafe_set t idx pos = Array.unsafe_set t.positions idx pos
 
-  let resize t =
-    let len = Array.length t.positions in
-    let pos = t.positions in
-    t.positions <- Array.make (2 * len) 0;
-    Array.blit pos 0 t.positions 0 len
+  let rec resize idx t =
+    t.length <- 2 * t.length;
+    if idx >= t.length
+    then resize idx t
+    else (
+      let pos = t.positions in
+      t.positions <- Array.make t.length 0;
+      Array.blit pos 0 t.positions 0 (Array.length pos))
+  ;;
+
+  let set t idx pos =
+    if idx >= length t then resize idx t;
+    unsafe_set t idx pos
   ;;
 
   let all t = t.positions
@@ -136,11 +145,9 @@ module Positions = struct
 
   let make ~groups re =
     if groups
-    then
-      { positions =
-          (let n = Automata.Working_area.index_count re.tbl + 1 in
-           Array.make n 0)
-      }
+    then (
+      let length = Automata.Working_area.index_count re.tbl + 1 in
+      { positions = Array.make length 0; length })
     else empty
   ;;
 end
@@ -182,20 +189,14 @@ let find_state re desc =
 
 (**** Match with marks ****)
 
-let delta re positions cat ~color st =
-  let desc = Automata.delta re.tbl cat color st.desc in
-  let len = Positions.length positions in
-  if len > 0 && Automata.State.idx desc |> Automata.Idx.to_int = len
-  then Positions.resize positions;
-  desc
-;;
+let delta re cat ~color st = Automata.delta re.tbl cat color st.desc
 
-let validate re positions (s : string) ~pos st =
+let validate re (s : string) ~pos st =
   let color = Color_map.Table.get re.colors s.[pos] in
   let st' =
     let desc' =
       let cat = category re ~color in
-      delta re positions cat ~color (State.get_info st)
+      delta re cat ~color (State.get_info st)
     in
     find_state re desc'
   in
@@ -212,16 +213,22 @@ let rec loop re ~colors ~positions s ~pos ~last st0 st =
     let st' = next colors st s pos in
     let idx = (State.get_info st').idx in
     if Idx.is_idx idx
-    then (
-      Positions.set positions (Idx.idx idx) pos;
-      loop re ~colors ~positions s ~pos:(pos + 1) ~last st' st')
+    then
+      if Idx.idx idx < Positions.length positions
+      then (
+        Positions.unsafe_set positions (Idx.idx idx) pos;
+        loop re ~colors ~positions s ~pos:(pos + 1) ~last st' st')
+      else (
+        (* Resize position array *)
+        Positions.set positions (Idx.idx idx) pos;
+        loop re ~colors ~positions s ~pos:(pos + 1) ~last st' st')
     else if Idx.is_break idx
     then (
       Positions.set positions (Idx.break_idx idx) pos;
       st')
     else (
       (* Unknown *)
-      validate re positions s ~pos st0;
+      validate re s ~pos st0;
       loop re ~colors ~positions s ~pos ~last st0 st0))
   else st
 ;;
@@ -237,15 +244,15 @@ let rec loop_no_mark re ~colors s ~pos ~last st0 st =
     then st'
     else (
       (* Unknown *)
-      validate re Positions.empty s ~pos st0;
+      validate re s ~pos st0;
       loop_no_mark re ~colors s ~pos ~last st0 st0))
   else st
 ;;
 
-let final re positions st cat =
+let final re st cat =
   try List.assq cat st.final with
   | Not_found ->
-    let st' = delta re positions cat ~color:Cset.null_char st in
+    let st' = delta re cat ~color:Cset.null_char st in
     let res = Automata.State.idx st', Automata.State.status st' in
     st.final <- (cat, res) :: st.final;
     res
@@ -292,7 +299,7 @@ let rec handle_last_newline re positions ~pos st ~groups =
       let desc =
         let cat = category re ~color in
         let real_c = Color_map.Table.get re.colors '\n' in
-        delta re positions cat ~color:real_c (State.get_info st)
+        delta re cat ~color:real_c (State.get_info st)
       in
       find_state re desc
     in
@@ -329,7 +336,7 @@ let final_boundary_check re positions ~last ~slen s state_info ~groups =
         search_boundary
         ++ if last = slen then inexistant else category re ~color:(get_color re s last))
     in
-    final re positions state_info final_cat
+    final re state_info final_cat
   in
   (match groups, res with
    | true, Match _ -> Positions.set positions (Automata.Idx.to_int idx) last
@@ -409,7 +416,7 @@ module Stream = struct
     match
       let _idx, res =
         let final_cat = Category.(search_boundary ++ inexistant) in
-        final t.re Positions.empty info final_cat
+        final t.re info final_cat
       in
       res
     with
@@ -468,16 +475,22 @@ module Stream = struct
         let st' = next colors st s pos in
         let idx = (State.get_info st').idx in
         if Idx.is_idx idx
-        then (
-          Positions.set positions (Idx.idx idx) (abs_pos + pos);
-          loop re ~abs_pos ~colors ~positions s ~pos:(pos + 1) ~last st' st')
+        then
+          if Idx.idx idx < Positions.length positions
+          then (
+            Positions.unsafe_set positions (Idx.idx idx) (abs_pos + pos);
+            loop re ~abs_pos ~colors ~positions s ~pos:(pos + 1) ~last st' st')
+          else (
+            (* Resize position array *)
+            Positions.set positions (Idx.idx idx) (abs_pos + pos);
+            loop re ~abs_pos ~colors ~positions s ~pos:(pos + 1) ~last st' st')
         else if Idx.is_break idx
         then (
           Positions.set positions (Idx.break_idx idx) (abs_pos + pos);
           st')
         else (
           (* Unknown *)
-          validate re positions s ~pos st0;
+          validate re s ~pos st0;
           loop re ~abs_pos ~colors ~positions s ~pos ~last st0 st0))
       else st
     ;;
@@ -525,7 +538,7 @@ module Stream = struct
         | Running ->
           let idx, res =
             let final_cat = Category.(search_boundary ++ inexistant) in
-            final t.re positions info final_cat
+            final t.re info final_cat
           in
           (match res with
            | Running | Failed -> ()
