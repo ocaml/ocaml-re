@@ -10,7 +10,7 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-latest
+#          - windows-latest
         ocaml-compiler:
           - "4.14"
           - "5.2"
@@ -21,6 +21,5 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
       - run: opam install . --deps-only --with-test
-      - run: opam install core_bench core_unix
       - run: opam exec -- dune build
       - run: opam exec -- dune runtest

@@ -7,6 +7,7 @@
   ppx_expect.config
   ppx_expect.config_types
   ppx_expect
+  ppx_expect_common
   base
   str
   ppx_inline_test.config)
@@ -14,6 +15,19 @@
   (modes native js))
  (preprocess
   (pps ppx_expect)))
+
+;; ppx_expect v16 depends on ppx_expect.common
+(subdir
+ ppx_expect_common
+ (library
+  (name ppx_expect_common)
+  (enabled_if
+   (< %{ocaml_version} 5.0))
+  (libraries (re_export ppx_expect.common)))
+ (library
+  (name ppx_expect_common)
+  (enabled_if
+   (>= %{ocaml_version} 5.0))))
 
 ;; this hackery is needed because ppx_expect itself uses re, therefore we need to mangle
 ;; the library name

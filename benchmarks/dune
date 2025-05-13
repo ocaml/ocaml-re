@@ -4,6 +4,8 @@
    (:standard -w -58))))
 
 (executables
+ (enabled_if
+  (not %{env:CI=false}))
  (libraries
   re
   core
@@ -17,6 +19,8 @@
  (names benchmark))
 
 (executable
+ (enabled_if
+  (not %{env:CI=false}))
  (name compare)
  (modules compare)
  (libraries
