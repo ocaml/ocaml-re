@@ -1,4 +1,4 @@
-(lang dune 3.12)
+(lang dune 3.15)
 
 (name re)
 
@@ -23,7 +23,8 @@
  (depends
   (ocaml (>= 4.12.0))
   (ppx_expect :with-test)
-  (ounit2 :with-test))
+  (ounit2 :with-test)
+  (js_of_ocaml :with-test))
  (description "
 Pure OCaml regular expressions with:
 * Perl-style regular expressions (module Re.Perl)
