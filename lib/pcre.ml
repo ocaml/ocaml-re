@@ -108,9 +108,10 @@ let split ~rex s =
   in
   match Re.exec rex s ~pos:0 with
   | g ->
-    if Group.start g 0 = 0
-    then List.rev (split [] (Group.stop g 0))
-    else split [ String.sub s 0 (Group.start g 0) ] (Group.stop g 0)
+    List.rev
+      (if Group.start g 0 = 0
+       then split [] (Group.stop g 0)
+       else split [ String.sub s 0 (Group.start g 0) ] (Group.stop g 0))
   | exception Not_found -> if s = "" then [] else [ s ]
 ;;
 

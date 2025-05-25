@@ -4,17 +4,17 @@ let split ~rex s = Re.Pcre.split ~rex s |> strings
 
 let%expect_test "split" =
   split ~rex:re_whitespace "aa bb c d ";
-  [%expect {| ["d"; "c"; "bb"; "aa"] |}];
+  [%expect {| ["aa"; "bb"; "c"; "d"] |}];
   split ~rex:re_whitespace " a full_word bc   ";
   [%expect {| ["a"; "full_word"; "bc"] |}];
   split ~rex:re_empty "abcd";
   [%expect {| ["a"; "b"; "c"; "d"] |}];
   split ~rex:re_eol "a\nb";
-  [%expect {| ["\nb"; "a"] |}];
+  [%expect {| ["a"; "\nb"] |}];
   split ~rex:re_bow "a b";
   [%expect {| ["a "; "b"] |}];
   split ~rex:re_eow "a b";
-  [%expect {| [" b"; "a"] |}];
+  [%expect {| ["a"; " b"] |}];
   let rex = Re.Pcre.regexp "" in
   split ~rex "xx";
   [%expect {| ["x"; "x"] |}]
