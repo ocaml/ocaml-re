@@ -4,6 +4,10 @@
   (>= %{ocaml_version} 5.0))
  (action
   (pipe-outputs
-   (run %{test})
+   (setenv
+    TSAN_OPTIONS
+    suppressions=suppress.txt
+    (run %{test}))
    (run cat)))
+ (deps suppress.txt)
  (libraries re))
