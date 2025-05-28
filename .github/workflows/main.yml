@@ -14,9 +14,16 @@ jobs:
         ocaml-compiler:
           - "4.14"
           - "5.2"
+        include:
+          - os: ubuntu-24.04-arm
+            ocaml-compiler: "ocaml-variants.5.2.1+options,ocaml-option-tsan"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - run: |
+          sudo apt update
+          sudo apt install libunwind-dev
+        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
       - uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}

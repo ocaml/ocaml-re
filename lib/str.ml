@@ -36,15 +36,15 @@ let compile_regexp s c =
   }
 ;;
 
-let state = ref None
+let state = Domain.DLS.new_key (fun () -> None)
 
 let string_match re s p =
   match exec ~pos:p (Lazy.force re.mtch) s with
   | res ->
-    state := Some res;
+    Domain.DLS.set state (Some res);
     true
   | exception Not_found ->
-    state := None;
+    Domain.DLS.set state None;
     false
 ;;
 
@@ -58,20 +58,20 @@ let string_partial_match re s p =
 let search_forward re s p =
   match exec ~pos:p (Lazy.force re.srch) s with
   | res ->
-    state := Some res;
+    Domain.DLS.set state (Some res);
     fst (Group.offset res 0)
   | exception Not_found ->
-    state := None;
+    Domain.DLS.set state None;
     raise Not_found
 ;;
 
 let rec search_backward re s p =
   match exec ~pos:p (Lazy.force re.mtch) s with
   | res ->
-    state := Some res;
+    Domain.DLS.set state (Some res);
     p
   | exception Not_found ->
-    state := None;
+    Domain.DLS.set state None;
     if p = 0 then raise Not_found else search_backward re s (p - 1)
 ;;
 
@@ -79,13 +79,13 @@ let valid_group n =
   n >= 0
   && n < 10
   &&
-  match !state with
+  match Domain.DLS.get state with
   | None -> false
   | Some m -> n < Group.nb_groups m
 ;;
 
 let offset_group i =
-  match !state with
+  match Domain.DLS.get state with
   | Some m -> Group.offset m i
   | None -> raise Not_found
 ;;

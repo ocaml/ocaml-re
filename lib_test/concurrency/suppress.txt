@@ -1,0 +1,18 @@
+
+# Data race between Compile.State.follow_transition (inlined in Compile.next)
+# and Compile.State.set_transition
+race_top:^camlRe__Compile.next
+
+# Data race within Compile.find_initial_state (read/write re.initial_states)
+race_top:^camlRe__Compile.find_initial_state
+
+# Spurious data race due to the two-step initialization in Compile.State.make
+# (between Compile.State.get_info and Compile.State.set_info, both inlined)
+race_top:^camlRe__Compile.loop
+
+# Race within Automata.Desc.status and Automata.Desc.status_no_mutex
+# (read/write s.status)
+race_top:^camlRe__Automata.status
+
+# Race within Compile.final
+race_top:^camlRe__Compile.final

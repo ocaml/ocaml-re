@@ -102,7 +102,8 @@ module State : sig
   val dummy : t
   val create : Category.t -> expr -> t
   val idx : t -> Idx.t
-  val status : t -> Status.t
+  val status_no_mutex : t -> Status.t
+  val status : Mutex.t -> t -> Status.t
   val to_dyn : t -> Dyn.t
 
   module Table : Hashtbl.S with type key = t

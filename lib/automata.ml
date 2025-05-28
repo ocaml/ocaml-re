@@ -597,6 +597,8 @@ module State = struct
     ; mutable status : Status.t option
     ; hash : int
     }
+  (* Thread-safety: We use double-checked locking to access field
+     [status] in function [status] below. *)
 
   let pp fmt t = Desc.pp fmt t.desc
   let[@inline] idx t = t.idx
@@ -629,12 +631,23 @@ module State = struct
     && Desc.equal desc t.desc
   ;;
 
-  let status s =
+  (* To be called when the mutex has already been acquired *)
+  let status_no_mutex s =
     match s.status with
     | Some s -> s
     | None ->
       let st = Desc.status s.desc in
       s.status <- Some st;
+      st
+  ;;
+
+  let status m s =
+    match s.status with
+    | Some s -> s
+    | None ->
+      Mutex.lock m;
+      let st = status_no_mutex s in
+      Mutex.unlock m;
       st
   ;;
 
@@ -652,10 +665,17 @@ module Working_area = struct
   type t =
     { mutable ids : Bit_vector.t
     ; seen : Id.Hash_set.t
+    ; index_count : int Atomic.t
     }
 
-  let create () = { ids = Bit_vector.create_zero 1; seen = Id.Hash_set.create () }
-  let index_count w = Bit_vector.length w.ids
+  let create () =
+    { ids = Bit_vector.create_zero 1
+    ; seen = Id.Hash_set.create ()
+    ; index_count = Atomic.make 0
+    }
+  ;;
+
+  let index_count w = Atomic.get w.index_count
 
   let mark_used_indices tbl =
     Desc.iter_marks ~f:(fun marks ->
@@ -672,7 +692,13 @@ module Working_area = struct
     mark_used_indices t.ids l;
     let len = Bit_vector.length t.ids in
     let idx = find_free t.ids 0 len in
-    if idx = len then t.ids <- Bit_vector.create_zero (2 * len);
+    if idx = len
+    then (
+      t.ids <- Bit_vector.create_zero (2 * len);
+      (* This function is only called when the mutex is locked. So we
+         are sure that this is always coherent with the length of
+         [t.ids]. *)
+      Atomic.set t.index_count (2 * len));
     Idx.make idx
   ;;
 end
