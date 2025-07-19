@@ -150,6 +150,15 @@ let%expect_test "zero-width assertions" =
   [%expect {| Start |}]
 ;;
 
+let%expect_test "strict end-of-string escape" =
+  let r = Re.Perl.compile_pat {|a\z|} in
+  assert (Re.execp r "a");
+  assert (Re.execp r "ba");
+  assert (not (Re.execp r "ab"));
+  assert (not (Re.execp r "a\n"));
+  [%expect {||}]
+;;
+
 let%expect_test "options" =
   re ~opts:[ `Anchored ] "a";
   [%expect {| (Sequence Start(Set 97)) |}];

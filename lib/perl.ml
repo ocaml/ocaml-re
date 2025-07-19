@@ -59,6 +59,14 @@ let not_space = Set (Re.compl [ Re.space ])
 let digit = Set Re.digit
 let not_digit = Set (Re.compl [ Re.digit ])
 
+module Class = struct
+  let _w = Re.alt [ Re.alnum; Re.char '_' ]
+  let _W = Re.compl [ Re.alnum; Re.char '_' ]
+  let _S = Re.compl [ Re.space ]
+  let _D = Re.compl [ Re.digit ]
+  let _b = Re.alt [ Re.bow; Re.eow ]
+end
+
 let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
@@ -152,13 +160,13 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       *)
       if eos () then raise Parse_error;
       match get () with
-      | 'w' -> Re.alt [ Re.alnum; Re.char '_' ]
-      | 'W' -> Re.compl [ Re.alnum; Re.char '_' ]
+      | 'w' -> Class._w
+      | 'W' -> Class._W
       | 's' -> Re.space
-      | 'S' -> Re.compl [ Re.space ]
+      | 'S' -> Class._S
       | 'd' -> Re.digit
-      | 'D' -> Re.compl [ Re.digit ]
-      | 'b' -> Re.alt [ Re.bow; Re.eow ]
+      | 'D' -> Class._D
+      | 'b' -> Class._b
       | 'B' -> Re.not_boundary
       | 'A' -> Re.bos
       | 'Z' -> Re.leol
