@@ -2,3 +2,8 @@
  (name re)
  (synopsis "Pure OCaml regular expression library")
  (public_name re))
+
+(copy_files#
+ (enabled_if
+  (< %{ocaml_version} 5))
+ (files fake/*))
