@@ -19,7 +19,7 @@ jobs:
             ocaml-compiler: "ocaml-variants.5.2.1+options,ocaml-option-tsan"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: |
           sudo apt update
           sudo apt install libunwind-dev
