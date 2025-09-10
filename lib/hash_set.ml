@@ -60,7 +60,7 @@ let () =
   assert (Array.unsafe_get x 0 = absent)
 ;;
 
-let create () = ref Option.none
+let create () = ref None
 
 let[@inline] index_of_offset slots index i =
   let i = index + !i in

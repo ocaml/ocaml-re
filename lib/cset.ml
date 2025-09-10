@@ -41,8 +41,8 @@ let compare_pair (x, y) (x', y') =
 ;;
 
 let equal_pair (x, y) (x', y') = Int.equal x x' && Int.equal y y'
-let equal = List.equal ~eq:equal_pair
-let compare : t -> t -> int = List.compare ~cmp:compare_pair
+let equal x y = List.equal ~eq:equal_pair x y
+let compare x y = List.compare ~cmp:compare_pair x y
 
 let rec union l l' =
   match l, l' with
@@ -101,10 +101,10 @@ let rec offset o l =
   | (c1, c2) :: r -> (c1 + o, c2 + o) :: offset o r
 ;;
 
-let empty = []
+let empty : t = []
 let cany = [ 0, 255 ]
-let union_all : t list -> t = List.fold_left ~init:empty ~f:union
-let intersect_all : t list -> t = List.fold_left ~init:cany ~f:inter
+let union_all ts = List.fold_left ~init:empty ~f:union ts
+let intersect_all ts = List.fold_left ~init:cany ~f:inter ts
 
 let rec mem (c : int) s =
   match s with
@@ -127,7 +127,7 @@ let print_one ch (c1, c2) =
   if Int.equal c1 c2 then Format.fprintf ch "%d" c1 else Format.fprintf ch "%d-%d" c1 c2
 ;;
 
-let pp = Fmt.list ~pp_sep:(Fmt.lit ", ") print_one
+let pp ts = Fmt.list ~pp_sep:(Fmt.lit ", ") print_one ts
 
 let to_dyn t =
   let open Dyn in
