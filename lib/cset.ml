@@ -87,7 +87,7 @@ let rec diff l l' =
 ;;
 
 let single =
-  let single c = [ c, c ] in
+  let single (c : c) = [ c, c ] in
   Dense_map.make (* an extra color for lnl *) ~size:257 ~f:single
 ;;
 
@@ -149,7 +149,7 @@ let one_char = function
   | _ -> None
 ;;
 
-module CSetMap = Map.Make (struct
+module CSetMap = Map.MakePortable (struct
     type t = int * (int * int) list
 
     let compare (i, u) (j, v) =

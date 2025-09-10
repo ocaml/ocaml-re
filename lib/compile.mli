@@ -1,3 +1,5 @@
+@@ portable
+
 type re
 
 module Stream : sig

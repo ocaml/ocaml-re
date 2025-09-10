@@ -1,3 +1,5 @@
+@@ portable
+
 (*
    RE - A regular expression library
 
@@ -22,7 +24,7 @@
 
 (* Character sets, represented as sorted list of intervals *)
 
-type c [@@immediate]
+type c : immediate
 
 val equal_c : c -> c -> bool
 val to_int : c -> int
@@ -30,7 +32,7 @@ val of_int : int -> c
 val to_char : c -> char
 val of_char : char -> c
 
-type t
+type t : immutable_data
 
 (** special characters which isn't present in any set (not even in [cany]) *)
 val null_char : c

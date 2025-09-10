@@ -1,9 +1,10 @@
 open Import
 
-type ('a, _) ast =
+type ('a, _) ast : immutable_data with 'a =
   | Alternative : 'a list -> ('a, [> `Uncased ]) ast
   | No_case : 'a -> ('a, [> `Cased ]) ast
   | Case : 'a -> ('a, [> `Cased ]) ast
+[@@unsafe_allow_any_mode_crossing]
 
 let dyn_of_ast f =
   let open Dyn in

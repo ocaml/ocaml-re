@@ -11,7 +11,7 @@ end
 include Pmark
 
 module Set = struct
-  module Set = Set.Make (Pmark)
+  module Set = Set.MakePortable (Pmark)
 
   let[@warning "-32"] to_list x =
     let open Set in
