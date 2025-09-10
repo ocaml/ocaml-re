@@ -458,7 +458,7 @@ end = struct
     | TMatch m -> variant "TMarks" [ Marks.to_dyn m ]
   ;;
 
-  let to_dyn = to_dyn None
+  let to_dyn t = to_dyn None t
 
   open E
 
@@ -517,8 +517,8 @@ end = struct
     | _ :: r -> first_match r
   ;;
 
-  let remove_matches =
-    List.filter ~f:(function
+  let remove_matches t =
+    List.filter t ~f:(function
       | TMatch _ -> false
       | _ -> true)
   ;;
