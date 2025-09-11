@@ -16,3 +16,7 @@ race_top:^camlRe__Automata.status
 
 # Race within Compile.final
 race_top:^camlRe__Compile.final
+
+# Spurious data race due to the two-step initialization in Mark_info.make
+# (between Mark_info.make and other functions in module Mark_infos)
+race_top:^camlRe__Mark_infos.set
