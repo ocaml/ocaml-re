@@ -5,7 +5,8 @@ type t = int array
 let make marks =
   let len = 1 + List.fold_left ~f:(fun ma (i, _) -> max ma i) ~init:(-1) marks in
   let t = Array.make len (-1) in
-  List.iter ~f:(fun (i, v) -> t.(i) <- v) marks;
+  let set (i, v) = t.(i) <- v in
+  List.iter ~f:set marks;
   t
 ;;
 

@@ -81,12 +81,16 @@ let execute ~short re a =
     (inverse_permutation a)
     (Array.map
        (fun i ->
-         try Some (Re.exec ~pos:(if short then 30 - 7 else 0) re strings.(i)) with
+         try
+           Some
+             (Re.Group.all_offset
+              @@ Re.exec ~pos:(if short then 30 - 7 else 0) re strings.(i))
+         with
          | Not_found -> None)
        a)
 ;;
 
-let compare_groups g g' = Re.Group.(all_offset g = all_offset g')
+let compare_groups g g' = g = g'
 
 let concurrent f f' =
   let barrier = Barrier.create 2 in
