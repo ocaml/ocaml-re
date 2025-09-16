@@ -1,5 +1,7 @@
-Unreleased
-----------
+1.14.0 (16-Sep-2025)
+--------------------
+
+* Thread-safety with OCaml 5 (#574).
 
 * Introduce [Re.Pcre.get_named_substring_opt]. A non raising version of
   [Re.Pcre.get_named_substring] (#525)
@@ -14,7 +16,8 @@ Unreleased
 * Fix [Re.Pcre.split]. Regression introduced in 1.12 and a previous bug with
   [Re.Pcre.split] (#538).
 
-* Avoid parsing unnecessary patterns supported `Re.Emacs` in `Re.Str` (#563)
+* Avoid parsing unnecessary patterns supported only by `Re.Emacs` in `Re.Str`
+  (#563)
 
 1.13.1 (30-Sep-2024)
 --------------------
