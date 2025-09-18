@@ -13,12 +13,13 @@ let ( = ) = Int.equal
 let ( == ) = [ `Use_phys_equal ]
 let ( < ) (x : int) (y : int) = x < y
 let ( > ) (x : int) (y : int) = x > y
-let min = Int.min
-let max = Int.max
+let min (x : int) (y : int) = if x <= y then x else y
+let max (x : int) (y : int) = if x >= y then x else y
 let compare = Int.compare
 
 module Int = struct
   let[@warning "-32"] hash (x : int) = Hashtbl.hash x
+  let[@warning "-32"] max (x : int) (y : int) = if x >= y then x else y
 
   include Stdlib.Int
 end
