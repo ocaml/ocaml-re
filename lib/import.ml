@@ -1,4 +1,19 @@
-module List = Stdlib.ListLabels
+module List = struct
+  let[@warning "-32"] rec equal ~eq l1 l2 = match l1, l2 with
+    | [], [] -> true
+    | [], _::_ | _::_, [] -> false
+    | x::xs, y::ys -> if eq x y then equal ~eq xs ys else false
+
+  let[@warning "-32"] rec compare ~cmp l1 l2 = match l1, l2 with
+    | [], [] -> 0
+    | [], _::_ -> -1
+    | _::_, [] -> 1
+    | x::xs, y::ys ->
+        let r = cmp x y in
+        if r = 0 then compare ~cmp xs ys else r
+
+  include Stdlib.ListLabels
+end
 
 module Poly = struct
   let equal = ( = )
