@@ -21,6 +21,7 @@
 *)
 
 module Re = Core
+open Import
 
 exception Parse_error
 exception Not_supported
