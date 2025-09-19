@@ -1,3 +1,5 @@
+@@ portable
+
 (** A view of the top-level of a regex. This type is unstable and may change *)
 
 module Cset : sig

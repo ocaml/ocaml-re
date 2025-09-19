@@ -1,3 +1,5 @@
+@@ portable
+
 (* Color maps exists to provide an optimization for the regex engine. The fact
    that some characters are entirely equivalent for some regexes means that we
    can use them interchangeably.

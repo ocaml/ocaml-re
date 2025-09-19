@@ -1,3 +1,5 @@
+@@ portable
+
 (** NOTE: Only a subset of the PCRE spec is supported *)
 
 exception Parse_error

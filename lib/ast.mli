@@ -1,7 +1,10 @@
-type ('a, _) ast = private
+@@ portable
+
+type ('a, _) ast : immutable_data with 'a = private
   | Alternative : 'a list -> ('a, [> `Uncased ]) ast
   | No_case : 'a -> ('a, [> `Cased ]) ast
   | Case : 'a -> ('a, [> `Cased ]) ast
+[@@unsafe_allow_any_mode_crossing]
 
 type cset = private
   | Cset of Cset.t

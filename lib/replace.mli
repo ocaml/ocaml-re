@@ -1,3 +1,5 @@
+@@ portable
+
 (** [replace ~all re ~f s] iterates on [s], and replaces every occurrence
     of [re] with [f substring] where [substring] is the current match.
     If [all = false], then only the first occurrence of [re] is replaced. *)
