@@ -1,3 +1,5 @@
+@@ portable
+
 (** Information about groups in a match. *)
 
 (** Result of a successful match. *)

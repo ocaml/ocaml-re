@@ -1,3 +1,5 @@
+@@ portable
+
 (** store mark information for groups in an array *)
 type t
 

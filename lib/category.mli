@@ -1,3 +1,5 @@
+@@ portable
+
 (** Categories represent the various kinds of characters that can be tested
     by look-ahead and look-behind operations.
 

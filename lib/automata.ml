@@ -24,9 +24,9 @@ open Import
 
 let hash_combine h accu = (accu * 65599) + h
 
-module Ids : sig
+module Ids : sig @@ portable
   module Id : sig
-    type t
+    type t : immediate
 
     val equal : t -> t -> bool
     val zero : t
@@ -105,7 +105,7 @@ module Rep_kind = struct
   let pp fmt t = Format.pp_print_string fmt (to_string t)
 end
 
-module Mark : sig
+module Mark : sig @@ portable
   type t = private int
 
   val compare : t -> t -> int
@@ -136,7 +136,7 @@ end = struct
   ;;
 end
 
-module Idx : sig
+module Idx : sig @@ portable
   type t = private int
 
   val pp : t Fmt.t
@@ -292,10 +292,12 @@ type expr = Expr.t
 include Expr
 
 module Marks = struct
-  type t =
+  type t : immutable_data =
     { marks : (Mark.t * Idx.t) list
     ; pmarks : Pmark.Set.t
     }
+  [@@unsafe_allow_any_mode_crossing
+    (* SAFETY: [Pmark.Set.t] is actually immutable, but the stdlib doesn't say that *)]
 
   let to_dyn { marks; pmarks } : Dyn.t =
     let open Dyn in
@@ -376,8 +378,8 @@ module Status = struct
     | Running
 end
 
-module Desc : sig
-  type t
+module Desc : sig @@ portable
+  type t : immutable_data
 
   val pp : t Fmt.t
 
@@ -590,13 +592,14 @@ end
 module E = Desc.E
 
 module State = struct
-  type t =
+  type t : immutable_data =
     { idx : Idx.t
     ; category : Category.t
     ; desc : Desc.t
     ; mutable status : Status.t option
     ; hash : int
     }
+  [@@unsafe_allow_any_mode_crossing]
   (* Thread-safety: We use double-checked locking to access field
      [status] in function [status] below. *)
 
@@ -651,7 +654,7 @@ module State = struct
       st
   ;;
 
-  module Table = Hashtbl.Make (struct
+  module Table = Hashtbl.MakePortable (struct
       type nonrec t = t
 
       let equal = equal

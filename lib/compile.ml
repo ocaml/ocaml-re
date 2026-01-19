@@ -2,7 +2,7 @@ open Import
 
 let rec iter n f v = if Int.equal n 0 then v else iter (n - 1) f (f v)
 
-module Idx : sig
+module Idx : sig @@ portable
   type t [@@immediate]
 
   val unknown : t
@@ -54,8 +54,8 @@ type state_info =
    color. For performance reason, to avoid an indirection, we manually
    unbox the transition table: we allocate a single array, with the
    state information at index 0, followed by the transitions. *)
-module State : sig
-  type t
+module State : sig @@ portable
+  type t : mutable_data
 
   val make : ncol:int -> state_info -> t
   val make_break : state_info -> t
@@ -93,7 +93,7 @@ end = struct
   let unknown_state = dummy { idx = Idx.unknown; final = []; desc = Automata.State.dummy }
 
   let make ~ncol state =
-    let st = Table (Array.make (ncol + 1) unknown_state) in
+    let st = Table (Array.make (ncol + 1) (Stdlib.Obj.magic_uncontended unknown_state)) in
     set_info st state;
     st
   ;;
@@ -152,6 +152,9 @@ module Positions = struct
     }
 
   let empty = { positions = [||]; length = 0 }
+  let get_empty () =
+    (* SAFETY: this record is never mutated. *)
+    Stdlib.Obj.magic_uncontended empty
   let length t = t.length
   let unsafe_set t idx pos = Array.unsafe_set t.positions idx pos
 
@@ -181,7 +184,7 @@ module Positions = struct
          always checking whether it is large enough before modifying it. *)
       let length = Automata.Working_area.index_count re.tbl + 1 in
       { positions = Array.make length 0; length })
-    else empty
+    else get_empty ()
   ;;
 end
 
@@ -466,7 +469,7 @@ module Stream = struct
   let finalize t s ~pos ~len =
     (* TODO bound checks? *)
     let last = pos + len in
-    let state = scan_str t.re Positions.empty s t.state ~last ~pos ~groups:false in
+    let state = scan_str t.re (Positions.get_empty ()) s t.state ~last ~pos ~groups:false in
     let info = State.get_info state in
     match
       let _idx, res =
@@ -630,7 +633,7 @@ let match_str_no_bounds ~groups ~partial re s ~pos ~len =
 let match_str_p re s ~pos ~len =
   if pos < 0 || len < -1 || pos + len > String.length s
   then invalid_arg "Re.exec: out of bounds";
-  match make_match_str re Positions.empty ~len ~groups:false ~partial:false s ~pos with
+  match make_match_str re (Positions.get_empty ()) ~len ~groups:false ~partial:false s ~pos with
   | Match _ -> true
   | _ -> false
 ;;
@@ -812,7 +815,7 @@ let compile_1 regexp =
     ; greedy = `Greedy
     ; pos = ref A.Mark.start
     ; names = ref []
-    ; cache = ref Cset.CSetMap.empty
+    ; cache = ref (Stdlib.Obj.magic_uncontended Cset.CSetMap.empty)
     ; colors
     }
   in

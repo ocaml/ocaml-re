@@ -1,3 +1,5 @@
+@@ portable
+
 type t =
   { s : string
   ; pos : int

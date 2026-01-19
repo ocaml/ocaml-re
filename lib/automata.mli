@@ -1,3 +1,5 @@
+@@ portable
+
 (*
    RE - A regular expression library
 
@@ -23,7 +25,7 @@
 (* Regular expressions *)
 
 module Mark : sig
-  type t [@@immediate]
+  type t : immediate
 
   val compare : t -> t -> int
   val start : t

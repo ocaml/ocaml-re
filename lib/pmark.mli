@@ -1,3 +1,5 @@
+@@ portable
+
 type t = private int
 
 val equal : t -> t -> bool

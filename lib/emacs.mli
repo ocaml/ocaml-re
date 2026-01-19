@@ -1,3 +1,5 @@
+@@ portable
+
 (*
    RE - A regular expression library
 

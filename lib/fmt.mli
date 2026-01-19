@@ -1,3 +1,5 @@
+@@ portable
+
 type formatter := Format.formatter
 type 'a t = formatter -> 'a -> unit
 

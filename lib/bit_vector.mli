@@ -1,3 +1,5 @@
+@@ portable
+
 type t
 
 val length : t -> int

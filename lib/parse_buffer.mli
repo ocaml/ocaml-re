@@ -1,3 +1,5 @@
+@@ portable
+
 type t
 
 exception Parse_error
