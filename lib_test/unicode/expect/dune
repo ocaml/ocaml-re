@@ -1,0 +1,41 @@
+(library
+ (name re_tests_unicode)
+ (libraries
+  re_private_unicode
+  ;; This is because of the (implicit_transitive_deps false)
+  ;; in dune-project
+  ppx_expect.config
+  ppx_expect.config_types
+  ppx_expect
+  ppx_expect_common_unicode
+  base
+  str
+  ppx_inline_test.config)
+ (inline_tests
+  (modes native js))
+ (preprocess
+  (pps ppx_expect)))
+
+;; ppx_expect v16 depends on ppx_expect.common
+(subdir
+ ppx_expect_common_unicode
+ (library
+  (name ppx_expect_common_unicode)
+  (enabled_if
+   (< %{ocaml_version} 5.0))
+  (libraries (re_export ppx_expect.common)))
+ (library
+  (name ppx_expect_common_unicode)
+  (enabled_if
+   (>= %{ocaml_version} 5.0))))
+
+;; this hackery is needed because ppx_expect itself uses re, therefore we need to mangle
+;; the library name
+
+(subdir
+ re_private_unicode
+ (library
+  (name re_private_unicode)
+  (libraries uucp uunf))
+ (copy_files %{project_root}/lib/unicode/*.{ml,mli})
+ )

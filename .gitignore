@@ -1,5 +1,6 @@
 .*.swp
 _build/
+doc/
 *.bak
 setup.data
 setup.log

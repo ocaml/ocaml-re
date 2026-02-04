@@ -1,0 +1,15 @@
+
+(executable
+ (name gen_text_file)
+ (modules gen_text_file)
+ (libraries uucp))
+
+(executable
+ (name unzip_data)
+ (modules unzip_data)
+ (libraries zip))
+
+(executable
+ (name gen_unicode)
+ (modules gen_unicode)
+ (libraries uucd))

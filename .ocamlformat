@@ -1,3 +1,7 @@
-version=0.26.2
-profile=janestreet
-ocaml-version=4.08.0
+profile = default
+break-cases = fit
+margin = 80
+parse-docstrings = true
+wrap-comments = false
+doc-comments = before
+max-indent=2

@@ -1,0 +1,21 @@
+(rule
+ (targets unicode.ml unicode.mli)
+  (mode fallback)
+ (deps
+  (:in gen/data/ucd.all.grouped.xml)
+  (:gen gen/gen_unicode.exe))
+ (action
+  (run %{gen} -i %{in})))
+
+(library
+ (name re_unicode)
+ (public_name re.unicode)
+ (synopsis "Pure OCaml unicode regular expression library")
+ (libraries
+  uunf
+  uucp))
+
+(copy_files#
+ (enabled_if
+  (< %{ocaml_version} 5))
+ (files ../fake/*))

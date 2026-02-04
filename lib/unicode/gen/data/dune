@@ -1,0 +1,23 @@
+(rule
+ (target url)
+ (deps (:gen ../gen_text_file.exe))
+ (action
+  (run %{gen} -o %{target})))
+
+(rule
+ (target ucd.all.grouped.zip)
+ (deps url)
+ (action
+  (run
+   curl
+   -L
+   -s
+   %{read:url}/%{target}
+   -o
+   %{target})))
+
+(rule
+ (target ucd.all.grouped.xml)
+ (deps (:gen ../unzip_data.exe) (:in ucd.all.grouped.zip))
+ (action
+  (run %{gen} -i %{in} -o %{target})))
