@@ -1,5 +1,3 @@
-open Import
-
 (*
    RE - A regular expression library
 
@@ -21,6 +19,8 @@ open Import
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
+
+open Import
 
 let hash_combine h accu = (accu * 65599) + h
 
@@ -411,6 +411,14 @@ end = struct
       | TSeq of Sem.t * t list * Expr.t
       | TExp of Marks.t * Expr.t
       | TMatch of Marks.t
+    (* [t] is a slight variation of [Expr.t], so we have somewhere to store marks.
+
+       TMatch is produced when deriving a regex succeeds without consuming the input
+       character. As a result, the derivation proceeds into whatever follows the
+       TMatch, which means we have the invariant that TMatch can only show up in the
+       top-most list (i.e. not nested inside a Tseq. This happens because TMatch
+       are dropped via remove_matches or split_at_match or bubble up to the top).
+    *)
 
     let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
 
