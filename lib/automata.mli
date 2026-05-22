@@ -20,7 +20,40 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-(* Regular expressions *)
+(** This modules turns regular expressions into automata (as opposed to
+    Compile, which drives the execution of the automata).
+
+    The implementation technique is Brzozowski/Antimirov derivatives.
+
+    But papers in the scientific literature usually describe barely or not at all
+    features we expect of regex libraries: searching rather than matching the whole
+    string, recording the positions of subgroups, how to implement greedy vs lazy
+    operators or other prioritization. So the quick rundown of how it works is:
+
+    - searching is implemented by prefixing a non-greedy .* to the user's
+      regular expression
+
+    - to implement priorities, the derivative of an expression is not an expression,
+      but a slightly different type. In that type, the leftmost alternative is the
+      most preferred path, the rightmost alternative the least preferred. For
+      instance, the derivative of a* with respect to "a" is [ a*; Match ] for eager
+      matching, but [ Match; a* ] for lazy matching. If that was the entire regular
+      expression, the eager matching would thus ask for more data, whereas the
+      lazy matching would stop.
+
+    - recording subgroups is done by adding marks at the start and end
+      of a group. A mark matches no text like epsilon, but the automaton will
+      essentially record the current position when it reaches the mark. Since
+      we encounter different marks in different branches, the marks are stored
+      alongside the branch they come from.
+      .
+      For instance, with feeding two "a" to the regex a?(aab), we have two
+      derivatives going: [ ab; b ], depending on whether a? matched "a" or not. So
+      we'd record the opening paren as position 0 alongside "ab", but record it at
+      position 1 alongside "b".
+      .
+      (in practice we record indices rather than positions, as storing positions
+      would prevent caching of automata states, but the general idea holds) *)
 
 module Mark : sig
   type t [@@immediate]

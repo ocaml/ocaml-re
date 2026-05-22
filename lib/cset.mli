@@ -20,8 +20,10 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 *)
 
-(* Character sets, represented as sorted list of intervals *)
+(** Character sets, represented as sorted list of intervals *)
 
+(** [c] is effectively [Char.t option] (where [null_char] is None), but
+    with a more efficient memory representation. *)
 type c [@@immediate]
 
 val equal_c : c -> c -> bool
@@ -30,10 +32,11 @@ val of_int : int -> c
 val to_char : c -> char
 val of_char : char -> c
 
-type t
-
-(** special characters which isn't present in any set (not even in [cany]) *)
+(** Special character which isn't present in any set (not even in [cany]).
+    This is used for instance as an EOF character. *)
 val null_char : c
+
+type t
 
 val equal : t -> t -> bool
 val iter : t -> f:(c -> c -> unit) -> unit
