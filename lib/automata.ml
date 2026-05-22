@@ -754,26 +754,23 @@ and delta_seq ctx (kind : Sem.t) y z rem =
        Desc.tseq kind y z (delta_expr ctx marks z (Desc.tseq kind y' z rem)))
 ;;
 
-let rec delta_e ctx marks (x : E.t) rem =
+let rec delta_e ctx (x : E.t) rem =
   match x with
   | TSeq (kind, y, z) ->
-    let y = delta_desc ctx marks y Desc.empty in
+    let y = delta_desc ctx y Desc.empty in
     delta_seq ctx kind y z rem
   | TExp (marks, e) -> delta_expr ctx marks e rem
   | TMatch _ -> Desc.add_expr rem x
 
-and delta_desc ctx marks (l : Desc.t) rem =
-  Desc.fold_right l ~init:rem ~f:(fun y acc -> delta_e ctx marks y acc)
+and delta_desc ctx (l : Desc.t) rem =
+  Desc.fold_right l ~init:rem ~f:(fun y acc -> delta_e ctx y acc)
 ;;
 
 let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
   let expr =
     let prev_cat = st.category in
     let ctx = { c = char; next_cat; prev_cat } in
-    Desc.remove_duplicates
-      tbl_ref.seen
-      (delta_desc ctx Marks.empty st.desc Desc.empty)
-      Expr.eps_expr
+    Desc.remove_duplicates tbl_ref.seen (delta_desc ctx st.desc Desc.empty) Expr.eps_expr
   in
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
