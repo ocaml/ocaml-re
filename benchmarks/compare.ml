@@ -17,28 +17,43 @@ module Value = struct
     | _ -> Float (Float.of_string s)
   ;;
 
-  let rec percent_delta x y =
-    match x, y with
-    | Int x, Int y ->
-      let delta = y - x in
-      let open Float in
-      Float (100. * Float.of_int delta / Float.of_int x)
-    | Float x, Float y -> Float Float.(100. * (y - x) / x)
-    | Float x, Int y -> percent_delta (Float x) (Float (Float.of_int y))
-    | Int x, Float y -> percent_delta (Float (Float.of_int x)) (Float y)
+  let float_of_value = function
+    | Int i -> Float.of_int i
+    | Float f -> f
   ;;
 
-  let to_csv t =
-    match t with
-    | Float f -> Float.to_string_hum f
-    | Int x -> Int.to_string_hum x
+  let int_of_value = function
+    | Int i -> i
+    | Float f -> Float.iround_exn f
   ;;
 
-  let compare x y =
-    match x, y with
-    | Float x, Float y -> Float.compare x y
-    | Int x, Int y -> Int.compare x y
-    | _, _ -> assert false
+  let rel_delta x y =
+    let x = float_of_value x in
+    let y = float_of_value y in
+    if Float.( = ) x 0. && Float.( = ) y 0. then 0. else (y -. x) /. x
+  ;;
+
+  let string_of_rel_delta x y =
+    let x = float_of_value x in
+    let y = float_of_value y in
+    if Float.( > ) y (x *. 2.)
+    then Printf.sprintf "x%.1f" (y /. x)
+    else if Float.( < ) y (x /. 5.)
+    then Printf.sprintf "/%.1f" (x /. y)
+    else if Float.( = ) x 0. && Float.( = ) y 0.
+    then "."
+    else (
+      let d = (y -. x) /. x in
+      if Float.is_nan d
+      then Float.to_string d
+      else (
+        let d = Float.round (100. *. d) /. 100. in
+        if Float.( = ) d 0. then "." else Printf.sprintf "%+.0f%%" (d *. 100.)))
+  ;;
+
+  let string_of_abs_delta x y =
+    let i = Float.iround_exn (float_of_value y -. float_of_value x) in
+    if i = 0 then "." else (if i > 0 then "+" else "") ^ Int.to_string_hum i
   ;;
 end
 
@@ -121,14 +136,18 @@ let run ~prev ~next =
   let records =
     let headers =
       [ "name"
-      ; "time_per_run_nanos"
-      ; "delta (%)"
-      ; "major_words_per_run"
-      ; "delta (%)"
-      ; "promoted_words_per_run"
-      ; "delta (%)"
-      ; "minor_words_per_run"
-      ; "delta (%)"
+      ; "ns/run"
+      ; "delta"
+      ; "."
+      ; "majorW/run"
+      ; "delta"
+      ; "."
+      ; "promotedW/run"
+      ; "delta"
+      ; "."
+      ; "minorW/run"
+      ; "delta"
+      ; "."
       ]
     in
     let values =
@@ -145,11 +164,13 @@ let run ~prev ~next =
                  Value.t Both.t bench)
              ->
              let time_delta =
-               Value.percent_delta time_per_run_nanos.lhs time_per_run_nanos.rhs
+               Value.rel_delta time_per_run_nanos.lhs time_per_run_nanos.rhs
              in
              let make_delta { Both.lhs; rhs } =
-               let delta = Value.percent_delta lhs rhs in
-               [ Value.to_csv lhs; Value.to_csv delta ]
+               [ Int.to_string_hum (Value.int_of_value lhs)
+               ; Value.string_of_rel_delta lhs rhs
+               ; Value.string_of_abs_delta lhs rhs
+               ]
              in
              ( time_delta
              , name
@@ -159,7 +180,7 @@ let run ~prev ~next =
                     ; make_delta promoted_words_per_run
                     ; make_delta minor_words_per_run
                     ] ))
-      |> List.sort ~compare:(fun (x, _) (y, _) -> Value.compare x y)
+      |> List.sort ~compare:(fun (x, _) (y, _) -> Float.compare x y)
       |> List.map ~f:snd
     in
     headers :: values
