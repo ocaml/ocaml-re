@@ -30,6 +30,31 @@ module Table = struct
       let stop = get_char cm j in
       Cset.union (Cset.cseq start stop) l)
   ;;
+
+  module Int_map = Map.Make (Int)
+
+  let equivalence_class_by_color t =
+    List.init 256 (fun i -> Cset.to_int (get t (Char.chr i)), i)
+    |> List.fold_left
+         (fun acc (v, c) ->
+           let old_data =
+             match Int_map.find_opt v acc with
+             | None -> []
+             | Some l -> l
+           in
+           Int_map.add v (Cset.single (Cset.of_int c) :: old_data) acc)
+         Int_map.empty
+    |> Int_map.map Cset.union_all
+    |> Int_map.to_seq
+    |> List.of_seq
+  ;;
+
+  let to_dyn t =
+    let open Dyn in
+    equivalence_class_by_color t
+    |> List.map (fun (n, cset) -> pair (int n) (Cset.to_dyn cset))
+    |> list
+  ;;
 end
 
 let make () = Bytes.make 257 '\000'

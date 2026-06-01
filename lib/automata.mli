@@ -91,6 +91,7 @@ type expr
 
 val is_eps : expr -> bool
 val pp : expr Fmt.t
+val to_dyn : expr -> Dyn.t
 
 module Ids : sig
   type t

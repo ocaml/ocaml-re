@@ -291,6 +291,8 @@ type expr = Expr.t
 
 include Expr
 
+let to_dyn t = to_dyn None t
+
 module Marks = struct
   type t =
     { marks : (Mark.t * Idx.t) list

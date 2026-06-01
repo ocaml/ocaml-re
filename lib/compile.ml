@@ -139,6 +139,17 @@ type re =
 *)
 
 let pp_re ch re = Automata.pp ch re.initial
+
+let to_dyn ?(color_map = false) re =
+  if color_map
+  then
+    Dyn.record
+      [ "initial", Automata.to_dyn re.initial
+      ; "color_map", Color_map.Table.to_dyn re.colors
+      ]
+  else Automata.to_dyn re.initial
+;;
+
 let group_count re = re.group_count
 let group_names re = re.group_names
 
