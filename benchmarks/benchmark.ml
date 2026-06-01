@@ -38,12 +38,11 @@ let benchmarks =
 ;;
 
 let test ~name re f =
-  [ Bench.Test.create ~name (fun () -> f re)
-  ; (let re () =
-       let re = lazy (re ()) in
-       Lazy.force re
-     in
-     Bench.Test.create ~name:(sprintf "%s (compiled)" name) (fun () -> f re))
+  [ Bench.Test.create ~name:(sprintf "%s (comp)" name) (fun () -> re ())
+    (* No way in core_bench to test just the exec, because the compiled re is a cache,
+       which means all we measure is looping through the automaton states, not the
+       creation of such states. *)
+  ; Bench.Test.create ~name:(sprintf "%s (comp+exec)" name) (fun () -> f re)
   ]
 ;;
 
