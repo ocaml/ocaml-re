@@ -39,10 +39,15 @@ let benchmarks =
 
 let test ~name re f =
   [ Bench.Test.create ~name:(sprintf "%s (comp)" name) (fun () -> re ())
-    (* No way in core_bench to test just the exec, because the compiled re is a cache,
-       which means all we measure is looping through the automaton states, not the
-       creation of such states. *)
   ; Bench.Test.create ~name:(sprintf "%s (comp+exec)" name) (fun () -> f re)
+  ; Bench.Test.create_with_initialization ~name:(sprintf "%s (exec)" name) (fun `init ->
+      (* No way in core_bench to bench just the exec, so the closest thing we can do is
+         bench exec + copy of all the mutable state in a regex (which should be cheap). *)
+      let re =
+        let re = re () in
+        fun () -> Re.copy_re re
+      in
+      fun () -> f re)
   ]
 ;;
 

@@ -656,6 +656,17 @@ let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =
   }
 ;;
 
+let copy_re re =
+  mk_re
+    ~initial:re.initial
+    ~colors:re.colors
+    ~color_repr:re.color_repr
+    ~ncolor:re.ncolor
+    ~lnl:re.lnl
+    ~group_names:re.group_names
+    ~group_count:re.group_count
+;;
+
 (**** Compilation ****)
 
 module A = Automata
