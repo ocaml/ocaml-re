@@ -190,13 +190,14 @@ let run ~prev ~next =
 ;;
 
 let command =
+  let ( let+ ) x f = Command.Let_syntax.Let_syntax.map x ~f in
+  let ( and+ ) = Command.Let_syntax.Let_syntax.both in
   let open Command.Param in
-  let open Command.Param.Applicative_infix in
   Command.basic
     ~summary:"compare two runs"
-    (let prev = flag "prev" (required string) ~doc:"sexp file" in
-     let next = flag "next" (required string) ~doc:"sexp file" in
-     Command.Param.return (fun prev next () -> run ~prev ~next) <*> prev <*> next)
+    (let+ prev = flag "prev" (required string) ~doc:"sexp file"
+     and+ next = flag "next" (required string) ~doc:"sexp file" in
+     fun () -> run ~prev ~next)
 ;;
 
 let () = Command_unix.run command
