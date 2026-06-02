@@ -127,7 +127,7 @@ let merge lhs rhs =
     | `Both (lhs, rhs) -> Some (merge_one lhs rhs))
 ;;
 
-let run ~prev ~next =
+let run ~prev ~next ~sort =
   let report =
     let prev = Stdio.In_channel.read_all prev |> parse_all in
     let next = Stdio.In_channel.read_all next |> parse_all in
@@ -180,7 +180,9 @@ let run ~prev ~next =
                     ; make_delta promoted_words_per_run
                     ; make_delta minor_words_per_run
                     ] ))
-      |> List.sort ~compare:(fun (x, _) (y, _) -> Float.compare x y)
+      |> (if sort
+          then List.sort ~compare:(fun (x, _) (y, _) -> Float.compare x y)
+          else Fn.id)
       |> List.map ~f:snd
     in
     headers :: values
@@ -196,8 +198,9 @@ let command =
   Command.basic
     ~summary:"compare two runs"
     (let+ prev = flag "prev" (required string) ~doc:"sexp file"
-     and+ next = flag "next" (required string) ~doc:"sexp file" in
-     fun () -> run ~prev ~next)
+     and+ next = flag "next" (required string) ~doc:"sexp file"
+     and+ sort = flag "sort" no_arg ~doc:"sort lines in order of relative change" in
+     fun () -> run ~prev ~next ~sort)
 ;;
 
 let () = Command_unix.run command
