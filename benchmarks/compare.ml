@@ -132,8 +132,7 @@ let run ~prev ~next =
       ]
     in
     let values =
-      Map.to_alist report
-      |> List.map ~f:snd
+      Map.data report
       |> List.map
            ~f:
              (fun
