@@ -42,6 +42,7 @@ val equal : t -> t -> bool
 val iter : t -> f:(c -> c -> unit) -> unit
 val union : t -> t -> t
 val union_all : t list -> t
+val union_singles_in_strictly_decreasing_order : c list -> t
 val intersect_all : t list -> t
 val inter : t -> t -> t
 val diff : t -> t -> t

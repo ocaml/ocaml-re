@@ -398,8 +398,6 @@ let rec merge_sequences = function
   | x :: r -> x :: merge_sequences r
 ;;
 
-(*XXX Use a better algorithm allowing non-contiguous regions? *)
-
 let colorize color_map (regexp : no_case) =
   let lnl = ref false in
   let rec colorize regexp =

@@ -1,15 +1,5 @@
-(* In reality, this can really be represented as a bool array.
-
-   The representation is best thought of as a list of all chars along with a
-   flag:
-
-   (a, 0), (b, 1), (c, 0), (d, 0), ...
-
-   characters belonging to the same color are represented by sequnces of
-   characters with the flag set to 0.
-*)
-
-type t = Bytes.t
+(* Each of the Cset.t occurring in the AST (or implied by zero-width assertions). *)
+type t = Cset.t list ref
 
 module Repr = struct
   type t = string
@@ -18,17 +8,77 @@ module Repr = struct
   let length = String.length
 end
 
+module Boundary_table = struct
+  (** A boundary table is an "array" that maps each byte to the distance to the next
+      character that could require a new color. A new color may or may not be necessary
+      in the end, because something like [create [ Cset.single 'a' ]] would compute
+      boundaries at chars 0 and 'a' and 'b', but 0 and 'b' will end up in the same
+      color. *)
+  type t = string
+
+  let create csets : t =
+    let b =
+      Bytes.make 257 '\255'
+      (* 257 instead of 256 so we can access past the end of the array in
+         unsafe_next_boundary *)
+    in
+    Bytes.set b 0 '\000';
+    List.iter
+      (fun cset ->
+        Cset.iter cset ~f:(fun c1 c2 ->
+          Bytes.unsafe_set b (Cset.to_int c1) '\000';
+          Bytes.unsafe_set b (Cset.to_int c2 + 1) '\000'))
+      csets;
+    let skip = ref 0 in
+    for i = 255 downto 0 do
+      match Bytes.unsafe_get b i with
+      | '\000' -> skip := 0
+      | _ ->
+        skip := !skip + 1;
+        Bytes.unsafe_set b i (Char.unsafe_chr !skip)
+    done;
+    Bytes.unsafe_to_string b
+  ;;
+
+  let unsafe_next_boundary t i =
+    (* i should point at a boundary *)
+    i + 1 + Char.code (String.unsafe_get t (i + 1))
+  ;;
+end
+
 module Table = struct
   type t = string
 
   let get_char t c = t.[Cset.to_int c]
   let get t c = Cset.of_char (String.unsafe_get t (Char.code c))
 
-  let translate_colors (cm : t) cset =
-    Cset.fold_right cset ~init:Cset.empty ~f:(fun i j l ->
-      let start = get_char cm i in
-      let stop = get_char cm j in
-      Cset.union (Cset.cseq start stop) l)
+  let translate_colors (t : t) boundary_table cset =
+    let cs = ref [] in
+    let last_version = ref (-1) in
+    Cset.iter cset ~f:(fun c1 c2 ->
+      (* We use the property that, when iterating over a charset left to right,
+         new versions are encountered in increasing order. This holds because
+         - new versions are introduced left to right in flatten
+         - given a color that's split across multiple ranges, we will
+           encounter every such range or no such range (because a given color must
+           either be included in [cset], or not intersect with it, otherwise our
+           equivalence classes do not respect the structure of [cset]).
+
+         We also know that range starts are necessarily boundaries, so we don't ever
+         need to check if we are at a boundary, we just know it ahead of time. *)
+      let ci = ref (Cset.to_int c1) in
+      while
+        let v = Char.code (String.unsafe_get t !ci) in
+        if v > !last_version
+        then (
+          cs := Cset.of_int v :: !cs;
+          last_version := v);
+        ci := Boundary_table.unsafe_next_boundary boundary_table !ci;
+        !ci <= Cset.to_int c2
+      do
+        ()
+      done);
+    Cset.union_singles_in_strictly_decreasing_order !cs
   ;;
 
   module Int_map = Map.Make (Int)
@@ -57,25 +107,76 @@ module Table = struct
   ;;
 end
 
-let make () = Bytes.make 257 '\000'
+let make () = ref []
 
-let flatten cm =
-  let c = Bytes.create 256 in
-  let color_repr = Bytes.create 256 in
-  let v = ref 0 in
-  Bytes.set c 0 '\000';
-  Bytes.set color_repr 0 '\000';
-  for i = 1 to 255 do
-    if Bytes.get cm i <> '\000' then incr v;
-    Bytes.set c i (Char.chr !v);
-    Bytes.set color_repr !v (Char.chr i)
-  done;
-  Bytes.unsafe_to_string c, Bytes.sub_string color_repr 0 (!v + 1)
+let size_cset cset =
+  let size = ref 0 in
+  Cset.iter cset ~f:(fun c1 c2 -> size := !size + Cset.to_int c2 - Cset.to_int c1 + 1);
+  !size
 ;;
 
-(* mark all the endpoints of the intervals of the char set with the 1 byte *)
-let split t set =
-  Cset.iter set ~f:(fun i j ->
-    Bytes.set t (Cset.to_int i) '\001';
-    Bytes.set t (Cset.to_int j + 1) '\001')
+(* [ab] or [^ab] have the same effect on colors: we need to distinguish [ab] from
+   [^ab]. But in terms of computation, the one with fewer characters is generally cheaper
+   in flatten (for instance cany would need to be evaluated on every boundary, whereas
+   its complement Cset.empty doesn't). So cset_or_compl chooses the cheaper one. *)
+let cset_or_compl cset = if size_cset cset > 128 then Cset.diff Cset.cany cset else cset
+let split (t : t) set = t := cset_or_compl set :: !t
+
+module Int_list_map = Map.Make (struct
+    type t = int list
+
+    let compare = compare
+    (* This comparison could be O(length(argument of flatten)) in principle,
+       but both map size and number of lookups are bounded by 256 *)
+  end)
+
+let flatten t =
+  (* t is effectively a map (csetid->char list). We transpose it into a map (char->csetid
+     list) stored in var a. Then each unique csetid list becomes a color, giving us
+     a map (char->color), in var c.
+
+     In practice, the regex compilation is much faster if we exploit the fact
+     that many characters behave the same, so that's what the boundary table is for.
+  *)
+  let b = Boundary_table.create !t in
+  let a = Array.make 256 [] in
+  List.iteri
+    (fun csetid cset ->
+      Cset.iter cset ~f:(fun c1 c2 ->
+        let ci = ref (Cset.to_int c1) in
+        while
+          a.(!ci) <- csetid :: a.(!ci);
+          ci := Boundary_table.unsafe_next_boundary b !ci;
+          !ci <= Cset.to_int c2
+        do
+          ()
+        done))
+    !t;
+  let num_colors = ref 0 in
+  let color_by_csetids = ref Int_list_map.empty in
+  let c = Bytes.create 256 in
+  let color_repr = Bytes.create 256 in
+  let last_version = ref 0 in
+  Array.iteri
+    (fun i csetids ->
+      match String.unsafe_get b i with
+      | '\000' ->
+        let v =
+          match Int_list_map.find_opt csetids !color_by_csetids with
+          | Some v -> v
+          | None ->
+            let v = !num_colors in
+            color_by_csetids := Int_list_map.add csetids v !color_by_csetids;
+            num_colors := !num_colors + 1;
+            v
+        in
+        Bytes.set c i (Char.chr v);
+        Bytes.set color_repr v (Char.chr i);
+        last_version := v
+      | _ ->
+        let v = !last_version in
+        Bytes.set c i (Char.chr v);
+        Bytes.set color_repr v (Char.chr i))
+    a;
+  Bytes.unsafe_to_string c, b, Bytes.sub_string color_repr 0 !num_colors
 ;;

@@ -15,15 +15,19 @@ module Repr : sig
   val length : t -> int
 end
 
+module Boundary_table : sig
+  type t
+end
+
 module Table : sig
   type t
 
   val get_char : t -> Cset.c -> char
   val get : t -> char -> Cset.c
-  val translate_colors : t -> Cset.t -> Cset.t
+  val translate_colors : t -> Boundary_table.t -> Cset.t -> Cset.t
   val to_dyn : t -> Dyn.t
 end
 
 val make : unit -> t
-val flatten : t -> Table.t * Repr.t
+val flatten : t -> Table.t * Boundary_table.t * Repr.t
 val split : t -> Cset.t -> unit

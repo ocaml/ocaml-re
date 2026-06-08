@@ -697,17 +697,18 @@ type context =
   ; pos : A.Mark.t ref
   ; names : (string * int) list ref
   ; cache : Cset.t Cset.CSetMap.t ref
-  ; colors : Color_map.Table.t
+    ; colors : Color_map.Table.t
+    ; boundary_table : Color_map.Boundary_table.t
   }
 
-let trans_set cache (cm : Color_map.Table.t) s =
+let trans_set cache (cm : Color_map.Table.t) boundary_table s =
   match Cset.one_char s with
   | Some i -> Cset.csingle (Color_map.Table.get_char cm i)
   | None ->
     let v = Cset.hash s, s in
     (try Cset.CSetMap.find v !cache with
      | Not_found ->
-       let l = Color_map.Table.translate_colors cm s in
+       let l = Color_map.Table.translate_colors cm boundary_table s in
        cache := Cset.CSetMap.add v l !cache;
        l)
 ;;
@@ -721,11 +722,11 @@ let make_repeater ids cr kind greedy =
 
 (* XXX should probably compute a category mask *)
 let rec translate
-  ({ ids; kind; ign_group; greedy; pos; names; cache; colors } as ctx)
+  ({ ids; kind; ign_group; greedy; pos; names; cache; colors; boundary_table } as ctx)
   (ast : Ast.no_case)
   =
   match ast with
-  | Set s -> A.cst ids (trans_set cache colors s), kind
+  | Set s -> A.cst ids (trans_set cache colors boundary_table s), kind
   | Sequence l -> trans_seq ctx l, kind
   | Ast (Alternative l) ->
     (match Ast.merge_sequences l with
@@ -823,7 +824,7 @@ let compile_1 regexp =
   let regexp = Ast.handle_case false regexp in
   let color_map = Color_map.make () in
   let need_lnl = Ast.colorize color_map regexp in
-  let colors, color_repr = Color_map.flatten color_map in
+  let colors, boundary_table, color_repr = Color_map.flatten color_map in
   let ncolor = Color_map.Repr.length color_repr in
   let lnl = if need_lnl then Cset.of_int ncolor else Cset.null_char in
   let ncolor = if need_lnl then ncolor + 1 else ncolor in
@@ -835,7 +836,8 @@ let compile_1 regexp =
     ; pos = ref A.Mark.start
     ; names = ref []
     ; cache = ref Cset.CSetMap.empty
-    ; colors
+      ; colors
+      ; boundary_table
     }
   in
   let r, kind = translate ctx regexp in

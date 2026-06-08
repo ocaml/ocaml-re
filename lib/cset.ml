@@ -104,6 +104,21 @@ let rec offset o l =
 let empty : t = []
 let cany = [ 0, 255 ]
 let union_all ts = List.fold_left ~init:empty ~f:union ts
+
+let union_singles_in_strictly_decreasing_order cs =
+  let rec loop next end_ acc = function
+    | [] -> (next, end_) :: acc
+    | c1 :: rest ->
+      assert (c1 < next);
+      if next - 1 = c1
+      then loop c1 end_ acc rest
+      else loop c1 c1 ((next, end_) :: acc) rest
+  in
+  match cs with
+  | [] -> []
+  | c1 :: rest -> loop c1 c1 [] rest
+;;
+
 let intersect_all ts = List.fold_left ~init:cany ~f:inter ts
 
 let rec mem (c : int) s =
