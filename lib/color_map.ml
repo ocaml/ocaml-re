@@ -122,8 +122,15 @@ let size_cset cset =
 let cset_or_compl cset = if size_cset cset > 128 then Cset.diff Cset.cany cset else cset
 let split (t : t) set = t := cset_or_compl set :: !t
 
+type 'a mutlist =
+  | Nil
+  | Cons of
+      { mutable hd : 'a
+      ; tl : 'a mutlist
+      }
+
 module Int_list_map = Map.Make (struct
-    type t = int list
+    type t = int mutlist
 
     let compare = compare
     (* This comparison could be O(length(argument of flatten)) in principle,
@@ -139,19 +146,31 @@ let flatten t =
      that many characters behave the same, so that's what the boundary table is for.
   *)
   let b = Boundary_table.create !t in
-  let a = Array.make 256 [] in
-  List.iteri
-    (fun csetid cset ->
-      Cset.iter cset ~f:(fun c1 c2 ->
-        let ci = ref (Cset.to_int c1) in
-        while
-          a.(!ci) <- csetid :: a.(!ci);
-          ci := Boundary_table.unsafe_next_boundary b !ci;
-          !ci <= Cset.to_int c2
-        do
-          ()
-        done))
-    !t;
+  let a = Array.make 256 Nil in
+  (let nbits =
+     (* +1 to match the +1 to the cset id below *)
+     Float.to_int (Float.ceil (Float.log2 (Float.of_int (List.length !t + 1))))
+   in
+   List.iteri
+     (fun csetid cset ->
+       let csetid =
+         (* +1 so cset id is > 0, which is necessary for [(hd lsl nbits) lsr nbits = hd]
+            to correctly compute whether the top nbits are used *)
+         csetid + 1
+       in
+       Cset.iter cset ~f:(fun c1 c2 ->
+         let ci = ref (Cset.to_int c1) in
+         while
+           (match a.(!ci) with
+            | Cons ({ hd; tl = _ } as cons) when (hd lsl nbits) lsr nbits = hd ->
+              cons.hd <- (hd lsl nbits) lor csetid
+            | l -> a.(!ci) <- Cons { hd = csetid; tl = l });
+           ci := Boundary_table.unsafe_next_boundary b !ci;
+           !ci <= Cset.to_int c2
+         do
+           ()
+         done))
+     !t);
   let num_colors = ref 0 in
   let color_by_csetids = ref Int_list_map.empty in
   let c = Bytes.create 256 in
