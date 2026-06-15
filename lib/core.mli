@@ -102,42 +102,13 @@ val group_count : re -> int
 (** Return named capture groups with their index. *)
 val group_names : re -> (string * int) list
 
-(** [exec re str] searches [str] for a match of the compiled expression [re],
-    and returns the matched groups if any.
+(** [exec_opt re str] searches [str] for a match of the compiled expression
+    [re], and returns the matched groups if any.
 
-    More specifically, when a match exists, [exec] returns a match that
+    More specifically, when a match exists, [exec_opt] returns a match that
     starts at the earliest position possible. If multiple such matches are
     possible, the one specified by the match semantics described below is
     returned.
-
-    {5 Examples:}
-    {[
-      # let regex = Re.compile Re.(seq [str "//"; rep print ]);;
-      val regex : re = <abstr>
-
-      # Re.exec regex "// a C comment";;
-      - : Re.Group.t = <abstr>
-
-      # Re.exec regex "# a C comment?";;
-      Exception: Not_found
-
-      # Re.exec ~pos:1 regex "// a C comment";;
-      Exception: Not_found
-    ]}
-
-    @param pos optional beginning of the string (default 0)
-    @param len
-      length of the substring of [str] that can be matched (default [-1],
-      meaning to the end of the string)
-    @raise Not_found if the regular expression can't be found in [str] *)
-val exec
-  :  ?pos:int (** Default: 0 *)
-  -> ?len:int (** Default: -1 (until end of string) *)
-  -> re
-  -> string
-  -> Group.t
-
-(** Similar to {!exec}, but returns an option instead of using an exception.
 
     {5 Examples:}
     {[
@@ -152,13 +123,28 @@ val exec
 
       # Re.exec_opt ~pos:1 regex "// a C comment";;
       - : Re.Group.t option = None
-    ]} *)
+    ]}
+
+    @param pos optional beginning of the string (default 0)
+    @param len
+      length of the substring of [str] that can be matched (default [-1],
+      meaning to the end of the string) *)
 val exec_opt
   :  ?pos:int (** Default: 0 *)
   -> ?len:int (** Default: -1 (until end of string) *)
   -> re
   -> string
   -> Group.t option
+
+(** Similar to {!exec_opt}, but raises Not_found instead of returning an option.
+
+    @raise Not_found if the regular expression can't be found in [str] *)
+val exec
+  :  ?pos:int (** Default: 0 *)
+  -> ?len:int (** Default: -1 (until end of string) *)
+  -> re
+  -> string
+  -> Group.t
 
 (** Similar to {!exec}, but returns [true] if the expression matches,
     and [false] if it doesn't. This function is more efficient than
