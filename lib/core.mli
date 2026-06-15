@@ -168,9 +168,21 @@ val execp
   -> string
   -> bool
 
-(** More detailed version of {!execp}. [`Full] is equivalent to [true],
-    while [`Mismatch] and [`Partial] are equivalent to [false], but [`Partial]
-    indicates the input string could be extended to create a match.
+(** [exec_partial re str] searches [str] for a prefix of a match of [re].
+
+    - [`Full] means that [str] contains a match no matter how [str] is extended
+      (i.e. [fun more -> execp re (str ^ more)] always returns [true] and the match
+      is in [str]).
+
+    - [`Mismatch] means that no extension of [str] could match [re] (i.e.
+      [fun more -> execp re (str ^ more)] always returns [false]).
+
+    - [`Partial] is the remaining case: we need more characters to decide between
+      [`Full] and [`Mismatch]. Note that this function is not always as eager as
+      possible, meaning it can return [`Partial] when it would be technically possible
+      to return [`Full] or [`Mismatch] without consulting extra characters. One such
+      case is that re always requires one character of lookahead, so
+      [exec_partial (str "foo") "foo"] returns [`Partial].
 
     {5 Examples:}
     {[
@@ -196,12 +208,15 @@ val exec_partial
   -> string
   -> [ `Full | `Partial | `Mismatch ]
 
-(** More detailed version of {!exec_opt}. [`Full group] is equivalent to [Some group],
-    while [`Mismatch] and [`Partial _] are equivalent to [None], but [`Partial position]
-    indicates that the input string could be extended to create a match, and no match could
-    start in the input string before the given position.
-    This could be used to not have to search the entirety of the input if more
-    becomes available, and use the given position as the [?pos] argument. *)
+(** Same as {!exec_partial}, but with extra information that behave as follows:
+
+    - [`Full group] means that any extension of [str] contains the given match of
+      [re] (i.e. [fun more -> exec_opt re (str ^ more)] always returns [Some group]).
+
+    - [`Partial position]: the input string can probably be extended to create a
+      match, and no match could start in the input string before the given position.
+      This could be used to not have to search the entirety of the input if more
+      becomes available, and use the given position as the [?pos] argument. *)
 val exec_partial_detailed
   :  ?pos:int (** Default: 0 *)
   -> ?len:int (** Default: -1 (until end of string) *)
