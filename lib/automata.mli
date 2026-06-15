@@ -155,3 +155,4 @@ module Working_area : sig
 end
 
 val delta : Working_area.t -> Category.t -> Cset.c -> State.t -> State.t
+val advance : Working_area.t -> State.t -> State.t

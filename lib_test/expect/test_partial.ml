@@ -17,9 +17,8 @@ let%expect_test "partial matches" =
   [%expect {| `Partial |}];
   t (str "hello") "goodbye";
   [%expect {| `Partial |}];
-  (* exec_partial 3 should be `Full *)
   t (str "hello") "hello";
-  [%expect {| `Partial |}];
+  [%expect {| `Full |}];
   t (whole_string (str "hello")) "hello";
   [%expect {| `Partial |}];
   t (whole_string (str "hello")) "goodbye";
@@ -31,7 +30,12 @@ let%expect_test "partial matches" =
   t (whole_string (str "hello")) "";
   [%expect {| `Partial |}];
   t (alt [ str "ab"; str "a" ]) "a";
-  [%expect {| `Partial |}]
+  [%expect {| `Partial |}];
+  t (seq [ str "ab"; bos ]) "ab";
+  [%expect {| `Mismatch |}];
+  t (seq [ str "ab"; eos ]) "ab";
+  [%expect {| `Partial |}];
+  ()
 ;;
 
 let t = exec_partial_detailed
@@ -52,8 +56,8 @@ let%expect_test "partial detailed" =
   [%expect {| `Partial 6 |}];
   t (str "hello") "hello";
   [%expect {| `Full [|0,5,"hello"|] |}];
-  t (whole_string (str "hello")) "hello" (* incorrect *);
-  [%expect {| `Full [|0,5,"hello"|] |}];
+  t (whole_string (str "hello")) "hello";
+  [%expect {| `Partial 0 |}];
   t (whole_string (str "hello")) "goodbye";
   [%expect {| `Mismatch |}];
   t (str "hello") "";
@@ -66,11 +70,13 @@ let%expect_test "partial detailed" =
   [%expect {| `Partial 4 |}];
   t ~pos:1 (seq [ not_boundary; str "b" ]) "ab";
   [%expect {| `Full [|1,2,"b"|] |}];
-  t (seq [ group (str "a"); rep any; group (str "b") ]) ".acb.";
+  t (seq [ group (str "a"); shortest (rep any); group (str "b") ]) ".acb.";
   [%expect {| `Full [|1,4,"acb";1,2,"a";3,4,"b"|] |}];
   t (alt [ str "ab"; str "a" ]) "a";
-  [%expect {| `Full [|0,1,"a"|] |}]
-  (* incorrect, as if we extended the input with "b",
-     we'd get a different match *);
+  [%expect {| `Partial 0 |}];
+  t (seq [ str "ab"; bos ]) "ab";
+  [%expect {| `Mismatch |}];
+  t (seq [ str "ab"; eos ]) "ab";
+  [%expect {| `Partial 0 |}];
   ()
 ;;

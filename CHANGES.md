@@ -15,6 +15,10 @@ Unreleased
   longest match for a subexpression) was not respected in some niche
   scenarios (#610).
 
+* Fix the documentation of [Re.exec\_partial] and
+  [Re.exec\_partial\_detailed], and their implementations to follow
+  the documentation. (#601, #604, fixes #600)
+
 1.14.0 (16-Sep-2025)
 --------------------
 

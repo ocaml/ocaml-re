@@ -386,12 +386,14 @@ module Desc : sig
   val to_dyn : t -> Dyn.t
   val fold_right : t -> init:'acc -> f:(E.t -> 'acc -> 'acc) -> 'acc
   val tseq : Sem.t -> t -> Expr.t -> t -> t
+  val texp : Marks.t -> Expr.t -> t -> t
   val initial : Expr.t -> t
   val empty : t
   val set_idx : Idx.t -> t -> t
   val hash : t -> int -> int
   val equal : t -> t -> bool
   val status : t -> Status.t
+  val status_is_ambiguous : t -> ambiguity_mark:Pmark.t -> bool
   val first_match : t -> Marks.t option
   val remove_matches : t -> t
   val split_at_match : t -> t * t
@@ -471,6 +473,7 @@ end = struct
   ;;
 
   let tseq kind x y rem = tseq' kind x y @ rem
+  let texp marks e rem = TExp (marks, e) :: rem
 
   let rec fold_right t ~init ~f =
     match t with
@@ -534,6 +537,12 @@ end = struct
     | [] -> Failed
     | TMatch m :: _ -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)
     | _ -> Running
+  ;;
+
+  let status_is_ambiguous t ~ambiguity_mark =
+    match t with
+    | TMatch m :: _ -> Pmark.Set.mem ambiguity_mark m.pmarks
+    | _ -> false
   ;;
 
   let set_idx =
@@ -708,15 +717,23 @@ end
 (**** Computation of the next state ****)
 
 type ctx =
-  { c : Cset.c
-  ; prev_cat : Category.t
-  ; next_cat : Category.t
-  }
+  | Delta of
+      { c : Cset.c
+      ; prev_cat : Category.t
+      ; next_cat : Category.t
+      }
+  | Advance of
+      { prev_cat : Category.t
+      ; ambiguity_mark : Pmark.t
+      }
 
-let rec delta_expr ({ c; _ } as ctx) marks (x : Expr.t) rem =
+let rec delta_expr ctx marks (x : Expr.t) rem =
   (*Format.eprintf "%d@." x.id;*)
   match x.def with
-  | Cst s -> if Cset.mem c s then Desc.add_eps rem marks else rem
+  | Cst s ->
+    (match ctx with
+     | Delta { c; _ } -> if Cset.mem c s then Desc.add_eps rem marks else rem
+     | Advance _ -> Desc.texp marks x rem)
   | Alt l -> delta_alt ctx marks l rem
   | Seq (kind, y, z) ->
     let y = delta_expr ctx marks y Desc.empty in
@@ -727,9 +744,18 @@ let rec delta_expr ({ c; _ } as ctx) marks (x : Expr.t) rem =
   | Pmark i -> Desc.add_match rem (Marks.set_pmark marks i)
   | Erase (b, e) -> Desc.add_match rem (Marks.filter marks b e)
   | Before cat ->
-    if Category.intersect ctx.next_cat cat then Desc.add_match rem marks else rem
+    (match ctx with
+     | Delta { next_cat; _ } ->
+       if Category.intersect next_cat cat then Desc.add_match rem marks else rem
+     | Advance { ambiguity_mark; _ } ->
+       Desc.add_match rem (Marks.set_pmark marks ambiguity_mark))
   | After cat ->
-    if Category.intersect ctx.prev_cat cat then Desc.add_match rem marks else rem
+    let prev_cat =
+      match ctx with
+      | Delta { prev_cat; _ } -> prev_cat
+      | Advance { prev_cat; _ } -> prev_cat
+    in
+    if Category.intersect prev_cat cat then Desc.add_match rem marks else rem
 
 and delta_rep ctx marks x rep_kind kind y rem =
   let y, marks' =
@@ -768,13 +794,60 @@ and delta_desc ctx (l : Desc.t) rem =
   Desc.fold_right l ~init:rem ~f:(fun y acc -> delta_e ctx y acc)
 ;;
 
-let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
-  let expr =
-    let prev_cat = st.category in
-    let ctx = { c = char; next_cat; prev_cat } in
-    Desc.remove_duplicates tbl_ref.seen (delta_desc ctx st.desc Desc.empty) Expr.eps_expr
-  in
+let create_state tbl_ref next_cat expr =
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
   State.mk idx next_cat expr
+;;
+
+let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
+  let expr =
+    let prev_cat = st.category in
+    let ctx = Delta { c = char; next_cat; prev_cat } in
+    Desc.remove_duplicates tbl_ref.seen (delta_desc ctx st.desc Desc.empty) Expr.eps_expr
+  in
+  create_state tbl_ref next_cat expr
+;;
+
+(* When deriving [Re.str "abc"] wrt "a" then "b" then "c", we end up with [T (marks,
+   Eps)], i.e. not a match, until the next character. When matching whole strings, this
+   is fine because we feed in an eos character (in final_advance) if necessary. For
+   exec_partial though, it means we'd return `Prefix too conservatively. So here we
+   advance through all epsilon transitions, so that we can detect a match or a mismatch
+   without waiting for an extra character.
+
+   The wrinkle in this story is lookaheads, i.e. Before. We can't treat them as matches,
+   otherwise [exec_partial eol ""] would incorrectly say `Full. We can't leave them
+   unchanged, otherwise [exec_partial (shortest (alt [ eos; group bos ])) ""] would
+   return [`Full (second branch)], when the eos branch can also match.
+
+   Without implementing full-blown lookaheads, a solution that's enough for exec_partial
+   can be found by noticing that:
+   - if the looahead matches, the re that follows it ends up at a certain place in the
+     resulting desc
+   - if the lookahead doesn't match, that same place would hold a lower priority re that
+     was shadowed by the lookahead match, or nothing if there is no lower priority re.
+
+   This means that we can assume the lookahead matches, and if the resulting
+   Desc.status doesn't depend on that assumption (which we track using this
+   ambiguity_mark), then it means this status is independent of the lookahead. If we
+   find the ambiguity mark, then obviously the result depends on the lookahead, so we
+   can't use it.
+
+   Do not compute more transitions from the resulting state! Even when the status
+   is not ambiguous, the desc can still contain assumptions. *)
+let advance (tbl_ref : Working_area.t) (st : State.t) =
+  let expr =
+    let ambiguity_mark = Pmark.gen () in
+    let prev_cat = st.category in
+    let ctx = Advance { prev_cat; ambiguity_mark } in
+    let desc =
+      Desc.remove_duplicates
+        tbl_ref.seen
+        (delta_desc ctx st.desc Desc.empty)
+        Expr.eps_expr
+    in
+    if Desc.status_is_ambiguous desc ~ambiguity_mark then st.desc else desc
+  in
+  create_state tbl_ref st.category expr
 ;;

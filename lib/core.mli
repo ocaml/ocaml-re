@@ -181,8 +181,9 @@ val execp
       [`Full] and [`Mismatch]. Note that this function is not always as eager as
       possible, meaning it can return [`Partial] when it would be technically possible
       to return [`Full] or [`Mismatch] without consulting extra characters. One such
-      case is that re always requires one character of lookahead, so
-      [exec_partial (str "foo") "foo"] returns [`Partial].
+      case is [exec_partial (seq [eos; str "a"]) ""] which returns [`Partial],
+      even though no string will ever match the regular expression, but it's nontrivial
+      to determine that.
 
     {5 Examples:}
     {[

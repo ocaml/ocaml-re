@@ -18,7 +18,7 @@ end
 
 let pp_state state = print_dyn (State.to_dyn state)
 let pp_expr fmt expr = Automata.pp fmt expr
-let cat = Category.dummy
+let cat = Category.from_char '\000'
 
 let str ids sem str =
   let rec loop (s : Char.t Seq.t) =

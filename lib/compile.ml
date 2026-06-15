@@ -297,20 +297,29 @@ let rec loop_no_mark re ~colors s ~pos ~last st0 st =
   else st
 ;;
 
-let final re st cat =
+let[@inline always] find_or_add_final re st cat ~f =
   try List.assq cat st.final with
   | Not_found ->
     Mutex.lock re.mutex;
     let res =
       try List.assq cat st.final with
       | Not_found ->
-        let st' = delta re cat ~color:Cset.null_char st in
+        let st' = f re st cat in
         let res = Automata.State.idx st', Automata.State.status_no_mutex st' in
         st.final <- (cat, res) :: st.final;
         res
     in
     Mutex.unlock re.mutex;
     res
+;;
+
+let final re st cat =
+  find_or_add_final re st cat ~f:(fun re st cat -> delta re cat ~color:Cset.null_char st)
+;;
+
+let advance re st =
+  find_or_add_final re st Category.dummy ~f:(fun re st _cat ->
+    Automata.advance re.tbl st.desc)
 ;;
 
 let find_initial_state re cat =
@@ -410,6 +419,14 @@ let final_boundary_check re positions ~last ~slen s state_info ~groups =
   res
 ;;
 
+let final_advance re positions ~last state_info ~groups =
+  let idx, res = advance re state_info in
+  (match groups, res with
+   | true, Match _ -> Positions.set positions (Automata.Idx.to_int idx) last
+   | _ -> ());
+  res
+;;
+
 let make_match_str re positions ~len ~groups ~partial s ~pos =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
@@ -425,23 +442,16 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
     scan_str re positions s initial_state ~pos ~last ~groups
   in
   let state_info = State.get_info st in
-  if Idx.is_break state_info.idx || (partial && not groups)
-  then Automata.State.status re.mutex state_info.desc
-  else if partial && groups
+  if partial
   then (
     match Automata.State.status re.mutex state_info.desc with
     | (Match _ | Failed) as status -> status
-    | Running ->
-      (* This could be because it's still not fully matched, or it
-         could be that because we need to run special end of input
-         checks. *)
-      (match final_boundary_check re positions ~last ~slen s state_info ~groups with
-       | Match _ as status -> status
-       | Failed | Running ->
-         (* A failure here just means that we need more data, i.e.
-            it's a partial match. *)
-         Running))
-  else final_boundary_check re positions ~last ~slen s state_info ~groups
+    | Running -> final_advance re positions ~last state_info ~groups)
+  else (
+    ();
+    if Idx.is_break state_info.idx
+    then Automata.State.status re.mutex state_info.desc
+    else final_boundary_check re positions ~last ~slen s state_info ~groups)
 ;;
 
 module Stream = struct
