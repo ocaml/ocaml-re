@@ -29,6 +29,8 @@ let%expect_test "partial matches" =
   t (str "") "hello";
   [%expect {| `Full |}];
   t (whole_string (str "hello")) "";
+  [%expect {| `Partial |}];
+  t (alt [ str "ab"; str "a" ]) "a";
   [%expect {| `Partial |}]
 ;;
 
@@ -50,7 +52,7 @@ let%expect_test "partial detailed" =
   [%expect {| `Partial 6 |}];
   t (str "hello") "hello";
   [%expect {| `Full [|0,5,"hello"|] |}];
-  t (whole_string (str "hello")) "hello";
+  t (whole_string (str "hello")) "hello" (* incorrect *);
   [%expect {| `Full [|0,5,"hello"|] |}];
   t (whole_string (str "hello")) "goodbye";
   [%expect {| `Mismatch |}];
@@ -65,5 +67,10 @@ let%expect_test "partial detailed" =
   t ~pos:1 (seq [ not_boundary; str "b" ]) "ab";
   [%expect {| `Full [|1,2,"b"|] |}];
   t (seq [ group (str "a"); rep any; group (str "b") ]) ".acb.";
-  [%expect {| `Full [|1,4,"acb";1,2,"a";3,4,"b"|] |}]
+  [%expect {| `Full [|1,4,"acb";1,2,"a";3,4,"b"|] |}];
+  t (alt [ str "ab"; str "a" ]) "a";
+  [%expect {| `Full [|0,1,"a"|] |}]
+  (* incorrect, as if we extended the input with "b",
+     we'd get a different match *);
+  ()
 ;;
