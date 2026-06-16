@@ -1,3 +1,9 @@
+Unreleased
+----------
+
+* Fix [Re.Pcre.split] dropping or not dropping leading and trailing
+  delimiters consistently with [Pcre.split] (#602, fixes #590).
+
 1.14.0 (16-Sep-2025)
 --------------------
 

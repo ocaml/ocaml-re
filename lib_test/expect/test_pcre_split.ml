@@ -6,7 +6,7 @@ let%expect_test "split" =
   split ~rex:re_whitespace "aa bb c d ";
   [%expect {| ["aa"; "bb"; "c"; "d"] |}];
   split ~rex:re_whitespace " a full_word bc   ";
-  [%expect {| ["a"; "full_word"; "bc"] |}];
+  [%expect {| [""; "a"; "full_word"; "bc"] |}];
   split ~rex:re_empty "abcd";
   [%expect {| ["a"; "b"; "c"; "d"] |}];
   split ~rex:re_eol "a\nb";

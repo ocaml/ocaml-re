@@ -92,6 +92,11 @@ let substitute ~rex ~subst str =
   Buffer.contents b
 ;;
 
+let rec drop_while l ~f =
+  match l with
+  | hd :: tl when f hd -> drop_while tl ~f
+  | _ -> l
+
 let split ~rex s =
   let rec split accu start =
     if start = String.length s
@@ -106,13 +111,10 @@ let split ~rex s =
         let next = Group.stop g 0 in
         split (String.sub s start (Group.start g 0 - start) :: accu) next)
   in
-  match Re.exec rex s ~pos:0 with
-  | g ->
-    List.rev
-      (if Group.start g 0 = 0
-       then split [] (Group.stop g 0)
-       else split [ String.sub s 0 (Group.start g 0) ] (Group.stop g 0))
-  | exception Not_found -> if s = "" then [] else [ s ]
+  split [] 0
+  |> drop_while ~f:(function "" -> true | _ -> false)
+  |> List.rev 
+  
 ;;
 
 (* From PCRE *)
