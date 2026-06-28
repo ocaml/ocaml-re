@@ -26,16 +26,16 @@ module Boundary_table = struct
     List.iter
       (fun cset ->
         Cset.iter cset ~f:(fun c1 c2 ->
-          Bytes.unsafe_set b (Cset.to_int c1) '\000';
-          Bytes.unsafe_set b (Cset.to_int c2 + 1) '\000'))
+          Bytes.set b (Cset.to_int c1) '\000';
+          Bytes.set b (Cset.to_int c2 + 1) '\000'))
       csets;
     let skip = ref 0 in
     for i = 255 downto 0 do
-      match Bytes.unsafe_get b i with
+      match Bytes.get b i with
       | '\000' -> skip := 0
       | _ ->
         skip := !skip + 1;
-        Bytes.unsafe_set b i (Char.unsafe_chr !skip)
+        Bytes.set b i (Char.unsafe_chr !skip)
     done;
     Bytes.unsafe_to_string b
   ;;
