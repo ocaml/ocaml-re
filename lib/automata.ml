@@ -465,14 +465,13 @@ end = struct
   let equal = E.equal_list
   let hash = E.hash_list
 
-  let tseq' kind x y =
+  let tseq kind x y rem =
     match x with
-    | [] -> []
-    | [ TExp (marks, { def = Eps; _ }) ] -> [ TExp (marks, y) ]
-    | _ -> [ TSeq (kind, x, y) ]
+    | [] -> rem
+    | [ TExp (marks, { def = Eps; _ }) ] -> TExp (marks, y) :: rem
+    | _ -> TSeq (kind, x, y) :: rem
   ;;
 
-  let tseq kind x y rem = tseq' kind x y @ rem
   let texp marks e rem = TExp (marks, e) :: rem
 
   let rec fold_right t ~init ~f =
