@@ -26,7 +26,20 @@
 (** Regular expression *)
 type t = Ast.t
 
-(** Compiled regular expression *)
+(** Compiled regular expression.
+
+    In OCaml 5 and later, an [re] can be used from multiple domains
+    concurrently. Performance-wise, an [re] is a lazily-built automaton, where each
+    input byte can force some more of the automaton. Domains can use forced parts of
+    the automaton at full speed, but forcing any new part is sequential. With e.g. a
+    complicated [re] that requires frequent forcing of the automaton, it could be
+    preferable for each domain to have its own [re] (by compiling the same [t] multiple
+    times), so domains can work without synchronization, instead of suffering heavy
+    contention while trying to share work.
+
+    [Re] is not domain-safe as a whole. In particular {!Re.Str} isn't domain-safe, just
+    like {!Str} isn't.
+  *)
 type re = Compile.re
 
 (** Manipulate matching groups. *)
