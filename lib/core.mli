@@ -234,8 +234,8 @@ type split_token =
   | `Delim of Group.t (** Delimiter *)
   ]
 
-(** Repeatedly calls {!exec} on the given string, starting at given position and
-    length.
+(** [all re s] finds all successive matches of [re] in [s], by repeatedly
+    calling {!exec} on the given string.
 
     {5 Examples:}
     {[
@@ -251,7 +251,7 @@ type split_token =
 val all : ?pos:int -> ?len:int -> re -> string -> Group.t list
 
 (** Same as {!all}, but extracts the matched substring rather than returning
-    the whole group. This basically iterates over matched strings.
+    the whole group.
 
     {5 Examples:}
     {[
