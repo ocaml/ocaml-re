@@ -463,7 +463,7 @@ end = struct
         if Marks.(equal empty marks) then base else Marks.to_dyn marks :: base
       in
       variant "TExp" e
-    | TMatch m -> variant "TMarks" [ Marks.to_dyn m ]
+    | TMatch m -> variant "TMatch" [ Marks.to_dyn m ]
   ;;
 
   let to_dyn t = to_dyn None t

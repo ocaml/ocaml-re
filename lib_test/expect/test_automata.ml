@@ -66,7 +66,7 @@ let%expect_test "string" =
     ((TExp (first (Seq 97 97))))
     ((TExp 97))
     ((TExp Eps))
-    ((TMarks ()))
+    ((TMatch ()))
     > matched
     |}];
   loop wa (State.create cat re) 'b';
@@ -160,14 +160,14 @@ let%expect_test "kleene star" =
   [%expect
     {|
     ((TExp (first (Rep 122))))
-    ((TExp (first (Rep 122))) (TMarks ()))
-    ((TExp (first (Rep 122))) (TMarks ()))
-    ((TExp (first (Rep 122))) (TMarks ()))
+    ((TExp (first (Rep 122))) (TMatch ()))
+    ((TExp (first (Rep 122))) (TMatch ()))
+    ((TExp (first (Rep 122))) (TMatch ()))
     |}];
   loop ~max:3 wa (State.create cat re) 'a';
   [%expect {|
     ((TExp (first (Rep 122))))
-    ((TMarks ()))
+    ((TMatch ()))
     > matched
     |}]
 ;;
@@ -194,15 +194,15 @@ let%expect_test "derivative recomputation" =
     ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
      (TExp ((marks ((0 0)))) Eps))
     ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 1)))) Eps) (TMarks ((marks ((0 0))))))
+     (TExp ((marks ((0 1)))) Eps) (TMatch ((marks ((0 0))))))
     ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 0)))) Eps) (TMarks ((marks ((0 1))))))
+     (TExp ((marks ((0 0)))) Eps) (TMatch ((marks ((0 1))))))
     ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 1)))) Eps) (TMarks ((marks ((0 0))))))
+     (TExp ((marks ((0 1)))) Eps) (TMatch ((marks ((0 0))))))
     ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 0)))) Eps) (TMarks ((marks ((0 1))))))
+     (TExp ((marks ((0 0)))) Eps) (TMatch ((marks ((0 1))))))
     ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 1)))) Eps) (TMarks ((marks ((0 0))))))
+     (TExp ((marks ((0 1)))) Eps) (TMatch ((marks ((0 0))))))
     |}];
   loop ~max:7 wa (State.create cat re) 'a';
   [%expect
