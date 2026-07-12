@@ -231,7 +231,7 @@ module Expr = struct
     | Alt l -> sexp ch "alt" (list pp) l
     | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
     | Eps -> str ch "eps"
-    | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
+    | Rep (rk, k, e) -> sexp ch "rep" (triple Rep_kind.pp Sem.pp pp) (rk, k, e)
     | Mark i -> sexp ch "mark" Mark.pp i
     | Pmark i -> sexp ch "pmark" Pmark.pp i
     | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
@@ -352,8 +352,9 @@ module Marks = struct
        Format.fprintf
          fmt
          "@[<2>marks@ %a@]"
-         (Format.pp_print_list (fun fmt (a, i) ->
-            Format.fprintf fmt "%a-%a" Mark.pp a Idx.pp i))
+         (Format.pp_print_list
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+            (fun fmt (a, i) -> Format.fprintf fmt "%a-%a" Mark.pp a Idx.pp i))
          marks);
     (match Pmark.Set.to_list pmarks with
      | [] -> ()
@@ -545,7 +546,11 @@ end = struct
   ;;
 
   let[@ocaml.warning "-32"] pp fmt t =
-    Format.fprintf fmt "[%a]" (Format.pp_print_list ~pp_sep:(Fmt.lit "; ") pp) t
+    Format.fprintf
+      fmt
+      "[%a]"
+      (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ") pp)
+      t
   ;;
 
   let empty = []
