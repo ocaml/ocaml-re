@@ -196,7 +196,10 @@ let%expect_test "shortest match" =
   test_re (shortest (alt [ str "aa"; str "aaa" ])) "aaaa";
   [%expect {| [| (0, 2) |] |}];
   test_re (shortest (alt [ str "aaa"; str "aa" ])) "aaaa";
-  [%expect {| [| (0, 2) |] |}]
+  [%expect {| [| (0, 2) |] |}];
+  (* If multiple matches are shortest, the first one wins *)
+  test_re (shortest (alt [ eol; group bol ])) "";
+  [%expect {| [| (0, 0); (-1, -1) |] |}]
 ;;
 
 let%expect_test "longest match" =
