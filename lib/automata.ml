@@ -228,15 +228,14 @@ module Expr = struct
 
   and to_dyn sem { id = _; def } = dyn_of_def sem def
 
-  let rec pp_with_sem sem ch e =
+  let rec pp ch e =
     let open Fmt in
     match e.def with
     | Cst l -> sexp ch "cst" Cset.pp l
-    | Alt l -> sexp ch "alt" (list (pp_with_sem sem)) l
-    | Seq (k, e, e') ->
-      sexp ch "seq" (triple Sem.pp (pp_with_sem sem) (pp_with_sem sem)) (k, e, e')
+    | Alt l -> sexp ch "alt" (list pp) l
+    | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
     | Eps -> str ch "eps"
-    | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp (pp_with_sem (Some k))) (k, e)
+    | Rep (_rk, k, e) -> sexp ch "rep" (pair Sem.pp pp) (k, e)
     | Mark i -> sexp ch "mark" Mark.pp i
     | Pmark i -> sexp ch "pmark" Pmark.pp i
     | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
@@ -244,7 +243,6 @@ module Expr = struct
     | After c -> sexp ch "after" Category.pp c
   ;;
 
-  let pp = pp_with_sem None
   let eps_expr = { id = Id.zero; def = Eps }
   let mk ids def = { id = Ids.next ids; def }
   let empty ids = mk ids (Alt [])
