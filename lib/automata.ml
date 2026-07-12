@@ -85,6 +85,12 @@ module Sem = struct
     | `First -> "first"
   ;;
 
+  let to_string_short = function
+    | `Shortest -> "S"
+    | `Longest -> "L"
+    | `First -> "F"
+  ;;
+
   let to_dyn t = Dyn.enum (to_string t)
   let equal = Poly.equal
   let pp ch k = Format.pp_print_string ch (to_string k)
@@ -99,6 +105,11 @@ module Rep_kind = struct
   let to_string = function
     | `Greedy -> "Greedy"
     | `Non_greedy -> "Non_greedy"
+  ;;
+
+  let to_string_short = function
+    | `Greedy -> "G"
+    | `Non_greedy -> "N"
   ;;
 
   let to_dyn t = Dyn.enum (to_string t)
@@ -170,6 +181,8 @@ module Expr = struct
     | Cst of Cset.t
     | Alt of t list
     | Seq of Sem.t * t * t
+      (* In Seq (sem, t1, t2), sem describes which match of t1 is
+         preferred, but says nothing about t2 *)
     | Eps
     | Rep of Rep_kind.t * Sem.t * t
     | Mark of Mark.t
@@ -178,55 +191,38 @@ module Expr = struct
     | After of Category.t
     | Pmark of Pmark.t
 
-  let wrap_sem sem sem' v =
-    let open Dyn in
-    let name = Sem.to_string sem' in
-    match sem with
-    | Some sem when Sem.equal sem sem' -> v
-    | None | Some _ ->
-      (match v with
-       | List v -> variant name v
-       | _ -> variant name [ v ])
-  ;;
-
-  let rec seq_as_list sem = function
+  let rec seq_as_list sem t =
+    match t.def with
     | Eps -> []
-    | Cst cs -> [ Cst cs ]
-    | Seq (sem', x, y) ->
-      if Sem.equal sem sem'
-      then x.def :: seq_as_list sem y.def
-      else raise_notrace Not_found
-    | _ -> raise_notrace Not_found
+    | Seq (sem', x, y) when Sem.equal sem sem' -> x :: seq_as_list sem y
+    | _ -> [ t ]
   ;;
 
-  let seq_as_list sem t =
-    match seq_as_list sem t with
-    | exception Not_found -> None
-    | s -> Some s
+  let sem_kind_suffix ?kind sem =
+    ":"
+    ^ (match kind with
+       | None -> ""
+       | Some k -> Rep_kind.to_string_short k)
+    ^ Sem.to_string_short sem
   ;;
 
-  let rec dyn_of_def sem =
+  let rec dyn_of_def =
     let open Dyn in
     function
     | Cst cset -> Cset.to_dyn cset
-    | Alt alt -> variant "Alt" (List.map ~f:(to_dyn sem) alt)
-    | Seq (sem', x, y) ->
-      let to_dyn = to_dyn (Some sem') in
-      let x =
-        match seq_as_list sem' y.def with
-        | None -> variant "Seq" [ to_dyn x; to_dyn y ]
-        | Some y -> variant "Seq" (to_dyn x :: List.map y ~f:(dyn_of_def sem))
-      in
-      wrap_sem sem sem' x
+    | Alt alt -> variant "Alt" (List.map ~f:to_dyn alt)
+    | Seq (sem, x, y) ->
+      let y = seq_as_list sem y in
+      variant ("Seq" ^ sem_kind_suffix sem) (to_dyn x :: List.map y ~f:to_dyn)
     | Eps -> Enum "Eps"
-    | Rep (_, sem', t) -> wrap_sem sem sem' (variant "Rep" [ to_dyn (Some sem') t ])
+    | Rep (kind, sem, t) -> variant ("Rep" ^ sem_kind_suffix ~kind sem) [ to_dyn t ]
     | Mark m -> variant "Mark" [ Mark.to_dyn m ]
     | Pmark m -> variant "Pmark" [ Pmark.to_dyn m ]
     | Erase (x, y) -> variant "Erase" [ Mark.to_dyn x; Mark.to_dyn y ]
     | Before c -> variant "Before" [ Category.to_dyn c ]
     | After c -> variant "After" [ Category.to_dyn c ]
 
-  and to_dyn sem { id = _; def } = dyn_of_def sem def
+  and to_dyn { id = _; def } = dyn_of_def def
 
   let rec pp ch e =
     let open Fmt in
@@ -288,8 +284,6 @@ end
 type expr = Expr.t
 
 include Expr
-
-let to_dyn t = to_dyn None t
 
 module Marks = struct
   type t =
@@ -447,26 +441,21 @@ end = struct
 
   type t = E.t list
 
-  let rec to_dyn sem t = Dyn.list (List.map ~f:(dyn_of_e sem) t)
+  let rec to_dyn t = Dyn.list (List.map ~f:dyn_of_e t)
 
-  and dyn_of_e sem =
+  and dyn_of_e =
     let open Dyn in
     function
-    | E.TSeq (sem', x, y) ->
-      wrap_sem
-        sem
-        sem'
-        (variant "TSeq" [ to_dyn (Some sem') x; Expr.to_dyn (Some sem') y ])
+    | E.TSeq (sem, x, y) ->
+      variant ("TSeq" ^ sem_kind_suffix sem) [ to_dyn x; Expr.to_dyn y ]
     | TExp (marks, e) ->
       let e =
-        let base = [ Expr.to_dyn sem e ] in
+        let base = [ Expr.to_dyn e ] in
         if Marks.(equal empty marks) then base else Marks.to_dyn marks :: base
       in
       variant "TExp" e
     | TMatch m -> variant "TMatch" [ Marks.to_dyn m ]
   ;;
-
-  let to_dyn t = to_dyn None t
 
   open E
 
