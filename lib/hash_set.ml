@@ -28,17 +28,10 @@ module Array = struct
   ;;
 end
 
-type nonrec table =
+type t =
   { mutable table : Array.t
   ; mutable size : int
   }
-
-type t = table Option.t ref
-
-let init t =
-  if Option.is_none !t then t := Option.some { size = 0; table = Array.make 0 (-1) };
-  Option.get !t
-;;
 
 let[@inline] should_grow t =
   let slots = Array.length t.table in
@@ -52,7 +45,7 @@ let () =
   assert (Array.unsafe_get x 0 = absent)
 ;;
 
-let create () = ref None
+let create () = { size = 0; table = Array.make 0 (-1) }
 
 let[@inline] index_of_offset slots index i =
   let i = index + !i in
@@ -60,11 +53,8 @@ let[@inline] index_of_offset slots index i =
 ;;
 
 let clear t =
-  match !t with
-  | None -> ()
-  | Some t ->
-    t.size <- 0;
-    Array.clear t.table
+  t.size <- 0;
+  Array.clear t.table
 ;;
 
 let add t x =
@@ -97,45 +87,33 @@ let resize t =
 ;;
 
 let add t x =
-  let t = init t in
   if should_grow t then resize t;
   add t x
 ;;
 
-let[@inline] is_empty t =
-  let t = !t in
-  if Option.is_none t
-  then true
-  else (
-    let t = Option.get t in
-    t.size = 0)
-;;
+let[@inline] is_empty t = t.size = 0
 
 let mem t x =
-  let t = !t in
-  if Option.is_none t || (Option.get t).size = 0
-  then false
-  else (
-    let t = Option.get t in
-    let hash = Int.hash x in
-    let slots = Array.length t.table in
-    let index = hash land (slots - 1) in
-    let i = ref 0 in
-    let found = ref false in
-    while (not !found) && !i < slots do
-      let idx = index_of_offset slots index i in
-      let elem = Array.unsafe_get t.table idx in
-      if Int.equal elem x
-      then found := true
-      else if Int.equal elem absent
-      then i := slots
-      else incr i
-    done;
-    !found)
+  (not (is_empty t))
+  &&
+  let hash = Int.hash x in
+  let slots = Array.length t.table in
+  let index = hash land (slots - 1) in
+  let i = ref 0 in
+  let found = ref false in
+  while (not !found) && !i < slots do
+    let idx = index_of_offset slots index i in
+    let elem = Array.unsafe_get t.table idx in
+    if Int.equal elem x
+    then found := true
+    else if Int.equal elem absent
+    then i := slots
+    else incr i
+  done;
+  !found
 ;;
 
-let pp fmt t =
-  let { table; size } = init t in
+let pp fmt { table; size } =
   let table =
     Array.fold_left table ~init:[] ~f:(fun acc i -> if i = absent then acc else i :: acc)
     |> List.rev
