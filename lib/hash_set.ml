@@ -7,15 +7,6 @@ module Array = struct
   let[@inline] length t = Bytes.length t / words
   let[@inline] unsafe_get t i = Int64.to_int (Bytes.get_int64_ne t (i * words))
   let[@inline] unsafe_set t i x = Bytes.set_int64_ne t (i * words) (Int64.of_int x)
-
-  let[@inline] make len x =
-    let t = Bytes.create (len * words) in
-    for i = 0 to length t - 1 do
-      unsafe_set t i x
-    done;
-    t
-  ;;
-
   let[@inline] make_absent len = Bytes.make (len * words) '\255'
   let clear t = Bytes.fill t 0 (Bytes.length t) '\255'
 
@@ -45,7 +36,7 @@ let () =
   assert (Array.unsafe_get x 0 = absent)
 ;;
 
-let create () = { size = 0; table = Array.make 0 (-1) }
+let create () = { size = 0; table = Array.make_absent 0 }
 
 let[@inline] index_of_offset slots index i =
   let i = index + !i in
