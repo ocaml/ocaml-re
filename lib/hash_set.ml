@@ -39,7 +39,7 @@ let () =
 let create () = { size = 0; table = Array.make_absent 0 }
 
 let[@inline] index_of_offset slots index i =
-  let i = index + !i in
+  let i = index + i in
   if i >= slots then i - slots else i
 ;;
 
@@ -55,7 +55,7 @@ let add t x =
   let inserting = ref true in
   let i = ref 0 in
   while !inserting do
-    let idx = index_of_offset slots index i in
+    let idx = index_of_offset slots index !i in
     let elem = Array.unsafe_get t.table idx in
     if elem = absent
     then (
@@ -93,7 +93,7 @@ let mem t x =
   let i = ref 0 in
   let found = ref false in
   while (not !found) && !i < slots do
-    let idx = index_of_offset slots index i in
+    let idx = index_of_offset slots index !i in
     let elem = Array.unsafe_get t.table idx in
     if Int.equal elem x
     then found := true
