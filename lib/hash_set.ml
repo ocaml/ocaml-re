@@ -20,7 +20,7 @@ module Array = struct
 end
 
 type t =
-  { mutable table : Array.t
+  { mutable table : Array.t (* sized to powers of two *)
   ; mutable size : int
   }
 
@@ -33,11 +33,7 @@ let () =
 ;;
 
 let create () = { size = 0; table = Array.make_absent 0 }
-
-let[@inline] index_of_offset slots index i =
-  let i = index + i in
-  if i >= slots then i - slots else i
-;;
+let[@inline] index_of_offset slots index i = (index + i) land (slots - 1)
 
 let clear t =
   t.size <- 0;
