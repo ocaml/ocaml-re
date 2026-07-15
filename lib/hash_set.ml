@@ -24,11 +24,7 @@ type t =
   ; mutable size : int
   }
 
-let[@inline] should_grow t =
-  let slots = Array.length t.table in
-  slots = 0 || (t.size > 0 && slots / t.size < 2)
-;;
-
+let[@inline] should_grow t = Array.length t.table <= t.size * 2
 let absent = -1
 
 let () =
