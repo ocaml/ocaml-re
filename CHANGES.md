@@ -11,6 +11,10 @@ Unreleased
   glob, as `a/**/b` already matched `a/b`. Should you want to match at
   least one directory deep, you can use `*/**/a`. (#611, fixes #171)
 
+* Fix issue where the requested match semantics (e.g. requesting the
+  longest match for a subexpression) was not respected in some niche
+  scenarios (#610).
+
 1.14.0 (16-Sep-2025)
 --------------------
 

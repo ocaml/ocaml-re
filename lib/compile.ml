@@ -721,6 +721,12 @@ let make_repeater ids cr kind greedy =
 ;;
 
 (* XXX should probably compute a category mask *)
+(* The kind in the ctx is the default semantics, from the closest enclosing
+   shortest/longest/first.  The kind in [let r, kind' = translate ...] is the actual
+   semantics that needs to be wrapped around [r] (i.e it is logically equivalent to
+   returning [seq kind' r eps] but presumably doing things this way is more efficient
+   by doing fewer reordering at runtime). kind' differs from kind when the inner ast
+   contains Sem nodes. [enforce_kind] is one way to materialize the wrapper. *)
 let rec translate
   ({ ids; kind; ign_group; greedy; pos; names; cache; colors; boundary_table } as ctx)
   (ast : Ast.no_case)
@@ -811,13 +817,14 @@ let rec translate
 
 and trans_seq ({ ids; kind; _ } as ctx) = function
   | [] -> A.eps ids
-  | [ r ] ->
-    let cr', kind' = translate ctx r in
-    enforce_kind ids kind kind' cr'
   | r :: rem ->
     let cr', kind' = translate ctx r in
     let cr'' = trans_seq ctx rem in
-    if A.is_eps cr'' then cr' else if A.is_eps cr' then cr'' else A.seq ids kind' cr' cr''
+    if A.is_eps cr''
+    then enforce_kind ids kind kind' cr'
+    else if A.is_eps cr'
+    then cr''
+    else A.seq ids kind' cr' cr''
 ;;
 
 let compile_1 regexp =
