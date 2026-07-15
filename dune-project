@@ -23,8 +23,8 @@
  (depends
   (ocaml (>= 4.08.0))
   (ppx_expect :with-test)
-  (ounit2 :with-test)
-  (js_of_ocaml :with-test))
+  (js_of_ocaml :with-test)
+  (crowbar :with-test))
  (description "
 Pure OCaml regular expressions with:
 * Perl-style regular expressions (module Re.Perl)
@@ -33,3 +33,4 @@ Pure OCaml regular expressions with:
 * Shell-style file globbing (module Re.Glob)
 * Compatibility layer for OCaml's built-in Str module (module Re.Str)
 "))
+

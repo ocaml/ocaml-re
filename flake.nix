@@ -11,6 +11,7 @@
           with pkgs.ocamlPackages; [
             core_bench
             memtrace
+            crowbar
           ];
         checkInputs = pkgs:
           with pkgs.ocamlPackages; [

@@ -609,12 +609,14 @@ val shortest : t -> t
     will prefer the leftmost branch of the alternation that matches the text. *)
 val first : t -> t
 
-(** Greedy matches for repetitions ({!opt}, {!rep}, {!rep1}, {!repn}): they will
-    match as many times as possible. *)
+(** Greedy matches for repetitions ({!opt}, {!rep}, {!rep1}, {!repn}): they prefer
+    repeating the pattern than stopping. In other words, [greedy (rep a)] behaves like
+    [alt [ seq [ a; greedy (rep a) ]]; epsilon ]. *)
 val greedy : t -> t
 
-(** Non-greedy matches for repetitions ({!opt}, {!rep}, {!rep1}, {!repn}): they
-    will match as few times as possible. *)
+(** Non-greedy matches for repetitions ({!opt}, {!rep}, {!rep1}, {!repn}): they prefer
+    stopping than repeating the pattern. In other words, [non_greedy (rep a)] behaves
+    like [alt [ epsilon; seq [ a; non_greedy (rep a) ] ]]. *)
 val non_greedy : t -> t
 
 (** {2 Groups (or submatches)} *)
