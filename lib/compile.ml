@@ -743,9 +743,7 @@ let rec translate
     trans_seq { ctx with kind = `First } l, kind
   | Ast (Alternative l) ->
     (match Ast.merge_sequences l with
-     | [ r' ] ->
-       let cr, kind' = translate ctx r' in
-       enforce_kind ids kind kind' cr, kind
+     | [ r' ] -> translate ctx r'
      | merged_sequences ->
        ( A.alt
            ids
