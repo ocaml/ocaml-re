@@ -697,8 +697,8 @@ type context =
   ; pos : A.Mark.t ref
   ; names : (string * int) list ref
   ; cache : Cset.t Cset.CSetMap.t ref
-    ; colors : Color_map.Table.t
-    ; boundary_table : Color_map.Boundary_table.t
+  ; colors : Color_map.Table.t
+  ; boundary_table : Color_map.Boundary_table.t
   }
 
 let trans_set cache (cm : Color_map.Table.t) boundary_table s =
@@ -836,8 +836,8 @@ let compile_1 regexp =
     ; pos = ref A.Mark.start
     ; names = ref []
     ; cache = ref Cset.CSetMap.empty
-      ; colors
-      ; boundary_table
+    ; colors
+    ; boundary_table
     }
   in
   let r, kind = translate ctx regexp in
