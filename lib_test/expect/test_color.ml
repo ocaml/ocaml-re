@@ -17,7 +17,7 @@ let%expect_test "the set of colors should be as small as easily feasible" =
   print_dyn (Re_private.Compile.to_dyn ~color_map:true re);
   [%expect
     {|
-    ((initial (Seq:S (Rep:GS ((0 1))) (Seq:F (Mark 0) 1 (Mark 1))))
+    ((initial (Seq:S (Rep:GF ((0 1))) (Seq:F (Mark 0) 1 (Mark 1))))
      (color_map
       ((0
         ((0 47) (58 64) (91 94) (96 96) (123 169) (171 180) (182 185) (187 191)

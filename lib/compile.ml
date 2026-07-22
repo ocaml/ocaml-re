@@ -733,7 +733,14 @@ let rec translate
   =
   match ast with
   | Set s -> A.cst ids (trans_set cache colors boundary_table s), kind
-  | Sequence l -> trans_seq ctx l, kind
+  | Sequence l ->
+    (* When kind is e.g. longest, we don't want to pass that down, because the longest
+       match of seq a b has no reason to be a longest match for a and b separately.
+       Instead we'd stomp over the preferred semantics of a and b. E.g.
+       exec_opt (longest (seq [group (non_greedy (rep any)); rep any])) "a" can match
+       by splitting the input between the two repetitions at the start or at the end,
+       but pushing longest down effectively cancels the non_greedy constructor. *)
+    trans_seq { ctx with kind = `First } l, kind
   | Ast (Alternative l) ->
     (match Ast.merge_sequences l with
      | [ r' ] ->
@@ -747,7 +754,9 @@ let rec translate
               enforce_kind ids kind kind' cr))
        , kind ))
   | Repeat (r', i, j) ->
-    let cr, kind' = translate ctx r' in
+    (* Repeat is essentially a kind of sequence, so same reasoning about the kind
+       as in sequence applies here. *)
+    let cr, kind' = translate { ctx with kind = `First } r' in
     let rem =
       match j with
       | None -> A.rep ids greedy kind' cr
