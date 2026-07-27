@@ -64,6 +64,10 @@ let%expect_test "bol" =
   test_re (seq [ bol; char 'a' ]) "b\na";
   [%expect {| [| (2, 3) |] |}];
   test_re (seq [ bol; char 'a' ]) "ba";
+  [%expect {| Not_found |}];
+  test_re ~pos:2 (seq [ bol; char 'a' ]) "b\na";
+  [%expect {| [| (2, 3) |] |}];
+  test_re ~pos:1 (seq [ bol; char 'a' ]) "ba";
   [%expect {| Not_found |}]
 ;;
 
@@ -75,6 +79,8 @@ let%expect_test "eol" =
   test_re (seq [ char 'a'; eol ]) "ba\n";
   [%expect {| [| (1, 2) |] |}];
   test_re (seq [ char 'a'; eol ]) "ab";
+  [%expect {| Not_found |}];
+  test_re ~len:1 (seq [ char 'a'; eol ]) "ab";
   [%expect {| Not_found |}]
 ;;
 
@@ -109,6 +115,8 @@ let%expect_test "bos" =
   [%expect {| [| (0, 1) |] |}];
   test_re (seq [ bos; char 'a' ]) "b\na";
   [%expect {| Not_found |}];
+  test_re ~pos:2 (seq [ bos; char 'a' ]) "b\na";
+  [%expect {| Not_found |}];
   test_re (seq [ bos; char 'a' ]) "ba";
   [%expect {| Not_found |}]
 ;;
@@ -117,6 +125,8 @@ let%expect_test "eos" =
   test_re (seq [ char 'a'; eos ]) "ba";
   [%expect {| [| (1, 2) |] |}];
   test_re (seq [ char 'a'; eos ]) "a\nb";
+  [%expect {| Not_found |}];
+  test_re ~len:1 (seq [ char 'a'; eos ]) "a\nb";
   [%expect {| Not_found |}];
   test_re (seq [ char 'a'; eos ]) "ba\n";
   [%expect {| Not_found |}];
@@ -196,7 +206,10 @@ let%expect_test "shortest match" =
   test_re (shortest (alt [ str "aa"; str "aaa" ])) "aaaa";
   [%expect {| [| (0, 2) |] |}];
   test_re (shortest (alt [ str "aaa"; str "aa" ])) "aaaa";
-  [%expect {| [| (0, 2) |] |}]
+  [%expect {| [| (0, 2) |] |}];
+  (* If multiple matches are shortest, the first one wins *)
+  test_re (shortest (alt [ eol; group bol ])) "";
+  [%expect {| [| (0, 0); (-1, -1) |] |}]
 ;;
 
 let%expect_test "longest match" =

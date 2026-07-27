@@ -61,17 +61,17 @@ let%expect_test "string" =
   loop wa (State.create cat re) 'a';
   [%expect
     {|
-    ((TExp (first (Seq 97 97 97 97))))
-    ((TExp (first (Seq 97 97 97))))
-    ((TExp (first (Seq 97 97))))
+    ((TExp (Seq:F 97 97 97 97)))
+    ((TExp (Seq:F 97 97 97)))
+    ((TExp (Seq:F 97 97)))
     ((TExp 97))
     ((TExp Eps))
-    ((TMarks ()))
+    ((TMatch ()))
     > matched
     |}];
   loop wa (State.create cat re) 'b';
   [%expect {|
-    ((TExp (first (Seq 97 97 97 97))))
+    ((TExp (Seq:F 97 97 97 97)))
     ()
     > failed
     |}]
@@ -99,18 +99,15 @@ let%expect_test "alternation" =
   [%expect
     {|
     ((TExp
-      (Alt (first (Seq (Seq 97 97 97 97) 98)) (first (Seq (Seq 97 97 97 97) 99))
-       (first (Seq (Seq 97 97 97 97) 100)) (first (Seq (Seq 97 97 97 97) 101)))))
-    ((first (TSeq ((TExp (Seq 97 97 97))) 98))
-     (first (TSeq ((TExp (Seq 97 97 97))) 99))
-     (first (TSeq ((TExp (Seq 97 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97 97))) 101)))
-    ((first (TSeq ((TExp (Seq 97 97))) 98))
-     (first (TSeq ((TExp (Seq 97 97))) 99))
-     (first (TSeq ((TExp (Seq 97 97))) 100))
-     (first (TSeq ((TExp (Seq 97 97))) 101)))
-    ((first (TSeq ((TExp 97)) 98)) (first (TSeq ((TExp 97)) 99))
-     (first (TSeq ((TExp 97)) 100)) (first (TSeq ((TExp 97)) 101)))
+      (Alt (Seq:F (Seq:F 97 97 97 97) 98) (Seq:F (Seq:F 97 97 97 97) 99)
+       (Seq:F (Seq:F 97 97 97 97) 100) (Seq:F (Seq:F 97 97 97 97) 101))))
+    ((TSeq:F ((TExp (Seq:F 97 97 97))) 98) (TSeq:F ((TExp (Seq:F 97 97 97))) 99)
+     (TSeq:F ((TExp (Seq:F 97 97 97))) 100)
+     (TSeq:F ((TExp (Seq:F 97 97 97))) 101))
+    ((TSeq:F ((TExp (Seq:F 97 97))) 98) (TSeq:F ((TExp (Seq:F 97 97))) 99)
+     (TSeq:F ((TExp (Seq:F 97 97))) 100) (TSeq:F ((TExp (Seq:F 97 97))) 101))
+    ((TSeq:F ((TExp 97)) 98) (TSeq:F ((TExp 97)) 99) (TSeq:F ((TExp 97)) 100)
+     (TSeq:F ((TExp 97)) 101))
     ((TExp 98) (TExp 99) (TExp 100) (TExp 101))
     ()
     > failed
@@ -140,10 +137,10 @@ let%expect_test "alternation shared prefix" =
   loop wa (State.create cat re) 'a';
   [%expect
     {|
-    ((TExp (first (Seq (Seq 97 97 97 97) (Alt 98 99 100 101)))))
-    ((first (TSeq ((TExp (Seq 97 97 97))) (Alt 98 99 100 101))))
-    ((first (TSeq ((TExp (Seq 97 97))) (Alt 98 99 100 101))))
-    ((first (TSeq ((TExp 97)) (Alt 98 99 100 101))))
+    ((TExp (Seq:F (Seq:F 97 97 97 97) (Alt 98 99 100 101))))
+    ((TSeq:F ((TExp (Seq:F 97 97 97))) (Alt 98 99 100 101)))
+    ((TSeq:F ((TExp (Seq:F 97 97))) (Alt 98 99 100 101)))
+    ((TSeq:F ((TExp 97)) (Alt 98 99 100 101)))
     ((TExp (Alt 98 99 100 101)))
     ()
     > failed
@@ -159,15 +156,15 @@ let%expect_test "kleene star" =
   loop ~max:4 wa (State.create cat re) 'z';
   [%expect
     {|
-    ((TExp (first (Rep 122))))
-    ((TExp (first (Rep 122))) (TMarks ()))
-    ((TExp (first (Rep 122))) (TMarks ()))
-    ((TExp (first (Rep 122))) (TMarks ()))
+    ((TExp (Rep:GF 122)))
+    ((TExp (Rep:GF 122)) (TMatch ()))
+    ((TExp (Rep:GF 122)) (TMatch ()))
+    ((TExp (Rep:GF 122)) (TMatch ()))
     |}];
   loop ~max:3 wa (State.create cat re) 'a';
   [%expect {|
-    ((TExp (first (Rep 122))))
-    ((TMarks ()))
+    ((TExp (Rep:GF 122)))
+    ((TMatch ()))
     > matched
     |}]
 ;;
@@ -190,29 +187,29 @@ let%expect_test "derivative recomputation" =
   loop ~max:7 wa (State.create cat re) 'z';
   [%expect
     {|
-    ((TExp (long (Seq (Rep ((0 255))) (Seq (Mark 0) (Alt 122 98))))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
+    ((TExp (Seq:L (Rep:NL ((0 255))) (Mark 0) (Alt 122 98))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98)))
      (TExp ((marks ((0 0)))) Eps))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 1)))) Eps) (TMarks ((marks ((0 0))))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 0)))) Eps) (TMarks ((marks ((0 1))))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 1)))) Eps) (TMarks ((marks ((0 0))))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 0)))) Eps) (TMarks ((marks ((0 1))))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98))))
-     (TExp ((marks ((0 1)))) Eps) (TMarks ((marks ((0 0))))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98)))
+     (TExp ((marks ((0 1)))) Eps) (TMatch ((marks ((0 0))))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98)))
+     (TExp ((marks ((0 0)))) Eps) (TMatch ((marks ((0 1))))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98)))
+     (TExp ((marks ((0 1)))) Eps) (TMatch ((marks ((0 0))))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98)))
+     (TExp ((marks ((0 0)))) Eps) (TMatch ((marks ((0 1))))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98)))
+     (TExp ((marks ((0 1)))) Eps) (TMatch ((marks ((0 0))))))
     |}];
   loop ~max:7 wa (State.create cat re) 'a';
   [%expect
     {|
-    ((TExp (long (Seq (Rep ((0 255))) (Seq (Mark 0) (Alt 122 98))))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98)))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98)))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98)))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98)))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98)))))
-    ((long (TSeq ((TExp (Rep ((0 255))))) (Seq (Mark 0) (Alt 122 98)))))
+    ((TExp (Seq:L (Rep:NL ((0 255))) (Mark 0) (Alt 122 98))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98))))
+    ((TSeq:L ((TExp (Rep:NL ((0 255))))) (Seq:L (Mark 0) (Alt 122 98))))
     |}]
 ;;
