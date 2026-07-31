@@ -152,7 +152,7 @@ let%expect_test "double asterisk" =
   globs "**/bar" [ "bar"; "foo/bar"; "foo/far/bar"; "z/zbar" ];
   [%expect
     {|
-    glob=**/bar   x bar
+    glob=**/bar   ✓ bar
     glob=**/bar   ✓ foo/bar
     glob=**/bar   ✓ foo/far/bar
     glob=**/bar   x z/zbar
@@ -172,7 +172,7 @@ let%expect_test "double asterisk" =
     glob=foo/**/bar   ✓ foo/far/bar
     glob=foo/**/bar   ✓ foo/far/oof/bar
     glob=foo/**/bar   ✓ foo/bar
-    glob=foo/**/bar   ✓ foofar/bar
+    glob=foo/**/bar   x foofar/bar
     glob=foo/**/bar   x foo/farbar
     glob=foo/**/bar   x foobar
     |}];
@@ -190,7 +190,7 @@ let%expect_test "double asterisk" =
     glob=foo/**bar   ✓ foo/far/oofbar
     glob=foo/**bar   ✓ foo/bar
     glob=foo/**bar   ✓ foo/foobar
-    glob=foo/**bar   ✓ foobar
+    glob=foo/**bar   x foobar
     |}];
   globs "/**" [ "//foo"; "/"; "/x"; "x" ];
   [%expect
@@ -284,7 +284,7 @@ let%expect_test "backslash handling" =
    glob "/?" "\\a";
    [%expect {| false |}];
    glob "a/**.ml" "a\\c\\.b.ml";
-   [%expect {| true |}]);
+   [%expect {| false |}]);
   let glob = glob ~match_backslashes:true in
   glob "a/b/c" "a\\b/c";
   [%expect {| true |}];

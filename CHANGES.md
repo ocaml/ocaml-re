@@ -4,6 +4,13 @@ Unreleased
 * Fix [Re.Pcre.split] dropping or not dropping leading and trailing
   delimiters consistently with [Pcre.split] (#602, fixes #590).
 
+* Fix [Re.Glob] issue where `a/**b` matched `ab` (#611)
+
+* Change [Re.Glob] so `**/a` matches `a`, as that's least surprising
+  (git, bash, hg and rg all agree on this). The only change is at start of
+  glob, as `a/**/b` already matched `a/b`. Should you want to match at
+  least one directory deep, you can use `*/**/a`. (#611, fixes #171)
+
 1.14.0 (16-Sep-2025)
 --------------------
 

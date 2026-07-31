@@ -34,7 +34,7 @@ type piece =
   | Any_but of enclosed list
   | One
   | Many
-  | ManyMany
+  | ManyMany of { component_with_terminator : bool }
 
 type t = piece list
 
@@ -66,10 +66,18 @@ let of_string ~double_asterisk s : t =
     loop []
   in
   let piece acc =
-    if double_asterisk && Parse_buffer.accept_s buf "/**"
-    then ManyMany :: (if eos () then Exactly '/' :: acc else acc)
+    if double_asterisk
+       && (match acc with
+           | [] | Exactly '/' :: _ -> true
+           | _ -> false)
+       && Parse_buffer.accept_s buf "**/"
+    then ManyMany { component_with_terminator = true } :: acc
     else if read '*'
-    then (if double_asterisk && read '*' then ManyMany else Many) :: acc
+    then
+      (if double_asterisk && read '*'
+       then ManyMany { component_with_terminator = false }
+       else Many)
+      :: acc
     else if read '?'
     then One :: acc
     else if not (read '[')
@@ -184,28 +192,30 @@ let exactly state c =
   State.append state (Re.alt (List.map Re.char chars)) ~am_at_start_of_component
 ;;
 
-let many_many state =
+let many_many state ~component_with_terminator =
   let explicit_period = state.State.period && state.State.pathname in
   let first_explicit_period = State.explicit_period state in
   let slashes = State.slashes state in
+  let slashes_re = Re.alt (List.map Re.char slashes) in
   let match_component ~explicit_period =
     Re.seq
       [ one ~explicit_slash:true ~slashes ~explicit_period
       ; Re.rep (one ~explicit_slash:true ~slashes ~explicit_period:false)
       ]
   in
+  let match_components =
+    Re.seq
+      [ Re.opt (match_component ~explicit_period:first_explicit_period)
+      ; Re.rep (Re.seq [ slashes_re; Re.opt (match_component ~explicit_period) ])
+      ]
+  in
   (* We must match components individually when [period] flag is set,
      making sure to not match ["foo/.bar"]. *)
   State.append
     state
-    (Re.seq
-       [ Re.opt (match_component ~explicit_period:first_explicit_period)
-       ; Re.rep
-           (Re.seq
-              [ Re.alt (List.map Re.char slashes)
-              ; Re.opt (match_component ~explicit_period)
-              ])
-       ])
+    (if component_with_terminator
+     then Re.opt (Re.seq [ match_components; slashes_re ])
+     else match_components)
 ;;
 
 let many (state : State.t) =
@@ -267,7 +277,9 @@ let many (state : State.t) =
       | Some (Any_of enclosed, state) -> enclosed_set state `Any_of enclosed
       | Some (Any_but enclosed, state) -> enclosed_set state `Any_but enclosed
       (* * then ** === ** *)
-      | Some (ManyMany, state) -> many_many state
+      | Some (ManyMany { component_with_terminator }, state) ->
+        assert (not component_with_terminator);
+        many_many state ~component_with_terminator
     in
     lookahead state)
 ;;
@@ -288,7 +300,7 @@ let piece state piece =
       state
       (enclosed_set `Any_but ~explicit_slash ~slashes ~explicit_period enclosed)
   | Exactly c -> exactly state c
-  | ManyMany -> many_many state
+  | ManyMany { component_with_terminator } -> many_many state ~component_with_terminator
 ;;
 
 let glob ~pathname ~match_backslashes ~period glob =
@@ -309,6 +321,7 @@ let glob
   ?(double_asterisk = true)
   s
   =
+  let double_asterisk = double_asterisk && pathname in
   let to_re s =
     let re = glob ~pathname ~match_backslashes ~period (of_string ~double_asterisk s) in
     if anchored then Re.whole_string re else re

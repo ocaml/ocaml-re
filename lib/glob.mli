@@ -55,9 +55,9 @@ exception Parse_error
     e.g. a\{x,y\}b\{1,2\} matches axb1, axb2, ayb1, ayb2.  As specified for bash, brace
     expansion is purely textual and can be nested. Defaults to false.
 
-    [double_asterisk]: If this flag is set, double asterisks ('**') will match slash
-    characters, even if [pathname] is set. The [period] flag still applies. Default to
-    true. *)
+    [double_asterisk]: when both this flag and pathname are set, double asterisks ('**')
+    will match slash characters, and '/**/' (or '**/' at the front) will match zero or
+    more path components . The [period] flag still applies. Default to true. *)
 val glob
   :  ?anchored:bool
   -> ?pathname:bool
