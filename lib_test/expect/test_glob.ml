@@ -142,43 +142,67 @@ let%expect_test "glob" =
 let%expect_test "double asterisk" =
   let glob = glob ~anchored:true in
   let globs = globs ~anchored:true in
-  globs "**" [ "foobar"; "foo/bar" ];
-  [%expect {|
+  globs "**" [ "foobar"; "foo/bar"; "foo//bar" ];
+  [%expect
+    {|
     glob=**   ✓ foobar
     glob=**   ✓ foo/bar
+    glob=**   ✓ foo//bar
     |}];
-  globs "**/bar" [ "foo/bar"; "foo/far/bar" ];
-  [%expect {|
+  globs "**/bar" [ "bar"; "foo/bar"; "foo/far/bar"; "z/zbar" ];
+  [%expect
+    {|
+    glob=**/bar   x bar
     glob=**/bar   ✓ foo/bar
     glob=**/bar   ✓ foo/far/bar
+    glob=**/bar   x z/zbar
     |}];
   globs "foo/**" [ "foo"; "foo/bar"; "foo/far/bar" ];
-  [%expect {|
+  [%expect
+    {|
     glob=foo/**   x foo
     glob=foo/**   ✓ foo/bar
     glob=foo/**   ✓ foo/far/bar
     |}];
-  globs "foo/**/bar" [ "foo/far/bar"; "foo/far/oof/bar" ];
-  [%expect {|
+  globs
+    "foo/**/bar"
+    [ "foo/far/bar"; "foo/far/oof/bar"; "foo/bar"; "foofar/bar"; "foo/farbar"; "foobar" ];
+  [%expect
+    {|
     glob=foo/**/bar   ✓ foo/far/bar
     glob=foo/**/bar   ✓ foo/far/oof/bar
+    glob=foo/**/bar   ✓ foo/bar
+    glob=foo/**/bar   ✓ foofar/bar
+    glob=foo/**/bar   x foo/farbar
+    glob=foo/**/bar   x foobar
     |}];
-  globs "foo/**bar" [ "foo/far/oofbar"; "foo/bar"; "foo/foobar" ];
-  [%expect {|
+  globs "foo**/bar" [ "bar"; "foo/bar"; "foo/far/bar"; "foobar" ];
+  [%expect
+    {|
+    glob=foo**/bar   x bar
+    glob=foo**/bar   ✓ foo/bar
+    glob=foo**/bar   ✓ foo/far/bar
+    glob=foo**/bar   x foobar
+    |}];
+  globs "foo/**bar" [ "foo/far/oofbar"; "foo/bar"; "foo/foobar"; "foobar" ];
+  [%expect
+    {|
     glob=foo/**bar   ✓ foo/far/oofbar
     glob=foo/**bar   ✓ foo/bar
     glob=foo/**bar   ✓ foo/foobar
+    glob=foo/**bar   ✓ foobar
     |}];
-  globs "/**" [ "//foo"; "/"; "/x" ];
-  [%expect {|
+  globs "/**" [ "//foo"; "/"; "/x"; "x" ];
+  [%expect
+    {|
     glob=/**   ✓ //foo
     glob=/**   ✓ /
     glob=/**   ✓ /x
+    glob=/**   x x
     |}];
-  globs "**" [ "foo//bar" ];
-  [%expect {| glob=**   ✓ foo//bar |}];
   globs "foo/bar/**/*.ml" [ "foo/bar/baz/foobar.ml"; "foo/bar/foobar.ml" ];
-  [%expect {|
+  [%expect
+    {|
     glob=foo/bar/**/*.ml   ✓ foo/bar/baz/foobar.ml
     glob=foo/bar/**/*.ml   ✓ foo/bar/foobar.ml
     |}];
@@ -191,7 +215,8 @@ let%expect_test "double asterisk" =
     ; "foo/bar/../x/baz"
     ; "foo/bar/./x/baz"
     ];
-  [%expect {|
+  [%expect
+    {|
     glob=foo/**/bar/**/baz   ✓ foo/bar/baz
     glob=foo/**/bar/**/baz   ✓ foo/bar/x/y/z/baz
     glob=foo/**/bar/**/baz   ✓ foo/x/y/z/bar/baz
