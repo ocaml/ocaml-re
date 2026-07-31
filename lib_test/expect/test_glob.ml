@@ -8,6 +8,16 @@ let glob ?match_backslashes ?expand_braces ?anchored ?pathname ?period re s =
   Format.printf "%b@." (Re.execp re s)
 ;;
 
+let globs ?match_backslashes ?expand_braces ?anchored ?pathname ?period re_str strings =
+  let re =
+    Re.Glob.glob ?match_backslashes ?expand_braces ?anchored ?pathname ?period re_str
+    |> Re.compile
+  in
+  List.iter strings ~f:(fun s ->
+    let res = if Re.execp re s then "✓" else "x" in
+    Format.printf "glob=%s   %s %s@." re_str res s)
+;;
+
 let%expect_test "glob" =
   glob "foo*" "foobar";
   [%expect {| true |}];
@@ -131,54 +141,64 @@ let%expect_test "glob" =
 
 let%expect_test "double asterisk" =
   let glob = glob ~anchored:true in
-  glob "**" "foobar";
-  [%expect {| true |}];
-  glob "**" "foo/bar";
-  [%expect {| true |}];
-  glob "**/bar" "foo/bar";
-  [%expect {| true |}];
-  glob "**/bar" "foo/far/bar";
-  [%expect {| true |}];
-  glob "foo/**" "foo";
-  [%expect {| false |}];
-  glob "foo/**" "foo/bar";
-  [%expect {| true |}];
-  glob "foo/**" "foo/far/bar";
-  [%expect {| true |}];
-  glob "foo/**/bar" "foo/far/bar";
-  [%expect {| true |}];
-  glob "foo/**/bar" "foo/far/oof/bar";
-  [%expect {| true |}];
-  glob "foo/**bar" "foo/far/oofbar";
-  [%expect {| true |}];
-  glob "foo/**bar" "foo/bar";
-  [%expect {| true |}];
-  glob "foo/**bar" "foo/foobar";
-  [%expect {| true |}];
-  glob "/**" "//foo";
-  [%expect {| true |}];
-  glob "/**" "/";
-  [%expect {| true |}];
-  glob "/**" "/x";
-  [%expect {| true |}];
-  glob "**" "foo//bar";
-  [%expect {| true |}];
-  glob "foo/bar/**/*.ml" "foo/bar/baz/foobar.ml";
-  [%expect {| true |}];
-  glob "foo/bar/**/*.ml" "foo/bar/foobar.ml";
-  [%expect {| true |}];
-  glob "foo/**/bar/**/baz" "foo/bar/baz";
-  [%expect {| true |}];
-  glob "foo/**/bar/**/baz" "foo/bar/x/y/z/baz";
-  [%expect {| true |}];
-  glob "foo/**/bar/**/baz" "foo/x/y/z/bar/baz";
-  [%expect {| true |}];
-  glob "foo/**/bar/**/baz" "foo/bar/x/bar/x/baz";
-  [%expect {| true |}];
-  glob "foo/**/bar/**/baz" "foo/bar/../x/baz";
-  [%expect {| false |}];
-  glob "foo/**/bar/**/baz" "foo/bar/./x/baz";
-  [%expect {| false |}];
+  let globs = globs ~anchored:true in
+  globs "**" [ "foobar"; "foo/bar" ];
+  [%expect {|
+    glob=**   ✓ foobar
+    glob=**   ✓ foo/bar
+    |}];
+  globs "**/bar" [ "foo/bar"; "foo/far/bar" ];
+  [%expect {|
+    glob=**/bar   ✓ foo/bar
+    glob=**/bar   ✓ foo/far/bar
+    |}];
+  globs "foo/**" [ "foo"; "foo/bar"; "foo/far/bar" ];
+  [%expect {|
+    glob=foo/**   x foo
+    glob=foo/**   ✓ foo/bar
+    glob=foo/**   ✓ foo/far/bar
+    |}];
+  globs "foo/**/bar" [ "foo/far/bar"; "foo/far/oof/bar" ];
+  [%expect {|
+    glob=foo/**/bar   ✓ foo/far/bar
+    glob=foo/**/bar   ✓ foo/far/oof/bar
+    |}];
+  globs "foo/**bar" [ "foo/far/oofbar"; "foo/bar"; "foo/foobar" ];
+  [%expect {|
+    glob=foo/**bar   ✓ foo/far/oofbar
+    glob=foo/**bar   ✓ foo/bar
+    glob=foo/**bar   ✓ foo/foobar
+    |}];
+  globs "/**" [ "//foo"; "/"; "/x" ];
+  [%expect {|
+    glob=/**   ✓ //foo
+    glob=/**   ✓ /
+    glob=/**   ✓ /x
+    |}];
+  globs "**" [ "foo//bar" ];
+  [%expect {| glob=**   ✓ foo//bar |}];
+  globs "foo/bar/**/*.ml" [ "foo/bar/baz/foobar.ml"; "foo/bar/foobar.ml" ];
+  [%expect {|
+    glob=foo/bar/**/*.ml   ✓ foo/bar/baz/foobar.ml
+    glob=foo/bar/**/*.ml   ✓ foo/bar/foobar.ml
+    |}];
+  globs
+    "foo/**/bar/**/baz"
+    [ "foo/bar/baz"
+    ; "foo/bar/x/y/z/baz"
+    ; "foo/x/y/z/bar/baz"
+    ; "foo/bar/x/bar/x/baz"
+    ; "foo/bar/../x/baz"
+    ; "foo/bar/./x/baz"
+    ];
+  [%expect {|
+    glob=foo/**/bar/**/baz   ✓ foo/bar/baz
+    glob=foo/**/bar/**/baz   ✓ foo/bar/x/y/z/baz
+    glob=foo/**/bar/**/baz   ✓ foo/x/y/z/bar/baz
+    glob=foo/**/bar/**/baz   ✓ foo/bar/x/bar/x/baz
+    glob=foo/**/bar/**/baz   x foo/bar/../x/baz
+    glob=foo/**/bar/**/baz   x foo/bar/./x/baz
+    |}];
   ((* Interaction with [~period] *)
    let glob = glob ~period:true in
    glob "**" ".foobar";
