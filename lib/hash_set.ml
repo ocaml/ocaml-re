@@ -1,7 +1,7 @@
 open Import
 
 module Array = struct
-  type nonrec t = Bytes.t
+  type nonrec t = Bytes.t (* instead of int array so the gc doesn't scan it *)
 
   let words = 8
   let[@inline] length t = Bytes.length t / words
