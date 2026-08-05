@@ -38,8 +38,7 @@ type t = Ast.t
     contention while trying to share work.
 
     [Re] is not domain-safe as a whole. In particular {!Re.Str} isn't domain-safe, just
-    like {!Str} isn't.
-  *)
+    like {!Str} isn't. *)
 type re = Compile.re
 
 (** Manipulate matching groups. *)
@@ -225,8 +224,19 @@ val exec_partial_detailed
   -> string
   -> [ `Full of Group.t | `Partial of int | `Mismatch ]
 
-(** Marks *)
 module Mark : sig
+  (** A mark allows checking whether a subexpression was used in a match.
+
+      This is much like a group, with the upside that the stability of mark ids can be
+      more convenient than group indices that change depending where other groups are,
+      but with the downside that marks don't provide positions.
+
+      Performance-wise, marks are cheaper, and it's possible to iterate over only
+      _matched_ marks in a match (vs one can only iterate over all groups in the match).
+      This can be useful if you have a large alternation and want to know which branch
+      is taken (e.g. one branch per gitignore line, and you want to check which line
+      ignores each pathname in a long list). *)
+
   (** Mark id *)
   type t = Pmark.t
 
