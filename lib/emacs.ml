@@ -125,18 +125,13 @@ let parse ~emacs_only s =
   res
 ;;
 
-let re ?(case = true) s =
-  let r = parse s ~emacs_only:true in
+let re ?(str_compatible = false) ?(case = true) s =
+  let r = parse s ~emacs_only:(not str_compatible) in
   if case then r else Re.no_case r
 ;;
 
-let re_no_emacs ~case s =
-  let r = parse s ~emacs_only:false in
-  if case then r else Re.no_case r
-;;
-
-let re_result ?case s =
-  match re ?case s with
+let re_result ?str_compatible ?case s =
+  match re ?str_compatible ?case s with
   | s -> Ok s
   | exception Not_supported -> Error `Not_supported
   | exception Parse_error -> Error `Parse_error

@@ -19,6 +19,9 @@ Unreleased
   [Re.exec\_partial\_detailed], and their implementations to follow
   the documentation. (#601, #604, fixes #600)
 
+* Provide [Re.Str.re] to combine the [Str] syntax with the
+  thread/domain-safety of [Re.exec*] (#615, fixes #194)
+
 1.14.0 (16-Sep-2025)
 --------------------
 
