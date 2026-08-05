@@ -568,6 +568,27 @@ end = struct
   let add_expr t expr = expr :: t
 
   let remove_duplicates =
+    (* Removing duplicates is necessary for the automata to be finite.
+       Given an input:
+
+       [ TSeq ([TExp exp1], exp2); TSeq ([TExp exp1], exp3) ]
+
+       remove_duplicates removes the second exp1 as a duplicate, thus turning the
+       list into:
+
+       [ TSeq ([TExp exp1], exp2) ]
+
+       If exp2 and exp3 were arbitrary expression, this would obviously be incorrect.
+       This is justified by the invariant that TExp exp1 is necessarily followed by its
+       continuation from the original expr. Because exp1 is unique across the expr
+       (even though [repn r 5 None] duplicates [r], [Expr.rename] ensures their ids are
+       made unique), it has a single continuation, and thus exp2 = exp3.
+
+       The reasoning doesn't obviously hold for rep a. rep a is effectively the infinite
+       sequence a(a(a(...)|eps)|eps)|eps, with the _same_ id for each a. So each
+       occurence of a and rep a still have a single continuation, namely rep a and
+       whatever comes syntactically after rep a.
+    *)
     let rec loop seen l y =
       match l with
       | [] -> []
