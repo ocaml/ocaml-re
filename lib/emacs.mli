@@ -27,15 +27,19 @@ exception Parse_error
 (** Errors that can be raised during the parsing of the regular expression *)
 exception Not_supported
 
-(** Parsing of an Emacs-style regular expression *)
-val re : ?case:bool -> string -> Core.t
+(** Parsing of an Emacs-style regular expression.
 
-val re_result : ?case:bool -> string -> (Core.t, [ `Not_supported | `Parse_error ]) result
+    [str_compatible] indicate whether to parse the regex compatibly with [Re.Str]. *)
+val re : ?str_compatible:bool -> ?case:bool -> string -> Core.t
+
+val re_result
+  :  ?str_compatible:bool
+  -> ?case:bool
+  -> string
+  -> (Core.t, [ `Not_supported | `Parse_error ]) result
 
 (** Regular expression compilation *)
 val compile : Core.t -> Core.re
 
 (** Same as [Core.compile] *)
 val compile_pat : ?case:bool -> string -> Core.re
-
-val re_no_emacs : case:bool -> string -> Core.t
