@@ -29,16 +29,18 @@ let get t =
 
 let accept_s t s' =
   let len = String.length s' in
-  try
-    for j = 0 to len - 1 do
-      (* CR-someday rgrinberg: stop relying on bound checks *)
-      try if s'.[j] <> t.str.[t.pos + j] then raise_notrace Exit with
-      | _ -> raise_notrace Exit
-    done;
+  t.pos + len <= String.length t.str
+  &&
+  let i = ref 0 in
+  while !i < len && Char.equal t.str.[t.pos + !i] s'.[!i] do
+    i := !i + 1
+  done;
+  if !i = len
+  then (
     t.pos <- t.pos + len;
-    true
-  with
-  | Exit -> false
+    true)
+  else false
+;;
 ;;
 
 let rec integer' t i =
