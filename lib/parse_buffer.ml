@@ -41,6 +41,14 @@ let accept_s t s' =
     true)
   else false
 ;;
+
+let accept_until_before t c =
+  match String.index_from_opt t.str t.pos c with
+  | None -> None
+  | Some pos_before_c ->
+    let s = String.sub t.str t.pos (pos_before_c - t.pos) in
+    t.pos <- pos_before_c;
+    Some s
 ;;
 
 let rec integer' t i =

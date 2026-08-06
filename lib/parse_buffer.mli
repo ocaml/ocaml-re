@@ -11,4 +11,5 @@ val test2 : t -> char -> char -> bool
 val get : t -> char
 val accept : t -> char -> bool
 val accept_s : t -> string -> bool
+val accept_until_before : t -> char -> string option
 val integer : t -> int option
