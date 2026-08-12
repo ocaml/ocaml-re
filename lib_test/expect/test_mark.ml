@@ -1,53 +1,56 @@
 open Import
 open Re
+module Mark_map = Map.Make (Mark)
 
-let test_mark ?pos ?len r s il1 il2 =
-  let subs = exec ?pos ?len (compile r) s in
-  Format.printf
-    "%b@."
-    (List.for_all ~f:(Mark.test subs) il1
-     && List.for_all ~f:(fun x -> not (Mark.test subs x)) il2)
+let names = ref Mark_map.empty
+
+let mark name r =
+  let mark, r = mark r in
+  names := Mark_map.add mark name !names;
+  r
+;;
+
+let test_mark ?pos ?len r s =
+  exec ?pos ?len (compile r) s
+  |> Mark.all
+  |> Mark.Set.elements
+  |> List.map ~f:(fun mark ->
+    match Mark_map.find_opt mark !names with
+    | None -> "?"
+    | Some name -> name)
+  |> List.sort ~cmp:String.compare
+  |> String.concat " "
+  |> print_endline
 ;;
 
 let%expect_test "mark" =
-  let i, r = mark digit in
-  test_mark r "0" [ i ] [];
-  [%expect {| true |}]
+  test_mark (mark "i" digit) "0";
+  [%expect {| i |}]
 ;;
 
 let%expect_test "mark seq" =
-  let i, r = mark digit in
-  let r = seq [ r; r ] in
-  test_mark r "02" [ i ] [];
-  [%expect {| true |}]
+  let r = mark "i" digit in
+  test_mark (seq [ r; r ]) "02";
+  [%expect {| i |}]
 ;;
 
 let%expect_test "mark rep" =
-  let i, r = mark digit in
-  let r = rep r in
-  test_mark r "02" [ i ] [];
-  [%expect {| true |}]
+  test_mark (rep (mark "i" digit)) "02";
+  [%expect {| i |}]
 ;;
 
 let%expect_test "mark alt" =
-  let ia, ra = mark (char 'a') in
-  let ib, rb = mark (char 'b') in
-  let r = alt [ ra; rb ] in
-  test_mark r "a" [ ia ] [ ib ];
-  test_mark r "b" [ ib ] [ ia ];
-  [%expect {|
-    true
-    true |}];
-  let r = rep r in
-  test_mark r "ab" [ ia; ib ] [];
-  [%expect {| true |}]
+  let r = alt [ mark "ia" (char 'a'); mark "ib" (char 'b') ] in
+  test_mark r "a";
+  [%expect {| ia |}];
+  test_mark r "b";
+  [%expect {| ib |}];
+  test_mark (rep r) "ab";
+  [%expect {| ia ib |}]
 ;;
 
 let%expect_test "mark prefers lhs" =
   let two_chars = seq [ any; any ] in
-  let lhs, x = mark two_chars in
-  let rhs, x' = mark two_chars in
-  let r = alt [ x; x' ] in
-  test_mark r "aa" [ lhs ] [ rhs ];
-  [%expect {| true |}]
+  test_mark (alt [ mark "lhs" two_chars; mark "rhs" two_chars ]) "aa";
+  [%expect {| lhs |}]
 ;;
