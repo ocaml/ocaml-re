@@ -29,7 +29,7 @@ let%expect_test "octal" =
 
 let%expect_test "\\x and \\o form" =
   test {|\o{111}|} (String.make 1 '\o111');
-  [%expect {| <None> |}];
+  [%expect {| (Group (I (0 1))) |}];
   test {|\o{111|} "";
   [%expect {| failed to parse |}];
   test {|\x{ff}|} (String.make 1 '\xff');
