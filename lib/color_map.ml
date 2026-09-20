@@ -1,5 +1,8 @@
 (* Each of the Cset.t occurring in the AST (or implied by zero-width assertions). *)
-type t = Cset.t list ref
+type t =
+  { mutable sets : Cset.t list
+  ; singletons : Bit_vector.t (* singletons csets already present in [sets] *)
+  }
 
 module Repr = struct
   type t = string
@@ -107,7 +110,7 @@ module Table = struct
   ;;
 end
 
-let make () = ref []
+let make () = { sets = []; singletons = Bit_vector.create_zero 256 }
 
 let size_cset cset =
   let size = ref 0 in
@@ -120,7 +123,18 @@ let size_cset cset =
    in flatten (for instance cany would need to be evaluated on every boundary, whereas
    its complement Cset.empty doesn't). So cset_or_compl chooses the cheaper one. *)
 let cset_or_compl cset = if size_cset cset > 128 then Cset.diff Cset.cany cset else cset
-let split (t : t) set = t := cset_or_compl set :: !t
+
+let split t set =
+  let set = cset_or_compl set in
+  match Cset.one_char set with
+  | None -> t.sets <- set :: t.sets
+  | Some c ->
+    let i = Cset.to_int c in
+    if not (Bit_vector.get t.singletons i)
+    then (
+      Bit_vector.set t.singletons i true;
+      t.sets <- set :: t.sets)
+;;
 
 type 'a mutlist =
   | Nil
@@ -145,11 +159,12 @@ let flatten t =
      In practice, the regex compilation is much faster if we exploit the fact
      that many characters behave the same, so that's what the boundary table is for.
   *)
-  let b = Boundary_table.create !t in
+  let sets = t.sets in
+  let b = Boundary_table.create sets in
   let a = Array.make 256 Nil in
   (let nbits =
      (* +1 to match the +1 to the cset id below *)
-     Float.to_int (Float.ceil (Float.log2 (Float.of_int (List.length !t + 1))))
+     Float.to_int (Float.ceil (Float.log2 (Float.of_int (List.length sets + 1))))
    in
    List.iteri
      (fun csetid cset ->
@@ -170,7 +185,7 @@ let flatten t =
           do
             ()
           done))
-     !t);
+     sets);
   let num_colors = ref 0 in
   let color_by_csetids = ref Int_list_map.empty in
   let c = Bytes.create 256 in
