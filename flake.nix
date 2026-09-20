@@ -51,14 +51,14 @@
           [ (ocamlVersionOverlay ocaml) ];
       in rec {
         devShells.test = let
-          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2);
+          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_4);
           packages = makePackages pkgs;
         in pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
           buildInputs = extraBuildInputs pkgs ++ checkInputs pkgs;
         };
         devShells.default = let
-          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2);
+          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_4);
           packages = makePackages pkgs;
         in pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
@@ -66,7 +66,7 @@
             ++ checkInputs pkgs;
         };
         devShells.fp = let
-          pkgs = (makeNixpkgs (ocaml: ocaml.ocamlPackages_5_2)).appendOverlays
+          pkgs = (makeNixpkgs (ocaml: ocaml.ocamlPackages_5_4)).appendOverlays
             [ framePointersOverlay ];
           packages = makePackages pkgs;
         in pkgs.mkShell {
