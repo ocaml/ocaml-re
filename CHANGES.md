@@ -52,6 +52,10 @@ Unreleased
 * Fix [Re.Glob] with `expand_braces:true` treating `{foo}` as `foo`; braces
   without alternatives are now literal (#686).
 
+* Handle final newlines that land on a stream chunk boundary: a trailing
+  newline is deferred until the next chunk or finalization, so [Re.Stream]
+  and [Re.Stream.Group] still match `leol` and keep grouped captures (#695).
+
 * Fix named capture declarations inside zero-count repetitions being dropped,
   which shifted the numbering of later groups (#684).
 
