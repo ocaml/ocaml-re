@@ -16,7 +16,8 @@ let%expect_test "split" =
   split re_empty "abcd";
   [%expect {| ["a"; "b"; "c"; "d"] |}];
   split re_eol "a\nb";
-  [%expect {|
+  [%expect
+    {|
     ["a"; "\nb"] |}];
   split re_bow "a b";
   [%expect {| ["a "; "b"] |}];

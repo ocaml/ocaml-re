@@ -81,12 +81,12 @@ let execute ~short re a =
     (inverse_permutation a)
     (Array.map
        (fun i ->
-         try
-           Some
-             (Re.Group.all_offset
-              @@ Re.exec ~pos:(if short then 30 - 7 else 0) re strings.(i))
-         with
-         | Not_found -> None)
+          try
+            Some
+              (Re.Group.all_offset
+               @@ Re.exec ~pos:(if short then 30 - 7 else 0) re strings.(i))
+          with
+          | Not_found -> None)
        a)
 ;;
 

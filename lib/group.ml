@@ -2,7 +2,7 @@
 type t =
   { (* Input string. Matched strings are substrings of s *)
     s : string
-      (* Mapping from group indices to positions in gpos. group i has positions 2*i
+    (* Mapping from group indices to positions in gpos. group i has positions 2*i
          - 1, 2*i + 1 in gpos. If the group wasn't matched, then its corresponding
            values in marks will be -1,-1 *)
   ; marks : Mark_infos.t

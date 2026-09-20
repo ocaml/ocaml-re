@@ -21,7 +21,8 @@ let%expect_test "basic set" =
   test set Hash_set.is_empty;
   [%expect {| [PASS] |}];
   test set (fun set -> not (Hash_set.mem set id1));
-  [%expect {|
+  [%expect
+    {|
     [PASS] |}]
 ;;
 
@@ -29,10 +30,12 @@ let%expect_test "add 1 element" =
   let set = Hash_set.create () in
   Hash_set.add set id1;
   test set (fun set -> not (Hash_set.is_empty set));
-  [%expect {|
+  [%expect
+    {|
     [PASS] |}];
   test set (fun set -> Hash_set.mem set id1);
-  [%expect {|
+  [%expect
+    {|
     [PASS] |}];
   Hash_set.add set id1;
   test set (fun set -> Hash_set.mem set id1);
@@ -42,7 +45,8 @@ let%expect_test "add 1 element" =
   [%expect {| [PASS] |}];
   Hash_set.add set id3;
   test set (fun set -> Hash_set.mem set id3);
-  [%expect {|
+  [%expect
+    {|
     [PASS] |}];
   test set (fun set -> List.for_all [ id1; id2; id3 ] ~f:(fun id -> Hash_set.mem set id));
   [%expect {| [PASS] |}]

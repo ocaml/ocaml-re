@@ -64,10 +64,10 @@ let test dyn_of_ok str re args =
 let dyn_of_pairs x =
   Dyn.option
     (fun x ->
-      List.map x ~f:(fun (start, stop) ->
-        let open Dyn in
-        pair (int start) (int stop))
-      |> Dyn.list)
+       List.map x ~f:(fun (start, stop) ->
+         let open Dyn in
+         pair (int start) (int stop))
+       |> Dyn.list)
     x
 ;;
 

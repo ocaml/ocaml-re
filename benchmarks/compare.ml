@@ -101,13 +101,13 @@ let parse_all s =
 ;;
 
 let merge_one
-  { name
-  ; time_per_run_nanos
-  ; major_words_per_run
-  ; promoted_words_per_run
-  ; minor_words_per_run
-  }
-  b
+      { name
+      ; time_per_run_nanos
+      ; major_words_per_run
+      ; promoted_words_per_run
+      ; minor_words_per_run
+      }
+      b
   =
   assert (String.equal name b.name);
   { b with

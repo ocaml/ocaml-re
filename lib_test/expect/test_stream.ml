@@ -40,13 +40,16 @@ let%expect_test "basic" =
     | Ok s -> s
     | No_match -> assert false
   in
-  [%expect {|
+  [%expect
+    {|
     "ab" not matched (status = unmatched) |}];
   (let (_ : _ Stream.feed) = feed s "ab" in
-   [%expect {|
+   [%expect
+     {|
      "ab" not matched (status = matched) |}]);
   let (_ : _ Stream.feed) = feed s "xy" in
-  [%expect {|
+  [%expect
+    {|
     "xy" did not match |}]
 ;;
 
@@ -169,7 +172,8 @@ let%expect_test "group - match group" =
         print_match m i
       done
   in
-  [%expect {|
+  [%expect
+    {|
     match 0: _abc_
     match 1: abc
     |}]
@@ -195,7 +199,8 @@ let%expect_test "group - match group" =
         print_match m i
       done
   in
-  [%expect {|
+  [%expect
+    {|
     match 0: _abc__de_
     match 1: abc
     match 2: de

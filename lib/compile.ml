@@ -344,9 +344,10 @@ let get_color re (s : string) pos =
     let slen = String.length s in
     if pos >= slen
     then Cset.null_char
-    else if pos = slen - 1
-            && (not (Cset.equal_c re.lnl Cset.null_char))
-            && Char.equal (String.unsafe_get s pos) '\n'
+    else if
+      pos = slen - 1
+      && (not (Cset.equal_c re.lnl Cset.null_char))
+      && Char.equal (String.unsafe_get s pos) '\n'
     then (* Special case for the last newline *)
       re.lnl
     else Color_map.Table.get re.colors (String.unsafe_get s pos))
@@ -383,10 +384,11 @@ let rec handle_last_newline re positions ~pos st ~groups =
 ;;
 
 let rec scan_str re positions (s : string) initial_state ~last ~pos ~groups =
-  if last = String.length s
-     && (not (Cset.equal_c re.lnl Cset.null_char))
-     && last > pos
-     && Char.equal (String.get s (last - 1)) '\n'
+  if
+    last = String.length s
+    && (not (Cset.equal_c re.lnl Cset.null_char))
+    && last > pos
+    && Char.equal (String.get s (last - 1)) '\n'
   then (
     let last = last - 1 in
     let st = scan_str re positions ~pos s initial_state ~last ~groups in
@@ -475,11 +477,12 @@ module Stream = struct
     let last = pos + len in
     let state = loop_no_mark t.re ~colors:t.re.colors s ~last ~pos t.state t.state in
     let info = State.get_info state in
-    if Idx.is_break info.idx
-       &&
-       match Automata.State.status t.re.mutex info.desc with
-       | Failed -> true
-       | Match _ | Running -> false
+    if
+      Idx.is_break info.idx
+      &&
+      match Automata.State.status t.re.mutex info.desc with
+      | Failed -> true
+      | Match _ | Running -> false
     then No_match
     else Ok { t with state }
   ;;
@@ -578,11 +581,12 @@ module Stream = struct
         loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
       in
       let info = State.get_info state in
-      if Idx.is_break info.idx
-         &&
-         match Automata.State.status t.re.mutex info.desc with
-         | Failed -> true
-         | Match _ | Running -> false
+      if
+        Idx.is_break info.idx
+        &&
+        match Automata.State.status t.re.mutex info.desc with
+        | Failed -> true
+        | Match _ | Running -> false
       then No_match
       else (
         let t = { t with state } in
@@ -594,10 +598,10 @@ module Stream = struct
     ;;
 
     let finalize
-      ({ t; positions; slices; abs_pos; first_match_pos = _ } as tt)
-      s
-      ~pos
-      ~len
+          ({ t; positions; slices; abs_pos; first_match_pos = _ } as tt)
+          s
+          ~pos
+          ~len
       : Match.t feed
       =
       (* TODO bound checks? *)
@@ -738,8 +742,9 @@ let make_repeater ids cr kind greedy =
    by doing fewer reordering at runtime). kind' differs from kind when the inner ast
    contains Sem nodes. [enforce_kind] is one way to materialize the wrapper. *)
 let rec translate
-  ({ ids; kind; ign_group; greedy; pos; names; cache; colors; boundary_table } as ctx)
-  (ast : Ast.no_case)
+          ({ ids; kind; ign_group; greedy; pos; names; cache; colors; boundary_table } as
+           ctx)
+          (ast : Ast.no_case)
   =
   match ast with
   | Set s -> A.cst ids (trans_set cache colors boundary_table s), kind

@@ -25,9 +25,9 @@ module Boundary_table = struct
     Bytes.set b 0 '\000';
     List.iter
       (fun cset ->
-        Cset.iter cset ~f:(fun c1 c2 ->
-          Bytes.set b (Cset.to_int c1) '\000';
-          Bytes.set b (Cset.to_int c2 + 1) '\000'))
+         Cset.iter cset ~f:(fun c1 c2 ->
+           Bytes.set b (Cset.to_int c1) '\000';
+           Bytes.set b (Cset.to_int c2 + 1) '\000'))
       csets;
     let skip = ref 0 in
     for i = 255 downto 0 do
@@ -87,12 +87,12 @@ module Table = struct
     List.init 256 (fun i -> Cset.to_int (get t (Char.chr i)), i)
     |> List.fold_left
          (fun acc (v, c) ->
-           let old_data =
-             match Int_map.find_opt v acc with
-             | None -> []
-             | Some l -> l
-           in
-           Int_map.add v (Cset.single (Cset.of_int c) :: old_data) acc)
+            let old_data =
+              match Int_map.find_opt v acc with
+              | None -> []
+              | Some l -> l
+            in
+            Int_map.add v (Cset.single (Cset.of_int c) :: old_data) acc)
          Int_map.empty
     |> Int_map.map Cset.union_all
     |> Int_map.to_seq
@@ -153,23 +153,23 @@ let flatten t =
    in
    List.iteri
      (fun csetid cset ->
-       let csetid =
-         (* +1 so cset id is > 0, which is necessary for [(hd lsl nbits) lsr nbits = hd]
+        let csetid =
+          (* +1 so cset id is > 0, which is necessary for [(hd lsl nbits) lsr nbits = hd]
             to correctly compute whether the top nbits are used *)
-         csetid + 1
-       in
-       Cset.iter cset ~f:(fun c1 c2 ->
-         let ci = ref (Cset.to_int c1) in
-         while
-           (match a.(!ci) with
-            | Cons ({ hd; tl = _ } as cons) when (hd lsl nbits) lsr nbits = hd ->
-              cons.hd <- (hd lsl nbits) lor csetid
-            | l -> a.(!ci) <- Cons { hd = csetid; tl = l });
-           ci := Boundary_table.unsafe_next_boundary b !ci;
-           !ci <= Cset.to_int c2
-         do
-           ()
-         done))
+          csetid + 1
+        in
+        Cset.iter cset ~f:(fun c1 c2 ->
+          let ci = ref (Cset.to_int c1) in
+          while
+            (match a.(!ci) with
+             | Cons ({ hd; tl = _ } as cons) when (hd lsl nbits) lsr nbits = hd ->
+               cons.hd <- (hd lsl nbits) lor csetid
+             | l -> a.(!ci) <- Cons { hd = csetid; tl = l });
+            ci := Boundary_table.unsafe_next_boundary b !ci;
+            !ci <= Cset.to_int c2
+          do
+            ()
+          done))
      !t);
   let num_colors = ref 0 in
   let color_by_csetids = ref Int_list_map.empty in
@@ -178,24 +178,24 @@ let flatten t =
   let last_version = ref 0 in
   Array.iteri
     (fun i csetids ->
-      match String.unsafe_get b i with
-      | '\000' ->
-        let v =
-          match Int_list_map.find_opt csetids !color_by_csetids with
-          | Some v -> v
-          | None ->
-            let v = !num_colors in
-            color_by_csetids := Int_list_map.add csetids v !color_by_csetids;
-            num_colors := !num_colors + 1;
-            v
-        in
-        Bytes.set c i (Char.chr v);
-        Bytes.set color_repr v (Char.chr i);
-        last_version := v
-      | _ ->
-        let v = !last_version in
-        Bytes.set c i (Char.chr v);
-        Bytes.set color_repr v (Char.chr i))
+       match String.unsafe_get b i with
+       | '\000' ->
+         let v =
+           match Int_list_map.find_opt csetids !color_by_csetids with
+           | Some v -> v
+           | None ->
+             let v = !num_colors in
+             color_by_csetids := Int_list_map.add csetids v !color_by_csetids;
+             num_colors := !num_colors + 1;
+             v
+         in
+         Bytes.set c i (Char.chr v);
+         Bytes.set color_repr v (Char.chr i);
+         last_version := v
+       | _ ->
+         let v = !last_version in
+         Bytes.set c i (Char.chr v);
+         Bytes.set color_repr v (Char.chr i))
     a;
   Bytes.unsafe_to_string c, b, Bytes.sub_string color_repr 0 !num_colors
 ;;

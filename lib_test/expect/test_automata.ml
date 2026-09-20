@@ -70,7 +70,8 @@ let%expect_test "string" =
     > matched
     |}];
   loop wa (State.create cat re) 'b';
-  [%expect {|
+  [%expect
+    {|
     ((TExp (Seq:F 97 97 97 97)))
     ()
     > failed
@@ -162,7 +163,8 @@ let%expect_test "kleene star" =
     ((TExp (Rep:GF 122)) (TMatch ()))
     |}];
   loop ~max:3 wa (State.create cat re) 'a';
-  [%expect {|
+  [%expect
+    {|
     ((TExp (Rep:GF 122)))
     ((TMatch ()))
     > matched
