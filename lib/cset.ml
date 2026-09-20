@@ -82,8 +82,14 @@ let rec diff l l' =
     else if c2' < c1
     then diff l r'
     else (
-      let r'' = if c2' < c2 then (c2' + 1, c2) :: r else r in
-      if c1 < c1' then (c1, c1' - 1) :: diff r'' r' else diff r'' r')
+      let rest =
+        if c2' < c2
+        then diff ((c2' + 1, c2) :: r) r'
+        else if c2 < c2'
+        then diff r l'
+        else diff r r'
+      in
+      if c1 < c1' then (c1, c1' - 1) :: rest else rest)
 ;;
 
 let single =
