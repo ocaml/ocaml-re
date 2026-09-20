@@ -206,3 +206,39 @@ let%expect_test "group - match group" =
     match 2: de
     |}]
 ;;
+
+let%expect_test "group - nonzero source offsets corrupt captures" =
+  let run ~feed_pos ~finalize_pos =
+    let re = Re.(compile (whole_string (seq [ char 'a'; group (char 'b'); char 'c' ]))) in
+    let stream = Stream.Group.create (Stream.create re) in
+    let feed stream s ~pos =
+      match Stream.Group.feed stream s ~pos ~len:1 with
+      | No_match -> assert false
+      | Ok stream -> stream
+    in
+    let stream = feed stream "a" ~pos:0 in
+    let stream = feed stream (String.make feed_pos 'x' ^ "b") ~pos:feed_pos in
+    match
+      Stream.Group.finalize
+        stream
+        (String.make finalize_pos 'x' ^ "c")
+        ~pos:finalize_pos
+        ~len:1
+    with
+    | No_match -> assert false
+    | Ok matched ->
+      let capture = Option.get (Stream.Group.Match.get matched 1) in
+      Printf.printf "feed pos=%d, finalize pos=%d: %S\n" feed_pos finalize_pos capture
+  in
+  (* All three calls stream "abc", so group 1 should always be "b".
+     The expectations below document the currently incorrect captures. *)
+  run ~feed_pos:0 ~finalize_pos:0;
+  run ~feed_pos:1 ~finalize_pos:0;
+  run ~feed_pos:0 ~finalize_pos:1;
+  [%expect
+    {|
+    feed pos=0, finalize pos=0: "b"
+    feed pos=1, finalize pos=0: ""
+    feed pos=0, finalize pos=1: "bc"
+    |}]
+;;
