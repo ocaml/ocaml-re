@@ -25,16 +25,14 @@ module Re = Core
 exception Parse_error = Parse_buffer.Parse_error
 exception Not_supported
 
-let acc_digits =
-  let rec loop base digits acc i =
-    match digits with
-    | [] -> acc
-    | d :: digits ->
-      let acc = acc + (d * i) in
-      let i = i * i in
-      loop base digits acc i
-  in
-  fun ~base ~digits -> loop base digits 0 1
+let acc_digits ~base ~digits =
+  if digits = [] then raise Parse_error;
+  List.fold_left
+    (fun acc digit ->
+       if acc > (255 - digit) / base then raise Parse_error;
+       (acc * base) + digit)
+    0
+    (List.rev digits)
 ;;
 
 let char_of_int x =

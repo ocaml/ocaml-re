@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix braced octal escapes in [Re.Perl] and [Re.Pcre] to use positional
+  decoding and reject empty or out-of-byte-range values before overflow (#634).
+
 * Fix two-digit braced hexadecimal escapes in [Re.Perl] and [Re.Pcre]
   being decoded in reverse order (#633).
 
