@@ -14,3 +14,13 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: nix develop .#test -c dune runtest
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Check formatting
+        run: nix develop .#fmt -c dune build @fmt

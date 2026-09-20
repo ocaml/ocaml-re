@@ -20,13 +20,17 @@
             ppx_expect
             pkgs.nodejs-slim
           ];
+        formatInputs = pkgs: [
+          pkgs.ocamlPackages.ocaml
+          pkgs.ocamlPackages.dune_3
+          pkgs.ocamlformat_0_29_0
+        ];
         devInputs = pkgs:
           with pkgs.ocamlPackages; [
             ocaml-lsp
-            pkgs.ocamlformat_0_29_0
             csv
             pkgs.tabview
-          ];
+          ] ++ formatInputs pkgs;
         makePackages = pkgs: rec {
           default = re;
           re = pkgs.ocamlPackages.buildDunePackage {
@@ -51,6 +55,11 @@
           nixpkgs.legacyPackages.${system}.appendOverlays
           [ (ocamlVersionOverlay ocaml) ];
       in rec {
+        devShells.fmt = let
+          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_4);
+        in pkgs.mkShell {
+          buildInputs = formatInputs pkgs;
+        };
         devShells.test = let
           pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_4);
           packages = makePackages pkgs;
