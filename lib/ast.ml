@@ -15,11 +15,6 @@ let dyn_of_ast f =
 
 let empty_alternative : ('a, 'b) ast = Alternative []
 
-let equal_ast (type a) eq (x : (a, [ `Uncased ]) ast) (y : (a, [ `Uncased ]) ast) =
-  match x, y with
-  | Alternative a, Alternative b -> List.equal ~eq a b
-;;
-
 let pp_ast (type a b) f fmt (ast : (a, b) ast) =
   let open Fmt in
   let var s re = sexp fmt s f re in
@@ -150,14 +145,16 @@ let rec pp_cset fmt cset =
   | Difference (a, b) -> sexp fmt "Difference" (pair pp_cset pp_cset) (a, b)
 ;;
 
-(* This factoring predicate is deliberately not reflexive: even physically
-   identical groups must remain separate capture occurrences. *)
+(* Equality for prefixes that can safely be factored out of an alternative.
+   Equal expressions with multiple possible end positions are not enough:
+   factoring [a*?b|a*?a] into [a*?(b|a)] changes first-match preference. Be
+   conservative about alternatives and only allow fixed-count repetitions. *)
 let rec equal cset x1 x2 =
   match x1, x2 with
   | Set s1, Set s2 -> cset s1 s2
   | Sequence l1, Sequence l2 -> List.equal ~eq:(equal cset) l1 l2
-  | Repeat (x1', i1, j1), Repeat (x2', i2, j2) ->
-    Int.equal i1 i2 && Option.equal Int.equal j1 j2 && equal cset x1' x2'
+  | Repeat (x1', i1, Some j1), Repeat (x2', i2, Some j2) ->
+    Int.equal i1 j1 && Int.equal i2 j2 && Int.equal i1 i2 && equal cset x1' x2'
   | Beg_of_line, Beg_of_line
   | End_of_line, End_of_line
   | Beg_of_word, Beg_of_word
@@ -173,7 +170,6 @@ let rec equal cset x1 x2 =
     false
   | Pmark (m1, r1), Pmark (m2, r2) -> Pmark.equal m1 m2 && equal cset r1 r2
   | Nest x, Nest y -> equal cset x y
-  | Ast x, Ast y -> equal_ast (equal cset) x y
   | Sem (sem, a), Sem (sem', a') -> Poly.equal sem sem' && equal cset a a'
   | Sem_greedy (rep, a), Sem_greedy (rep', a') -> Poly.equal rep rep' && equal cset a a'
   | _ -> false
