@@ -1,12 +1,12 @@
 let all ?(pos = 0) ?len re s : _ Seq.t =
-  if pos < 0 then invalid_arg "Re.all";
+  if pos < 0 || pos > String.length s then invalid_arg "Re.all";
   (* index of the first position we do not consider.
      !pos < limit is an invariant *)
   let limit =
     match len with
     | None -> String.length s
     | Some l ->
-      if l < 0 || pos + l > String.length s then invalid_arg "Re.all";
+      if l < 0 || l > String.length s - pos then invalid_arg "Re.all";
       pos + l
   in
   (* iterate on matches. When a match is found, search for the next
@@ -37,12 +37,12 @@ let matches ?pos ?len re s : _ Seq.t =
 ;;
 
 let split_full ?(pos = 0) ?len re s : _ Seq.t =
-  if pos < 0 then invalid_arg "Re.split";
+  if pos < 0 || pos > String.length s then invalid_arg "Re.split";
   let limit =
     match len with
     | None -> String.length s
     | Some l ->
-      if l < 0 || pos + l > String.length s then invalid_arg "Re.split";
+      if l < 0 || l > String.length s - pos then invalid_arg "Re.split";
       pos + l
   in
   (* i: start of delimited string
