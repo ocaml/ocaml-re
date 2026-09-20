@@ -1,4 +1,5 @@
 .*.swp
+.scratch/
 _build/
 _opam/
 *.bak
