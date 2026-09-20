@@ -11,14 +11,9 @@ end
 include Pmark
 
 module Set = struct
-  module Set = Set.Make (Pmark)
+  include Set.Make (Pmark)
 
-  let[@warning "-32"] to_list x =
-    let open Set in
-    to_seq x |> List.of_seq
-  ;;
-
-  include Set
+  let to_list = elements
 end
 
 let to_dyn = Dyn.int
