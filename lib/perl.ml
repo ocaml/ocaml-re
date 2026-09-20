@@ -69,7 +69,6 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
   let accept = Parse_buffer.accept buf in
   let eos () = Parse_buffer.eos buf in
-  let test c = Parse_buffer.test buf c in
   let unget () = Parse_buffer.unget buf in
   let get () = Parse_buffer.get buf in
   let greedy_mod r =
@@ -82,9 +81,14 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     if accept '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
   and branch () = branch' []
   and branch' left =
-    if eos () || test '|' || test ')'
+    if eos ()
     then Re.seq (List.rev left)
-    else branch' (piece () :: left)
+    else (
+      match get () with
+      | '|' | ')' ->
+        unget ();
+        Re.seq (List.rev left)
+      | c -> branch' (piece c :: left))
   and in_brace ~f ~init =
     match accept '{' with
     | false -> None
@@ -97,33 +101,33 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
           loop acc)
       in
       Some (loop init)
-  and piece () =
-    let r = atom () in
-    if accept '*'
-    then greedy_mod (Re.rep r)
-    else if accept '+'
-    then greedy_mod (Re.rep1 r)
-    else if accept '?'
-    then greedy_mod (Re.opt r)
-    else if accept '{'
-    then (
-      match Parse_buffer.integer buf with
-      | Some i ->
-        let j = if accept ',' then Parse_buffer.integer buf else Some i in
-        if not (accept '}') then raise Parse_error;
-        (match j with
-         | Some j when j < i -> raise Parse_error
-         | _ -> ());
-        greedy_mod (Re.repn r i j)
-      | None ->
+  and piece c =
+    let r = atom c in
+    if eos ()
+    then r
+    else (
+      match get () with
+      | '*' -> greedy_mod (Re.rep r)
+      | '+' -> greedy_mod (Re.rep1 r)
+      | '?' -> greedy_mod (Re.opt r)
+      | '{' ->
+        (match Parse_buffer.integer buf with
+         | Some i ->
+           let j = if accept ',' then Parse_buffer.integer buf else Some i in
+           if not (accept '}') then raise Parse_error;
+           (match j with
+            | Some j when j < i -> raise Parse_error
+            | _ -> ());
+           greedy_mod (Re.repn r i j)
+         | None ->
+           unget ();
+           r)
+      | _ ->
         unget ();
         r)
-    else r
-  and atom () =
-    if accept '.'
-    then if dotall then Re.any else Re.notnl
-    else if accept '('
-    then
+  and atom = function
+    | '.' -> if dotall then Re.any else Re.notnl
+    | '(' ->
       if accept '?'
       then
         if accept ':'
@@ -144,77 +148,70 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
         let r = regexp () in
         if not (accept ')') then raise Parse_error;
         Re.group r)
-    else if accept '^'
-    then if multiline then Re.bol else Re.bos
-    else if accept '$'
-    then if multiline then Re.eol else if dollar_endonly then Re.leol else Re.eos
-    else if accept '['
-    then if accept '^' then Re.compl (bracket []) else Re.alt (bracket [])
-    else if accept '\\'
-    then (
+    | '^' -> if multiline then Re.bol else Re.bos
+    | '$' -> if multiline then Re.eol else if dollar_endonly then Re.leol else Re.eos
+    | '[' -> if accept '^' then Re.compl (bracket []) else Re.alt (bracket [])
+    | '\\' ->
       (* XXX
          - Back-references
          - \cx (control-x), \ddd
       *)
       if eos () then raise Parse_error;
-      match get () with
-      | 'w' -> Class._w
-      | 'W' -> Class._W
-      | 's' -> Re.space
-      | 'S' -> Class._S
-      | 'd' -> Re.digit
-      | 'D' -> Class._D
-      | 'b' -> Class._b
-      | 'B' -> Re.not_boundary
-      | 'A' -> Re.bos
-      | 'Z' -> Re.leol
-      | 'z' -> Re.eos
-      | 'G' -> Re.start
-      | 'e' -> Re.char '\x1b'
-      | 'f' -> Re.char '\x0c'
-      | 'n' -> Re.char '\n'
-      | 'r' -> Re.char '\r'
-      | 't' -> Re.char '\t'
-      | 'Q' -> quote (Buffer.create 12)
-      | 'E' -> raise Parse_error
-      | 'x' ->
-        let c1, c2 =
-          match in_brace ~init:[] ~f:(fun acc -> hexdigit () :: acc) with
-          | Some [ c2; c1 ] -> c1, c2
-          | Some [ c2 ] -> 0, c2
-          | Some _ -> raise Parse_error
-          | None ->
-            let c1 = hexdigit () in
-            let c2 = hexdigit () in
-            c1, c2
-        in
-        let code = (c1 * 16) + c2 in
-        Re.char (char_of_int code)
-      | 'o' ->
-        (match
-           in_brace ~init:[] ~f:(fun acc ->
-             match maybe_octaldigit () with
-             | None -> raise Parse_error
-             | Some p -> p :: acc)
-         with
-         | None -> raise Parse_error
-         | Some digits -> Re.char (char_of_int (acc_digits ~base:8 ~digits)))
-      | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
-      | '0' .. '7' as n1 ->
-        let n2 = maybe_octaldigit () in
-        let n3 = maybe_octaldigit () in
-        (match n2, n3 with
-         | Some n2, Some n3 ->
-           let n1 = Char.code n1 - Char.code '0' in
-           Re.char (char_of_int ((n1 * (8 * 8)) + (n2 * 8) + n3))
-         | _, _ -> raise Not_supported)
-      | '8' .. '9' -> raise Not_supported
-      | c -> Re.char c)
-    else (
-      if eos () then raise Parse_error;
-      match get () with
-      | '*' | '+' | '?' | '{' | '\\' -> raise Parse_error
-      | c -> Re.char c)
+      (match get () with
+       | 'w' -> Class._w
+       | 'W' -> Class._W
+       | 's' -> Re.space
+       | 'S' -> Class._S
+       | 'd' -> Re.digit
+       | 'D' -> Class._D
+       | 'b' -> Class._b
+       | 'B' -> Re.not_boundary
+       | 'A' -> Re.bos
+       | 'Z' -> Re.leol
+       | 'z' -> Re.eos
+       | 'G' -> Re.start
+       | 'e' -> Re.char '\x1b'
+       | 'f' -> Re.char '\x0c'
+       | 'n' -> Re.char '\n'
+       | 'r' -> Re.char '\r'
+       | 't' -> Re.char '\t'
+       | 'Q' -> quote (Buffer.create 12)
+       | 'E' -> raise Parse_error
+       | 'x' ->
+         let c1, c2 =
+           match in_brace ~init:[] ~f:(fun acc -> hexdigit () :: acc) with
+           | Some [ c2; c1 ] -> c1, c2
+           | Some [ c2 ] -> 0, c2
+           | Some _ -> raise Parse_error
+           | None ->
+             let c1 = hexdigit () in
+             let c2 = hexdigit () in
+             c1, c2
+         in
+         let code = (c1 * 16) + c2 in
+         Re.char (char_of_int code)
+       | 'o' ->
+         (match
+            in_brace ~init:[] ~f:(fun acc ->
+              match maybe_octaldigit () with
+              | None -> raise Parse_error
+              | Some p -> p :: acc)
+          with
+          | None -> raise Parse_error
+          | Some digits -> Re.char (char_of_int (acc_digits ~base:8 ~digits)))
+       | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
+       | '0' .. '7' as n1 ->
+         let n2 = maybe_octaldigit () in
+         let n3 = maybe_octaldigit () in
+         (match n2, n3 with
+          | Some n2, Some n3 ->
+            let n1 = Char.code n1 - Char.code '0' in
+            Re.char (char_of_int ((n1 * (8 * 8)) + (n2 * 8) + n3))
+          | _, _ -> raise Not_supported)
+       | '8' .. '9' -> raise Not_supported
+       | c -> Re.char c)
+    | '*' | '+' | '?' | '{' -> raise Parse_error
+    | c -> Re.char c
   and quote buf =
     if accept '\\'
     then (
