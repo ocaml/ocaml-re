@@ -196,13 +196,47 @@ let rec handle_case_cset ign_case = function
   | Cast (Case a) -> handle_case_cset false a
 ;;
 
-let rec handle_case ign_case : t -> (Cset.t, [ `Uncased ]) gen = function
-  | Set s -> Set (handle_case_cset ign_case s)
-  | Sequence l -> Sequence (List.map ~f:(handle_case ign_case) l)
+(* Expose literal/assertion prefixes of ignored groups to [merge_sequences].
+   Keep a group barrier around the rest: factoring variable-length prefixes can
+   change first-match preference, even when captures themselves are ignored.
+
+   The fixed prefix is split while normalizing, so a nested group does not
+   rescan the prefix exposed by the group it wraps:
+
+   - [Fixed] is a node made only of fixed prefixes;
+   - [Split (prefix, rest)] is a sequence whose fixed prefix is reversed and
+     whose variable rest is non-empty;
+   - [Leaf] is any other node. *)
+type handled =
+  | Fixed of no_case
+  | Split of no_case list * no_case list
+  | Leaf of no_case
+
+let handled_node = function
+  | Fixed r | Leaf r -> r
+  | Split (prefix, rest) -> Sequence (List.rev_append prefix rest)
+;;
+
+let rec handle_case ~ign_group ign_case : t -> handled = function
+  | Set s -> Fixed (Set (handle_case_cset ign_case s))
+  | Sequence l ->
+    if ign_group
+    then (
+      let rec loop prefix = function
+        | [] -> Fixed (Sequence (List.rev prefix))
+        | r :: rest ->
+          (match handle_case ~ign_group ign_case r with
+           | Fixed r -> loop (r :: prefix) rest
+           | (Leaf _ | Split _) as r ->
+             Split
+               ( prefix
+               , handled_node r :: List.map rest ~f:(handle_node ~ign_group ign_case) ))
+      in
+      loop [] l)
+    else Leaf (Sequence (List.map l ~f:(handle_node ~ign_group ign_case)))
   | Ast (Alternative l) ->
-    let l = List.map ~f:(handle_case ign_case) l in
-    Ast (Alternative l)
-  | Repeat (r, i, j) -> Repeat (handle_case ign_case r, i, j)
+    Leaf (Ast (Alternative (List.map l ~f:(handle_node ~ign_group ign_case))))
+  | Repeat (r, i, j) -> Leaf (Repeat (handle_node ~ign_group ign_case r, i, j))
   | ( Beg_of_line
     | End_of_line
     | Beg_of_word
@@ -212,16 +246,32 @@ let rec handle_case ign_case : t -> (Cset.t, [ `Uncased ]) gen = function
     | End_of_str
     | Last_end_of_line
     | Start
-    | Stop ) as r -> r
-  | Sem (k, r) -> Sem (k, handle_case ign_case r)
-  | Sem_greedy (k, r) -> Sem_greedy (k, handle_case ign_case r)
-  | Group (n, r) -> Group (n, handle_case ign_case r)
-  | No_group r -> No_group (handle_case ign_case r)
-  | Nest r -> Nest (handle_case ign_case r)
-  | Ast (Case r) -> handle_case false r
-  | Ast (No_case r) -> handle_case true r
-  | Pmark (i, r) -> Pmark (i, handle_case ign_case r)
-;;
+    | Stop ) as r -> Fixed r
+  | Sem (k, r) -> Leaf (Sem (k, handle_node ~ign_group ign_case r))
+  | Sem_greedy (k, r) -> Leaf (Sem_greedy (k, handle_node ~ign_group ign_case r))
+  | Group (n, r) ->
+    let r = handle_case ~ign_group ign_case r in
+    if not ign_group
+    then Leaf (Group (n, handled_node r))
+    else (
+      match r with
+      | Fixed _ -> r
+      | Leaf r -> Leaf (Group (n, r))
+      | Split (_, [ Group _ ]) ->
+        (* The variable rest is already wrapped in a barrier, and the name of an
+           ignored group is unobservable, so another barrier is redundant. *)
+        r
+      | Split ([], rest) -> Leaf (Group (n, Sequence rest))
+      | Split (prefix, rest) -> Split (prefix, [ Group (n, Sequence rest) ]))
+  | No_group r -> Leaf (No_group (handle_node ~ign_group:true ign_case r))
+  | Nest r -> Leaf (Nest (handle_node ~ign_group ign_case r))
+  | Ast (Case r) -> handle_case ~ign_group false r
+  | Ast (No_case r) -> handle_case ~ign_group true r
+  | Pmark (i, r) -> Leaf (Pmark (i, handle_node ~ign_group ign_case r))
+
+and handle_node ~ign_group ign_case r = handled_node (handle_case ~ign_group ign_case r)
+
+let handle_case ign_case r = handled_node (handle_case ~ign_group:false ign_case r)
 
 module Export = struct
   type nonrec t = t
