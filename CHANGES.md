@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix two-digit braced hexadecimal escapes in [Re.Perl] and [Re.Pcre]
+  being decoded in reverse order (#633).
+
 * Fix [Re.Pcre.split] dropping or not dropping leading and trailing
   delimiters consistently with [Pcre.split] (#602, fixes #590).
 

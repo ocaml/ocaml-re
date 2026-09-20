@@ -182,7 +182,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | 'x' ->
         let c1, c2 =
           match in_brace ~init:[] ~f:(fun acc -> hexdigit () :: acc) with
-          | Some [ c1; c2 ] -> c1, c2
+          | Some [ c2; c1 ] -> c1, c2
           | Some [ c2 ] -> 0, c2
           | Some _ -> raise Parse_error
           | None ->
