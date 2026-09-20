@@ -96,6 +96,7 @@ let rec drop_while l ~f =
   match l with
   | hd :: tl when f hd -> drop_while tl ~f
   | _ -> l
+;;
 
 let split ~rex s =
   let rec split accu start =
@@ -112,9 +113,10 @@ let split ~rex s =
         split (String.sub s start (Group.start g 0 - start) :: accu) next)
   in
   split [] 0
-  |> drop_while ~f:(function "" -> true | _ -> false)
-  |> List.rev 
-  
+  |> drop_while ~f:(function
+    | "" -> true
+    | _ -> false)
+  |> List.rev
 ;;
 
 (* From PCRE *)

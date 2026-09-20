@@ -8,3 +8,4 @@ let fetch_and_add atomic n =
   let v = !atomic in
   atomic := v + n;
   v
+;;
