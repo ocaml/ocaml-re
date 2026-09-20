@@ -44,8 +44,12 @@
             doCheck = true;
           };
         };
-        ocamlVersionOverlay =
-          (ocaml: self: super: { ocamlPackages = ocaml super.ocaml-ng; });
+        ocamlVersionOverlay = ocaml: self: super: {
+          ocamlPackages = (ocaml super.ocaml-ng).overrideScope
+            (oself: osuper: {
+              ocaml = osuper.ocaml.override { flambdaSupport = false; };
+            });
+        };
         framePointers = ocaml: ocaml.override { framePointerSupport = true; };
         framePointersOverlay = self: super: {
           ocamlPackages = super.ocamlPackages.overrideScope
