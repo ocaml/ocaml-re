@@ -45,6 +45,7 @@ let to_to_string pp x =
   let b = Buffer.create 16 in
   let fmt = Format.formatter_of_buffer b in
   pp fmt x;
+  Format.pp_print_flush fmt ();
   Buffer.contents b
 ;;
 
