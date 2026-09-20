@@ -242,7 +242,8 @@ let%expect_test "Group (or submatch)" =
   eq_match "\\(a\\)\\(a\\)?\\(b\\)" "ab";
   [%expect {| |}];
   eq_match "\\(foo" "foo";
-  [%expect {|
+  [%expect
+    {|
     str: (Error "Failure(\"\\\\( group not closed by \\\\)\")")
     re: (Error Re_private.Emacs.Parse_error)
     |}]

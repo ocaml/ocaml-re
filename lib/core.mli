@@ -38,8 +38,7 @@ type t = Ast.t
     contention while trying to share work.
 
     [Re] is not domain-safe as a whole. In particular {!Re.Str} isn't domain-safe, just
-    like {!Str} isn't.
-  *)
+    like {!Str} isn't. *)
 type re = Compile.re
 
 (** Manipulate matching groups. *)

@@ -17,13 +17,15 @@
   (pps ppx_expect)))
 
 ;; ppx_expect v16 depends on ppx_expect.common
+
 (subdir
  ppx_expect_common
  (library
   (name ppx_expect_common)
   (enabled_if
    (< %{ocaml_version} 5.0))
-  (libraries (re_export ppx_expect.common)))
+  (libraries
+   (re_export ppx_expect.common)))
  (library
   (name ppx_expect_common)
   (enabled_if
