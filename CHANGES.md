@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Str] replacement references to unmatched groups to raise [Failure],
+  as [Str] does, instead of substituting an empty string (#646).
+
 * Fix incorrect captured text and assertion failures in [Re.Stream.Group]
   when discarding unmatched input prefixes (#645).
 

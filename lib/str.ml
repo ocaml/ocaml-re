@@ -93,7 +93,7 @@ let offset_group i =
 let group_len i =
   match offset_group i with
   | b, e -> e - b
-  | exception Not_found -> 0
+  | exception Not_found -> failwith "Str.replace: reference to unmatched group"
 ;;
 
 let rec repl_length repl p q len =
@@ -130,12 +130,10 @@ let rec replace orig repl p res q len =
       | '0' .. '9' as c ->
         let d =
           let group = Char.code c - Char.code '0' in
-          match offset_group group with
-          | exception Not_found -> 0
-          | b, e ->
-            let d = e - b in
-            if d > 0 then String.blit orig b res q d;
-            d
+          let b, e = offset_group group in
+          let d = e - b in
+          if d > 0 then String.blit orig b res q d;
+          d
         in
         replace orig repl (p + 2) res (q + d) len
       | c ->
