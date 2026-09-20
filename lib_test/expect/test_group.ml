@@ -98,13 +98,15 @@ let%expect_test "Group.{get,get_opt,offset,test}" =
     Format.printf "offset = %a@." (or_not_found offset) (fun () -> Group.offset m idx)
   in
   test 0;
-  [%expect {|
+  [%expect
+    {|
     get_opt = ab
     get = ab
     test = true
     offset = (0, 2) |}];
   test 1;
-  [%expect {|
+  [%expect
+    {|
     get_opt = a
     get = a
     test = true
@@ -117,7 +119,8 @@ let%expect_test "Group.{get,get_opt,offset,test}" =
     test = false
     offset = Not_found |}];
   test 3;
-  [%expect {|
+  [%expect
+    {|
     get_opt = b
     get = b
     test = true

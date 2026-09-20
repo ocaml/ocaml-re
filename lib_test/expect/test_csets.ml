@@ -19,19 +19,22 @@ let%expect_test "cdigit" =
 
 let%expect_test "calpha" =
   Format.printf "%a@." Cset.pp Cset.calpha;
-  [%expect {|
+  [%expect
+    {|
     65-90, 97-122, 170, 181, 186, 192-214, 216-246, 248-255 |}]
 ;;
 
 let%expect_test "cword" =
   Format.printf "%a@." Cset.pp Cset.cword;
-  [%expect {|
+  [%expect
+    {|
     48-57, 65-90, 95, 97-122, 170, 181, 186, 192-214, 216-246, 248-255 |}]
 ;;
 
 let%expect_test "notnl" =
   Format.printf "%a@." Cset.pp Cset.notnl;
-  [%expect {|
+  [%expect
+    {|
     0-9, 11-255 |}]
 ;;
 
@@ -47,61 +50,71 @@ let%expect_test "blank" =
 
 let%expect_test "space" =
   Format.printf "%a@." Cset.pp Cset.space;
-  [%expect {|
+  [%expect
+    {|
     9-13, 32 |}]
 ;;
 
 let%expect_test "xdigit" =
   Format.printf "%a@." Cset.pp Cset.xdigit;
-  [%expect {|
+  [%expect
+    {|
     48-57, 65-70, 97-102 |}]
 ;;
 
 let%expect_test "lower" =
   Format.printf "%a@." Cset.pp Cset.lower;
-  [%expect {|
+  [%expect
+    {|
     97-122, 181, 223-246, 248-255 |}]
 ;;
 
 let%expect_test "upper" =
   Format.printf "%a@." Cset.pp Cset.upper;
-  [%expect {|
+  [%expect
+    {|
     65-90, 192-214, 216-222 |}]
 ;;
 
 let%expect_test "alpha" =
   Format.printf "%a@." Cset.pp Cset.alpha;
-  [%expect {|
+  [%expect
+    {|
     65-90, 97-122, 170, 181, 186, 192-214, 216-246, 248-255 |}]
 ;;
 
 let%expect_test "alnum" =
   Format.printf "%a@." Cset.pp Cset.alnum;
-  [%expect {|
+  [%expect
+    {|
     48-57, 65-90, 97-122, 170, 181, 186, 192-214, 216-246, 248-255 |}]
 ;;
 
 let%expect_test "wordc" =
   Format.printf "%a@." Cset.pp Cset.wordc;
-  [%expect {|
+  [%expect
+    {|
     48-57, 65-90, 95, 97-122, 170, 181, 186, 192-214, 216-246, 248-255 |}]
 ;;
 
 let%expect_test "cntrl" =
   Format.printf "%a@." Cset.pp Cset.cntrl;
-  [%expect {|
+  [%expect
+    {|
     0-31, 127-159 |}]
 ;;
 
 let%expect_test "graph" =
   Format.printf "%a@." Cset.pp Cset.graph;
-  [%expect {|
+  [%expect
+    {|
     33-126, 160-255 |}]
 ;;
 
 let%expect_test "print" =
   Format.printf "%a@." Cset.pp Cset.print;
-  [%expect {|
+  [%expect
+    {|
     32-126, 160-255 |}]
 ;;
 

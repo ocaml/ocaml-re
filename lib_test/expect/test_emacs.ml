@@ -1,6 +1,6 @@
 open Import
 
-(* 
+(*
  * Tests based on description of emacs regular expressions given at
  *   http://www.gnu.org/manual/elisp-manual-20-2.5/html_chapter/elisp_34.html
  *)

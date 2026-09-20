@@ -69,8 +69,9 @@ let substitute ~rex ~subst str =
       let start, fin = Re.Group.offset ss 0 in
       if on_match && start = pos && start = fin
       then (
-        if (* Empty match following a match *)
-           pos < String.length str
+        if
+          (* Empty match following a match *)
+          pos < String.length str
         then (
           Buffer.add_char b str.[pos];
           loop (pos + 1) false))
@@ -80,8 +81,9 @@ let substitute ~rex ~subst str =
         Buffer.add_string b (subst pat);
         if start = fin
         then (
-          if (* Manually advance by one after an empty match *)
-             fin < String.length str
+          if
+            (* Manually advance by one after an empty match *)
+            fin < String.length str
           then (
             Buffer.add_char b str.[fin];
             loop (fin + 1) false))

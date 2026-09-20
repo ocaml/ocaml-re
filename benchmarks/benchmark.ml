@@ -70,8 +70,8 @@ let exec_bench_many exec name re cases =
     ~name
     (fun () -> Re.compile re)
     (fun re ->
-      let re = re () in
-      List.iter cases ~f:(fun x -> ignore (exec re x)))
+       let re = re () in
+       List.iter cases ~f:(fun x -> ignore (exec re x)))
 ;;
 
 let string_traversal =

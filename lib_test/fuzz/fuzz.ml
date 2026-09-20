@@ -110,11 +110,11 @@ let re_gen =
              ; C.map
                  [ C.range 3; self ]
                  (fun n r ctx ->
-                   match n with
-                   | 0 -> Re.shortest (r ctx)
-                   | 1 -> Re.longest (r ctx)
-                   | 2 -> Re.first (r ctx)
-                   | _ -> assert false)
+                    match n with
+                    | 0 -> Re.shortest (r ctx)
+                    | 1 -> Re.longest (r ctx)
+                    | 2 -> Re.first (r ctx)
+                    | _ -> assert false)
              ; C.choose
                  [ C.const (fun (_ctx : Ctx.t) -> Re.bol)
                  ; C.const (fun (_ctx : Ctx.t) -> Re.eol)
@@ -128,8 +128,8 @@ let re_gen =
              ])
        ]
        (fun f ->
-         let group_counter = ref 0 in
-         group_counter, f { counter = group_counter; nested_stars = 0 }))
+          let group_counter = ref 0 in
+          group_counter, f { counter = group_counter; nested_stars = 0 }))
 ;;
 
 module Compare_to_reference = struct
@@ -200,16 +200,16 @@ module Compare_to_reference = struct
     f (fun compare_key state -> matches := (compare_key, state) :: !matches);
     List.rev !matches
     |> (fun l ->
-         if false
-         then
-           Format.printf
-             "@[<2>before reorder: %a@]@\n"
-             (Format.pp_print_list
-                ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-                (fun fmt (key, state) ->
-                  Format.fprintf fmt "(%a,%a)" pp_key key pp_state state))
-             l;
-         l)
+    if false
+    then
+      Format.printf
+        "@[<2>before reorder: %a@]@\n"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+           (fun fmt (key, state) ->
+              Format.fprintf fmt "(%a,%a)" pp_key key pp_state state))
+        l;
+    l)
     |> List.stable_sort ~cmp:(fun (a, _) (b, _) -> compare a b)
     |> List.map ~f:snd
     |> List.iter ~f:k
@@ -262,11 +262,11 @@ module Compare_to_reference = struct
           ~pp_key:(fun fmt n -> Format.fprintf fmt "prio:%d" n)
           ~compare:(ordering Int.compare)
           (fun k ->
-            k 0 state;
-            reference r1 ctx state (fun state2 ->
-              k (if state.pos = state2.pos then 1 else 2) state2))
+             k 0 state;
+             reference r1 ctx state (fun state2 ->
+               k (if state.pos = state2.pos then 1 else 2) state2))
           (fun state2 ->
-            if state.pos = state2.pos then k state2 else reference r ctx state2 k)
+             if state.pos = state2.pos then k state2 else reference r ctx state2 k)
       | Beg_of_line ->
         (match peek_behind ctx state.pos with
          | Some '\n' | None -> k state
@@ -345,10 +345,10 @@ module Compare_to_reference = struct
   let all_offset group_counter matches =
     Option.map
       (fun m ->
-        Array.init (group_counter + 1) (fun n ->
-          match String_map.find_opt (group_name n) m with
-          | None -> -1, -1
-          | Some p -> p))
+         Array.init (group_counter + 1) (fun n ->
+           match String_map.find_opt (group_name n) m with
+           | None -> -1, -1
+           | Some p -> p))
       matches
   ;;
 
@@ -417,25 +417,25 @@ module Exec_partial = struct
       ~name:"exec_partial"
       [ re_gen; string_gen_dyn 6; string_gen_dyn 6 ]
       (fun (_, re) prefix rest ->
-        let re = Re.compile re in
-        match Re.exec_partial_detailed re prefix with
-        | `Partial n ->
-          (match Re.exec_opt re (prefix ^ rest) with
-           | None -> ()
-           | Some group -> C.check (Re.Group.start group 0 >= n))
-        | (`Full _ | `Mismatch) as res ->
-          let res1 =
-            match res with
-            | `Full group -> Some (Re.Group.all_offset group)
-            | `Mismatch -> None
-          in
-          let res2 = Re.exec_opt re (prefix ^ rest) |> Option.map Re.Group.all_offset in
-          C.check_eq'
-            ~eq:(Stdlib.( = ) : (int * int) array option -> _)
-            res1
-            res2
-            ~pp:(C.pp_option (C.pp_array (C.pp_pair C.pp_int C.pp_int)))
-            ~pp_ctx:(fun f -> Format.fprintf f "input: %S %S@\n" prefix rest))
+         let re = Re.compile re in
+         match Re.exec_partial_detailed re prefix with
+         | `Partial n ->
+           (match Re.exec_opt re (prefix ^ rest) with
+            | None -> ()
+            | Some group -> C.check (Re.Group.start group 0 >= n))
+         | (`Full _ | `Mismatch) as res ->
+           let res1 =
+             match res with
+             | `Full group -> Some (Re.Group.all_offset group)
+             | `Mismatch -> None
+           in
+           let res2 = Re.exec_opt re (prefix ^ rest) |> Option.map Re.Group.all_offset in
+           C.check_eq'
+             ~eq:(Stdlib.( = ) : (int * int) array option -> _)
+             res1
+             res2
+             ~pp:(C.pp_option (C.pp_array (C.pp_pair C.pp_int C.pp_int)))
+             ~pp_ctx:(fun f -> Format.fprintf f "input: %S %S@\n" prefix rest))
   ;;
 end
 

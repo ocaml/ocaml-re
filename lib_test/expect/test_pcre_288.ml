@@ -10,6 +10,7 @@ let%expect_test "split1" =
 
 let%expect_test "split2" =
   strings (Pcre.split ~rex:whitespace_re " ");
-  [%expect {|
+  [%expect
+    {|
     [] |}]
 ;;

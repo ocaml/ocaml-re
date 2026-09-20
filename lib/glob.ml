@@ -66,11 +66,12 @@ let of_string ~double_asterisk s : t =
     loop []
   in
   let piece acc =
-    if double_asterisk
-       && (match acc with
-           | [] | Exactly '/' :: _ -> true
-           | _ -> false)
-       && Parse_buffer.accept_s buf "**/"
+    if
+      double_asterisk
+      && (match acc with
+          | [] | Exactly '/' :: _ -> true
+          | _ -> false)
+      && Parse_buffer.accept_s buf "**/"
     then ManyMany { component_with_terminator = true } :: acc
     else if read '*'
     then
@@ -119,7 +120,7 @@ module State = struct
     ; remaining : piece list (* last piece at tail of list. *)
     ; am_at_start_of_pattern : bool (* true at start of pattern *)
     ; am_at_start_of_component : bool
-        (* true at start of pattern or immediately
+      (* true at start of pattern or immediately
            after '/' *)
     ; pathname : bool
     ; match_backslashes : bool
@@ -313,13 +314,13 @@ let glob ~pathname ~match_backslashes ~period glob =
 ;;
 
 let glob
-  ?(anchored = false)
-  ?(pathname = true)
-  ?(match_backslashes = false)
-  ?(period = true)
-  ?(expand_braces = false)
-  ?(double_asterisk = true)
-  s
+      ?(anchored = false)
+      ?(pathname = true)
+      ?(match_backslashes = false)
+      ?(period = true)
+      ?(expand_braces = false)
+      ?(double_asterisk = true)
+      s
   =
   let double_asterisk = double_asterisk && pathname in
   let to_re s =
@@ -330,13 +331,13 @@ let glob
 ;;
 
 let glob_result
-  ?anchored
-  ?pathname
-  ?match_backslashes
-  ?period
-  ?expand_braces
-  ?double_asterisk
-  s
+      ?anchored
+      ?pathname
+      ?match_backslashes
+      ?period
+      ?expand_braces
+      ?double_asterisk
+      s
   =
   match
     glob ?anchored ?pathname ?match_backslashes ?period ?expand_braces ?double_asterisk s
