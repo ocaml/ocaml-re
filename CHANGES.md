@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix character-set subtraction when one interval spans several disjoint
+  intervals in the source set (#632).
+
 * Fix braced octal escapes in [Re.Perl] and [Re.Pcre] to use positional
   decoding and reject empty or out-of-byte-range values before overflow (#634).
 
