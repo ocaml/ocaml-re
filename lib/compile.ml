@@ -460,6 +460,7 @@ module Stream = struct
   type nonrec t =
     { state : State.t
     ; re : re
+    ; pending_newline : bool
     }
 
   type 'a feed =
@@ -469,7 +470,7 @@ module Stream = struct
   let create re =
     let category = Category.(search_boundary ++ inexistant) in
     let state = find_initial_state re category in
-    { state; re }
+    { state; re; pending_newline = false }
   ;;
 
   let check_bounds s ~pos ~len =
@@ -477,13 +478,26 @@ module Stream = struct
     then invalid_arg "Re.Stream: out of bounds"
   ;;
 
+  let ends_with_newline re s ~pos ~len =
+    len > 0
+    && (not (Cset.equal_c re.lnl Cset.null_char))
+    && Char.equal s.[pos + len - 1] '\n'
+  ;;
+
   let feed t s ~pos ~len =
     check_bounds s ~pos ~len;
-    let last = pos + len in
+    let defer_newline = ends_with_newline t.re s ~pos ~len in
+    let pending_newline = if len = 0 then t.pending_newline else defer_newline in
+    let last = pos + len - if defer_newline then 1 else 0 in
     let state =
-      if Idx.is_break (State.get_info t.state).idx
-      then t.state
-      else loop_no_mark t.re ~colors:t.re.colors s ~last ~pos t.state t.state
+      if t.pending_newline && len > 0 && not (Idx.is_break (State.get_info t.state).idx)
+      then loop_no_mark t.re ~colors:t.re.colors "\n" ~last:1 ~pos:0 t.state t.state
+      else t.state
+    in
+    let state =
+      if Idx.is_break (State.get_info state).idx
+      then state
+      else loop_no_mark t.re ~colors:t.re.colors s ~last ~pos state state
     in
     let info = State.get_info state in
     if
@@ -493,16 +507,24 @@ module Stream = struct
       | Failed -> true
       | Match _ | Running -> false
     then No_match
-    else Ok { t with state }
+    else Ok { t with state; pending_newline }
   ;;
 
   let finalize t s ~pos ~len =
     check_bounds s ~pos ~len;
     let last = pos + len in
     let state =
-      if Idx.is_break (State.get_info t.state).idx
-      then t.state
-      else scan_str t.re Positions.empty s t.state ~slen:last ~last ~pos ~groups:false
+      if t.pending_newline && not (Idx.is_break (State.get_info t.state).idx)
+      then
+        if len = 0
+        then handle_last_newline t.re Positions.empty ~pos:0 t.state ~groups:false
+        else loop_no_mark t.re ~colors:t.re.colors "\n" ~last:1 ~pos:0 t.state t.state
+      else t.state
+    in
+    let state =
+      if Idx.is_break (State.get_info state).idx
+      then state
+      else scan_str t.re Positions.empty s state ~slen:last ~last ~pos ~groups:false
     in
     let info = State.get_info state in
     match
@@ -589,10 +611,27 @@ module Stream = struct
 
     let feed ({ t; positions; slices; abs_pos; first_match_pos = _ } as tt) s ~pos ~len =
       check_bounds s ~pos ~len;
+      let defer_newline = ends_with_newline t.re s ~pos ~len in
+      let pending_newline = if len = 0 then t.pending_newline else defer_newline in
       let state =
-        let last = pos + len in
-        if Idx.is_break (State.get_info t.state).idx
-        then t.state
+        if t.pending_newline && len > 0 && not (Idx.is_break (State.get_info t.state).idx)
+        then
+          loop
+            t.re
+            ~abs_pos:(abs_pos - 1)
+            ~colors:t.re.colors
+            "\n"
+            ~positions
+            ~last:1
+            ~pos:0
+            t.state
+            t.state
+        else t.state
+      in
+      let state =
+        let last = pos + len - if defer_newline then 1 else 0 in
+        if Idx.is_break (State.get_info state).idx
+        then state
         else
           loop
             t.re
@@ -602,8 +641,8 @@ module Stream = struct
             ~positions
             ~last
             ~pos
-            t.state
-            t.state
+            state
+            state
       in
       let info = State.get_info state in
       if
@@ -614,7 +653,7 @@ module Stream = struct
         | Match _ | Running -> false
       then No_match
       else (
-        let t = { t with state } in
+        let t = { t with state; pending_newline } in
         let slices = { Slice.s; pos; len } :: slices in
         let first_match_pos = Positions.first positions in
         let slices = Slice.L.drop_rev slices (first_match_pos - tt.first_match_pos) in
@@ -631,10 +670,29 @@ module Stream = struct
       =
       check_bounds s ~pos ~len;
       let last = pos + len in
+      let last_newline = ends_with_newline t.re s ~pos ~len in
+      let state =
+        if t.pending_newline && not (Idx.is_break (State.get_info t.state).idx)
+        then
+          if len = 0
+          then handle_last_newline t.re positions ~pos:(abs_pos - 1) t.state ~groups:true
+          else
+            loop
+              t.re
+              ~abs_pos:(abs_pos - 1)
+              ~colors:t.re.colors
+              "\n"
+              ~positions
+              ~last:1
+              ~pos:0
+              t.state
+              t.state
+        else t.state
+      in
       let info =
         let state =
-          if Idx.is_break (State.get_info t.state).idx
-          then t.state
+          if Idx.is_break (State.get_info state).idx
+          then state
           else
             loop
               t.re
@@ -642,10 +700,16 @@ module Stream = struct
               ~colors:t.re.colors
               s
               ~positions
-              ~last
+              ~last:(if last_newline then last - 1 else last)
               ~pos
-              t.state
-              t.state
+              state
+              state
+        in
+        let state =
+          if last_newline && not (Idx.is_break (State.get_info state).idx)
+          then
+            handle_last_newline t.re positions ~pos:(abs_pos + len - 1) state ~groups:true
+          else state
         in
         State.get_info state
       in
