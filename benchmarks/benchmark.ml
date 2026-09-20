@@ -210,7 +210,7 @@ let () =
       let filtered =
         List.filter benchmarks ~f:(fun bench ->
           let name = Bench.Test.name bench in
-          List.mem only name ~equal:String.equal)
+          List.exists only ~f:(fun pattern -> String.is_prefix ~prefix:pattern name))
       in
       (match filtered with
        | _ :: _ -> filtered
