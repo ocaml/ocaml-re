@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Include delimiter capture groups in [Re.Pcre.split] results, using empty
+  fields for nonparticipating groups (#667).
+
 * Fix [Re.Str] replacement references to unmatched groups to raise [Failure],
   as [Str] does, instead of substituting an empty string (#646).
 
