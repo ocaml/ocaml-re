@@ -589,7 +589,16 @@ module Stream = struct
         if Idx.is_break (State.get_info t.state).idx
         then t.state
         else
-          loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
+          loop
+            t.re
+            ~abs_pos:(abs_pos - pos)
+            ~colors:t.re.colors
+            s
+            ~positions
+            ~last
+            ~pos
+            t.state
+            t.state
       in
       let info = State.get_info state in
       if
@@ -622,7 +631,16 @@ module Stream = struct
           if Idx.is_break (State.get_info t.state).idx
           then t.state
           else
-            loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
+            loop
+              t.re
+              ~abs_pos:(abs_pos - pos)
+              ~colors:t.re.colors
+              s
+              ~positions
+              ~last
+              ~pos
+              t.state
+              t.state
         in
         State.get_info state
       in
@@ -636,7 +654,7 @@ module Stream = struct
           in
           (match res with
            | Running | Failed -> ()
-           | Match _ -> Positions.set positions (Automata.Idx.to_int idx) (abs_pos + last));
+           | Match _ -> Positions.set positions (Automata.Idx.to_int idx) (abs_pos + len));
           res
       with
       | Running | Failed -> No_match

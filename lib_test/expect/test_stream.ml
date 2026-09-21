@@ -207,7 +207,7 @@ let%expect_test "group - match group" =
     |}]
 ;;
 
-let%expect_test "group - nonzero source offsets corrupt captures" =
+let%expect_test "group - captures with nonzero source offsets" =
   let run ~feed_pos ~finalize_pos =
     let re = Re.(compile (whole_string (seq [ char 'a'; group (char 'b'); char 'c' ]))) in
     let stream = Stream.Group.create (Stream.create re) in
@@ -227,18 +227,25 @@ let%expect_test "group - nonzero source offsets corrupt captures" =
     with
     | No_match -> assert false
     | Ok matched ->
+      let whole = Option.get (Stream.Group.Match.get matched 0) in
       let capture = Option.get (Stream.Group.Match.get matched 1) in
-      Printf.printf "feed pos=%d, finalize pos=%d: %S\n" feed_pos finalize_pos capture
+      Printf.printf
+        "feed pos=%d, finalize pos=%d: whole=%S; group 1=%S\n"
+        feed_pos
+        finalize_pos
+        whole
+        capture
   in
-  (* All three calls stream "abc", so group 1 should always be "b".
-     The expectations below document the currently incorrect captures. *)
+  (* All calls stream "abc", so group 0 is "abc" and group 1 is "b". *)
   run ~feed_pos:0 ~finalize_pos:0;
   run ~feed_pos:1 ~finalize_pos:0;
   run ~feed_pos:0 ~finalize_pos:1;
+  run ~feed_pos:1 ~finalize_pos:1;
   [%expect
     {|
-    feed pos=0, finalize pos=0: "b"
-    feed pos=1, finalize pos=0: ""
-    feed pos=0, finalize pos=1: "bc"
+    feed pos=0, finalize pos=0: whole="abc"; group 1="b"
+    feed pos=1, finalize pos=0: whole="abc"; group 1="b"
+    feed pos=0, finalize pos=1: whole="abc"; group 1="b"
+    feed pos=1, finalize pos=1: whole="abc"; group 1="b"
     |}]
 ;;
