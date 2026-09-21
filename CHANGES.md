@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix incorrect captured text and assertion failures in [Re.Stream.Group]
+  when discarding unmatched input prefixes (#645).
+
 * Fix character-set subtraction when one interval spans several disjoint
   intervals in the source set (#632).
 

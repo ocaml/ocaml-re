@@ -1,7 +1,7 @@
 module Re = Re_private.Re
 module Stream = Re.Stream
 
-let%expect_test "discarding unmatched prefixes corrupts streamed captures" =
+let%expect_test "streamed captures after discarding unmatched prefixes" =
   List.iter
     (fun input ->
        let re = Re.compile (Re.str "foo") in
@@ -28,7 +28,7 @@ let%expect_test "discarding unmatched prefixes corrupts streamed captures" =
   [%expect
     {|
     "foo": exec="foo"; stream="foo"
-    "xfoo": exec="foo"; stream=File "lib_test/expect/private_re/slice.ml", line 39, characters 18-24: Assertion failed
-    "xxxxfoo": exec="foo"; stream="xfo"
+    "xfoo": exec="foo"; stream="foo"
+    "xxxxfoo": exec="foo"; stream="foo"
     |}]
 ;;

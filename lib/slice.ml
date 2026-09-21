@@ -58,9 +58,7 @@ module L = struct
       | ({ s = _; pos; len } as slice) :: t ->
         if remains >= len
         then drop t (remains - len)
-        else (
-          let delta = len - remains in
-          { slice with pos = pos + delta; len = len - delta } :: t))
+        else { slice with pos = pos + remains; len = len - remains } :: t)
   ;;
 
   let drop_rev t remains =

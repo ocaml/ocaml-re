@@ -10,11 +10,10 @@ let%expect_test "drop_rev partially consumes a slice" =
       |> String.concat ""
     in
     Printf.printf "drop %d: %S\n" count text);
-  (* Dropping one byte should leave "bcdef", not "f". Record the current bug. *)
   [%expect
     {|
     drop 0: "abcdef"
-    drop 1: "f"
+    drop 1: "bcdef"
     drop 6: ""
     |}]
 ;;
