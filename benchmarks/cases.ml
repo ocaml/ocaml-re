@@ -206,18 +206,18 @@ let%expect_test "benchmark automaton colors and states" =
     20 zeroes colors=2 states=21
     lots of a's colors=3 states=5
     media type match colors=3 states=5
-    uri colors=6 states=15
+    uri colors=6 states=14
     tex gitignore colors=42 states=68
-    http/manual/no group colors=13 states=648
-    http/manual/group colors=13 states=45
-    http/auto/execp no group colors=13 states=868
-    http/auto/all_gen colors=13 states=71
+    http/manual/no group colors=13 states=557
+    http/manual/group colors=13 states=40
+    http/auto/execp no group colors=13 states=799
+    http/auto/all_gen colors=13 states=66
     string traversal from #210 colors=3 states=32
     kleene star compilation colors=2 states=3
     memory 1 colors=3 states=1003
     memory 2 colors=4 states=1003
     repeated sequence re colors=256 states=12801
-    split on whitespace colors=2 states=5
+    split on whitespace colors=2 states=4
     shared prefixes colors=27 states=6
     duplicate accepting states colors=256 states=2
     |}]
@@ -271,21 +271,21 @@ let%expect_test "fully forced benchmark automata" =
     forceable;
   [%expect
     {|
-    20 zeroes colors=2 states=24
-    lots of a's colors=3 states=10
-    media type match colors=3 states=12
-    uri colors=6 states=353
-    http/manual/group colors=13 states=423
-    http/auto/all_gen colors=13 states=795
-    string traversal from #210 colors=3 states=66
-    kleene star compilation colors=2 states=6
-    repeated sequence re colors=256 states=12810
-    split on whitespace colors=2 states=7
-    shared prefixes colors=27 states=11
-    duplicate accepting states colors=256 states=7
-    expression IDs/broad/16/1024 colors=9 states=1035
-    expression IDs/broad/4096/16384 colors=17 states=16405
-    expression IDs/broad/65536/262144 colors=21 states=262169
+    20 zeroes colors=2 states=23
+    lots of a's colors=3 states=9
+    media type match colors=3 states=10
+    uri colors=6 states=242
+    http/manual/group colors=13 states=374
+    http/auto/all_gen colors=13 states=707
+    string traversal from #210 colors=3 states=65
+    kleene star compilation colors=2 states=5
+    repeated sequence re colors=256 states=12803
+    split on whitespace colors=2 states=5
+    shared prefixes colors=27 states=8
+    duplicate accepting states colors=256 states=2
+    expression IDs/broad/16/1024 colors=9 states=1033
+    expression IDs/broad/4096/16384 colors=17 states=16401
+    expression IDs/broad/65536/262144 colors=21 states=262165
     expression IDs/narrow/1024 colors=2 states=1027
     expression IDs/narrow/1000000 colors=2 states=1000003
     |}]

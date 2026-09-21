@@ -18,5 +18,7 @@ val to_int : t -> int
 val equal : t -> t -> bool
 val compare : t -> t -> int
 val intersect : t -> t -> bool
+val mask : t -> t -> t
+val empty : t
 val pp : t Fmt.t
 val to_dyn : t -> Dyn.t
