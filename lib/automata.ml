@@ -632,11 +632,12 @@ module State = struct
     { idx : Idx.t
     ; category : Category.t
     ; desc : Desc.t
-    ; mutable status : Status.t option
+    ; status : Status.t
     ; hash : int
     }
-  (* Thread-safety: We use double-checked locking to access field
-     [status] in function [status] below. *)
+  (* [Compile.find_state] immediately needs each newly interned state's status.
+     Compute it before publication instead of retaining an option block and
+     another independently mutable field. *)
 
   let pp fmt t = Desc.pp fmt t.desc
   let[@inline] idx t = t.idx
@@ -646,7 +647,7 @@ module State = struct
     { idx = Idx.unknown
     ; category = Category.dummy
     ; desc = Desc.empty
-    ; status = None
+    ; status = Failed
     ; hash = -1
     }
   ;;
@@ -657,7 +658,12 @@ module State = struct
   ;;
 
   let mk idx cat desc =
-    { idx; category = cat; desc; status = None; hash = hash (idx :> int) cat desc }
+    { idx
+    ; category = cat
+    ; desc
+    ; status = Desc.status desc
+    ; hash = hash (idx :> int) cat desc
+    }
   ;;
 
   let create cat e = mk Idx.initial cat (Desc.initial e)
@@ -669,25 +675,8 @@ module State = struct
     && Desc.equal desc t.desc
   ;;
 
-  (* To be called when the mutex has already been acquired *)
-  let status_no_mutex s =
-    match s.status with
-    | Some s -> s
-    | None ->
-      let st = Desc.status s.desc in
-      s.status <- Some st;
-      st
-  ;;
-
-  let status m s =
-    match s.status with
-    | Some s -> s
-    | None ->
-      Mutex.lock m;
-      let st = status_no_mutex s in
-      Mutex.unlock m;
-      st
-  ;;
+  let status_no_mutex s = s.status
+  let status _mutex s = s.status
 
   module Table = Hashtbl.Make (struct
       type nonrec t = t

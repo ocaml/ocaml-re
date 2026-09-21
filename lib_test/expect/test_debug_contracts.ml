@@ -155,14 +155,27 @@ let%expect_test "automata expression, state and cached status diagnostics" =
   let state = A.State.create Category.inexistant (A.seq ids `First (A.mark ids mark) a) in
   let check_cached state =
     let first = A.State.status_no_mutex state in
-    assert (Poly.equal first (A.State.status_no_mutex state))
+    assert (Phys_equal.equal first (A.State.status_no_mutex state));
+    first
   in
-  check_cached state;
+  assert (Poly.equal (check_cached A.State.dummy) A.Status.Failed);
+  let failed =
+    A.delta
+      wa
+      (Category.from_char 'b')
+      (Cset.of_char 'b')
+      (A.State.create Category.inexistant a)
+  in
+  assert (Poly.equal (check_cached failed) A.Status.Failed);
+  assert (Poly.equal (check_cached state) A.Status.Running);
   Format.printf "%a@." A.State.pp state;
   let state = A.delta wa (Category.from_char 'a') (Cset.of_char 'a') state in
   Format.printf "%a@." A.State.pp state;
   let state = A.delta wa Category.inexistant Cset.null_char state in
-  check_cached state;
+  assert (
+    match check_cached state with
+    | Match _ -> true
+    | Running | Failed -> false);
   Format.printf "%a@." A.State.pp state;
   let expr = A.seq ids `Longest (A.rep ids `Greedy `First a) a in
   let state = A.State.create Category.inexistant expr in
@@ -170,6 +183,10 @@ let%expect_test "automata expression, state and cached status diagnostics" =
   Format.printf "%a@." A.State.pp state;
   let state = A.State.create Category.inexistant marked in
   let state = A.delta wa Category.inexistant Cset.null_char state in
+  assert (
+    match check_cached state with
+    | Match (_, pmarks) -> Re_private.Pmark.Set.mem pmark pmarks
+    | Running | Failed -> false);
   assert (
     String.equal
       (Format.asprintf "%a" A.State.pp state)
