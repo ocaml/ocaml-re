@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Omit empty text tokens between adjacent delimiters in [Re.Pcre.full_split]
+  (#666).
+
 * Fix [Re.Str] replacement references to unmatched groups to raise [Failure],
   as [Str] does, instead of substituting an empty string (#646).
 

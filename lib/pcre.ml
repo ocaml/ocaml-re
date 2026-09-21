@@ -156,6 +156,7 @@ let full_split ?(max = 0) ~rex s =
     let matches =
       List.map
         (function
+          | `Text "" -> []
           | `Text s -> [ Text s ]
           | `Delim d ->
             let matches = Re.Group.all_offset d in
