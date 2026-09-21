@@ -29,12 +29,7 @@ let%expect_test "all named group spellings preserve numbering, names and offsets
         {|names=[word_1=2] pcre_names=["word_1"] captures=["xabbc"; "x"; "abb"; "b"; "c"] offsets=[(1,6); (1,2); (2,5); (4,5); (5,6)] word_1="abb"|}
       actual);
   Check.finish checks;
-  [%expect
-    {|
-    "(x)(?P<word_1>a(b)+)(c)": parse error; expected names=[word_1=2] pcre_names=["word_1"] captures=["xabbc"; "x"; "abb"; "b"; "c"] offsets=[(1,6); (1,2); (2,5); (4,5); (5,6)] word_1="abb"
-    "(x)(?'word_1'a(b)+)(c)": parse error; expected names=[word_1=2] pcre_names=["word_1"] captures=["xabbc"; "x"; "abb"; "b"; "c"] offsets=[(1,6); (1,2); (2,5); (4,5); (5,6)] word_1="abb"
-    3 checks; 2 differences
-    |}]
+  [%expect {| 3 checks; 0 differences |}]
 ;;
 
 let%expect_test "named captures remain optional and work across alternatives" =
@@ -49,11 +44,7 @@ let%expect_test "named captures remain optional and work across alternatives" =
   in
   Check.check checks (Check.text pattern) ~expected:{|left=unset right="b"|} actual;
   Check.finish checks;
-  [%expect
-    {|
-    "(?P<left>a)|(?'right'b)": parse error; expected left=unset right="b"
-    1 checks; 1 differences
-    |}]
+  [%expect {| 1 checks; 0 differences |}]
 ;;
 
 let%expect_test "malformed names and other P-prefixed forms still fail" =
@@ -111,15 +102,5 @@ let%expect_test "word boundary aliases are zero-width and not character classes"
       ~expected:"parse error"
       (Check.parse_status pattern));
   Check.finish checks;
-  [%expect
-    {|
-    "[[:<:]]cat[[:>:]]" on "cat": parse error; expected "cat"
-    "[[:<:]]cat[[:>:]]" on "!cat!": parse error; expected "cat"
-    "[[:<:]]cat[[:>:]]" on "catfish": parse error; expected no match
-    "[[:<:]]cat[[:>:]]" on "scat": parse error; expected no match
-    "[[:<:]]cat[[:>:]]" on "_cat": parse error; expected no match
-    "[[:<:]]cat[[:>:]]" on "!cat!" offsets: parse error; expected (1,4)
-    ... 4 more differences
-    12 checks; 10 differences
-    |}]
+  [%expect {| 12 checks; 0 differences |}]
 ;;

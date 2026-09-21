@@ -152,19 +152,25 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
         else if accept '#'
         then comment ()
         else if accept '<'
+        then named_group '>'
+        else if accept '\''
+        then named_group '\''
+        else if accept 'P'
         then (
-          let name = name () in
-          let r = regexp () in
-          if not (accept ')') then raise Parse_error;
-          Re.group ~name r)
+          if not (accept '<') then raise Parse_error;
+          named_group '>')
         else raise Parse_error
-      else (
-        let r = regexp () in
-        if not (accept ')') then raise Parse_error;
-        Re.group r)
+      else group ()
     | '^' -> if multiline then Re.bol else Re.bos
     | '$' -> if multiline then Re.eol else if dollar_endonly then Re.eos else Re.leol
-    | '[' -> if accept '^' then Re.compl (bracket []) else Re.alt (bracket [])
+    | '[' ->
+      if Parse_buffer.accept_s buf "[:<:]]"
+      then Re.bow
+      else if Parse_buffer.accept_s buf "[:>:]]"
+      then Re.eow
+      else if accept '^'
+      then Re.compl (bracket [])
+      else Re.alt (bracket [])
     | '\\' ->
       (* XXX
          - Back-references
@@ -254,14 +260,21 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       match get () with
       | '0' .. '7' as d -> Some (Char.code d - Char.code '0')
       | _ -> None)
-  and name () =
+  and group ?name () =
+    let r = regexp () in
+    if not (accept ')') then raise Parse_error;
+    Re.group ?name r
+  and named_group delimiter =
+    let name = name delimiter in
+    group ~name ()
+  and name delimiter =
     let start = Parse_buffer.position buf in
     let rec find_end pos =
       if pos = String.length s then raise Parse_error;
       match s.[pos] with
       | '_' | 'a' .. 'z' | 'A' .. 'Z' -> find_end (pos + 1)
       | '0' .. '9' when pos > start -> find_end (pos + 1)
-      | '>' when pos > start -> pos
+      | c when c = delimiter && pos > start -> pos
       | _ -> raise Parse_error
     in
     let stop = find_end start in

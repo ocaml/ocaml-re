@@ -20,6 +20,9 @@ Unreleased
   default. `Dollar_endonly` now requires the end of input; multiline behavior
   is unchanged (#671).
 
+* Support `(?'name'...)` and `(?P<name>...)` capture-group aliases and
+  `[[:<:]]` / `[[:>:]]` word-boundary aliases in [Re.Perl] and [Re.Pcre] (#672).
+
 * Reject integer-overflowing repetition counts in [Re.Perl], [Re.Posix], and
   [Re.Pcre] instead of accepting wrapped bounds (#663).
 
