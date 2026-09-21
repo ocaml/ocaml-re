@@ -76,7 +76,9 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     let gr = if ungreedy then not gr else gr in
     if gr then Re.non_greedy r else Re.greedy r
   in
-  let rec regexp () = regexp' [ branch () ]
+  let rec regexp () =
+    let first = branch () in
+    if accept '|' then regexp' [ branch (); first ] else first
   and regexp' left =
     if accept '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
   and branch () = branch' []
