@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Allow [Re.Str.group_beginning] and [Re.Str.group_end] to access capture
+  groups above nine, matching [Str] (#661).
+
 * Raise [Re.Glob.Parse_error] for dangling escapes during brace expansion,
   rather than leaking a substring bounds exception (#660).
 
