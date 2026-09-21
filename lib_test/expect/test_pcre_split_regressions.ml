@@ -49,10 +49,10 @@ let%expect_test "split delimiter captures" =
   split "()" "ab";
   [%expect
     {|
-    split "(,)" "a,b": ["a"; "b"]
-    split "(,)|(x)" "a,b": ["a"; "b"]
-    split "(,)" "a,": ["a"]
-    split "()" "ab": ["a"; "b"]
+    split "(,)" "a,b": ["a"; ","; "b"]
+    split "(,)|(x)" "a,b": ["a"; ","; ""; "b"]
+    split "(,)" "a,": ["a"; ","]
+    split "()" "ab": ["a"; ""; "b"]
     |}]
 ;;
 
@@ -93,7 +93,7 @@ let%expect_test "split empty alternatives" =
     split "^|a" "ab": ["ab"]
     split "a*?" "ab": ["a"; "b"]
     split "(?:|ab)" "abc": ["a"; "b"; "c"]
-    split "(|a)" "ab": ["a"; "b"]
+    split "(|a)" "ab": ["a"; ""; "b"]
     split "(?:|a)" "ba": ["b"; "a"]
     empty pattern, 10000 bytes: 10000 fields
     |}]
