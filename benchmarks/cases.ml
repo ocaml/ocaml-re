@@ -364,122 +364,122 @@ let%test_module "fully forced benchmark automata" =
                 colors: 2
                 states: 23
                 compiled_words: 491
-                forced_words: 4782
+                forced_words: 3856
               lots of a's:
                 colors: 3
                 states: 9
                 compiled_words: 307
-                forced_words: 955
+                forced_words: 901
               media type match:
                 colors: 3
                 states: 10
                 compiled_words: 316
-                forced_words: 1130
+                forced_words: 1084
               uri:
                 colors: 6
                 states: 242
                 compiled_words: 741
-                forced_words: 38630
+                forced_words: 36756
               http/manual/group:
                 colors: 13
                 states: 374
                 compiled_words: 838
-                forced_words: 69592
+                forced_words: 58100
               http/auto/all_gen:
                 colors: 13
                 states: 707
                 compiled_words: 1277
-                forced_words: 146683
+                forced_words: 121883
               string traversal from #210:
                 colors: 3
                 states: 65
                 compiled_words: 461
-                forced_words: 9620
+                forced_words: 7858
               kleene star compilation:
                 colors: 2
                 states: 5
                 compiled_words: 270
-                forced_words: 613
+                forced_words: 595
               repeated sequence re:
                 colors: 256
                 states: 12803
                 compiled_words: 130325
-                forced_words: 10912985
+                forced_words: 8906439
               split on whitespace:
                 colors: 2
                 states: 5
                 compiled_words: 280
-                forced_words: 668
+                forced_words: 646
               shared prefixes:
                 colors: 27
                 states: 8
                 compiled_words: 6204
-                forced_words: 12754
+                forced_words: 11296
               duplicate accepting states:
                 colors: 256
                 states: 2
                 compiled_words: 4985
-                forced_words: 5489
+                forced_words: 5485
               capture histories/adjacent:
                 colors: 8
                 states: 8
                 compiled_words: 365
-                forced_words: 948
+                forced_words: 912
               capture histories/interleaved:
                 colors: 5
                 states: 6
                 compiled_words: 364
-                forced_words: 782
+                forced_words: 756
               capture histories/nested/4:
                 colors: 11
                 states: 11
                 compiled_words: 833
-                forced_words: 2106
+                forced_words: 1972
               capture histories/nested/16:
                 colors: 12
                 states: 26
                 compiled_words: 2279
-                forced_words: 8376
+                forced_words: 7668
               capture histories/log files:
                 colors: 10
                 states: 30
                 compiled_words: 1115
-                forced_words: 4393
+                forced_words: 4021
               capture histories/escape tokens:
                 colors: 10
                 states: 16
                 compiled_words: 623
-                forced_words: 2139
+                forced_words: 2021
               capture histories/routes:
                 colors: 21
                 states: 65
                 compiled_words: 1271
-                forced_words: 9295
+                forced_words: 8477
               expression IDs/broad/16/1024:
                 colors: 9
                 states: 1033
                 compiled_words: 11053
-                forced_words: 98863
+                forced_words: 92585
               expression IDs/broad/4096/16384:
                 colors: 17
                 states: 16401
                 compiled_words: 350486
-                forced_words: 2449128
+                forced_words: 2293394
               expression IDs/broad/65536/262144:
                 colors: 21
                 states: 262165
                 compiled_words: 5996822
-                forced_words: 42567884
+                forced_words: 39815262
               expression IDs/narrow/1024:
                 colors: 2
                 states: 1027
                 compiled_words: 10492
-                forced_words: 80655
+                forced_words: 74509
               expression IDs/narrow/1000000:
                 colors: 2
                 states: 1000003
                 compiled_words: 10000252
-                forced_words: 78024559
+                forced_words: 72024557
               |}]
           ;;
         end

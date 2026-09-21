@@ -417,19 +417,15 @@ module Status = struct
 end
 
 module Desc : sig
-  type t
+  type t = private
+    | Empty
+    | TSeq of Sem.t * t * Expr.t * t
+    | TExp of Marks.t * Expr.t * t
+    | TMatch of Marks.t * t
 
   val pp : t Fmt.t
-
-  module E : sig
-    type nonrec t = private
-      | TSeq of Sem.t * t * Expr.t
-      | TExp of Marks.t * Expr.t
-      | TMatch of Marks.t
-  end
-
   val to_dyn : t -> Dyn.t
-  val fold_right : t -> init:'acc -> f:(E.t -> 'acc -> 'acc) -> 'acc
+  val fold_right : t -> init:'acc -> f:(t -> 'acc -> 'acc) -> 'acc
   val tseq : Sem.t -> t -> Expr.t -> t -> t
   val texp : Marks.t -> Expr.t -> t -> t
   val initial : Expr.t -> t
@@ -444,195 +440,197 @@ module Desc : sig
   val split_at_match : t -> t * t
   val add_match : t -> Marks.t -> t
   val add_eps : t -> Marks.t -> t
-  val add_expr : t -> E.t -> t
+  val add_expr : t -> t -> t
   val iter_marks : t -> f:(Marks.t -> unit) -> unit
   val remove_duplicates : Id.Hash_set.t -> t -> Expr.t -> t
 end = struct
-  module E = struct
-    type t =
-      | TSeq of Sem.t * t list * Expr.t
-      | TExp of Marks.t * Expr.t
-      | TMatch of Marks.t
-    (* [t] is a slight variation of [Expr.t], so we have somewhere to store marks.
+  (* TMatch is produced when deriving a regex succeeds without consuming the
+     input character. As a result, the derivation proceeds into whatever
+     follows the TMatch, which means we have the invariant that TMatch can only
+     show up in the top-most list (i.e. not nested inside a Tseq. This happens
+     because TMatch are dropped via remove_matches or split_at_match or bubble
+     up to the top).
+   *)
+  type t =
+    | Empty
+    | TSeq of Sem.t * t * Expr.t * t
+    | TExp of Marks.t * Expr.t * t
+    | TMatch of Marks.t * t
 
-       TMatch is produced when deriving a regex succeeds without consuming the input
-       character. As a result, the derivation proceeds into whatever follows the
-       TMatch, which means we have the invariant that TMatch can only show up in the
-       top-most list (i.e. not nested inside a Tseq. This happens because TMatch
-       are dropped via remove_matches or split_at_match or bubble up to the top).
-    *)
+  let tail = function
+    | Empty -> assert false
+    | TSeq (_, _, _, r) | TExp (_, _, r) | TMatch (_, r) -> r
+  ;;
 
-    let rec equal_list l1 l2 =
-      Phys_equal.equal l1 l2
-      ||
-      match l1, l2 with
-      | x :: xs, y :: ys -> equal x y && equal_list xs ys
-      | _, _ -> false
-
-    and equal x y =
-      Phys_equal.equal x y
-      ||
-      match x, y with
-      | TSeq (_, l1, e1), TSeq (_, l2, e2) -> Id.equal e1.id e2.id && equal_list l1 l2
-      | TExp (marks1, e1), TExp (marks2, e2) ->
-        Id.equal e1.id e2.id && Marks.equal marks1 marks2
-      | TMatch marks1, TMatch marks2 -> Marks.equal marks1 marks2
-      | _, _ -> false
-    ;;
-
-    let rec hash (t : t) accu =
+  let with_tail t r =
+    if Phys_equal.equal (tail t) r
+    then t
+    else (
       match t with
-      | TSeq (_, l, e) ->
-        hash_combine 0x172a1bce (hash_combine (Id.hash e.id) (hash_list l accu))
-      | TExp (marks, e) ->
-        hash_combine 0x2b4c0d77 (hash_combine (Id.hash e.id) (Marks.hash marks accu))
-      | TMatch marks -> hash_combine 0x1c205ad5 (Marks.hash marks accu)
+      | Empty -> assert false
+      | TSeq (k, l, e, _) -> TSeq (k, l, e, r)
+      | TExp (m, e, _) -> TExp (m, e, r)
+      | TMatch (m, _) -> TMatch (m, r))
+  ;;
 
-    and hash_list =
-      let f acc x = hash x acc in
-      fun l init -> List.fold_left l ~init ~f
-    ;;
-  end
+  let rec equal x y =
+    Phys_equal.equal x y
+    ||
+    match x, y with
+    | TSeq (_, l1, e1, r1), TSeq (_, l2, e2, r2) ->
+      Id.equal e1.id e2.id && equal l1 l2 && equal r1 r2
+    | TExp (m1, e1, r1), TExp (m2, e2, r2) ->
+      Id.equal e1.id e2.id && Marks.equal m1 m2 && equal r1 r2
+    | TMatch (m1, r1), TMatch (m2, r2) -> Marks.equal m1 m2 && equal r1 r2
+    | _, _ -> false
+  ;;
 
-  type t = E.t list
+  let rec hash t accu =
+    match t with
+    | Empty -> accu
+    | TSeq (_, l, e, r) ->
+      hash r (hash_combine 0x172a1bce (hash_combine (Id.hash e.id) (hash l accu)))
+    | TExp (m, e, r) ->
+      hash r (hash_combine 0x2b4c0d77 (hash_combine (Id.hash e.id) (Marks.hash m accu)))
+    | TMatch (m, r) -> hash r (hash_combine 0x1c205ad5 (Marks.hash m accu))
+  ;;
 
-  let rec to_dyn t = Dyn.list (List.map ~f:dyn_of_e t)
+  let rec fold_right t ~init ~f =
+    match t with
+    | Empty -> init
+    | _ -> f t (fold_right (tail t) ~init ~f)
+  ;;
+
+  let rec to_dyn t = Dyn.list (fold_right t ~init:[] ~f:(fun e r -> dyn_of_e e :: r))
 
   and dyn_of_e =
     let open Dyn in
     function
-    | E.TSeq (sem, x, y) ->
+    | Empty -> assert false
+    | TSeq (sem, x, y, _) ->
       variant ("TSeq" ^ sem_kind_suffix sem) [ to_dyn x; Expr.to_dyn y ]
-    | TExp (marks, e) ->
-      let e =
-        let base = [ Expr.to_dyn e ] in
-        if Marks.(equal empty marks) then base else Marks.to_dyn marks :: base
-      in
-      variant "TExp" e
-    | TMatch m -> variant "TMatch" [ Marks.to_dyn m ]
+    | TExp (marks, e, _) ->
+      let base = [ Expr.to_dyn e ] in
+      variant
+        "TExp"
+        (if Marks.(equal empty marks) then base else Marks.to_dyn marks :: base)
+    | TMatch (m, _) -> variant "TMatch" [ Marks.to_dyn m ]
   ;;
-
-  open E
-
-  let equal = E.equal_list
-  let hash = E.hash_list
 
   let tseq kind x y rem =
     match x with
-    | [] -> rem
-    | [ TExp (marks, { def = Eps; _ }) ] -> TExp (marks, y) :: rem
-    | _ -> TSeq (kind, x, y) :: rem
+    | Empty -> rem
+    | TExp (marks, { def = Eps; _ }, Empty) -> TExp (marks, y, rem)
+    | _ -> TSeq (kind, x, y, rem)
   ;;
 
-  let texp marks e rem = TExp (marks, e) :: rem
-
-  let rec fold_right t ~init ~f =
-    match t with
-    | [] -> init
-    | x :: xs -> f x (fold_right xs ~init ~f)
-  ;;
+  let texp marks e rem = TExp (marks, e, rem)
 
   let rec iter_marks t ~f =
-    List.iter t ~f:(fun (e : E.t) ->
-      match e with
-      | TSeq (_, l, _) -> iter_marks l ~f
-      | TExp (marks, _) | TMatch marks -> f marks)
+    match t with
+    | Empty -> ()
+    | TSeq (_, l, _, r) ->
+      iter_marks l ~f;
+      iter_marks r ~f
+    | TExp (marks, _, r) | TMatch (marks, r) ->
+      f marks;
+      iter_marks r ~f
   ;;
 
   let rec print_state_rec ch e (y : Expr.t) =
     match e with
-    | TMatch marks -> Format.fprintf ch "@[<2>(TMatch@ %a)@]" Marks.pp marks
-    | TSeq (sem, l', x) ->
+    | Empty -> assert false
+    | TMatch (marks, _) -> Format.fprintf ch "@[<2>(TMatch@ %a)@]" Marks.pp marks
+    | TSeq (sem, l', x, _) ->
       Format.fprintf ch "@[<2>(TSeq@ %a@ " Sem.pp sem;
       print_state_lst ch l' x;
       Format.fprintf ch "@ %a)@]" Expr.pp x
-    | TExp (marks, { def = Eps; _ }) ->
+    | TExp (marks, { def = Eps; _ }, _) ->
       Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ (eps))@]" Id.pp y.id Marks.pp marks
-    | TExp (marks, x) ->
+    | TExp (marks, x, _) ->
       Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ %a)@]" Id.pp x.id Marks.pp marks Expr.pp x
 
   and print_state_lst ch l y =
     match l with
-    | [] -> Format.fprintf ch "()"
-    | e :: rem ->
+    | Empty -> Format.fprintf ch "()"
+    | e ->
       print_state_rec ch e y;
-      List.iter rem ~f:(fun e ->
-        Format.fprintf ch "@ | ";
-        print_state_rec ch e y)
+      let rec loop = function
+        | Empty -> ()
+        | e ->
+          Format.fprintf ch "@ | ";
+          print_state_rec ch e y;
+          loop (tail e)
+      in
+      loop (tail e)
   ;;
 
-  let pp ch t = print_state_lst ch [ t ] { id = Id.zero; def = Eps }
+  let pp ch t =
+    Format.fprintf ch "[";
+    let rec loop sep = function
+      | Empty -> ()
+      | e ->
+        if sep then Format.fprintf ch ";@ ";
+        print_state_rec ch e { id = Id.zero; def = Eps };
+        loop true (tail e)
+    in
+    loop false t;
+    Format.fprintf ch "]"
+  ;;
 
   let rec first_match = function
-    | [] -> None
-    | TMatch marks :: _ -> Some marks
-    | _ :: r -> first_match r
+    | Empty -> None
+    | TMatch (marks, _) -> Some marks
+    | t -> first_match (tail t)
   ;;
 
   let rec remove_matches = function
-    | [] -> []
-    | TMatch _ :: r -> remove_matches r
-    | x :: r as l ->
-      let r' = remove_matches r in
-      if Phys_equal.equal r r' then l else x :: r'
+    | Empty -> Empty
+    | TMatch (_, r) -> remove_matches r
+    | t -> with_tail t (remove_matches (tail t))
   ;;
 
   let rec split_at_match = function
-    | [] -> assert false
-    | TMatch _ :: r -> [], remove_matches r
-    | x :: r ->
-      let before, after = split_at_match r in
-      x :: before, after
+    | Empty -> assert false
+    | TMatch (_, r) -> Empty, remove_matches r
+    | t ->
+      let l, r = split_at_match (tail t) in
+      with_tail t l, r
   ;;
 
   let status : _ -> Status.t = function
-    | [] -> Failed
-    | TMatch m :: _ -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)
+    | Empty -> Failed
+    | TMatch (m, _) -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)
     | _ -> Running
   ;;
 
   let status_is_ambiguous t ~ambiguity_mark =
     match t with
-    | TMatch m :: _ -> Pmark.Set.mem ambiguity_mark m.pmarks
+    | TMatch (m, _) -> Pmark.Set.mem ambiguity_mark m.pmarks
     | _ -> false
   ;;
 
-  let set_idx =
-    let rec f idx t =
-      match t with
-      | TMatch marks ->
-        let marks' = Marks.marks_set_idx marks idx in
-        if Phys_equal.equal marks marks' then t else TMatch marks'
-      | TSeq (kind, l, x) ->
-        let l' = set_idx idx l in
-        if Phys_equal.equal l l' then t else TSeq (kind, l', x)
-      | TExp (marks, x) ->
-        let marks' = Marks.marks_set_idx marks idx in
-        if Phys_equal.equal marks marks' then t else TExp (marks', x)
-    and set_idx idx xs =
-      match xs with
-      | [] -> []
-      | x :: rest ->
-        let x' = f idx x in
-        let rest' = set_idx idx rest in
-        if Phys_equal.equal x x' && Phys_equal.equal rest rest' then xs else x' :: rest'
-    in
-    set_idx
+  let rec set_idx idx = function
+    | Empty -> Empty
+    | TMatch (m, r) as t ->
+      let m' = Marks.marks_set_idx m idx in
+      let r' = set_idx idx r in
+      if Phys_equal.equal m m' && Phys_equal.equal r r' then t else TMatch (m', r')
+    | TExp (m, e, r) as t ->
+      let m' = Marks.marks_set_idx m idx in
+      let r' = set_idx idx r in
+      if Phys_equal.equal m m' && Phys_equal.equal r r' then t else TExp (m', e, r')
+    | TSeq (k, l, e, r) as t ->
+      let l' = set_idx idx l in
+      let r' = set_idx idx r in
+      if Phys_equal.equal l l' && Phys_equal.equal r r' then t else TSeq (k, l', e, r')
   ;;
 
-  let[@ocaml.warning "-32"] pp fmt t =
-    Format.fprintf
-      fmt
-      "[%a]"
-      (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ") pp)
-      t
-  ;;
-
-  let empty = []
-  let initial expr = [ TExp (Marks.empty, expr) ]
-  let add_match t marks = TMatch marks :: t
-  let add_eps t marks = TExp (marks, eps_expr) :: t
-  let add_expr t expr = expr :: t
+  let empty = Empty
+  let initial expr = TExp (Marks.empty, expr, Empty)
+  let add_match t marks = TMatch (marks, t)
+  let add_eps t marks = TExp (marks, eps_expr, t)
+  let add_expr t expr = with_tail expr t
 
   let remove_duplicates =
     (* Removing duplicates is necessary for the automata to be finite.
@@ -658,31 +656,26 @@ end = struct
     *)
     let rec loop seen l y =
       match l with
-      | [] -> []
-      | TMatch _ :: [] -> l
-      | (TMatch _ as x) :: _ ->
+      | Empty -> Empty
+      | TMatch _ as t ->
         (* Truncate after first match *)
-        [ x ]
-      | TSeq (kind, inner, x) :: r ->
-        let inner' = loop seen inner x in
+        with_tail t Empty
+      | TSeq (kind, l, x, r) as t ->
+        let l' = loop seen l x in
         let r' = loop seen r y in
-        if Phys_equal.equal inner inner' && Phys_equal.equal r r'
-        then l
-        else tseq kind inner' x r'
-      | (TExp (_marks, { def = Eps; _ }) as e) :: r ->
+        if Phys_equal.equal l l' && Phys_equal.equal r r' then t else tseq kind l' x r'
+      | TExp (_marks, { def = Eps; _ }, r) as t ->
         if Id.Hash_set.mem seen y.id
         then loop seen r y
         else (
           Id.Hash_set.add seen y.id;
-          let r' = loop seen r y in
-          if Phys_equal.equal r r' then l else e :: r')
-      | (TExp (_marks, x) as e) :: r ->
+          with_tail t (loop seen r y))
+      | TExp (_marks, x, r) as t ->
         if Id.Hash_set.mem seen x.id
         then loop seen r y
         else (
           Id.Hash_set.add seen x.id;
-          let r' = loop seen r y in
-          if Phys_equal.equal r r' then l else e :: r')
+          with_tail t (loop seen r y))
     in
     fun seen l y ->
       Id.Hash_set.clear seen;
@@ -690,7 +683,7 @@ end = struct
   ;;
 end
 
-module E = Desc.E
+module E = Desc
 
 module State = struct
   type t =
@@ -884,10 +877,11 @@ and delta_seq ctx (kind : Sem.t) y z rem =
 
 let rec delta_e ctx (x : E.t) rem =
   match x with
-  | TSeq (kind, y, z) ->
+  | Empty -> assert false
+  | TSeq (kind, y, z, _) ->
     let y = delta_desc ctx y Desc.empty in
     delta_seq ctx kind y z rem
-  | TExp (marks, e) -> delta_expr ctx marks e rem
+  | TExp (marks, e, _) -> delta_expr ctx marks e rem
   | TMatch _ -> Desc.add_expr rem x
 
 and delta_desc ctx (l : Desc.t) rem =
