@@ -57,9 +57,9 @@ let rec integer' t i =
   else (
     match get t with
     | '0' .. '9' as d ->
-      let i' = (10 * i) + (Char.code d - Char.code '0') in
-      if i' < i then raise Parse_error;
-      integer' t i'
+      let digit = Char.code d - Char.code '0' in
+      if i > (max_int - digit) / 10 then raise Parse_error;
+      integer' t ((10 * i) + digit)
     | _ ->
       unget t;
       Some i)
