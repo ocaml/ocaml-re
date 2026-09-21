@@ -34,7 +34,7 @@ let%expect_test "full_split limits" =
   [%expect
     {|
     full_split ~max:2 "," "a,b,c": [Text "a"; Delim ","; Text "b"; Delim ","; Text "c"]
-    full_split ~max:2 "," ",a,,b": [Delim ","; Text "a"; Delim ","; Text ""; Delim ","; Text "b"]
+    full_split ~max:2 "," ",a,,b": [Delim ","; Text "a"; Delim ","; Delim ","; Text "b"]
     full_split ~max:2 "(,)" "a,b,c": [Text "a"; Delim ","; Group (1, ","); Text "b"; Delim ","; Group (1, ","); Text "c"]
     full_split ~max:2 "," "a,": [Text "a"; Delim ","]
     full_split ~max:1 "," "a,b": [Text "a,b"]
@@ -65,7 +65,7 @@ let%expect_test "full_split trailing delimiters" =
   [%expect
     {|
     full_split ~max:0 "," "a,": [Text "a"; Delim ","]
-    full_split ~max:0 "," ",,": [Delim ","; Text ""; Delim ","]
+    full_split ~max:0 "," ",,": [Delim ","; Delim ","]
     full_split ~max:-1 "," "a,": [Text "a"; Delim ","]
     full_split ~max:0 "(,)" "a,": [Text "a"; Delim ","; Group (1, ",")]
     |}]
@@ -74,8 +74,7 @@ let%expect_test "full_split trailing delimiters" =
 let%expect_test "full_split adjacent delimiters" =
   (* Adjacent delimiters should not introduce an empty Text token. *)
   full_split "," "a,,b";
-  [%expect
-    {| full_split ~max:0 "," "a,,b": [Text "a"; Delim ","; Text ""; Delim ","; Text "b"] |}]
+  [%expect {| full_split ~max:0 "," "a,,b": [Text "a"; Delim ","; Delim ","; Text "b"] |}]
 ;;
 
 let%expect_test "split empty alternatives" =
