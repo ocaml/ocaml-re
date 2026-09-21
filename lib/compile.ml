@@ -475,7 +475,11 @@ module Stream = struct
   let feed t s ~pos ~len =
     (* TODO bound checks? *)
     let last = pos + len in
-    let state = loop_no_mark t.re ~colors:t.re.colors s ~last ~pos t.state t.state in
+    let state =
+      if Idx.is_break (State.get_info t.state).idx
+      then t.state
+      else loop_no_mark t.re ~colors:t.re.colors s ~last ~pos t.state t.state
+    in
     let info = State.get_info state in
     if
       Idx.is_break info.idx
@@ -490,7 +494,11 @@ module Stream = struct
   let finalize t s ~pos ~len =
     (* TODO bound checks? *)
     let last = pos + len in
-    let state = scan_str t.re Positions.empty s t.state ~last ~pos ~groups:false in
+    let state =
+      if Idx.is_break (State.get_info t.state).idx
+      then t.state
+      else scan_str t.re Positions.empty s t.state ~last ~pos ~groups:false
+    in
     let info = State.get_info state in
     match
       let _idx, res =
@@ -578,7 +586,10 @@ module Stream = struct
       let state =
         (* TODO bound checks? *)
         let last = pos + len in
-        loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
+        if Idx.is_break (State.get_info t.state).idx
+        then t.state
+        else
+          loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
       in
       let info = State.get_info state in
       if
@@ -608,7 +619,10 @@ module Stream = struct
       let last = pos + len in
       let info =
         let state =
-          loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
+          if Idx.is_break (State.get_info t.state).idx
+          then t.state
+          else
+            loop t.re ~abs_pos ~colors:t.re.colors s ~positions ~last ~pos t.state t.state
         in
         State.get_info state
       in

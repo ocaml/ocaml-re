@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix crashes when feeding or finalizing [Re.Stream] and [Re.Stream.Group]
+  after reaching a terminal match state (#665).
+
 * Allow newlines in negated [Re.Posix] character classes unless the [Newline]
   option is enabled (#662).
 
