@@ -125,6 +125,7 @@ type re =
     group_count : int
   ; (* Number of groups in the regular expression *)
     mutex : Mutex.t
+  ; category_mask : Category.t
   }
 
 (* Thread-safety:
@@ -331,6 +332,7 @@ let advance re st =
 ;;
 
 let find_initial_state re cat =
+  let cat = Category.mask cat re.category_mask in
   try List.assq cat re.initial_states with
   | Not_found ->
     Mutex.lock re.mutex;
@@ -745,18 +747,28 @@ let match_str ~groups ~partial re s ~pos ~len =
   match_str_no_bounds ~groups ~partial re s ~pos ~len
 ;;
 
-let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =
+let mk_re
+      ~initial
+      ~colors
+      ~color_repr
+      ~ncolor
+      ~lnl
+      ~group_names
+      ~group_count
+      ~category_mask
+  =
   { initial
   ; initial_states = []
   ; colors
   ; color_repr
   ; ncolor
   ; lnl
-  ; tbl = Automata.Working_area.create ()
+  ; tbl = Automata.Working_area.create category_mask
   ; states = Automata.State.Table.create 97
   ; group_names
   ; group_count
   ; mutex = Mutex.create ()
+  ; category_mask
   }
 ;;
 
@@ -769,6 +781,7 @@ let copy_re re =
     ~lnl:re.lnl
     ~group_names:re.group_names
     ~group_count:re.group_count
+    ~category_mask:re.category_mask
 ;;
 
 (**** Compilation ****)
@@ -792,7 +805,13 @@ type context =
   ; cache : Cset.t Cset.CSetMap.t ref
   ; colors : Color_map.Table.t
   ; boundary_table : Color_map.Boundary_table.t
+  ; category_mask : Category.t ref
   }
+
+let after ids category_mask cat =
+  (category_mask := Category.(!category_mask ++ cat));
+  A.after ids cat
+;;
 
 let trans_set cache (cm : Color_map.Table.t) boundary_table s =
   match Cset.one_char s with
@@ -813,7 +832,6 @@ let make_repeater ids cr kind greedy =
     fun rem -> A.alt ids [ A.eps ids; A.seq ids kind (A.rename ids cr) rem ]
 ;;
 
-(* XXX should probably compute a category mask *)
 (* The kind in the ctx is the default semantics, from the closest enclosing
    shortest/longest/first.  The kind in [let r, kind' = translate ...] is the actual
    semantics that needs to be wrapped around [r] (i.e it is logically equivalent to
@@ -821,8 +839,17 @@ let make_repeater ids cr kind greedy =
    by doing fewer reordering at runtime). kind' differs from kind when the inner ast
    contains Sem nodes. [enforce_kind] is one way to materialize the wrapper. *)
 let rec translate
-          ({ ids; kind; ign_group; greedy; pos; names; cache; colors; boundary_table } as
-           ctx)
+          ({ ids
+           ; kind
+           ; ign_group
+           ; greedy
+           ; pos
+           ; names
+           ; cache
+           ; colors
+           ; boundary_table
+           ; category_mask
+           } as ctx)
           (ast : Ast.no_case)
   =
   match ast with
@@ -857,34 +884,38 @@ let rec translate
         iter (j - i) f (A.eps ids)
     in
     iter i (fun rem -> A.seq ids kind' (A.rename ids cr) rem) rem, kind
-  | Beg_of_line -> A.after ids Category.(inexistant ++ newline), kind
+  | Beg_of_line -> after ids category_mask Category.(inexistant ++ newline), kind
   | End_of_line -> A.before ids Category.(inexistant ++ newline), kind
   | Beg_of_word ->
     ( A.seq
         ids
         `First
-        (A.after ids Category.(inexistant ++ not_letter))
+        (after ids category_mask Category.(inexistant ++ not_letter))
         (A.before ids Category.letter)
     , kind )
   | End_of_word ->
     ( A.seq
         ids
         `First
-        (A.after ids Category.letter)
+        (after ids category_mask Category.letter)
         (A.before ids Category.(inexistant ++ not_letter))
     , kind )
   | Not_bound ->
     ( A.alt
         ids
-        [ A.seq ids `First (A.after ids Category.letter) (A.before ids Category.letter)
+        [ A.seq
+            ids
+            `First
+            (after ids category_mask Category.letter)
+            (A.before ids Category.letter)
         ; (let cat = Category.(inexistant ++ not_letter) in
-           A.seq ids `First (A.after ids cat) (A.before ids cat))
+           A.seq ids `First (after ids category_mask cat) (A.before ids cat))
         ]
     , kind )
-  | Beg_of_str -> A.after ids Category.inexistant, kind
+  | Beg_of_str -> after ids category_mask Category.inexistant, kind
   | End_of_str -> A.before ids Category.inexistant, kind
   | Last_end_of_line -> A.before ids Category.(inexistant ++ lastnewline), kind
-  | Start -> A.after ids Category.search_boundary, kind
+  | Start -> after ids category_mask Category.search_boundary, kind
   | Stop -> A.before ids Category.search_boundary, kind
   | Sem (kind', r') ->
     let cr, kind'' = translate { ctx with kind = kind' } r' in
@@ -946,6 +977,7 @@ let compile_1 regexp =
     ; cache = ref Cset.CSetMap.empty
     ; colors
     ; boundary_table
+    ; category_mask = ref Category.empty
     }
   in
   let r, kind = translate ctx regexp in
@@ -959,6 +991,7 @@ let compile_1 regexp =
     ~lnl
     ~group_names:(List.rev !(ctx.names))
     ~group_count:(A.Mark.group_count !(ctx.pos))
+    ~category_mask:!(ctx.category_mask)
 ;;
 
 let compile r =

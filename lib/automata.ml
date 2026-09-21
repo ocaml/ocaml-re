@@ -744,12 +744,14 @@ module Working_area = struct
     { mutable ids : Bit_vector.t
     ; seen : Id.Hash_set.t
     ; index_count : int Atomic.t
+    ; category_mask : Category.t
     }
 
-  let create () =
+  let create category_mask =
     { ids = Bit_vector.create_zero 1
     ; seen = Id.Hash_set.create ()
     ; index_count = Atomic.make 0
+    ; category_mask
     }
   ;;
 
@@ -864,7 +866,7 @@ and delta_desc ctx (l : Desc.t) rem =
 let create_state tbl_ref next_cat expr =
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
-  State.mk idx next_cat expr
+  State.mk idx (Category.mask next_cat tbl_ref.category_mask) expr
 ;;
 
 let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =

@@ -150,7 +150,7 @@ end
 module Working_area : sig
   type t
 
-  val create : unit -> t
+  val create : Category.t -> t
   val index_count : t -> int
 end
 
