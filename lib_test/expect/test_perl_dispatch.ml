@@ -1,28 +1,46 @@
 open Import
 open Re
 
-let%expect_test "atom dispatch preserves delimiters and quantifier lookahead" =
-  let cases =
-    [ "", epsilon
-    ; "|", alt [ epsilon; epsilon ]
-    ; "(|a)", group (alt [ epsilon; char 'a' ])
-    ; "(a|)b", seq [ group (alt [ char 'a'; epsilon ]); char 'b' ]
-    ; "a*|b+", alt [ greedy (rep (char 'a')); greedy (rep1 (char 'b')) ]
-    ; "a{2,3}?b", seq [ non_greedy (repn (char 'a') 2 (Some 3)); char 'b' ]
-    ; "a\\{b", str "a{b"
-    ; "a\\|b", str "a|b"
-    ; "\\Qab\\E*", greedy (rep (str "ab"))
-    ; "(?:a)(b)c", seq [ char 'a'; group (char 'b'); char 'c' ]
-    ; "a]}", str "a]}"
-    ]
-  in
-  List.iter cases ~f:(fun (pattern, expected) ->
-    let pp r = Format.asprintf "%a" pp r in
-    assert (String.equal (pp (Perl.re pattern)) (pp expected)));
-  [%expect {||}]
+let print_parse pattern =
+  match Perl.re_result pattern with
+  | Ok re -> Format.printf "%S: %a@." pattern pp re
+  | Error `Parse_error -> Printf.printf "%S: Parse_error\n" pattern
+  | Error `Not_supported -> Printf.printf "%S: Not_supported\n" pattern
 ;;
 
-let%expect_test "atom dispatch preserves malformed and unsupported syntax" =
+let%expect_test "atom dispatch preserves delimiters and quantifier lookahead" =
+  List.iter
+    [ ""
+    ; "|"
+    ; "(|a)"
+    ; "(a|)b"
+    ; "a*|b+"
+    ; "a{2,3}?b"
+    ; "a\\{b"
+    ; "a\\|b"
+    ; "\\Qab\\E*"
+    ; "(?:a)(b)c"
+    ; "a]}"
+    ]
+    ~f:print_parse;
+  [%expect
+    {|
+    "": (Sequence )
+    "|": (Alternative (Sequence )(Sequence ))
+    "(|a)": (Group (Alternative (Sequence )(Set 97)))
+    "(a|)b": (Sequence (Group (Alternative (Set 97)(Sequence )))(Set 98))
+    "a*|b+": (Alternative (Sem_greedy Greedy (Repeat (Set 97) 0))
+                (Sem_greedy Greedy (Repeat (Set 98) 1)))
+    "a{2,3}?b": (Sequence (Sem_greedy Non_greedy (Repeat (Set 97) 2 3))(Set 98))
+    "a\\{b": (Sequence (Set 97)(Set 123)(Set 98))
+    "a\\|b": (Sequence (Set 97)(Set 124)(Set 98))
+    "\\Qab\\E*": (Sem_greedy Greedy (Repeat (Sequence (Set 97)(Set 98)) 0))
+    "(?:a)(b)c": (Sequence (Set 97)(Group (Set 98))(Set 99))
+    "a]}": (Sequence (Set 97)(Set 93)(Set 125))
+    |}]
+;;
+
+let%expect_test "atom dispatch records malformed and unsupported syntax" =
   List.iter
     [ "("
     ; ")"
@@ -40,14 +58,31 @@ let%expect_test "atom dispatch preserves malformed and unsupported syntax" =
     ; "a\\"
     ; "[a"
     ; "\\x4"
+    ; "\\1"
+    ; "\\8"
+    ; "[\\1]"
     ]
-    ~f:(fun pattern ->
-      match Perl.re_result pattern with
-      | Error `Parse_error -> ()
-      | _ -> assert false);
-  List.iter [ "\\1"; "\\8"; "[\\1]" ] ~f:(fun pattern ->
-    match Perl.re_result pattern with
-    | Error `Not_supported -> ()
-    | _ -> assert false);
-  [%expect {||}]
+    ~f:print_parse;
+  [%expect
+    {|
+    "(": Parse_error
+    ")": Parse_error
+    "a)": Parse_error
+    "*": Parse_error
+    "+": Parse_error
+    "?": Parse_error
+    "a**": Parse_error
+    "a{": Parse_error
+    "a{q": Parse_error
+    "a{2": Parse_error
+    "a{3,2}": Parse_error
+    "(?:a": Parse_error
+    "(?": Parse_error
+    "a\\": Parse_error
+    "[a": Parse_error
+    "\\x4": Parse_error
+    "\\1": Not_supported
+    "\\8": Not_supported
+    "[\\1]": Not_supported
+    |}]
 ;;
