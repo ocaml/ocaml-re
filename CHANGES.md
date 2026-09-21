@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Allow newlines in negated [Re.Posix] character classes unless the [Newline]
+  option is enabled (#662).
+
 * Allow [Re.Str.group_beginning] and [Re.Str.group_end] to access capture
   groups above nine, matching [Str] (#661).
 
