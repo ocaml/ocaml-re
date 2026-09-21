@@ -60,12 +60,14 @@ let%expect_test "full_split trailing delimiters" =
   (* The default max=0 should strip trailing delimiters without captures. *)
   full_split "," "a,";
   full_split "," ",,";
+  full_split "," "a,,";
   full_split ~max:(-1) "," "a,";
   full_split "(,)" "a,";
   [%expect
     {|
-    full_split ~max:0 "," "a,": [Text "a"; Delim ","]
-    full_split ~max:0 "," ",,": [Delim ","; Text ""; Delim ","]
+    full_split ~max:0 "," "a,": [Text "a"]
+    full_split ~max:0 "," ",,": []
+    full_split ~max:0 "," "a,,": [Text "a"]
     full_split ~max:-1 "," "a,": [Text "a"; Delim ","]
     full_split ~max:0 "(,)" "a,": [Text "a"; Delim ","; Group (1, ",")]
     |}]
