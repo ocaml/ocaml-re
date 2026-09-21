@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Raise [Re.Glob.Parse_error] for dangling escapes during brace expansion,
+  rather than leaking a substring bounds exception (#660).
+
 * Reject integer-overflowing repetition counts in [Re.Perl], [Re.Posix], and
   [Re.Pcre] instead of accepting wrapped bounds (#663).
 
