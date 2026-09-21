@@ -47,7 +47,7 @@ let%expect_test "basic metacharacters" =
   re ".";
   [%expect {| (Set 0-9, 11-255) |}];
   re "$";
-  [%expect {| End_of_str |}];
+  [%expect {| Last_end_of_line |}];
   re "a|b";
   [%expect {| (Alternative (Set 97)(Set 98)) |}];
   re "aa|bb";
@@ -165,7 +165,7 @@ let%expect_test "options" =
   re ~opts:[ `Caseless ] "b";
   [%expect {| (No_case (Set 98)) |}];
   re ~opts:[ `Dollar_endonly ] "$";
-  [%expect {| Last_end_of_line |}];
+  [%expect {| End_of_str |}];
   re ~opts:[ `Dollar_endonly; `Multiline ] "$";
   [%expect {| End_of_line |}];
   re ~opts:[ `Dotall ] ".";

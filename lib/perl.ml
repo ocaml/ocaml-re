@@ -163,7 +163,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
         if not (accept ')') then raise Parse_error;
         Re.group r)
     | '^' -> if multiline then Re.bol else Re.bos
-    | '$' -> if multiline then Re.eol else if dollar_endonly then Re.leol else Re.eos
+    | '$' -> if multiline then Re.eol else if dollar_endonly then Re.eos else Re.leol
     | '[' -> if accept '^' then Re.compl (bracket []) else Re.alt (bracket [])
     | '\\' ->
       (* XXX
