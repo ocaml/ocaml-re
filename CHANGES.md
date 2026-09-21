@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Remove trailing uncaptured delimiters from [Re.Pcre.full_split] results
+  with the default [max=0], while retaining captured delimiters (#668).
+
 * Fix [Re.Str] replacement references to unmatched groups to raise [Failure],
   as [Str] does, instead of substituting an empty string (#646).
 
