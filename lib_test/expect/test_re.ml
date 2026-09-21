@@ -33,6 +33,29 @@ let%expect_test "seq" =
   [%expect {| Not_found |}]
 ;;
 
+let%expect_test "empty sequences use epsilon" =
+  let r = seq (Sys.opaque_identity []) in
+  assert (Phys_equal.equal r epsilon);
+  (match View.view r with
+   | Sequence [] -> ()
+   | _ -> assert false);
+  test_re r "";
+  [%expect {| [| (0, 0) |] |}];
+  test_re r "a";
+  [%expect {| [| (0, 0) |] |}]
+;;
+
+let%expect_test "nonempty sequence shape" =
+  let a = char 'a' in
+  assert (Phys_equal.equal (seq [ a ]) a);
+  (match View.view (seq [ epsilon; a ]) with
+   | Sequence [ first; second ] ->
+     assert (Phys_equal.equal first epsilon);
+     assert (Phys_equal.equal second a)
+   | _ -> assert false);
+  [%expect {||}]
+;;
+
 let%expect_test "empty" =
   test_re empty "";
   [%expect {| Not_found |}];

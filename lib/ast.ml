@@ -229,8 +229,10 @@ module Export = struct
   type nonrec t = t
 
   let pp = pp
+  let epsilon = Sequence []
 
   let seq = function
+    | [] -> epsilon
     | [ r ] -> r
     | l -> Sequence l
   ;;
@@ -271,8 +273,6 @@ module Export = struct
        | None -> Ast (Alternative elems)
        | Some elems -> Set (Cast (Alternative elems)))
   ;;
-
-  let epsilon = seq []
 
   let repn r i j =
     if i < 0 then invalid_arg "Re.repn";
