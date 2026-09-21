@@ -76,21 +76,33 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     let gr = if ungreedy then not gr else gr in
     if gr then Re.non_greedy r else Re.greedy r
   in
+  let sequence first = function
+    | [] -> first
+    | rest -> Re.seq (first :: List.rev rest)
+  in
   let rec regexp () =
     let first = branch () in
     if accept '|' then regexp' [ branch (); first ] else first
   and regexp' left =
     if accept '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
-  and branch () = branch' []
-  and branch' left =
+  and branch () =
     if eos ()
-    then Re.seq (List.rev left)
+    then Re.epsilon
     else (
       match get () with
       | '|' | ')' ->
         unget ();
-        Re.seq (List.rev left)
-      | c -> branch' (piece c :: left))
+        Re.epsilon
+      | c -> branch' (piece c) [])
+  and branch' first rest =
+    if eos ()
+    then sequence first rest
+    else (
+      match get () with
+      | '|' | ')' ->
+        unget ();
+        sequence first rest
+      | c -> branch' first (piece c :: rest))
   and in_brace ~f ~init =
     match accept '{' with
     | false -> None
