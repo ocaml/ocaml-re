@@ -89,6 +89,9 @@ end
 
 type expr
 
+(** Use Str's repetition semantics, which skip empty iterations. *)
+val str_repetitions : expr -> expr
+
 val is_eps : expr -> bool
 val pp : expr Fmt.t
 val to_dyn : expr -> Dyn.t

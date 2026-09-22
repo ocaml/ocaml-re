@@ -185,6 +185,7 @@ module Expr = struct
          preferred, but says nothing about t2 *)
     | Eps
     | Rep of Rep_kind.t * Sem.t * t
+    | Rep_no_empty of Sem.t * t
     | Mark of Mark.t
     | Erase of Mark.t * Mark.t
     | Before of Category.t
@@ -216,6 +217,7 @@ module Expr = struct
       variant ("Seq" ^ sem_kind_suffix sem) (to_dyn x :: List.map y ~f:to_dyn)
     | Eps -> Enum "Eps"
     | Rep (kind, sem, t) -> variant ("Rep" ^ sem_kind_suffix ~kind sem) [ to_dyn t ]
+    | Rep_no_empty (k, y) -> variant "Rep_no_empty" [ Sem.to_dyn k; to_dyn y ]
     | Mark m -> variant "Mark" [ Mark.to_dyn m ]
     | Pmark m -> variant "Pmark" [ Pmark.to_dyn m ]
     | Erase (x, y) -> variant "Erase" [ Mark.to_dyn x; Mark.to_dyn y ]
@@ -232,6 +234,7 @@ module Expr = struct
     | Seq (k, e, e') -> sexp ch "seq" (triple Sem.pp pp pp) (k, e, e')
     | Eps -> str ch "eps"
     | Rep (rk, k, e) -> sexp ch "rep" (triple Rep_kind.pp Sem.pp pp) (rk, k, e)
+    | Rep_no_empty (k, y) -> sexp ch "rep_no_empty" (pair Sem.pp pp) (k, y)
     | Mark i -> sexp ch "mark" Mark.pp i
     | Pmark i -> sexp ch "pmark" Pmark.pp i
     | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
@@ -278,12 +281,26 @@ module Expr = struct
     | Alt l -> mk ids (Alt (List.map ~f:(rename ids) l))
     | Seq (k, y, z) -> mk ids (Seq (k, rename ids y, rename ids z))
     | Rep (g, k, y) -> mk ids (Rep (g, k, rename ids y))
+    | Rep_no_empty (k, y) -> mk ids (Rep_no_empty (k, rename ids y))
   ;;
 end
 
 type expr = Expr.t
 
 include Expr
+
+let rec str_repetitions expr =
+  let def =
+    match expr.def with
+    | Rep (`Greedy, kind, body) -> Rep_no_empty (kind, str_repetitions body)
+    | Rep (greedy, kind, body) -> Rep (greedy, kind, str_repetitions body)
+    | Rep_no_empty (kind, body) -> Rep_no_empty (kind, str_repetitions body)
+    | Seq (kind, left, right) -> Seq (kind, str_repetitions left, str_repetitions right)
+    | Alt xs -> Alt (List.map xs ~f:str_repetitions)
+    | def -> def
+  in
+  { expr with def }
+;;
 
 module Marks = struct
   type t =
@@ -759,6 +776,11 @@ let rec delta_expr ctx marks (x : Expr.t) rem =
     let y = delta_expr ctx marks y Desc.empty in
     delta_seq ctx kind y z rem
   | Rep (rep_kind, kind, y) -> delta_rep ctx marks x rep_kind kind y rem
+  | Rep_no_empty (kind, y) ->
+    (* Str skips empty iterations altogether: they neither beat consuming
+       alternatives nor replace captures from the preceding iteration. *)
+    let y = Desc.remove_matches (delta_expr ctx marks y Desc.empty) in
+    Desc.tseq kind y x (Desc.add_match rem marks)
   | Eps -> Desc.add_match rem marks
   | Mark i -> Desc.add_match rem (Marks.set_mark marks i)
   | Pmark i -> Desc.add_match rem (Marks.set_pmark marks i)

@@ -923,3 +923,8 @@ let compile r =
   let open Ast.Export in
   compile_1 (if Ast.anchored r then group r else seq [ shortest (rep any); group r ])
 ;;
+
+let compile_str r =
+  let re = compile r in
+  { re with initial = Automata.str_repetitions re.initial }
+;;

@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Str] repetitions overwriting captures with empty iterations; empty
+  iterations are now skipped, matching [Str] (#690).
+
 * Fix [Re.Stream.finalize] not treating a newline at the end of a finalized
   window as the final newline (#694).
 

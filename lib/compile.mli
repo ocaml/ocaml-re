@@ -54,6 +54,7 @@ val match_str
 
 val match_str_p : re -> string -> pos:int -> len:int -> bool
 val compile : Ast.t -> re
+val compile_str : Ast.t -> re
 val group_count : re -> int
 val group_names : re -> (string * int) list
 val pp_re : re Fmt.t
