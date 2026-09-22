@@ -3,7 +3,11 @@ open Import
 let%expect_test "zero-count repetitions retain named capture declarations" =
   let re = Re.Perl.compile_pat "(?<absent>a){0}(?<present>b)" in
   List.iter (Re.group_names re) ~f:(fun (name, index) -> printf "%S: %d\n" name index);
-  [%expect {| "present": 1 |}]
+  [%expect
+    {| 
+    "absent": 1
+    "present": 2
+    |}]
 ;;
 
 let%expect_test "zero-count repetitions retain named captures" =
@@ -14,8 +18,9 @@ let%expect_test "zero-count repetitions retain named captures" =
   List.iter (Re.group_names re) ~f:(fun (name, index) -> printf "%S: %d\n" name index);
   [%expect
     {|
-    group_count: 2
-    "present": 1
+    group_count: 3
+    "absent": 1
+    "present": 2
     |}]
 ;;
 
@@ -27,8 +32,8 @@ let%expect_test "zero-count repetitions retain numbered captures" =
   test_re r "b";
   [%expect
     {|
-    group_count: 2
-    [| (0, 1); (0, 1) |]
+    group_count: 3
+    [| (0, 1); (-1, -1); (0, 1) |]
     |}]
 ;;
 
