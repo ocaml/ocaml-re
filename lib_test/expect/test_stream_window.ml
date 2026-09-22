@@ -32,21 +32,21 @@ let%expect_test "stream entry points validate their input window" =
     [ 0, -1; -1, 0; 2, 0; 2, 1 ];
   [%expect
     {|
-    Stream.feed ~pos:0 ~len:-1: Ok
-    Stream.finalize ~pos:0 ~len:-1: false
-    Stream.Group.feed ~pos:0 ~len:-1: Ok
-    Stream.Group.finalize ~pos:0 ~len:-1: No_match
-    Stream.feed ~pos:-1 ~len:0: Ok
-    Stream.finalize ~pos:-1 ~len:0: false
-    Stream.Group.feed ~pos:-1 ~len:0: Ok
-    Stream.Group.finalize ~pos:-1 ~len:0: No_match
-    Stream.feed ~pos:2 ~len:0: Ok
-    Stream.finalize ~pos:2 ~len:0: false
-    Stream.Group.feed ~pos:2 ~len:0: Ok
-    Stream.Group.finalize ~pos:2 ~len:0: No_match
-    Stream.feed ~pos:2 ~len:1: Invalid_argument "index out of bounds"
-    Stream.finalize ~pos:2 ~len:1: Invalid_argument "index out of bounds"
-    Stream.Group.feed ~pos:2 ~len:1: Invalid_argument "index out of bounds"
-    Stream.Group.finalize ~pos:2 ~len:1: Invalid_argument "index out of bounds"
+    Stream.feed ~pos:0 ~len:-1: Invalid_argument "Re.Stream: out of bounds"
+    Stream.finalize ~pos:0 ~len:-1: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.feed ~pos:0 ~len:-1: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.finalize ~pos:0 ~len:-1: Invalid_argument "Re.Stream: out of bounds"
+    Stream.feed ~pos:-1 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.finalize ~pos:-1 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.feed ~pos:-1 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.finalize ~pos:-1 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.feed ~pos:2 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.finalize ~pos:2 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.feed ~pos:2 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.finalize ~pos:2 ~len:0: Invalid_argument "Re.Stream: out of bounds"
+    Stream.feed ~pos:2 ~len:1: Invalid_argument "Re.Stream: out of bounds"
+    Stream.finalize ~pos:2 ~len:1: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.feed ~pos:2 ~len:1: Invalid_argument "Re.Stream: out of bounds"
+    Stream.Group.finalize ~pos:2 ~len:1: Invalid_argument "Re.Stream: out of bounds"
     |}]
 ;;

@@ -51,7 +51,7 @@ let%expect_test "negative chunk lengths must be rejected" =
     match Stream.feed t "" ~pos:0 ~len:(-1) with
     | Ok _ -> print_endline "Ok"
     | No_match -> print_endline "No_match");
-  [%expect {| Ok |}]
+  [%expect {| Invalid_argument "Re.Stream: out of bounds" |}]
 ;;
 
 let%expect_test "a saved group match survives reuse of its stream" =

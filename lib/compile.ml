@@ -472,8 +472,13 @@ module Stream = struct
     { state; re }
   ;;
 
+  let check_bounds s ~pos ~len =
+    if pos < 0 || len < 0 || pos > String.length s || len > String.length s - pos
+    then invalid_arg "Re.Stream: out of bounds"
+  ;;
+
   let feed t s ~pos ~len =
-    (* TODO bound checks? *)
+    check_bounds s ~pos ~len;
     let last = pos + len in
     let state =
       if Idx.is_break (State.get_info t.state).idx
@@ -492,7 +497,7 @@ module Stream = struct
   ;;
 
   let finalize t s ~pos ~len =
-    (* TODO bound checks? *)
+    check_bounds s ~pos ~len;
     let last = pos + len in
     let state =
       if Idx.is_break (State.get_info t.state).idx
@@ -583,8 +588,8 @@ module Stream = struct
     ;;
 
     let feed ({ t; positions; slices; abs_pos; first_match_pos = _ } as tt) s ~pos ~len =
+      check_bounds s ~pos ~len;
       let state =
-        (* TODO bound checks? *)
         let last = pos + len in
         if Idx.is_break (State.get_info t.state).idx
         then t.state
@@ -624,7 +629,7 @@ module Stream = struct
           ~len
       : Match.t feed
       =
-      (* TODO bound checks? *)
+      check_bounds s ~pos ~len;
       let last = pos + len in
       let info =
         let state =

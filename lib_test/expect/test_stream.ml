@@ -20,14 +20,14 @@ let feed t str =
 let%expect_test "out out of bounds" =
   let stream = Re.any |> Re.compile |> Stream.create in
   invalid_argument (fun () -> ignore (Stream.feed stream "foo" ~pos:2 ~len:3));
-  [%expect {| Invalid_argument "index out of bounds" |}];
+  [%expect {| Invalid_argument "Re.Stream: out of bounds" |}];
   invalid_argument (fun () -> ignore (Stream.finalize stream "foo" ~pos:2 ~len:3));
-  [%expect {| Invalid_argument "index out of bounds" |}];
+  [%expect {| Invalid_argument "Re.Stream: out of bounds" |}];
   let stream = Stream.Group.create stream in
   invalid_argument (fun () -> ignore (Stream.Group.feed stream "foo" ~pos:2 ~len:3));
-  [%expect {| Invalid_argument "index out of bounds" |}];
+  [%expect {| Invalid_argument "Re.Stream: out of bounds" |}];
   invalid_argument (fun () -> ignore (Stream.Group.finalize stream "foo" ~pos:2 ~len:3));
-  [%expect {| Invalid_argument "index out of bounds" |}]
+  [%expect {| Invalid_argument "Re.Stream: out of bounds" |}]
 ;;
 
 let%expect_test "basic" =
