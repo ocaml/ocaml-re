@@ -324,12 +324,12 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | _ -> Char c)
     else Char c
   and comment () =
-    if eos () then raise Parse_error;
-    if accept ')'
-    then Re.epsilon
-    else (
-      Parse_buffer.junk buf;
-      comment ())
+    let start = Parse_buffer.position buf in
+    match String.index_from s start ')' with
+    | exception Not_found -> raise Parse_error
+    | stop ->
+      Parse_buffer.advance buf (stop + 1 - start);
+      Re.epsilon
   in
   let res = regexp () in
   if not (eos ()) then raise Parse_error;
