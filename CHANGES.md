@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Str] treating descending character ranges such as `[z-a]` as a
+  reversed range; they now denote the empty set, matching [Str] (#683).
+
 * Extend byte escapes in `Re.Perl` and `Re.Pcre`: short octal and hex
   forms, leading zeroes and brace whitespace, and escapes inside character
   classes. Add `\a` and `\cX`; reject malformed and out-of-range values
