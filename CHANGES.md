@@ -16,6 +16,10 @@ Unreleased
 * Raise [Re.Glob.Parse_error] for dangling escapes during brace expansion,
   rather than leaking a substring bounds exception (#660).
 
+* Fix `$` in [Re.Perl] and [Re.Pcre] to match before a final newline by
+  default. `Dollar_endonly` now requires the end of input; multiline behavior
+  is unchanged (#671).
+
 * Reject integer-overflowing repetition counts in [Re.Perl], [Re.Posix], and
   [Re.Pcre] instead of accepting wrapped bounds (#663).
 

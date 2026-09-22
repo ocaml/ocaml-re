@@ -47,11 +47,5 @@ let%expect_test "dollar permits one final LF by default, unlike end-only" =
   in
   Check.check checks {|Re.Pcre "a$" on "a\n"|} ~expected:"(0,1)" actual;
   Check.finish checks;
-  [%expect
-    {|
-    "a$" on "a\n" opts=[]: no match; expected (0,1)
-    "a$" on "a\n" opts=[Dollar_endonly]: (0,1); expected no match
-    Re.Pcre "a$" on "a\n": no match; expected (0,1)
-    23 checks; 3 differences
-    |}]
+  [%expect {| 23 checks; 0 differences |}]
 ;;
