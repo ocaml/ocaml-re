@@ -195,7 +195,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
        | 'n' -> Re.char '\n'
        | 'r' -> Re.char '\r'
        | 't' -> Re.char '\t'
-       | 'Q' -> quote (Buffer.create 12)
+       | 'Q' -> quote ()
        | 'E' -> raise Parse_error
        | 'x' ->
          let c1, c2 =
@@ -232,20 +232,23 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
        | c -> Re.char c)
     | '*' | '+' | '?' | '{' -> raise Parse_error
     | c -> Re.char c
-  and quote buf =
-    if accept '\\'
-    then (
-      if eos () then raise Parse_error;
-      match get () with
-      | 'E' -> Re.str (Buffer.contents buf)
-      | c ->
-        Buffer.add_char buf '\\';
-        Buffer.add_char buf c;
-        quote buf)
-    else (
-      if eos () then raise Parse_error;
-      Buffer.add_char buf (get ());
-      quote buf)
+  and quote () =
+    let start = Parse_buffer.position buf in
+    let rec find_end pos =
+      match String.index_from s pos '\\' with
+      | exception Not_found -> raise Parse_error
+      | pos ->
+        if pos + 1 = String.length s then raise Parse_error;
+        if s.[pos + 1] = 'E' then pos else find_end (pos + 2)
+    in
+    let stop = find_end start in
+    Parse_buffer.advance buf (stop + 2 - start);
+    (* Nonterminating escape pairs are literal bytes too. Build the flat
+       sequence directly, without a Buffer or an intermediate substring. *)
+    let rec prepend pos acc =
+      if pos < start then Re.seq acc else prepend (pos - 1) (Re.char s.[pos] :: acc)
+    in
+    prepend (stop - 1) []
   and hexdigit () =
     if eos () then raise Parse_error;
     match get () with
