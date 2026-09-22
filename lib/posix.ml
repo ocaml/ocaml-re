@@ -85,7 +85,9 @@ let parse newline s =
     else if accept '['
     then
       if accept '^'
-      then Re.diff (Re.compl (bracket [])) (Re.char '\n')
+      then (
+        let r = Re.compl (bracket []) in
+        if newline then Re.diff r (Re.char '\n') else r)
       else Re.alt (bracket [])
     else if accept '\\'
     then (

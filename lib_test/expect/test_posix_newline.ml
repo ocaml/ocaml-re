@@ -1,6 +1,6 @@
 module Re = Re_private.Re
 
-let%expect_test "POSIX negated classes exclude newline even without Newline" =
+let%expect_test "POSIX negated classes respect the Newline option" =
   List.iter
     (fun (name, opts) ->
        let re = Re.(compile (whole_string (Posix.re ~opts "[^a]"))) in
@@ -20,7 +20,7 @@ let%expect_test "POSIX negated classes exclude newline even without Newline" =
     {|
     default on "a": no match
     default on "b": match "b"
-    default on "\n": no match
+    default on "\n": match "\n"
     Newline on "a": no match
     Newline on "b": match "b"
     Newline on "\n": no match
