@@ -255,25 +255,18 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | '0' .. '7' as d -> Some (Char.code d - Char.code '0')
       | _ -> None)
   and name () =
-    if eos ()
-    then raise Parse_error
-    else (
-      match get () with
-      | ('_' | 'a' .. 'z' | 'A' .. 'Z') as c ->
-        let b = Buffer.create 32 in
-        Buffer.add_char b c;
-        name' b
-      | _ -> raise Parse_error)
-  and name' b =
-    if eos ()
-    then raise Parse_error
-    else (
-      match get () with
-      | ('_' | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9') as c ->
-        Buffer.add_char b c;
-        name' b
-      | '>' -> Buffer.contents b
-      | _ -> raise Parse_error)
+    let start = Parse_buffer.position buf in
+    let rec find_end pos =
+      if pos = String.length s then raise Parse_error;
+      match s.[pos] with
+      | '_' | 'a' .. 'z' | 'A' .. 'Z' -> find_end (pos + 1)
+      | '0' .. '9' when pos > start -> find_end (pos + 1)
+      | '>' when pos > start -> pos
+      | _ -> raise Parse_error
+    in
+    let stop = find_end start in
+    Parse_buffer.advance buf (stop + 1 - start);
+    String.sub s start (stop - start)
   and bracket s =
     if s <> [] && accept ']'
     then s

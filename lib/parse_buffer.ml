@@ -8,6 +8,8 @@ exception Parse_error
 let create str = { str; pos = 0 }
 let unget t = t.pos <- t.pos - 1
 let junk t = t.pos <- t.pos + 1
+let position t = t.pos
+let advance t n = t.pos <- t.pos + n
 let eos t = t.pos = String.length t.str
 let test t c = (not (eos t)) && t.str.[t.pos] = c
 
