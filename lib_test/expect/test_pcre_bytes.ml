@@ -28,59 +28,17 @@ let%expect_test "numeric byte escapes denote exactly one byte, also in classes" 
   [%expect
     {|
     short hex
-    "[\\x00]": parse error; expected "\000"
-    "[\\x01]": parse error; expected "\001"
-    "[\\x02]": parse error; expected "\002"
-    "[\\x03]": parse error; expected "\003"
-    "[\\x04]": parse error; expected "\004"
-    "[\\x05]": parse error; expected "\005"
-    ... 250 more differences
-    512 checks; 256 differences
+    512 checks; 0 differences
     braced hex
-    "[\\x{0}]": parse error; expected "\000"
-    "[\\x{1}]": parse error; expected "\001"
-    "[\\x{2}]": parse error; expected "\002"
-    "[\\x{3}]": parse error; expected "\003"
-    "[\\x{4}]": parse error; expected "\004"
-    "[\\x{5}]": parse error; expected "\005"
-    ... 250 more differences
-    512 checks; 256 differences
+    512 checks; 0 differences
     zero-padded hex
-    "\\x{00000}": parse error; expected "\000"
-    "[\\x{00000}]": parse error; expected "\000"
-    "\\x{00001}": parse error; expected "\001"
-    "[\\x{00001}]": parse error; expected "\001"
-    "\\x{00002}": parse error; expected "\002"
-    "[\\x{00002}]": parse error; expected "\002"
-    ... 506 more differences
-    512 checks; 512 differences
+    512 checks; 0 differences
     braced octal
-    "[\\o{0}]": parse error; expected "\000"
-    "[\\o{1}]": parse error; expected "\001"
-    "[\\o{2}]": parse error; expected "\002"
-    "[\\o{3}]": parse error; expected "\003"
-    "[\\o{4}]": parse error; expected "\004"
-    "[\\o{5}]": parse error; expected "\005"
-    ... 250 more differences
-    512 checks; 256 differences
+    512 checks; 0 differences
     zero-padded octal
-    "[\\o{00000}]": parse error; expected "\000"
-    "[\\o{00001}]": parse error; expected "\001"
-    "[\\o{00002}]": parse error; expected "\002"
-    "[\\o{00003}]": parse error; expected "\003"
-    "[\\o{00004}]": parse error; expected "\004"
-    "[\\o{00005}]": parse error; expected "\005"
-    ... 250 more differences
-    512 checks; 256 differences
+    512 checks; 0 differences
     short octal
-    "[\\000]": not supported; expected "\000"
-    "[\\001]": not supported; expected "\001"
-    "[\\002]": not supported; expected "\002"
-    "[\\003]": not supported; expected "\003"
-    "[\\004]": not supported; expected "\004"
-    "[\\005]": not supported; expected "\005"
-    ... 250 more differences
-    512 checks; 256 differences
+    512 checks; 0 differences
     |}]
 ;;
 
@@ -103,17 +61,7 @@ let%expect_test "byte escapes in mixed classes and ranges" =
         ~expected:(Check.text expected)
         (Check.byte_set pattern));
   Check.finish checks;
-  [%expect
-    {|
-    "\\a": parse error; expected "\007"
-    "[\\a\\e\\f]": parse error; expected "\007\012\027"
-    "[\\cA-\\cZ]": parse error; expected "\001\002\003\004\005\006\007\b\t\n\011\012\r\014\015\016\017\018\019\020\021\022\023\024\025\026"
-    "[\\x41-\\x5a]": parse error; expected "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "[\\101-\\132]": not supported; expected "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "[\\0]": not supported; expected "\000"
-    ... 2 more differences
-    8 checks; 8 differences
-    |}]
+  [%expect {| 8 checks; 0 differences |}]
 ;;
 
 let%expect_test "control escapes cover printable ASCII operands" =
@@ -134,17 +82,7 @@ let%expect_test "control escapes cover printable ASCII operands" =
           (Check.byte_set ~extra:[ expected ^ expected ] pattern))
   done;
   Check.finish checks;
-  [%expect
-    {|
-    "\\c ": parse error; expected "`"
-    "[\\c ]": parse error; expected "`"
-    "\\c!": parse error; expected "a"
-    "[\\c!]": parse error; expected "a"
-    "\\c\"": parse error; expected "b"
-    "[\\c\"]": parse error; expected "b"
-    ... 184 more differences
-    190 checks; 190 differences
-    |}]
+  [%expect {| 190 checks; 0 differences |}]
 ;;
 
 let%expect_test "numeric escapes stop before non-digits and after their digit limit" =
@@ -171,17 +109,7 @@ let%expect_test "numeric escapes stop before non-digits and after their digit li
         ~expected:(Check.text subject)
         (Check.match_text ~whole:true pattern subject));
   Check.finish checks;
-  [%expect
-    {|
-    "\\0z": not supported; expected "\000z"
-    "\\08": not supported; expected "\0008"
-    "\\078": not supported; expected "\0078"
-    "\\11x": not supported; expected "\tx"
-    "\\118": not supported; expected "\t8"
-    "\\xAz": parse error; expected "\nz"
-    ... 5 more differences
-    13 checks; 11 differences
-    |}]
+  [%expect {| 13 checks; 0 differences |}]
 ;;
 
 let%expect_test "invalid numeric and control escapes are parse errors" =
@@ -222,12 +150,7 @@ let%expect_test "invalid numeric and control escapes are parse errors" =
             ~expected:"parse error"
             (Check.parse_status pattern)));
   Check.finish checks;
-  [%expect
-    {|
-    "[\\400]": not supported; expected parse error
-    "[\\777]": not supported; expected parse error
-    44 checks; 2 differences
-    |}]
+  [%expect {| 44 checks; 0 differences |}]
 ;;
 
 let%expect_test "ambiguous decimal references remain unsupported, never octal" =
