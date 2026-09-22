@@ -551,7 +551,7 @@ module Stream = struct
       ;;
 
       let make ~start_pos ~pmarks ~slices ~marks ~positions =
-        let positions = Positions.all positions in
+        let positions = Array.copy (Positions.all positions) in
         { pmarks; slices; positions; marks; start_pos }
       ;;
     end

@@ -68,6 +68,6 @@ let%expect_test "a saved group match survives reuse of its stream" =
   [%expect
     {|
     "a"
-    Assert_failure
+    "a"
     |}]
 ;;
