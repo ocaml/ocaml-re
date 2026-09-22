@@ -9,6 +9,25 @@ let%expect_test "leading-period restrictions also apply without pathname matchin
 ;;
 
 let%expect_test "brace expansion preserves braces without alternatives" =
-  Test_glob.glob ~anchored:true ~expand_braces:true "{foo}" "{foo}";
-  [%expect {| false |}]
+  List.iter
+    (fun (pattern, input) ->
+       Test_glob.glob ~anchored:true ~expand_braces:true pattern input)
+    [ "{foo}", "{foo}"
+    ; "{foo}", "foo"
+    ; "{{a,b}}", "{a}"
+    ; "{{a,b}}", "{b}"
+    ; "{a,b}{c,d}", "bd"
+    ; "{}", "{}"
+    ; "{,}", ""
+    ];
+  [%expect
+    {|
+    true
+    false
+    true
+    true
+    true
+    true
+    true
+    |}]
 ;;

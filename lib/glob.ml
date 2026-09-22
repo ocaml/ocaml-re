@@ -110,7 +110,9 @@ let explode str =
         expl inner i' i' acc (mul beg (mul [ String.sub str s (i - s) ] t))
       | ',' when inner ->
         expl inner (i + 1) (i + 1) (mul beg [ String.sub str s (i - s) ] @ acc) [ "" ]
-      | '}' when inner -> mul beg [ String.sub str s (i - s) ] @ acc, i + 1
+      | '}' when inner ->
+        let terms = mul beg [ String.sub str s (i - s) ] in
+        (if acc = [] then List.map (fun s -> "{" ^ s ^ "}") terms else terms @ acc), i + 1
       | _ -> expl inner s (i + 1) acc beg)
   in
   List.rev (fst (expl false 0 0 [] [ "" ]))
