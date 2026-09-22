@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Str.string_partial_match] not retaining match state for subsequent
+  [Str.match_end], [Str.match_beginning] and [Str.matched_group] calls (#689).
+
 * Fix [Re.Stream.finalize] not treating a newline at the end of a finalized
   window as the final newline (#694).
 

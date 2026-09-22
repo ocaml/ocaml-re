@@ -17,7 +17,7 @@ let%expect_test "partial matches update the match state" =
   [%expect
     {|
     Str: matched=true; end=2
-    Re.Str: matched=true; Invalid_argument("Str.group_end")
+    Re.Str: matched=true; end=2
     |}]
 ;;
 

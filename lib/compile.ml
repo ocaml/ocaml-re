@@ -429,7 +429,7 @@ let final_advance re positions ~last state_info ~groups =
   res
 ;;
 
-let make_match_str re positions ~len ~groups ~partial s ~pos =
+let make_match_str ?(prefix = false) re positions ~len ~groups ~partial s ~pos =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
   let st =
@@ -448,7 +448,16 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
   then (
     match Automata.State.status re.mutex state_info.desc with
     | (Match _ | Failed) as status -> status
-    | Running -> final_advance re positions ~last state_info ~groups)
+    | Running ->
+      if prefix
+      then (
+        Mutex.lock re.mutex;
+        let st = Automata.prefix_match re.tbl state_info.desc in
+        let status = Automata.State.status_no_mutex st in
+        Mutex.unlock re.mutex;
+        Positions.set positions (Automata.Idx.to_int (Automata.State.idx st)) last;
+        status)
+      else final_advance re positions ~last state_info ~groups)
   else (
     ();
     if Idx.is_break state_info.idx
@@ -701,6 +710,19 @@ let match_str ~groups ~partial re s ~pos ~len =
   if pos < 0 || len < -1 || pos + len > String.length s
   then invalid_arg "Re.exec: out of bounds";
   match_str_no_bounds ~groups ~partial re s ~pos ~len
+;;
+
+let match_str_prefix re s ~pos =
+  if pos < 0 || pos > String.length s then invalid_arg "Re.exec: out of bounds";
+  let positions = Positions.make ~groups:true re in
+  match
+    make_match_str ~prefix:true re positions ~len:(-1) ~groups:true ~partial:true s ~pos
+  with
+  | Match (marks, pmarks) ->
+    Some
+      (Group.create s marks pmarks ~gpos:(Positions.all positions) ~gcount:re.group_count)
+  | Failed -> None
+  | Running -> assert false
 ;;
 
 let mk_re ~initial ~colors ~color_repr ~ncolor ~lnl ~group_names ~group_count =

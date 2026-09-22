@@ -21,7 +21,6 @@ include struct
   open Core
 
   let exec = exec
-  let exec_partial = exec_partial
 end
 
 type regexp =
@@ -49,10 +48,9 @@ let string_match re s p =
 ;;
 
 let string_partial_match re s p =
-  match exec_partial ~pos:p (Lazy.force re.mtch) s with
-  | `Full -> string_match re s p
-  | `Partial -> true
-  | `Mismatch -> false
+  let result = Compile.match_str_prefix ~pos:p (Lazy.force re.mtch) s in
+  Domain.DLS.set state result;
+  Option.is_some result
 ;;
 
 let search_forward re s p =

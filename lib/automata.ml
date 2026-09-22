@@ -829,6 +829,38 @@ let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
   create_state tbl_ref next_cat expr
 ;;
 
+(* Str accepts the first path that reaches the end of the available input,
+   even if a lower-priority path already has a complete match. Keep captures
+   whose endpoints have been set, and let group 0 cover the consumed prefix. *)
+let prefix_match tbl (st : State.t) =
+  let ctx = Advance { prev_cat = st.category; ambiguity_mark = Pmark.gen () } in
+  let desc = delta_desc ctx st.desc Desc.empty in
+  let rec first_marks desc =
+    Desc.fold_right desc ~init:None ~f:(fun e rest ->
+      match e with
+      | E.TExp (marks, _) | TMatch marks -> Some marks
+      | TSeq (_, inner, _) ->
+        (match first_marks inner with
+         | None -> rest
+         | Some _ as marks -> marks))
+  in
+  let desc =
+    match first_marks desc with
+    | None -> Desc.empty
+    | Some marks ->
+      let marks = Marks.set_mark marks (Mark.next Mark.start) in
+      let complete =
+        List.filter marks.marks ~f:(fun ((mark : Mark.t), _) ->
+          let partner =
+            if (mark :> int) land 1 = 0 then Mark.next mark else Mark.prev mark
+          in
+          List.mem_assq partner ~map:marks.marks)
+      in
+      Desc.add_match Desc.empty { marks with marks = complete }
+  in
+  create_state tbl st.category desc
+;;
+
 (* When deriving [Re.str "abc"] wrt "a" then "b" then "c", we end up with [T (marks,
    Eps)], i.e. not a match, until the next character. When matching whole strings, this
    is fine because we feed in an eos character (in final_advance) if necessary. For

@@ -53,6 +53,7 @@ val match_str
   -> match_info
 
 val match_str_p : re -> string -> pos:int -> len:int -> bool
+val match_str_prefix : re -> string -> pos:int -> Group.t option
 val compile : Ast.t -> re
 val group_count : re -> int
 val group_names : re -> (string * int) list

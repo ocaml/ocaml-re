@@ -70,24 +70,24 @@ let%expect_test "nullable repetitions preserve Str priorities and captures" =
       Re.Str: true ["aa"; ""]
     partial "\\(a*\\)*" "aa"
       Str: true ["aa"; None]
-      Re.Str: true [""; None]
+      Re.Str: true ["aa"; None]
     full "\\(\\(ab\\)?\\|a\\)+" "aaa"
       Str: true ["aaa"; "a"; None]
       Re.Str: true ["aaa"; ""; None]
     partial "\\(\\(ab\\)?\\|a\\)+" "aaa"
       Str: true ["aaa"; ""; None]
-      Re.Str: true [""; None; None]
+      Re.Str: true ["aaa"; ""; None]
     full "\\(a\\|aa\\)*" "aa"
       Str: true ["aa"; "a"]
       Re.Str: true ["aa"; "a"]
     partial "\\(a\\|aa\\)*" "aa"
       Str: true ["aa"; ""]
-      Re.Str: true [""; None]
+      Re.Str: true ["aa"; ""]
     full "\\(a?\\)\\(a?\\)*" "a"
       Str: true ["a"; "a"; None]
       Re.Str: true ["a"; "a"; ""]
     partial "\\(a?\\)\\(a?\\)*" "a"
       Str: true ["a"; "a"; None]
-      Re.Str: true [""; None; None]
+      Re.Str: true ["a"; "a"; None]
     |}]
 ;;

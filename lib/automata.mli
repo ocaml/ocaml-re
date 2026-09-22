@@ -156,3 +156,6 @@ end
 
 val delta : Working_area.t -> Category.t -> Cset.c -> State.t -> State.t
 val advance : Working_area.t -> State.t -> State.t
+
+(** Complete the first viable prefix, for Str's partial-match semantics. *)
+val prefix_match : Working_area.t -> State.t -> State.t
