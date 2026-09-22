@@ -1,6 +1,11 @@
 Unreleased
 ----------
 
+* Treat `\Q...\E` quoting in [Re.Perl] and [Re.Pcre] as lexical, matching
+  PCRE: a quantifier after `\E` applies to the last quoted byte, an empty
+  quote does not satisfy a quantifier, unterminated quotes extend to the end
+  of the pattern, and quoting works inside character classes (#688).
+
 * Fix [Re.Stream.finalize] not treating a newline at the end of a finalized
   window as the final newline (#694).
 

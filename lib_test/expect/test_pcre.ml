@@ -11,9 +11,9 @@ let%expect_test "quoted strings" =
   test {|\Qfoo\E|} "foo";
   [%expect {| (Group (foo (0 3))) |}];
   test {|\Qbar|} "";
-  [%expect {| failed to parse |}];
+  [%expect {| <None> |}];
   test {|\Qbaz\|} "";
-  [%expect {| failed to parse |}];
+  [%expect {| <None> |}];
   test {|\Qba\Xz\E|} {|ba\Xz|};
   [%expect {| (Group (ba\Xz (0 5))) |}]
 ;;

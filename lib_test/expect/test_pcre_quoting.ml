@@ -15,17 +15,7 @@ let%expect_test "quoting individual bytes, including class metacharacters" =
           (Check.byte_set ~extra:[ subject ^ subject ] pattern))
   done;
   Check.finish checks;
-  [%expect
-    {|
-    "[\\Q\000\\E]": parse error; expected "\000"
-    "[\\Q\001\\E]": parse error; expected "\001"
-    "[\\Q\002\\E]": parse error; expected "\002"
-    "[\\Q\003\\E]": parse error; expected "\003"
-    "[\\Q\004\\E]": parse error; expected "\004"
-    "[\\Q\005\\E]": parse error; expected "\005"
-    ... 251 more differences
-    512 checks; 257 differences
-    |}]
+  [%expect {| 512 checks; 0 differences |}]
 ;;
 
 let%expect_test "quote delimiters do not create atoms or prevent lazy quantifiers" =
@@ -61,17 +51,7 @@ let%expect_test "quote delimiters do not create atoms or prevent lazy quantifier
         ~expected:(Check.text expected)
         (Check.match_text pattern subject));
   Check.finish checks;
-  [%expect
-    {|
-    "\\Qab\\E+" on "abbb": "ab"; expected "abbb"
-    "\\Qab\\E?" on "a": ""; expected "a"
-    "\\Qab\\E{2}" on "abbb": no match; expected "abb"
-    "a\\Q\\E+" on "aaa": "a"; expected "aaa"
-    "a+\\Q\\E?" on "aaa": "aaa"; expected "a"
-    "a+\\E?" on "aaa": parse error; expected "a"
-    ... 14 more differences
-    22 checks; 20 differences
-    |}]
+  [%expect {| 22 checks; 0 differences |}]
 ;;
 
 let%expect_test "quoted quantifiers, ranges and capture syntax are literal" =
@@ -92,13 +72,7 @@ let%expect_test "quoted quantifiers, ranges and capture syntax are literal" =
     (Check.with_match pattern "abbbc" (fun _ groups ->
        Check.array Check.text (Re.Group.all groups)));
   Check.finish checks;
-  [%expect
-    {|
-    "[\\Qa-z\\E]" on "b": parse error; expected no match
-    "\\Qab\\E+" on "abab": "abab"; expected no match
-    "(\\Qab\\E+)(c)": no match; expected ["abbbc"; "abbb"; "c"]
-    5 checks; 3 differences
-    |}]
+  [%expect {| 5 checks; 0 differences |}]
 ;;
 
 let%expect_test "quotes do not repair invalid syntax or unterminated classes" =
@@ -119,9 +93,5 @@ let%expect_test "quotes do not repair invalid syntax or unterminated classes" =
         ~expected:"parse error"
         (Check.parse_status pattern));
   Check.finish checks;
-  [%expect
-    {|
-    "\\Q\\E+": compiled; expected parse error
-    7 checks; 1 differences
-    |}]
+  [%expect {| 7 checks; 0 differences |}]
 ;;

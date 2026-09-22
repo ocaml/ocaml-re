@@ -77,8 +77,7 @@ let%expect_test "Perl escape bytes and malformed syntax have precise outcomes" =
        | Error actual ->
          if actual <> expected then failwith ("wrong Perl error: " ^ pattern)
        | Ok _ -> failwith ("Perl accepted: " ^ pattern))
-    [ {|\E|}, `Parse_error
-    ; {|\k|}, `Parse_error
+    [ {|\k|}, `Parse_error
     ; {|\xGG|}, `Parse_error
     ; {|\x|}, `Parse_error
     ; {|\x{}|}, `Parse_error
@@ -111,6 +110,9 @@ let%expect_test "Perl escape bytes and malformed syntax have precise outcomes" =
     ];
   assert (matches (Re.Perl.re ~opts:[]) "[[.a.]]" "a");
   assert (matches (Re.Perl.re ~opts:[]) "[[]" "[");
+  (* A stray \E is ignored, as in PCRE. *)
+  assert (matches (Re.Perl.re ~opts:[]) {|\E|} "");
+  assert (matches (Re.Perl.re ~opts:[]) {|\Ea|} "a");
   [%expect {| |}]
 ;;
 

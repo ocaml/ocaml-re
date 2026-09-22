@@ -15,9 +15,8 @@ let parse_error pattern =
 let%expect_test "quoted text preserves escape pairs and atom boundaries" =
   same_ast {|\Q\E|} epsilon;
   same_ast {|\Qab\E|} (str "ab");
-  same_ast {|a\Qbc\E*|} (seq [ char 'a'; greedy (rep (str "bc")) ]);
-  same_ast {|\Q\E*|} (greedy (rep epsilon));
-  same_ast {|\Q\\E\E|} (str {|\\E|});
+  same_ast {|a\Qbc\E*|} (seq [ char 'a'; char 'b'; greedy (rep (char 'c')) ]);
+  same_ast {|\Q\\E\E|} (char '\\');
   same_ast {|\Q\q.[]*\E|} (str {|\q.[]*|});
   same_ast {|\Q(\E|} (char '(');
   for i = 0 to 255 do
@@ -27,15 +26,24 @@ let%expect_test "quoted text preserves escape pairs and atom boundaries" =
   [%expect {||}]
 ;;
 
-let%expect_test "a quoted atom is quantified as a whole" =
-  same_ast {|\Qab\E?|} (greedy (opt (str "ab")));
-  same_ast {|\Qab\E{2}|} (greedy (repn (str "ab") 2 (Some 2)));
-  same_ast {|\Qab\E+?|} (non_greedy (rep1 (str "ab")));
+let%expect_test "a quantifier applies to the last quoted byte" =
+  same_ast {|\Qab\E?|} (seq [ char 'a'; greedy (opt (char 'b')) ]);
+  same_ast {|\Qab\E{2}|} (seq [ char 'a'; greedy (repn (char 'b') 2 (Some 2)) ]);
+  same_ast {|\Qab\E+?|} (seq [ char 'a'; non_greedy (rep1 (char 'b')) ]);
   [%expect {||}]
 ;;
 
-let%expect_test "unterminated quotes remain parse errors" =
-  List.iter ~f:parse_error [ "\\Q"; "\\Qabc"; "\\Qabc\\"; {|\Q\\E|}; {|\Q\|} ];
+let%expect_test "unterminated quotes extend to the end of the pattern" =
+  same_ast {|\Q|} epsilon;
+  same_ast {|\Qabc|} (str "abc");
+  same_ast {|\Qabc\|} (str {|abc\|});
+  same_ast {|\Q\\E|} (char '\\');
+  same_ast {|\Q\|} (char '\\');
+  [%expect {||}]
+;;
+
+let%expect_test "an empty quote does not satisfy a quantifier" =
+  List.iter ~f:parse_error [ {|\Q\E+|}; {|\Q\E*|} ];
   [%expect {||}]
 ;;
 
