@@ -383,15 +383,15 @@ let rec handle_last_newline re positions ~pos st ~groups =
     handle_last_newline re positions ~pos st ~groups)
 ;;
 
-let rec scan_str re positions (s : string) initial_state ~last ~pos ~groups =
+let rec scan_str re positions (s : string) initial_state ~slen ~last ~pos ~groups =
   if
-    last = String.length s
+    last = slen
     && (not (Cset.equal_c re.lnl Cset.null_char))
     && last > pos
     && Char.equal (String.get s (last - 1)) '\n'
   then (
     let last = last - 1 in
-    let st = scan_str re positions ~pos s initial_state ~last ~groups in
+    let st = scan_str re positions ~pos s initial_state ~slen ~last ~groups in
     if Idx.is_break (State.get_info st).idx
     then st
     else handle_last_newline re positions ~pos:last st ~groups)
@@ -441,7 +441,7 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
       in
       find_initial_state re initial_cat
     in
-    scan_str re positions s initial_state ~pos ~last ~groups
+    scan_str re positions s initial_state ~slen ~pos ~last ~groups
   in
   let state_info = State.get_info st in
   if partial
@@ -502,7 +502,7 @@ module Stream = struct
     let state =
       if Idx.is_break (State.get_info t.state).idx
       then t.state
-      else scan_str t.re Positions.empty s t.state ~last ~pos ~groups:false
+      else scan_str t.re Positions.empty s t.state ~slen:last ~last ~pos ~groups:false
     in
     let info = State.get_info state in
     match

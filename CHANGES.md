@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Stream.finalize] not treating a newline at the end of a finalized
+  window as the final newline (#694).
+
 * Fix [Re.Stream] entry points silently accepting invalid `(pos, len)`
   windows; they now raise [Invalid_argument] (#692).
 
