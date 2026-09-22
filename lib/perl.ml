@@ -35,14 +35,6 @@ type elem =
   | Char of char
   | Set of Ast.t
 
-let word_char = [ Re.alnum; Re.char '_' ]
-let word = Set (Re.alt word_char)
-let not_word = Set (Re.alt word_char)
-let space = Set Re.space
-let not_space = Set (Re.compl [ Re.space ])
-let digit = Set Re.digit
-let not_digit = Set (Re.compl [ Re.digit ])
-
 module Class = struct
   let _w = Re.alt [ Re.alnum; Re.char '_' ]
   let _W = Re.compl [ Re.alnum; Re.char '_' ]
@@ -50,6 +42,25 @@ module Class = struct
   let _D = Re.compl [ Re.digit ]
   let _b = Re.alt [ Re.bow; Re.eow ]
 end
+
+let character_type =
+  let horizontal = Re.set "\t \160" in
+  let vertical = Re.set "\n\011\012\r\133" in
+  let not_horizontal = Re.compl [ horizontal ] in
+  let not_vertical = Re.compl [ vertical ] in
+  function
+  | 'w' -> Some Class._w
+  | 'W' -> Some Class._W
+  | 's' -> Some Re.space
+  | 'S' -> Some Class._S
+  | 'd' -> Some Re.digit
+  | 'D' -> Some Class._D
+  | 'h' -> Some horizontal
+  | 'H' -> Some not_horizontal
+  | 'v' -> Some vertical
+  | 'V' -> Some not_vertical
+  | _ -> None
+;;
 
 let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
@@ -248,12 +259,8 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     | '\\' ->
       if eos () then raise Parse_error;
       (match get () with
-       | 'w' -> Class._w
-       | 'W' -> Class._W
-       | 's' -> Re.space
-       | 'S' -> Class._S
-       | 'd' -> Re.digit
-       | 'D' -> Class._D
+       | 'C' -> Re.any
+       | 'N' -> Re.notnl
        | 'b' -> Class._b
        | 'B' -> Re.not_boundary
        | 'A' -> Re.bos
@@ -262,7 +269,10 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
        | 'G' -> Re.start
        | 'Q' -> quote ()
        | 'E' -> raise Parse_error
-       | c -> Re.char (byte_escape ~in_class:false c))
+       | c ->
+         (match character_type c with
+          | Some set -> set
+          | None -> Re.char (byte_escape ~in_class:false c)))
     | '*' | '+' | '?' | '{' -> raise Parse_error
     | c -> Re.char c
   and quote () =
@@ -341,14 +351,9 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     then (
       if eos () then raise Parse_error;
       let c = get () in
-      match c with
-      | 'w' -> word
-      | 'W' -> not_word
-      | 's' -> space
-      | 'S' -> not_space
-      | 'd' -> digit
-      | 'D' -> not_digit
-      | c -> Char (byte_escape ~in_class:true c))
+      match character_type c with
+      | Some set -> Set set
+      | None -> Char (byte_escape ~in_class:true c))
     else Char c
   and comment () =
     let start = Parse_buffer.position buf in
