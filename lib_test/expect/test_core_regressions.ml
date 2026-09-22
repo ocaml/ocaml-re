@@ -9,7 +9,7 @@ let%expect_test "zero-count repetitions retain named capture declarations" =
 let%expect_test "execution lengths must not overflow the bounds check" =
   invalid_argument (fun () ->
     printf "%b\n" (Re.execp ~pos:1 ~len:max_int (Re.compile Re.epsilon) "a"));
-  [%expect {| true |}]
+  [%expect {| Invalid_argument "Re.exec: out of bounds" |}]
 ;;
 
 let witness re =

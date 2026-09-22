@@ -685,7 +685,7 @@ let match_str_no_bounds ~groups ~partial re s ~pos ~len =
 ;;
 
 let match_str_p re s ~pos ~len =
-  if pos < 0 || len < -1 || pos + len > String.length s
+  if pos < 0 || pos > String.length s || len < -1 || len > String.length s - pos
   then invalid_arg "Re.exec: out of bounds";
   match make_match_str re Positions.empty ~len ~groups:false ~partial:false s ~pos with
   | Match _ -> true
@@ -693,7 +693,7 @@ let match_str_p re s ~pos ~len =
 ;;
 
 let match_str ~groups ~partial re s ~pos ~len =
-  if pos < 0 || len < -1 || pos + len > String.length s
+  if pos < 0 || pos > String.length s || len < -1 || len > String.length s - pos
   then invalid_arg "Re.exec: out of bounds";
   match_str_no_bounds ~groups ~partial re s ~pos ~len
 ;;
