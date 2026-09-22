@@ -8,16 +8,13 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
-#          - windows-latest
         ocaml-compiler:
           - "4.14"
-          - "5.2"
           - "5.5"
         include:
           - os: ubuntu-24.04-arm
-            ocaml-compiler: "ocaml-variants.5.2.1+options,ocaml-option-tsan"
+            ocaml-compiler: "ocaml-variants.5.5.1+options,ocaml-option-tsan"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7

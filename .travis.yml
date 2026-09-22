@@ -6,10 +6,7 @@ env:
   global:
   - PACKAGE=re
   matrix:
-  - OCAML_VERSION=4.03
-  - OCAML_VERSION=4.04
-  - OCAML_VERSION=4.05
-  - OCAML_VERSION=4.06
+  - OCAML_VERSION=4.14
+  - OCAML_VERSION=5.5
 os:
   - linux
-  - osx

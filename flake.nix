@@ -65,7 +65,7 @@
           buildInputs = formatInputs pkgs;
         };
         devShells.test = let
-          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_4);
+          pkgs = makeNixpkgs (ocaml: ocaml.ocamlPackages_5_5);
           packages = makePackages pkgs;
         in pkgs.mkShell {
           inputsFrom = pkgs.lib.attrValues packages;
