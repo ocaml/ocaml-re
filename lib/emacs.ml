@@ -113,8 +113,12 @@ let parse ~emacs_only s =
         then Re.char c :: Re.char '-' :: s
         else (
           let c' = char () in
-          let c' = by_code Int.max c c' in
-          bracket (Re.rg c c' :: s))
+          let range =
+            if (not emacs_only) && Char.compare c c' > 0
+            then Re.set ""
+            else Re.rg c (by_code Int.max c c')
+          in
+          bracket (range :: s))
       else bracket (Re.char c :: s))
   and char () =
     if eos () then raise Parse_error;

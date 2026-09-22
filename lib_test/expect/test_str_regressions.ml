@@ -27,6 +27,21 @@ let%expect_test "descending Str ranges denote the empty character set" =
   [%expect
     {|
     Str: false
-    Re.Str: true
+    Re.Str: false
     |}]
+;;
+
+let%test_unit "descending Str ranges agree on every byte" =
+  (* Keep the expanded native-Str oracle matrix on its original backend. *)
+  match Sys.backend_type with
+  | Other _ -> ()
+  | Native | Bytecode ->
+    List.iter [ "[z-a]"; "[^z-a]"; "[mz-a]"; "[z-z]" ] ~f:(fun pattern ->
+      let expected = Str.regexp pattern in
+      let actual = Re.Str.regexp pattern in
+      for code = 0 to 255 do
+        let s = String.make 1 (Char.chr code) in
+        assert (
+          Bool.equal (Str.string_match expected s 0) (Re.Str.string_match actual s 0))
+      done)
 ;;
