@@ -196,7 +196,7 @@ let%expect_test "comment" =
 
 let%expect_test "backrefs" =
   try_parse "\\0";
-  [%expect {| Not supported |}]
+  [%expect {| Prased successfully |}]
 ;;
 
 let%expect_test "ordinary characters" =

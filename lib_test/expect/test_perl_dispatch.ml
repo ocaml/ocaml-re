@@ -80,9 +80,9 @@ let%expect_test "atom dispatch records malformed and unsupported syntax" =
     "(?": Parse_error
     "a\\": Parse_error
     "[a": Parse_error
-    "\\x4": Parse_error
+    "\\x4": (Set 4)
     "\\1": Not_supported
     "\\8": Not_supported
-    "[\\1]": Not_supported
+    "[\\1]": (Set 1)
     |}]
 ;;

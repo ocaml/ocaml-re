@@ -25,16 +25,6 @@ module Re = Core
 exception Parse_error = Parse_buffer.Parse_error
 exception Not_supported
 
-let acc_digits ~base ~digits =
-  if digits = [] then raise Parse_error;
-  List.fold_left
-    (fun acc digit ->
-       if acc > (255 - digit) / base then raise Parse_error;
-       (acc * base) + digit)
-    0
-    (List.rev digits)
-;;
-
 let char_of_int x =
   match char_of_int x with
   | x -> x
@@ -45,10 +35,6 @@ type elem =
   | Char of char
   | Set of Ast.t
 
-let char_b = Char '\008'
-let char_newline = Char '\n'
-let char_cr = Char '\r'
-let char_tab = Char '\t'
 let word_char = [ Re.alnum; Re.char '_' ]
 let word = Set (Re.alt word_char)
 let not_word = Set (Re.alt word_char)
@@ -71,6 +57,106 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let eos () = Parse_buffer.eos buf in
   let unget () = Parse_buffer.unget buf in
   let get () = Parse_buffer.get buf in
+  let captures = ref 0 in
+  let maybe_digit base =
+    if eos ()
+    then None
+    else (
+      let value =
+        match get () with
+        | '0' .. '9' as c -> Char.code c - Char.code '0'
+        | 'a' .. 'f' as c -> Char.code c - Char.code 'a' + 10
+        | 'A' .. 'F' as c -> Char.code c - Char.code 'A' + 10
+        | _ -> base
+      in
+      if value < base
+      then Some value
+      else (
+        unget ();
+        None))
+  in
+  let add_digit base value digit =
+    (* Check before accumulating, including in arbitrarily long braced escapes. *)
+    if value > (255 - digit) / base then raise Parse_error;
+    (value * base) + digit
+  in
+  let rec digits base remaining value =
+    if remaining = 0
+    then value
+    else (
+      match maybe_digit base with
+      | None -> value
+      | Some digit -> digits base (remaining - 1) (add_digit base value digit))
+  in
+  let rec brace_space () = if accept ' ' || accept '\t' then brace_space () in
+  let braced_code base =
+    brace_space ();
+    let rec loop value =
+      match maybe_digit base with
+      | Some digit -> loop (add_digit base value digit)
+      | None ->
+        brace_space ();
+        if not (accept '}') then raise Parse_error;
+        value
+    in
+    match maybe_digit base with
+    | None -> raise Parse_error
+    | Some digit -> loop digit
+  in
+  let numeric_escape ~in_class first =
+    if (not in_class) && first <> '0'
+    then (
+      (* PCRE interprets a nonzero decimal escape as a backreference when it
+         is a single digit, starts with 8/9, or names an already opened group.
+         Inspect without consuming; unsupported references must never silently
+         become octal characters. Saturation avoids overflow on long escapes. *)
+      if first >= '8' then raise Not_supported;
+      let limit = max 10 (!captures + 1) in
+      let rec decimal count value =
+        match maybe_digit 10 with
+        | Some digit -> decimal (count + 1) (min limit ((value * 10) + digit))
+        | None ->
+          for _ = 1 to count do
+            unget ()
+          done;
+          value
+      in
+      let value = decimal 0 (Char.code first - Char.code '0') in
+      if value < 10 || value <= !captures then raise Not_supported);
+    if first >= '8'
+    then first
+    else char_of_int (digits 8 2 (Char.code first - Char.code '0'))
+  in
+  let byte_escape ~in_class = function
+    | 'a' -> '\007'
+    | 'b' when in_class -> '\008'
+    | 'e' -> '\027'
+    | 'f' -> '\012'
+    | 'n' -> '\n'
+    | 'r' -> '\r'
+    | 't' -> '\t'
+    | 'c' ->
+      if eos () then raise Parse_error;
+      let c = get () in
+      if c < ' ' || c > '~' then raise Parse_error;
+      Char.chr (Char.code (Char.uppercase_ascii c) lxor 0x40)
+    | 'x' ->
+      let value =
+        if accept '{'
+        then braced_code 16
+        else (
+          match maybe_digit 16 with
+          | None -> raise Parse_error
+          | Some digit -> digits 16 1 digit)
+      in
+      char_of_int value
+    | 'o' ->
+      if not (accept '{') then raise Parse_error;
+      char_of_int (braced_code 8)
+    | '0' .. '9' as c -> numeric_escape ~in_class c
+    | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
+    | c -> c
+  in
   let greedy_mod r =
     let gr = accept '?' in
     let gr = if ungreedy then not gr else gr in
@@ -103,18 +189,6 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
         unget ();
         sequence first rest
       | c -> branch' first (piece c :: rest))
-  and in_brace ~f ~init =
-    match accept '{' with
-    | false -> None
-    | true ->
-      let rec loop acc =
-        if accept '}'
-        then acc
-        else (
-          let acc = f acc in
-          loop acc)
-      in
-      Some (loop init)
   and piece c =
     let r = atom c in
     if eos ()
@@ -172,10 +246,6 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       then Re.compl (bracket [])
       else Re.alt (bracket [])
     | '\\' ->
-      (* XXX
-         - Back-references
-         - \cx (control-x), \ddd
-      *)
       if eos () then raise Parse_error;
       (match get () with
        | 'w' -> Class._w
@@ -190,46 +260,9 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
        | 'Z' -> Re.leol
        | 'z' -> Re.eos
        | 'G' -> Re.start
-       | 'e' -> Re.char '\x1b'
-       | 'f' -> Re.char '\x0c'
-       | 'n' -> Re.char '\n'
-       | 'r' -> Re.char '\r'
-       | 't' -> Re.char '\t'
        | 'Q' -> quote ()
        | 'E' -> raise Parse_error
-       | 'x' ->
-         let c1, c2 =
-           match in_brace ~init:[] ~f:(fun acc -> hexdigit () :: acc) with
-           | Some [ c2; c1 ] -> c1, c2
-           | Some [ c2 ] -> 0, c2
-           | Some _ -> raise Parse_error
-           | None ->
-             let c1 = hexdigit () in
-             let c2 = hexdigit () in
-             c1, c2
-         in
-         let code = (c1 * 16) + c2 in
-         Re.char (char_of_int code)
-       | 'o' ->
-         (match
-            in_brace ~init:[] ~f:(fun acc ->
-              match maybe_octaldigit () with
-              | None -> raise Parse_error
-              | Some p -> p :: acc)
-          with
-          | None -> raise Parse_error
-          | Some digits -> Re.char (char_of_int (acc_digits ~base:8 ~digits)))
-       | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
-       | '0' .. '7' as n1 ->
-         let n2 = maybe_octaldigit () in
-         let n3 = maybe_octaldigit () in
-         (match n2, n3 with
-          | Some n2, Some n3 ->
-            let n1 = Char.code n1 - Char.code '0' in
-            Re.char (char_of_int ((n1 * (8 * 8)) + (n2 * 8) + n3))
-          | _, _ -> raise Not_supported)
-       | '8' .. '9' -> raise Not_supported
-       | c -> Re.char c)
+       | c -> Re.char (byte_escape ~in_class:false c))
     | '*' | '+' | '?' | '{' -> raise Parse_error
     | c -> Re.char c
   and quote () =
@@ -249,21 +282,8 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       if pos < start then Re.seq acc else prepend (pos - 1) (Re.char s.[pos] :: acc)
     in
     prepend (stop - 1) []
-  and hexdigit () =
-    if eos () then raise Parse_error;
-    match get () with
-    | '0' .. '9' as d -> Char.code d - Char.code '0'
-    | 'a' .. 'f' as d -> Char.code d - Char.code 'a' + 10
-    | 'A' .. 'F' as d -> Char.code d - Char.code 'A' + 10
-    | _ -> raise Parse_error
-  and maybe_octaldigit () =
-    if eos ()
-    then None
-    else (
-      match get () with
-      | '0' .. '7' as d -> Some (Char.code d - Char.code '0')
-      | _ -> None)
   and group ?name () =
+    incr captures;
     let r = regexp () in
     if not (accept ')') then raise Parse_error;
     Re.group ?name r
@@ -321,23 +341,14 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     then (
       if eos () then raise Parse_error;
       let c = get () in
-      (* XXX
-         \127, ...
-      *)
       match c with
-      | 'b' -> char_b
-      | 'n' -> char_newline (*XXX*)
-      | 'r' -> char_cr (*XXX*)
-      | 't' -> char_tab (*XXX*)
       | 'w' -> word
       | 'W' -> not_word
       | 's' -> space
       | 'S' -> not_space
       | 'd' -> digit
       | 'D' -> not_digit
-      | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
-      | '0' .. '9' -> raise Not_supported
-      | _ -> Char c)
+      | c -> Char (byte_escape ~in_class:true c))
     else Char c
   and comment () =
     let start = Parse_buffer.position buf in

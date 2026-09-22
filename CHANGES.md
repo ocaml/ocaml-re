@@ -1,6 +1,11 @@
 Unreleased
 ----------
 
+* Extend byte escapes in `Re.Perl` and `Re.Pcre`: short octal and hex
+  forms, leading zeroes and brace whitespace, and escapes inside character
+  classes. Add `\a` and `\cX`; reject malformed and out-of-range values
+  (#679).
+
 * Fix corrupted captures in [Re.Stream.Group] when feeding or finalizing
   input windows with nonzero source offsets (#664).
 
