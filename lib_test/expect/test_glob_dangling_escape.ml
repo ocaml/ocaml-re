@@ -23,6 +23,6 @@ let%expect_test "brace expansion reads past a dangling escape" =
     expand_braces=false "a\\*": match "a*"
     expand_braces=false "a\\": Re.Glob.Parse_error
     expand_braces=true "a\\*": match "a*"
-    expand_braces=true "a\\": Invalid_argument("String.sub / Bytes.sub")
+    expand_braces=true "a\\": Re.Glob.Parse_error
     |}]
 ;;

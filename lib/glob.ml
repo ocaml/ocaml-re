@@ -102,7 +102,9 @@ let explode str =
       mul beg [ String.sub str s (i - s) ], i)
     else (
       match str.[i] with
-      | '\\' -> expl inner s (i + 2) acc beg
+      | '\\' ->
+        if i + 1 = l then raise Parse_error;
+        expl inner s (i + 2) acc beg
       | '{' ->
         let t, i' = expl true (i + 1) (i + 1) [] [ "" ] in
         expl inner i' i' acc (mul beg (mul [ String.sub str s (i - s) ] t))
