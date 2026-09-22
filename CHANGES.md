@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix corrupted captures in [Re.Stream.Group] when feeding or finalizing
+  input windows with nonzero source offsets (#664).
+
 * Fix crashes when feeding or finalizing [Re.Stream] and [Re.Stream.Group]
   after reaching a terminal match state (#665).
 
