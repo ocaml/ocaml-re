@@ -41,7 +41,7 @@ let%expect_test "the last newline is relative to the finalized slice" =
   [%expect
     {|
     "a\n": true
-    "a\nx": false
+    "a\nx": true
     |}]
 ;;
 
