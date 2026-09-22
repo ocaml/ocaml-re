@@ -4,6 +4,12 @@ exception Parse_error
 
 val create : string -> t
 val junk : t -> unit
+val position : t -> int
+
+(** Advance by a nonnegative number of bytes within the input. Like [junk],
+    this does not check bounds. *)
+val advance : t -> int -> unit
+
 val unget : t -> unit
 val eos : t -> bool
 val test : t -> char -> bool
