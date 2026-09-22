@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Reject integer-overflowing repetition counts in [Re.Perl], [Re.Posix], and
+  [Re.Pcre] instead of accepting wrapped bounds (#663).
+
 * Fix [Re.Str] replacement references to unmatched groups to raise [Failure],
   as [Str] does, instead of substituting an empty string (#646).
 

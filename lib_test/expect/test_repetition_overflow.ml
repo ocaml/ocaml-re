@@ -30,8 +30,8 @@ let report overflowing =
 ;;
 
 (* Parse only: compiling enormous repetitions would allocate unnecessarily.
-   Both out-of-range counts should be rejected. The final count currently
-   wraps to a positive value large enough to evade the post-arithmetic check. *)
+   Both out-of-range counts should be rejected. The final count used to
+   wrap to a positive value large enough to evade the post-arithmetic check. *)
 let%test_module "overflowing repetition counts" =
   (module (val if Sys.int_size = 63
                then
@@ -46,8 +46,8 @@ let%test_module "overflowing repetition counts" =
     Posix "a{4611686018427387903}": bounds (4611686018427387903, 4611686018427387903)
     Perl "a{4611686018427387904}": Parse_error
     Posix "a{4611686018427387904}": Parse_error
-    Perl "a{11000000000000000000}": bounds (1776627963145224192, 1776627963145224192)
-    Posix "a{11000000000000000000}": bounds (1776627963145224192, 1776627963145224192)
+    Perl "a{11000000000000000000}": Parse_error
+    Posix "a{11000000000000000000}": Parse_error
     |}]
                    ;;
                  end)
@@ -64,8 +64,8 @@ let%test_module "overflowing repetition counts" =
     Posix "a{2147483647}": bounds (2147483647, 2147483647)
     Perl "a{2147483648}": Parse_error
     Posix "a{2147483648}": Parse_error
-    Perl "a{5000000000}": bounds (705032704, 705032704)
-    Posix "a{5000000000}": bounds (705032704, 705032704)
+    Perl "a{5000000000}": Parse_error
+    Posix "a{5000000000}": Parse_error
     |}]
                    ;;
                  end)
