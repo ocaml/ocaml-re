@@ -189,7 +189,7 @@ let%expect_test "clustering" =
 
 let%expect_test "comment" =
   re "a(?#comment)b";
-  [%expect {| (Sequence (Set 97)(Sequence )(Set 98)) |}];
+  [%expect {| (Sequence (Set 97)(Set 98)) |}];
   try_parse "(?#";
   [%expect {| Parse error |}]
 ;;

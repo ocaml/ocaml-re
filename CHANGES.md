@@ -1,6 +1,10 @@
 Unreleased
 ----------
 
+* Skip inline `(?#...)` comments when attaching quantifiers in [Re.Perl] and
+  [Re.Pcre], matching PCRE: `a(?#note)*` is `a*`, and a quantifier with no
+  remaining operand is a parse error (#702).
+
 * Treat `\Q...\E` quoting in [Re.Perl] and [Re.Pcre] as lexical, matching
   PCRE: a quantifier after `\E` applies to the last quoted byte, an empty
   quote does not satisfy a quantifier, unterminated quotes extend to the end

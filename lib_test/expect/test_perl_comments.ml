@@ -12,18 +12,18 @@ let parse_error pattern =
   | Ok _ | Error `Not_supported -> assert false
 ;;
 
-let%expect_test "comments retain epsilon nodes and quantifier binding" =
+let%expect_test "comments leave no trace in the AST" =
   same_ast "(?#)" epsilon;
-  same_ast "a(?#text)b" (seq [ char 'a'; epsilon; char 'b' ]);
-  same_ast "(?#one)(?#two)" (seq [ epsilon; epsilon ]);
-  same_ast "(a(?#inner))(b)" (seq [ group (seq [ char 'a'; epsilon ]); group (char 'b') ]);
-  same_ast "a(?#text)*?b" (seq [ char 'a'; non_greedy (rep epsilon); char 'b' ]);
+  same_ast "a(?#text)b" (seq [ char 'a'; char 'b' ]);
+  same_ast "(?#one)(?#two)" epsilon;
+  same_ast "(a(?#inner))(b)" (seq [ group (char 'a'); group (char 'b') ]);
+  same_ast "a(?#text)*?b" (seq [ non_greedy (rep (char 'a')); char 'b' ]);
   [%expect {||}]
 ;;
 
 let%expect_test "comments stop at the first closing parenthesis" =
-  same_ast "(?#a\\)b" (seq [ epsilon; char 'b' ]);
-  same_ast "(?#(nested)b" (seq [ epsilon; char 'b' ]);
+  same_ast "(?#a\\)b" (char 'b');
+  same_ast "(?#(nested)b" (char 'b');
   for byte = 0 to 255 do
     let c = Char.chr byte in
     let pattern = "(?#" ^ String.make 1 c ^ ")" in
@@ -39,7 +39,7 @@ let%expect_test "unterminated comments remain parse errors" =
 
 let%expect_test "long comments remain stack safe" =
   let text = String.make 100_000 'a' in
-  same_ast ("a(?#" ^ text ^ ")b") (seq [ char 'a'; epsilon; char 'b' ]);
+  same_ast ("a(?#" ^ text ^ ")b") (seq [ char 'a'; char 'b' ]);
   parse_error ("(?#" ^ text);
   [%expect {||}]
 ;;

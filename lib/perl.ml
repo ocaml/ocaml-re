@@ -82,6 +82,17 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       quoted := true;
       skip_quote_markers ())
   in
+  let rec skip_comment () =
+    if eos () then raise Parse_error;
+    if get () <> ')' then skip_comment ()
+  in
+  let rec skip_ignored () =
+    skip_quote_markers ();
+    if (not !quoted) && Parse_buffer.accept_s buf "(?#"
+    then (
+      skip_comment ();
+      skip_ignored ())
+  in
   let captures = ref 0 in
   let maybe_digit base =
     if eos ()
@@ -183,7 +194,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     | c -> c
   in
   let greedy_mod r =
-    skip_quote_markers ();
+    skip_ignored ();
     let gr = accept '?' in
     let gr = if ungreedy then not gr else gr in
     if gr then Re.non_greedy r else Re.greedy r
@@ -198,7 +209,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   and regexp' left =
     if accept '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
   and branch () =
-    skip_quote_markers ();
+    skip_ignored ();
     if eos ()
     then Re.epsilon
     else (
@@ -208,7 +219,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
         Re.epsilon
       | c -> branch' (piece c) [])
   and branch' first rest =
-    skip_quote_markers ();
+    skip_ignored ();
     if eos ()
     then sequence first rest
     else (
@@ -219,7 +230,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | c -> branch' first (piece c :: rest))
   and piece c =
     let r = atom c in
-    skip_quote_markers ();
+    skip_ignored ();
     if eos () || !quoted
     then r
     else (
@@ -256,8 +267,6 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
             let r = regexp () in
             if not (accept ')') then raise Parse_error;
             r)
-          else if accept '#'
-          then comment ()
           else if accept '<'
           then named_group '>'
           else if accept '\''
@@ -364,13 +373,6 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | Some set -> Set set
       | None -> Char (byte_escape ~in_class:true c))
     else Char c
-  and comment () =
-    let start = Parse_buffer.position buf in
-    match String.index_from s start ')' with
-    | exception Not_found -> raise Parse_error
-    | stop ->
-      Parse_buffer.advance buf (stop + 1 - start);
-      Re.epsilon
   in
   let res = regexp () in
   if not (eos ()) then raise Parse_error;

@@ -30,17 +30,7 @@ let%expect_test "comments do not change grouping or quantifier binding" =
     (Check.with_match pattern "ab" (fun _ groups ->
        Check.array Check.text (Re.Group.all groups)));
   Check.finish checks;
-  [%expect
-    {|
-    "a(?#note)*" on "aaa": "a"; expected "aaa"
-    "a(?#note){2}" on "aaa": "a"; expected "aa"
-    "a+(?#note)?" on "aaa": "aaa"; expected "a"
-    "a(?#one)(?#two)+" on "aaa": "a"; expected "aaa"
-    "a\\Q\\E(?#note)+" on "aaa": "a"; expected "aaa"
-    "\\Qab\\E(?#note)+" on "abbb": "ab"; expected "abbb"
-    ... 1 more differences
-    12 checks; 7 differences
-    |}]
+  [%expect {| 12 checks; 0 differences |}]
 ;;
 
 let%expect_test "unterminated comments and quantifiers without an operand" =
@@ -54,11 +44,5 @@ let%expect_test "unterminated comments and quantifiers without an operand" =
         ~expected:"parse error"
         (Check.parse_status pattern));
   Check.finish checks;
-  [%expect
-    {|
-    "(?#note)*": compiled; expected parse error
-    "(?#note)+": compiled; expected parse error
-    "(?#note){2}": compiled; expected parse error
-    5 checks; 3 differences
-    |}]
+  [%expect {| 5 checks; 0 differences |}]
 ;;
