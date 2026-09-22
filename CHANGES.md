@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Stream] entry points silently accepting invalid `(pos, len)`
+  windows; they now raise [Invalid_argument] (#692).
+
 * Fix completed [Re.Stream.Group] matches being corrupted when the underlying
   stream is reused (#687).
 
