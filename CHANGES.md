@@ -1,6 +1,10 @@
 Unreleased
 ----------
 
+* Fix [Re.exec], [Re.replace], [Re.all] and [Re.split] accepting start
+  positions past the input or lengths that overflow the bounds check;
+  out-of-bounds windows now raise [Invalid_argument] (#691).
+
 * Fix [Re.Stream.finalize] not treating a newline at the end of a finalized
   window as the final newline (#694).
 
