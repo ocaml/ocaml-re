@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix completed [Re.Stream.Group] matches being corrupted when the underlying
+  stream is reused (#687).
+
 * Fix [Re.Str] treating descending character ranges such as `[z-a]` as a
   reversed range; they now denote the empty set, matching [Str] (#683).
 
