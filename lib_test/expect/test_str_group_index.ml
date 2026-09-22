@@ -1,6 +1,6 @@
 module Re = Re_private.Re
 
-let%expect_test "Str group offsets reject an existing group above nine" =
+let%expect_test "Str group offsets accept existing groups above nine" =
   let input = "abcdefghij" in
   let pattern =
     List.init (String.length input) (fun i -> Printf.sprintf "\\(%c\\)" input.[i])
@@ -35,7 +35,7 @@ let%expect_test "Str group offsets reject an existing group above nine" =
     Re.Str.group_end 9: 9
     Str.group_beginning 10: 9
     Str.group_end 10: 10
-    Re.Str.group_beginning 10: Invalid_argument("Str.group_beginning")
-    Re.Str.group_end 10: Invalid_argument("Str.group_end")
+    Re.Str.group_beginning 10: 9
+    Re.Str.group_end 10: 10
     |}]
 ;;

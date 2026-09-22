@@ -77,7 +77,6 @@ let rec search_backward re s p =
 
 let valid_group n =
   n >= 0
-  && n < 10
   &&
   match Domain.DLS.get state with
   | None -> false
