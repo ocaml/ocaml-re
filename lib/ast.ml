@@ -278,7 +278,6 @@ module Export = struct
     if i < 0 then invalid_arg "Re.repn";
     match j, i with
     | Some j, _ when j < i -> invalid_arg "Re.repn"
-    | Some 0, 0 -> epsilon
     | Some 1, 1 -> r
     | _ -> Repeat (r, i, j)
   ;;
