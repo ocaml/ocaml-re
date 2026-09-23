@@ -7,9 +7,20 @@ let%expect_test "zero-count repetitions retain named capture declarations" =
 ;;
 
 let%expect_test "execution lengths must not overflow the bounds check" =
-  invalid_argument (fun () ->
-    printf "%b\n" (Re.execp ~pos:1 ~len:max_int (Re.compile Re.epsilon) "a"));
-  [%expect {| true |}]
+  let re = Re.compile Re.epsilon in
+  invalid_argument (fun () -> Re.exec ~pos:1 ~len:max_int re "a");
+  invalid_argument (fun () -> Re.execp ~pos:1 ~len:max_int re "a");
+  invalid_argument (fun () -> Re.all ~pos:1 ~len:max_int re "a");
+  invalid_argument (fun () -> Re.split ~pos:1 ~len:max_int re "a");
+  invalid_argument (fun () -> Re.replace_string ~pos:1 ~len:max_int re "a" ~by:"x");
+  [%expect
+    {|
+    Invalid_argument "Re.exec: out of bounds"
+    Invalid_argument "Re.exec: out of bounds"
+    Invalid_argument "Re.all"
+    Invalid_argument "Re.split"
+    Invalid_argument "Re.replace"
+    |}]
 ;;
 
 let witness re =

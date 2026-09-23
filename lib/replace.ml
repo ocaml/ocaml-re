@@ -1,10 +1,10 @@
 let replace ?(pos = 0) ?len ?(all = true) re ~f s =
-  if pos < 0 then invalid_arg "Re.replace";
+  if pos < 0 || pos > String.length s then invalid_arg "Re.replace";
   let limit =
     match len with
     | None -> String.length s
     | Some l ->
-      if l < 0 || pos + l > String.length s then invalid_arg "Re.replace";
+      if l < 0 || l > String.length s - pos then invalid_arg "Re.replace";
       pos + l
   in
   (* buffer into which we write the result *)

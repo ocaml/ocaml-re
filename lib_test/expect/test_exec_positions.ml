@@ -30,12 +30,12 @@ let%expect_test "positions past the input are handled with omitted or negative l
     [ 2, None; 2, Some (-1); 2, Some 0 ];
   [%expect
     {|
-    exec_opt ~pos:2: None
-    execp ~pos:2: false
-    all ~pos:2: 0 matches
-    split ~pos:2: File "lib_test/expect/private_re/search.ml", line 56, characters 6-12: Assertion failed
-    exec_opt ~pos:2 ~len:-1: None
-    execp ~pos:2 ~len:-1: false
+    exec_opt ~pos:2: Invalid_argument "Re.exec: out of bounds"
+    execp ~pos:2: Invalid_argument "Re.exec: out of bounds"
+    all ~pos:2: Invalid_argument "Re.all"
+    split ~pos:2: Invalid_argument "Re.split"
+    exec_opt ~pos:2 ~len:-1: Invalid_argument "Re.exec: out of bounds"
+    execp ~pos:2 ~len:-1: Invalid_argument "Re.exec: out of bounds"
     all ~pos:2 ~len:-1: Invalid_argument "Re.all"
     split ~pos:2 ~len:-1: Invalid_argument "Re.split"
     exec_opt ~pos:2 ~len:0: Invalid_argument "Re.exec: out of bounds"
