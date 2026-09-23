@@ -62,6 +62,11 @@ let character_type =
   | _ -> None
 ;;
 
+let is_literal = function
+  | '.' | '(' | ')' | '|' | '^' | '$' | '[' | '\\' | '*' | '+' | '?' | '{' -> false
+  | _ -> true
+;;
+
 let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
   let quoted = ref false in
@@ -199,6 +204,42 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     let gr = if ungreedy then not gr else gr in
     if gr then Re.non_greedy r else Re.greedy r
   in
+  let length = String.length s in
+  let rec literal_end i =
+    if i < length && is_literal s.[i] then literal_end (i + 1) else i
+  in
+  (* Tokens that do not separate a quantifier from the preceding byte: stray
+     \E, empty quotes, and inline comments. *)
+  let rec skippable_markers i =
+    if i + 1 < length && s.[i] = '\\'
+    then (
+      match s.[i + 1] with
+      | 'E' -> skippable_markers (i + 2)
+      | 'Q' ->
+        if i + 3 < length && s.[i + 2] = '\\' && s.[i + 3] = 'E'
+        then skippable_markers (i + 4)
+        else -1
+      | _ -> i)
+    else if i + 2 < length && s.[i] = '(' && s.[i + 1] = '?' && s.[i + 2] = '#'
+    then (
+      match String.index_from s (i + 3) ')' with
+      | exception Not_found -> -1
+      | stop -> skippable_markers (stop + 1))
+    else i
+  in
+  let literal_stop start =
+    let stop = literal_end (start + 1) in
+    if stop < length
+    then (
+      let next = skippable_markers stop in
+      if next >= 0 && next < length
+      then (
+        match s.[next] with
+        | '*' | '+' | '?' | '{' -> stop - 1
+        | _ -> stop)
+      else stop)
+    else stop
+  in
   let sequence first = function
     | [] -> first
     | rest -> Re.seq (first :: List.rev rest)
@@ -208,6 +249,17 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     if accept '|' then regexp' [ branch (); first ] else first
   and regexp' left =
     if accept '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
+  and item c =
+    if (not !quoted) && is_literal c
+    then (
+      let start = Parse_buffer.position buf - 1 in
+      let stop = literal_stop start in
+      if stop = start
+      then piece c
+      else (
+        Parse_buffer.advance buf (stop - start - 1);
+        if stop = start + 1 then Re.char c else Re.str (String.sub s start (stop - start))))
+    else piece c
   and branch () =
     skip_ignored ();
     if eos ()
@@ -217,7 +269,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | ('|' | ')') when not !quoted ->
         unget ();
         Re.epsilon
-      | c -> branch' (piece c) [])
+      | c -> branch' (item c) [])
   and branch' first rest =
     skip_ignored ();
     if eos ()
@@ -227,7 +279,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | ('|' | ')') when not !quoted ->
         unget ();
         sequence first rest
-      | c -> branch' first (piece c :: rest))
+      | c -> branch' first (item c :: rest))
   and piece c =
     let r = atom c in
     skip_ignored ();
