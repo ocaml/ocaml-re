@@ -110,3 +110,22 @@ let%expect_test "split empty alternatives" =
     empty pattern, 10000 bytes: 10000 fields
     |}]
 ;;
+
+let%expect_test "full_split zero-width matches" =
+  (* As in [split], a nonempty match at the same position should be tried
+     before moving past an empty delimiter. [a*?] currently splits at the
+     empty match instead of at "a". *)
+  full_split "a*?" "ab";
+  full_split ~max:2 "a*?" "ab";
+  full_split "a*" "ab";
+  full_split "(?:|a)" "ab";
+  full_split "(|a)" "ab";
+  [%expect
+    {|
+    full_split ~max:0 "a*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:2 "a*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"; Delim ""]
+    full_split ~max:0 "(?:|a)" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "(|a)" "ab": [Delim ""; Group (1, ""); Text "a"; Delim ""; Group (1, ""); Text "b"; Delim ""; Group (1, "")]
+    |}]
+;;
