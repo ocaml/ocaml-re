@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Glob] with `pathname` disabled allowing wildcards to match a leading
+  period; leading dots must still be matched explicitly (#708).
+
 * Fix [Re.witness] raising [Assert_failure] for languages containing empty
   alternatives; empty languages now raise [Invalid_argument] (#685).
 

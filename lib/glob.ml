@@ -232,21 +232,11 @@ let many (state : State.t) =
      splits out some simple cases. *)
   if not explicit_period
   then State.append state (Re.rep (one ~explicit_slash ~slashes ~explicit_period))
-  else if not explicit_slash
-  then
-    (* In this state, we explicitly match periods only at the very beginning *)
-    State.append
-      state
-      (Re.opt
-         (Re.seq
-            [ one ~explicit_slash:false ~slashes ~explicit_period
-            ; Re.rep (one ~explicit_slash:false ~slashes ~explicit_period:false)
-            ]))
   else (
     let not_empty =
       Re.seq
-        [ one ~explicit_slash:true ~slashes ~explicit_period:true
-        ; Re.rep (one ~explicit_slash:true ~slashes ~explicit_period:false)
+        [ one ~explicit_slash ~slashes ~explicit_period:true
+        ; Re.rep (one ~explicit_slash ~slashes ~explicit_period:false)
         ]
     in
     (* [maybe_empty] is the default translation of Many, except in some special
@@ -256,16 +246,11 @@ let many (state : State.t) =
       State.append
         state
         (Re.alt
-           [ enclosed_set kind set ~explicit_slash:true ~slashes ~explicit_period:true
+           [ enclosed_set kind set ~explicit_slash ~slashes ~explicit_period:true
            ; Re.seq
                [ not_empty
                ; (* Since [not_empty] matched, subsequent dots are not leading. *)
-                 enclosed_set
-                   kind
-                   set
-                   ~explicit_slash:true
-                   ~slashes
-                   ~explicit_period:false
+                 enclosed_set kind set ~explicit_slash ~slashes ~explicit_period:false
                ]
            ])
     in
