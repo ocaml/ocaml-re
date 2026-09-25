@@ -776,6 +776,7 @@ module Working_area = struct
     ; seen : Id.Hash_set.t
     ; index_count : int Atomic.t
     ; after_category_mask : Category.t
+    ; color_range : Cset.Color_range.t
     }
 
   let create after_category_mask =
@@ -783,10 +784,12 @@ module Working_area = struct
     ; seen = Id.Hash_set.create ()
     ; index_count = Atomic.make 0
     ; after_category_mask
+    ; color_range = Cset.Color_range.create ()
     }
   ;;
 
   let index_count w = Atomic.get w.index_count
+  let color_range w = Cset.Color_range.bounds w.color_range
 
   let mark_used_indices tbl =
     Desc.iter_marks ~f:(fun marks ->
@@ -819,6 +822,7 @@ end
 type ctx =
   | Delta of
       { c : Cset.c
+      ; color_range : Cset.Color_range.t
       ; prev_cat : Category.t
       ; next_cat : Category.t
       }
@@ -832,7 +836,8 @@ let rec delta_expr ctx marks (x : Expr.t) rem =
   match x.def with
   | Cst s ->
     (match ctx with
-     | Delta { c; _ } -> if Cset.mem c s then Desc.add_eps rem marks else rem
+     | Delta { c; color_range; _ } ->
+       if Cset.Color_range.mem color_range c s then Desc.add_eps rem marks else rem
      | Advance _ -> Desc.texp marks x rem)
   | Alt l -> delta_alt ctx marks l rem
   | Seq (kind, y, z) ->
@@ -903,7 +908,9 @@ let create_state tbl_ref next_cat expr =
 let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
   let expr =
     let prev_cat = st.category in
-    let ctx = Delta { c = char; next_cat; prev_cat } in
+    let color_range = tbl_ref.color_range in
+    Cset.Color_range.reset color_range char;
+    let ctx = Delta { c = char; color_range; next_cat; prev_cat } in
     Desc.remove_duplicates tbl_ref.seen (delta_desc ctx st.desc Desc.empty) Expr.eps_expr
   in
   create_state tbl_ref next_cat expr
