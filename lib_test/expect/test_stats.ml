@@ -359,7 +359,7 @@ let%test_module "fully forced automata" =
               alternation, colors=5, states=6, compiled_words=321, forced_words=747
               loop, colors=2, states=5, compiled_words=270, forced_words=613
               word boundaries, colors=2, states=8, compiled_words=352, forced_words=984
-              greedy, colors=3, states=10, compiled_words=300, forced_words=1165
+              greedy, colors=3, states=10, compiled_words=300, forced_words=1161
               last eol, colors=5, states=6, compiled_words=311, forced_words=787
               wide literal, colors=256, states=259, compiled_words=4885, forced_words=94197
               |}]
@@ -388,7 +388,7 @@ let%test_module "fully forced automata" =
               word boundaries initial=0 forced=8 again=8 after_inputs=8
                 reachable_words initial=352 forced=984 again=984 after_inputs=984
               greedy initial=0 forced=10 again=10 after_inputs=10
-                reachable_words initial=300 forced=1165 again=1165 after_inputs=1165
+                reachable_words initial=300 forced=1161 again=1161 after_inputs=1161
               last eol initial=0 forced=6 again=6 after_inputs=6
                 reachable_words initial=311 forced=787 again=787 after_inputs=787
               |}]

@@ -299,13 +299,13 @@ let%test_module "fully forced benchmark automata" =
               lots of a's colors=3 states=9 compiled_words=307 forced_words=955
               media type match colors=3 states=10 compiled_words=316 forced_words=1130
               uri colors=6 states=242 compiled_words=741 forced_words=38630
-              http/manual/group colors=13 states=374 compiled_words=838 forced_words=69676
-              http/auto/all_gen colors=13 states=707 compiled_words=1277 forced_words=147391
+              http/manual/group colors=13 states=374 compiled_words=838 forced_words=69592
+              http/auto/all_gen colors=13 states=707 compiled_words=1277 forced_words=146683
               string traversal from #210 colors=3 states=65 compiled_words=461 forced_words=9620
               kleene star compilation colors=2 states=5 compiled_words=270 forced_words=613
               repeated sequence re colors=256 states=12803 compiled_words=130325 forced_words=10912985
               split on whitespace colors=2 states=5 compiled_words=280 forced_words=668
-              shared prefixes colors=27 states=8 compiled_words=6204 forced_words=12758
+              shared prefixes colors=27 states=8 compiled_words=6204 forced_words=12754
               duplicate accepting states colors=256 states=2 compiled_words=4985 forced_words=5489
               expression IDs/broad/16/1024 colors=9 states=1033 compiled_words=11053 forced_words=98863
               expression IDs/broad/4096/16384 colors=17 states=16401 compiled_words=350486 forced_words=2449128
