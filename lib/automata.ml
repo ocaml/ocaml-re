@@ -301,12 +301,16 @@ module Marks = struct
       ]
   ;;
 
-  let equal { marks; pmarks } t =
-    List.equal
-      ~eq:(fun (x, y) (x', y') -> Mark.equal x x' && Idx.equal y y')
-      marks
-      t.marks
-    && Pmark.Set.equal pmarks t.pmarks
+  let rec equal_marks xs ys =
+    Phys_equal.equal xs ys
+    ||
+    match xs, ys with
+    | (x, i) :: xs, (y, j) :: ys -> Mark.equal x y && Idx.equal i j && equal_marks xs ys
+    | _, _ -> false
+  ;;
+
+  let equal m ({ marks; pmarks } as t) =
+    Phys_equal.equal m t || (equal_marks m.marks marks && Pmark.Set.equal m.pmarks pmarks)
   ;;
 
   let empty = { marks = []; pmarks = Pmark.Set.empty }
@@ -417,9 +421,16 @@ end = struct
        are dropped via remove_matches or split_at_match or bubble up to the top).
     *)
 
-    let rec equal_list l1 l2 = List.equal ~eq:equal l1 l2
+    let rec equal_list l1 l2 =
+      Phys_equal.equal l1 l2
+      ||
+      match l1, l2 with
+      | x :: xs, y :: ys -> equal x y && equal_list xs ys
+      | _, _ -> false
 
     and equal x y =
+      Phys_equal.equal x y
+      ||
       match x, y with
       | TSeq (_, l1, e1), TSeq (_, l2, e2) -> Id.equal e1.id e2.id && equal_list l1 l2
       | TExp (marks1, e1), TExp (marks2, e2) ->
@@ -661,11 +672,12 @@ module State = struct
 
   let create cat e = mk Idx.initial cat (Desc.initial e)
 
-  let equal { idx; category; desc; status = _; hash } t =
-    Int.equal hash t.hash
-    && Idx.equal idx t.idx
-    && Category.equal category t.category
-    && Desc.equal desc t.desc
+  let equal s t =
+    Phys_equal.equal s t
+    || (Int.equal s.hash t.hash
+        && Idx.equal s.idx t.idx
+        && Category.equal s.category t.category
+        && Desc.equal s.desc t.desc)
   ;;
 
   (* To be called when the mutex has already been acquired *)
