@@ -5,6 +5,16 @@ let%expect_test "globstars must not bypass leading-period restrictions" =
 
 let%expect_test "leading-period restrictions also apply without pathname matching" =
   Test_glob.glob ~anchored:true ~pathname:false "*.txt" ".txt";
+  [%expect {| true |}];
+  Test_glob.glob ~anchored:true ~pathname:false "*[.]txt" ".txt";
+  [%expect {| true |}];
+  Test_glob.glob ~anchored:true ~pathname:false "*?txt" ".txt";
+  [%expect {| true |}];
+  Test_glob.glob ~anchored:true ~pathname:false "*.txt" "a/.txt";
+  [%expect {| true |}];
+  Test_glob.glob ~anchored:true ~pathname:false "*.txt" "a.txt";
+  [%expect {| true |}];
+  Test_glob.glob ~anchored:true ~pathname:false ".*" ".txt";
   [%expect {| true |}]
 ;;
 
