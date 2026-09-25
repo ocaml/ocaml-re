@@ -525,13 +525,12 @@ end = struct
       if Phys_equal.equal r r' then l else x :: r'
   ;;
 
-  let split_at_match =
-    let rec split_at_match_rec l = function
-      | [] -> assert false
-      | TMatch _ :: r -> List.rev l, remove_matches r
-      | x :: r -> split_at_match_rec (x :: l) r
-    in
-    fun l -> split_at_match_rec [] l
+  let rec split_at_match = function
+    | [] -> assert false
+    | TMatch _ :: r -> [], remove_matches r
+    | x :: r ->
+      let before, after = split_at_match r in
+      x :: before, after
   ;;
 
   let status : _ -> Status.t = function
