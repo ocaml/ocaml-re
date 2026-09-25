@@ -16,10 +16,12 @@ let collect gen =
 
 let offsets = List.map Re.Group.all_offset
 
-let tokens =
-  List.map (function
-    | `Text s -> `Text s
-    | `Delim g -> `Delim (Re.Group.all_offset g))
+let tokens xs =
+  List.map
+    (function
+      | `Text s -> `Text s
+      | `Delim g -> `Delim (Re.Group.all_offset g))
+    xs
 ;;
 
 let%expect_test "generators, sequences and lists agree for every input window" =
