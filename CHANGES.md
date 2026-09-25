@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Honor positive [max] limits in [Re.Pcre.full_split], leaving the remaining
+  input unsplit in the final text field (#669).
+
 * Treat `\Q...\E` quoting in [Re.Perl] and [Re.Pcre] as lexical, matching
   PCRE: a quantifier after `\E` applies to the last quoted byte, an empty
   quote does not satisfy a quantifier, unterminated quotes extend to the end
