@@ -32,9 +32,11 @@ end
 let requests = Stdio.In_channel.read_all "benchmarks/http-requests.txt"
 
 let rec read_all pos re reqs =
-  match Re.exec ~pos re reqs with
-  | exception Not_found -> ()
-  | g ->
-    let _, pos = Re.Group.offset g 0 in
-    read_all (pos + 1) re reqs
+  if pos <= String.length reqs
+  then (
+    match Re.exec ~pos re reqs with
+    | exception Not_found -> ()
+    | g ->
+      let start, stop = Re.Group.offset g 0 in
+      read_all (if start = stop then stop + 1 else stop) re reqs)
 ;;
