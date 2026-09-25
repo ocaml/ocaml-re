@@ -517,10 +517,12 @@ end = struct
     | _ :: r -> first_match r
   ;;
 
-  let remove_matches t =
-    List.filter t ~f:(function
-      | TMatch _ -> false
-      | _ -> true)
+  let rec remove_matches = function
+    | [] -> []
+    | TMatch _ :: r -> remove_matches r
+    | x :: r as l ->
+      let r' = remove_matches r in
+      if Phys_equal.equal r r' then l else x :: r'
   ;;
 
   let split_at_match =
@@ -592,25 +594,30 @@ end = struct
     let rec loop seen l y =
       match l with
       | [] -> []
+      | TMatch _ :: [] -> l
       | (TMatch _ as x) :: _ ->
         (* Truncate after first match *)
         [ x ]
-      | TSeq (kind, l, x) :: r ->
-        let l = loop seen l x in
-        let r = loop seen r y in
-        tseq kind l x r
+      | TSeq (kind, inner, x) :: r ->
+        let inner' = loop seen inner x in
+        let r' = loop seen r y in
+        if Phys_equal.equal inner inner' && Phys_equal.equal r r'
+        then l
+        else tseq kind inner' x r'
       | (TExp (_marks, { def = Eps; _ }) as e) :: r ->
         if Id.Hash_set.mem seen y.id
         then loop seen r y
         else (
           Id.Hash_set.add seen y.id;
-          e :: loop seen r y)
+          let r' = loop seen r y in
+          if Phys_equal.equal r r' then l else e :: r')
       | (TExp (_marks, x) as e) :: r ->
         if Id.Hash_set.mem seen x.id
         then loop seen r y
         else (
           Id.Hash_set.add seen x.id;
-          e :: loop seen r y)
+          let r' = loop seen r y in
+          if Phys_equal.equal r r' then l else e :: r')
     in
     fun seen l y ->
       Id.Hash_set.clear seen;
