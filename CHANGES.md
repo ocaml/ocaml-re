@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix named capture declarations inside zero-count repetitions being dropped,
+  which shifted the numbering of later groups (#684).
+
 * Fix [Re.Stream.finalize] not treating a newline at the end of a finalized
   window as the final newline (#694).
 

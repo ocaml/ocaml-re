@@ -3,7 +3,11 @@ open Import
 let%expect_test "zero-count repetitions retain named capture declarations" =
   let re = Re.Perl.compile_pat "(?<absent>a){0}(?<present>b)" in
   List.iter (Re.group_names re) ~f:(fun (name, index) -> printf "%S: %d\n" name index);
-  [%expect {| "present": 1 |}]
+  [%expect
+    {| 
+    "absent": 1
+    "present": 2
+    |}]
 ;;
 
 let%expect_test "execution lengths must not overflow the bounds check" =

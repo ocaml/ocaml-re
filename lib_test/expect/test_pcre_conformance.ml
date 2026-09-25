@@ -352,7 +352,7 @@ let%expect_test "capture bookkeeping for zero repetitions" =
      | Some s -> Printf.sprintf "%S" s);
   [%expect
     {|
-    group count: 2 (PCRE: 3)
-    group 1: "b" (PCRE: unset)
+    group count: 3 (PCRE: 3)
+    group 1: unset (PCRE: unset)
     |}]
 ;;
