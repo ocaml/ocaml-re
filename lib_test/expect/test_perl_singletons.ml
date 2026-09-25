@@ -19,7 +19,7 @@ let%expect_test "singleton and longer branches preserve their AST" =
   same_ast "(a)" (group (char 'a'));
   same_ast "(?:ab)" (str "ab");
   same_ast "a*?b+" (seq [ non_greedy (rep (char 'a')); greedy (rep1 (char 'b')) ]);
-  same_ast "a(?#x)b" (seq [ char 'a'; epsilon; char 'b' ]);
+  same_ast "a(?#x)b" (seq [ char 'a'; char 'b' ]);
   [%expect {||}]
 ;;
 

@@ -13,7 +13,7 @@ let%expect_test "expressions without alternatives retain their AST" =
   same_ast "()" (group epsilon);
   same_ast "(?:ab)" (str "ab");
   same_ast "(?<name>ab)" (group ~name:"name" (str "ab"));
-  same_ast "a(?#comment)b" (seq [ char 'a'; epsilon; char 'b' ]);
+  same_ast "a(?#comment)b" (seq [ char 'a'; char 'b' ]);
   same_ast "a*?b" (seq [ non_greedy (rep (char 'a')); char 'b' ]);
   [%expect {||}]
 ;;
