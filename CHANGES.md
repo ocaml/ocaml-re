@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Retry a nonempty delimiter match before advancing past an empty match in
+  [Re.Pcre.split] and [Re.Pcre.full_split] (#713).
+
 * Skip inline `(?#...)` comments when attaching quantifiers in [Re.Perl] and
   [Re.Pcre], matching PCRE: `a(?#note)*` is `a*`, and a quantifier with no
   remaining operand is a parse error (#702).

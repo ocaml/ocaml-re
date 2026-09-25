@@ -729,6 +729,10 @@ let copy_re re =
     ~group_count:re.group_count
 ;;
 
+let not_empty_at_start re =
+  { (copy_re re) with initial = Automata.anchored_nonempty re.initial }
+;;
+
 (**** Compilation ****)
 
 module A = Automata
