@@ -32,6 +32,20 @@
     (ignore-stdout
      (run %{exe:benchmark.exe} -thin-overhead 1))))))
 
+(rule
+ (alias runtest)
+ (enabled_if
+  (not %{env:CI=false}))
+ (deps files http-requests.txt tex.gitignore)
+ (action
+  (chdir
+   %{workspace_root}
+   (setenv
+    RE_BENCH_FILTER
+    "expression IDs/broad/16/1024,expression IDs/narrow/1024"
+    (ignore-stdout
+     (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
 (executable
  (enabled_if
   (not %{env:CI=false}))
