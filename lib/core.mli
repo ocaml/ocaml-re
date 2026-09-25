@@ -660,7 +660,13 @@ val nest : t -> t
 (** Mark a regexp. the markid can then be used to know if this regexp was used. *)
 val mark : t -> Mark.t * t
 
-(** {2 Character sets} *)
+(** {2 Character sets}
+
+    {!inter}, {!diff} and {!compl} only accept character sets, such as those
+    built with {!char}, {!set}, {!rg}, {!any} and the predefined sets below, or
+    with {!alt}, {!case}, {!no_case}, {!inter}, {!diff} and {!compl} of
+    character sets. Other arguments, e.g. [str "ab"] or [group (char 'a')],
+    raise [Invalid_argument]. *)
 
 (** Any character of the string *)
 val set : string -> t
