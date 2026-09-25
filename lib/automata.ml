@@ -186,6 +186,7 @@ module Expr = struct
     | Eps
     | Rep of Rep_kind.t * Sem.t * t
     | Mark of Mark.t
+    | Mark_nonempty of Mark.t
     | Erase of Mark.t * Mark.t
     | Before of Category.t
     | After of Category.t
@@ -217,6 +218,7 @@ module Expr = struct
     | Eps -> Enum "Eps"
     | Rep (kind, sem, t) -> variant ("Rep" ^ sem_kind_suffix ~kind sem) [ to_dyn t ]
     | Mark m -> variant "Mark" [ Mark.to_dyn m ]
+    | Mark_nonempty m -> variant "Mark_nonempty" [ Mark.to_dyn m ]
     | Pmark m -> variant "Pmark" [ Pmark.to_dyn m ]
     | Erase (x, y) -> variant "Erase" [ Mark.to_dyn x; Mark.to_dyn y ]
     | Before c -> variant "Before" [ Category.to_dyn c ]
@@ -233,6 +235,7 @@ module Expr = struct
     | Eps -> str ch "eps"
     | Rep (rk, k, e) -> sexp ch "rep" (triple Rep_kind.pp Sem.pp pp) (rk, k, e)
     | Mark i -> sexp ch "mark" Mark.pp i
+    | Mark_nonempty i -> sexp ch "mark_nonempty" Mark.pp i
     | Pmark i -> sexp ch "pmark" Pmark.pp i
     | Erase (b, e) -> sexp ch "erase" (pair Mark.pp Mark.pp) (b, e)
     | Before c -> sexp ch "before" Category.pp c
@@ -274,7 +277,8 @@ module Expr = struct
 
   let rec rename ids x =
     match x.def with
-    | Cst _ | Eps | Mark _ | Pmark _ | Erase _ | Before _ | After _ -> mk ids x.def
+    | Cst _ | Eps | Mark _ | Mark_nonempty _ | Pmark _ | Erase _ | Before _ | After _ ->
+      mk ids x.def
     | Alt l -> mk ids (Alt (List.map ~f:(rename ids) l))
     | Seq (k, y, z) -> mk ids (Seq (k, rename ids y, rename ids z))
     | Rep (g, k, y) -> mk ids (Rep (g, k, rename ids y))
@@ -284,6 +288,29 @@ end
 type expr = Expr.t
 
 include Expr
+
+let anchored_nonempty expr =
+  (* Compilation puts the search prefix outside group 0. A group-wrapped
+     anchored expression cannot have this shape, since it starts with a mark. *)
+  let expr =
+    match expr.def with
+    | Seq (`Shortest, { def = Rep _; _ }, body) -> body
+    | _ -> expr
+  in
+  let rec require_nonempty expr =
+    let def =
+      match expr.def with
+      | Mark mark when Mark.equal mark (Mark.next Mark.start) -> Mark_nonempty mark
+      | Seq (kind, left, right) ->
+        Seq (kind, require_nonempty left, require_nonempty right)
+      | Alt xs -> Alt (List.map xs ~f:require_nonempty)
+      | Rep (greedy, kind, body) -> Rep (greedy, kind, require_nonempty body)
+      | def -> def
+    in
+    { expr with def }
+  in
+  require_nonempty expr
+;;
 
 module Marks = struct
   type t =
@@ -767,6 +794,14 @@ let rec delta_expr ctx marks (x : Expr.t) rem =
   | Rep (rep_kind, kind, y) -> delta_rep ctx marks x rep_kind kind y rem
   | Eps -> Desc.add_match rem marks
   | Mark i -> Desc.add_match rem (Marks.set_mark marks i)
+  | Mark_nonempty i ->
+    (* Opening and closing a group in the same derivative leaves its opening
+       mark unassigned. Reject that path before it can hide nonempty alternatives. *)
+    if
+      List.exists marks.marks ~f:(fun (mark, idx) ->
+        Mark.equal mark (Mark.prev i) && Idx.equal idx Idx.unknown)
+    then rem
+    else Desc.add_match rem (Marks.set_mark marks i)
   | Pmark i -> Desc.add_match rem (Marks.set_pmark marks i)
   | Erase (b, e) -> Desc.add_match rem (Marks.filter marks b e)
   | Before cat ->
