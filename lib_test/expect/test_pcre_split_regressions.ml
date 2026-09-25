@@ -31,6 +31,12 @@ let%expect_test "full_split limits" =
   full_split ~max:2 "(,)" "a,b,c";
   full_split ~max:2 "," "a,";
   full_split ~max:1 "," "a,b";
+  full_split ~max:3 "," "a,b,c,d";
+  full_split ~max:10 "," "a,b";
+  full_split ~max:2 "," "abc";
+  full_split ~max:2 "," ",";
+  full_split ~max:2 "xx" "axxbxxc";
+  full_split ~max:2 "," "a,b,";
   [%expect
     {|
     full_split ~max:2 "," "a,b,c": [Text "a"; Delim ","; Text "b"; Delim ","; Text "c"]
@@ -38,6 +44,12 @@ let%expect_test "full_split limits" =
     full_split ~max:2 "(,)" "a,b,c": [Text "a"; Delim ","; Group (1, ","); Text "b"; Delim ","; Group (1, ","); Text "c"]
     full_split ~max:2 "," "a,": [Text "a"; Delim ","]
     full_split ~max:1 "," "a,b": [Text "a,b"]
+    full_split ~max:3 "," "a,b,c,d": [Text "a"; Delim ","; Text "b"; Delim ","; Text "c"; Delim ","; Text "d"]
+    full_split ~max:10 "," "a,b": [Text "a"; Delim ","; Text "b"]
+    full_split ~max:2 "," "abc": [Text "abc"]
+    full_split ~max:2 "," ",": [Delim ","]
+    full_split ~max:2 "xx" "axxbxxc": [Text "a"; Delim "xx"; Text "b"; Delim "xx"; Text "c"]
+    full_split ~max:2 "," "a,b,": [Text "a"; Delim ","; Text "b"; Delim ","]
     |}]
 ;;
 
