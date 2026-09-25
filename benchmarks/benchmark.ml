@@ -151,6 +151,41 @@ let prefixes =
     done)
 ;;
 
+let duplicate_accepting_states =
+  let alphabet = String.init 256 ~f:Char.of_int_exn in
+  let cases =
+    let wordc = Re.compile Re.wordc in
+    List.init 256 ~f:(fun byte -> String.make 1 (Char.of_int_exn byte))
+    |> List.filter ~f:(Re.execp wordc)
+  in
+  (* The empty captures always win. The shadowed literal keeps every byte in a
+     distinct color, so the word-byte inputs learn different transitions to the
+     same accepting state. Eager status computation can build capture metadata
+     for candidates that the state interner then discards. *)
+  let re =
+    Re.alt [ Re.seq (List.init 4 ~f:(fun _ -> Re.group Re.epsilon)); Re.str alphabet ]
+  in
+  let bench exec name cases =
+    let run re = List.iter cases ~f:(fun input -> ignore (exec re input)) in
+    exec_bench_many exec name re cases
+    @ [ Bench.Test.create_with_initialization
+          ~name:(sprintf "%s (warm exec)" name)
+          (fun `init ->
+             let re = Re.compile re in
+             run re;
+             fun () -> run re)
+      ]
+  in
+  Bench.Test.create_group
+    ~name:"duplicate accepting states"
+    (List.map
+       [ "one color", List.take cases 1; "all word colors", cases ]
+       ~f:(fun (name, cases) ->
+         Bench.Test.create_group
+           ~name
+           (bench Re.exec "exec" cases @ bench Re.execp "execp" cases)))
+;;
+
 let benchmarks =
   let benches =
     List.map benchmarks ~f:(fun (name, re, cases) ->
@@ -199,6 +234,7 @@ let benchmarks =
   @ repeated_sequence
   @ split
   @ prefixes
+  @ [ duplicate_accepting_states ]
 ;;
 
 let () =
