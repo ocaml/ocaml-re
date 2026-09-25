@@ -788,6 +788,10 @@ let copy_re re =
     ~after_category_mask:re.after_category_mask
 ;;
 
+let not_empty_at_start re =
+  { (copy_re re) with initial = Automata.anchored_nonempty re.initial }
+;;
+
 (**** Compilation ****)
 
 module A = Automata
