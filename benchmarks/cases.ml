@@ -295,17 +295,17 @@ let%test_module "fully forced benchmark automata" =
             force_benchmarks ();
             [%expect
               {|
-              20 zeroes colors=2 states=23 compiled_words=491 forced_words=5418
-              lots of a's colors=3 states=9 compiled_words=307 forced_words=991
-              media type match colors=3 states=10 compiled_words=316 forced_words=1166
-              uri colors=6 states=242 compiled_words=741 forced_words=48656
-              http/manual/group colors=13 states=374 compiled_words=838 forced_words=74794
-              http/auto/all_gen colors=13 states=707 compiled_words=1277 forced_words=157369
-              string traversal from #210 colors=3 states=65 compiled_words=461 forced_words=10895
-              kleene star compilation colors=2 states=5 compiled_words=270 forced_words=622
-              repeated sequence re colors=256 states=12803 compiled_words=130325 forced_words=11930441
-              split on whitespace colors=2 states=5 compiled_words=280 forced_words=683
-              shared prefixes colors=27 states=8 compiled_words=6204 forced_words=13697
+              20 zeroes colors=2 states=23 compiled_words=491 forced_words=5415
+              lots of a's colors=3 states=9 compiled_words=307 forced_words=985
+              media type match colors=3 states=10 compiled_words=316 forced_words=1139
+              uri colors=6 states=242 compiled_words=741 forced_words=38819
+              http/manual/group colors=13 states=374 compiled_words=838 forced_words=74767
+              http/auto/all_gen colors=13 states=707 compiled_words=1277 forced_words=157279
+              string traversal from #210 colors=3 states=65 compiled_words=461 forced_words=10847
+              kleene star compilation colors=2 states=5 compiled_words=270 forced_words=616
+              repeated sequence re colors=256 states=12803 compiled_words=130325 forced_words=11930438
+              split on whitespace colors=2 states=5 compiled_words=280 forced_words=677
+              shared prefixes colors=27 states=8 compiled_words=6204 forced_words=13691
               duplicate accepting states colors=256 states=2 compiled_words=4985 forced_words=5489
               expression IDs/broad/16/1024 colors=9 states=1033 compiled_words=11053 forced_words=101938
               expression IDs/broad/4096/16384 colors=17 states=16401 compiled_words=350486 forced_words=2498283
