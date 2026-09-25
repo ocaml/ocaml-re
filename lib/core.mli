@@ -538,10 +538,12 @@ val opt : t -> t
 
     We define a word as a sequence of latin1 letters, digits and underscore. *)
 
-(** Beginning of line *)
+(** Beginning of line: matches the empty string at the beginning of the string
+    or just after a ['\n']. *)
 val bol : t
 
-(** End of line *)
+(** End of line: matches the empty string just before a ['\n'] or at the end
+    of the string. The newline itself is not consumed (see {!split}). *)
 val eol : t
 
 (** Beginning of word *)
