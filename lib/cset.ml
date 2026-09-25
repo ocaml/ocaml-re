@@ -152,6 +152,46 @@ let rec mem (c : int) s =
   | (c1, c2) :: rem -> if c <= c2 then c >= c1 else mem c rem
 ;;
 
+module Color_range = struct
+  type t =
+    { mutable first : c
+    ; mutable last : c
+    }
+
+  let create () = { first = 0; last = 255 }
+
+  let reset t c =
+    t.first <- min 0 c;
+    t.last <- max 255 c
+  ;;
+
+  let bounds t = t.first, t.last
+
+  let mem t c s =
+    if t.first = t.last
+    then mem c s
+    else (
+      let rec loop lower = function
+        | [] ->
+          t.first <- max t.first lower;
+          false
+        | (first, last) :: rest ->
+          if c > last
+          then loop (last + 1) rest
+          else if c < first
+          then (
+            t.first <- max t.first lower;
+            t.last <- min t.last (first - 1);
+            false)
+          else (
+            t.first <- max t.first first;
+            t.last <- min t.last last;
+            true)
+      in
+      loop min_int s)
+  ;;
+end
+
 (****)
 
 let rec hash_rec = function

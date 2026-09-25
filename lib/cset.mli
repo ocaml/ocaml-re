@@ -50,6 +50,25 @@ val empty : t
 val single : c -> t
 val add : c -> t -> t
 val mem : c -> t -> bool
+
+(** A mutable interval of colors sharing all membership decisions made since
+    [reset]. Used under the automaton lock when deriving a transition. *)
+module Color_range : sig
+  type set := t
+  type t
+
+  val create : unit -> t
+
+  (** Initialize to cover byte colors and the supplied probe color. *)
+  val reset : t -> c -> unit
+
+  val bounds : t -> c * c
+
+  (** Like [mem], but narrow the interval to preserve this decision. The probe
+      color must be the same for every call between resets. *)
+  val mem : t -> c -> set -> bool
+end
+
 val case_insens : t -> t
 val cdigit : t
 val calpha : t

@@ -152,6 +152,10 @@ module Working_area : sig
 
   val create : Category.t -> t
   val index_count : t -> int
+
+  (** Colors yielding the same derivative as the last [delta], provided the
+      next-character category is also the same. Read before the next [delta]. *)
+  val color_range : t -> Cset.c * Cset.c
 end
 
 val delta : Working_area.t -> Category.t -> Cset.c -> State.t -> State.t
