@@ -34,7 +34,7 @@ let%expect_test "atom dispatch preserves delimiters and quantifier lookahead" =
     "a{2,3}?b": (Sequence (Sem_greedy Non_greedy (Repeat (Set 97) 2 3))(Set 98))
     "a\\{b": (Sequence (Set 97)(Set 123)(Set 98))
     "a\\|b": (Sequence (Set 97)(Set 124)(Set 98))
-    "\\Qab\\E*": (Sem_greedy Greedy (Repeat (Sequence (Set 97)(Set 98)) 0))
+    "\\Qab\\E*": (Sequence (Set 97)(Sem_greedy Greedy (Repeat (Set 98) 0)))
     "(?:a)(b)c": (Sequence (Set 97)(Group (Set 98))(Set 99))
     "a]}": (Sequence (Set 97)(Set 93)(Set 125))
     |}]

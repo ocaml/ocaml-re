@@ -64,10 +64,24 @@ let character_type =
 
 let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
-  let accept = Parse_buffer.accept buf in
+  let quoted = ref false in
+  let accept c = (not !quoted) && Parse_buffer.accept buf c in
   let eos () = Parse_buffer.eos buf in
   let unget () = Parse_buffer.unget buf in
   let get () = Parse_buffer.get buf in
+  (* Quoting changes tokenization; it does not introduce an atom or group.
+     In particular, a following quantifier applies to the last quoted byte,
+     and an empty quote must not separate a quantifier from its operand. *)
+  let rec skip_quote_markers () =
+    if Parse_buffer.accept_s buf "\\E"
+    then (
+      quoted := false;
+      skip_quote_markers ())
+    else if (not !quoted) && Parse_buffer.accept_s buf "\\Q"
+    then (
+      quoted := true;
+      skip_quote_markers ())
+  in
   let captures = ref 0 in
   let maybe_digit base =
     if eos ()
@@ -169,6 +183,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     | c -> c
   in
   let greedy_mod r =
+    skip_quote_markers ();
     let gr = accept '?' in
     let gr = if ungreedy then not gr else gr in
     if gr then Re.non_greedy r else Re.greedy r
@@ -183,26 +198,29 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   and regexp' left =
     if accept '|' then regexp' (branch () :: left) else Re.alt (List.rev left)
   and branch () =
+    skip_quote_markers ();
     if eos ()
     then Re.epsilon
     else (
       match get () with
-      | '|' | ')' ->
+      | ('|' | ')') when not !quoted ->
         unget ();
         Re.epsilon
       | c -> branch' (piece c) [])
   and branch' first rest =
+    skip_quote_markers ();
     if eos ()
     then sequence first rest
     else (
       match get () with
-      | '|' | ')' ->
+      | ('|' | ')') when not !quoted ->
         unget ();
         sequence first rest
       | c -> branch' first (piece c :: rest))
   and piece c =
     let r = atom c in
-    if eos ()
+    skip_quote_markers ();
+    if eos () || !quoted
     then r
     else (
       match get () with
@@ -224,74 +242,59 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       | _ ->
         unget ();
         r)
-  and atom = function
-    | '.' -> if dotall then Re.any else Re.notnl
-    | '(' ->
-      if accept '?'
-      then
-        if accept ':'
-        then (
-          let r = regexp () in
-          if not (accept ')') then raise Parse_error;
-          r)
-        else if accept '#'
-        then comment ()
-        else if accept '<'
-        then named_group '>'
-        else if accept '\''
-        then named_group '\''
-        else if accept 'P'
-        then (
-          if not (accept '<') then raise Parse_error;
-          named_group '>')
-        else raise Parse_error
-      else group ()
-    | '^' -> if multiline then Re.bol else Re.bos
-    | '$' -> if multiline then Re.eol else if dollar_endonly then Re.eos else Re.leol
-    | '[' ->
-      if Parse_buffer.accept_s buf "[:<:]]"
-      then Re.bow
-      else if Parse_buffer.accept_s buf "[:>:]]"
-      then Re.eow
-      else if accept '^'
-      then Re.compl (bracket [])
-      else Re.alt (bracket [])
-    | '\\' ->
-      if eos () then raise Parse_error;
-      (match get () with
-       | 'C' -> Re.any
-       | 'N' -> Re.notnl
-       | 'b' -> Class._b
-       | 'B' -> Re.not_boundary
-       | 'A' -> Re.bos
-       | 'Z' -> Re.leol
-       | 'z' -> Re.eos
-       | 'G' -> Re.start
-       | 'Q' -> quote ()
-       | 'E' -> raise Parse_error
-       | c ->
-         (match character_type c with
-          | Some set -> set
-          | None -> Re.char (byte_escape ~in_class:false c)))
-    | '*' | '+' | '?' | '{' -> raise Parse_error
-    | c -> Re.char c
-  and quote () =
-    let start = Parse_buffer.position buf in
-    let rec find_end pos =
-      match String.index_from s pos '\\' with
-      | exception Not_found -> raise Parse_error
-      | pos ->
-        if pos + 1 = String.length s then raise Parse_error;
-        if s.[pos + 1] = 'E' then pos else find_end (pos + 2)
-    in
-    let stop = find_end start in
-    Parse_buffer.advance buf (stop + 2 - start);
-    (* Nonterminating escape pairs are literal bytes too. Build the flat
-       sequence directly, without a Buffer or an intermediate substring. *)
-    let rec prepend pos acc =
-      if pos < start then Re.seq acc else prepend (pos - 1) (Re.char s.[pos] :: acc)
-    in
-    prepend (stop - 1) []
+  and atom c =
+    if !quoted
+    then Re.char c
+    else (
+      match c with
+      | '.' -> if dotall then Re.any else Re.notnl
+      | '(' ->
+        if accept '?'
+        then
+          if accept ':'
+          then (
+            let r = regexp () in
+            if not (accept ')') then raise Parse_error;
+            r)
+          else if accept '#'
+          then comment ()
+          else if accept '<'
+          then named_group '>'
+          else if accept '\''
+          then named_group '\''
+          else if accept 'P'
+          then (
+            if not (accept '<') then raise Parse_error;
+            named_group '>')
+          else raise Parse_error
+        else group ()
+      | '^' -> if multiline then Re.bol else Re.bos
+      | '$' -> if multiline then Re.eol else if dollar_endonly then Re.eos else Re.leol
+      | '[' ->
+        if Parse_buffer.accept_s buf "[:<:]]"
+        then Re.bow
+        else if Parse_buffer.accept_s buf "[:>:]]"
+        then Re.eow
+        else (
+          skip_quote_markers ();
+          if accept '^' then Re.compl (bracket []) else Re.alt (bracket []))
+      | '\\' ->
+        if eos () then raise Parse_error;
+        (match get () with
+         | 'C' -> Re.any
+         | 'N' -> Re.notnl
+         | 'b' -> Class._b
+         | 'B' -> Re.not_boundary
+         | 'A' -> Re.bos
+         | 'Z' -> Re.leol
+         | 'z' -> Re.eos
+         | 'G' -> Re.start
+         | c ->
+           (match character_type c with
+            | Some set -> set
+            | None -> Re.char (byte_escape ~in_class:false c)))
+      | '*' | '+' | '?' | '{' -> raise Parse_error
+      | c -> Re.char c)
   and group ?name () =
     incr captures;
     let r = regexp () in
@@ -314,26 +317,32 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     Parse_buffer.advance buf (stop + 1 - start);
     String.sub s start (stop - start)
   and bracket s =
+    skip_quote_markers ();
     if s <> [] && accept ']'
     then s
     else (
       match char () with
       | Set st -> bracket (st :: s)
       | Char c ->
+        skip_quote_markers ();
         if accept '-'
-        then
+        then (
+          skip_quote_markers ();
           if accept ']'
           then Re.char c :: Re.char '-' :: s
           else
             bracket
               (match char () with
                | Char c' -> Re.rg c c' :: s
-               | Set st' -> Re.char c :: Re.char '-' :: st' :: s)
+               | Set st' -> Re.char c :: Re.char '-' :: st' :: s))
         else bracket (Re.char c :: s))
   and char () =
+    skip_quote_markers ();
     if eos () then raise Parse_error;
     let c = get () in
-    if c = '['
+    if !quoted
+    then Char c
+    else if c = '['
     then (
       if accept '=' then raise Not_supported;
       match Posix_class.parse buf with
