@@ -10,6 +10,9 @@ Unreleased
   quote does not satisfy a quantifier, unterminated quotes extend to the end
   of the pattern, and quoting works inside character classes (#688).
 
+* Fix [Re.Glob] with `expand_braces:true` treating `{foo}` as `foo`; braces
+  without alternatives are now literal (#686).
+
 * Fix [Re.Stream.finalize] not treating a newline at the end of a finalized
   window as the final newline (#694).
 
