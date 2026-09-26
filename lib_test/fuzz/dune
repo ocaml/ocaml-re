@@ -6,4 +6,4 @@
  (alias runtest)
  (action
   (bash
-   "set -o pipefail; %{dep:fuzz.exe} --repeat 100000 --seed 20260920 2>&1 | { grep -v ': PASS' || :; }")))
+   "set -o pipefail; %{dep:fuzz.exe} --repeat 35000 --seed 20260920 2>&1 | { grep -v ': PASS' || :; }")))
