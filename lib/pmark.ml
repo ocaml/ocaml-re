@@ -1,3 +1,5 @@
+open Import
+
 module Pmark = struct
   type t = int
 
@@ -13,6 +15,8 @@ include Pmark
 module Set = struct
   include Set.Make (Pmark)
 
+  let equal x y = Phys_equal.equal x y || equal x y
+  let compare x y = if Phys_equal.equal x y then 0 else compare x y
   let to_list = elements
 end
 

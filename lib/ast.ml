@@ -150,6 +150,8 @@ let rec pp_cset fmt cset =
   | Difference (a, b) -> sexp fmt "Difference" (pair pp_cset pp_cset) (a, b)
 ;;
 
+(* This factoring predicate is deliberately not reflexive: even physically
+   identical groups must remain separate capture occurrences. *)
 let rec equal cset x1 x2 =
   match x1, x2 with
   | Set s1, Set s2 -> cset s1 s2

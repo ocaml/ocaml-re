@@ -41,8 +41,27 @@ let compare_pair (x, y) (x', y') =
 ;;
 
 let equal_pair (x, y) (x', y') = Int.equal x x' && Int.equal y y'
-let equal x y = List.equal ~eq:equal_pair x y
-let compare x y = List.compare ~cmp:compare_pair x y
+
+let rec equal x y =
+  Phys_equal.equal x y
+  ||
+  match x, y with
+  | a :: x, b :: y -> equal_pair a b && equal x y
+  | _, _ -> false
+;;
+
+let rec compare x y =
+  if Phys_equal.equal x y
+  then 0
+  else (
+    match x, y with
+    | [], _ -> -1
+    | _, [] -> 1
+    | a :: x, b :: y ->
+      (match compare_pair a b with
+       | 0 -> compare x y
+       | n -> n))
+;;
 
 let rec union l l' =
   match l, l' with
