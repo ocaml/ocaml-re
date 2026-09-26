@@ -32,10 +32,11 @@ val re : ?case:bool -> string -> Core.t
 
 val re_result : ?case:bool -> string -> (Core.t, [ `Not_supported | `Parse_error ]) result
 
-(** Regular expression compilation *)
+(** Same as [Core.compile] *)
 val compile : Core.t -> Core.re
 
-(** Same as [Core.compile] *)
+(** [compile_pat ?case s] parses and compiles the Emacs-style regular
+    expression [s] *)
 val compile_pat : ?case:bool -> string -> Core.re
 
 val re_no_emacs : case:bool -> string -> Core.t
