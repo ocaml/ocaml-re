@@ -31,10 +31,24 @@ let witness re =
 
 let%expect_test "witness skips empty-language alternatives" =
   witness Re.(alt [ empty; str "a" ]);
-  [%expect {| Assert_failure |}]
+  witness Re.(alt [ seq [ str "b"; set "" ]; str "c" ]);
+  invalid_argument (fun () -> Re.witness Re.empty);
+  [%expect
+    {|
+    "a" (matches: true)
+    "c" (matches: true)
+    Invalid_argument "Re.witness: empty language"
+    |}]
 ;;
 
 let%expect_test "repeating the empty language has the empty witness" =
   witness Re.(rep empty);
-  [%expect {| Assert_failure |}]
+  witness Re.(repn empty 0 (Some 0));
+  invalid_argument (fun () -> Re.witness Re.(rep1 empty));
+  [%expect
+    {|
+    "" (matches: true)
+    "" (matches: true)
+    Invalid_argument "Re.witness: empty language"
+    |}]
 ;;

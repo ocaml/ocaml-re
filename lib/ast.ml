@@ -355,12 +355,18 @@ module Export = struct
   ;;
 
   let witness t =
+    let exception Empty in
     let rec witness (t : no_case) =
       match t with
-      | Set c -> String.make 1 (Cset.to_char (Cset.pick c))
+      | Set c ->
+        if Cset.is_empty c then raise Empty;
+        String.make 1 (Cset.to_char (Cset.pick c))
       | Sequence xs -> String.concat "" (List.map ~f:witness xs)
-      | Ast (Alternative (x :: _)) -> witness x
-      | Ast (Alternative []) -> assert false
+      | Ast (Alternative (x :: xs)) ->
+        (try witness x with
+         | Empty -> witness (Ast (Alternative xs)))
+      | Ast (Alternative []) -> raise Empty
+      | Repeat (_, 0, _) -> ""
       | Repeat (r, from, _to) ->
         let w = witness r in
         let b = Buffer.create (String.length w * from) in
@@ -381,7 +387,8 @@ module Export = struct
       | Stop
       | End_of_str -> ""
     in
-    witness (handle_case false t)
+    try witness (handle_case false t) with
+    | Empty -> invalid_arg "Re.witness: empty language"
   ;;
 end
 

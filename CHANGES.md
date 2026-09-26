@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.witness] raising [Assert_failure] for languages containing empty
+  alternatives; empty languages now raise [Invalid_argument] (#685).
+
 * Skip inline `(?#...)` comments when attaching quantifiers in [Re.Perl] and
   [Re.Pcre], matching PCRE: `a(?#note)*` is `a*`, and a quantifier with no
   remaining operand is a parse error (#702).
