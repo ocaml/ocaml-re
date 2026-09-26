@@ -1,8 +1,8 @@
 let%expect_test "globstars must not bypass leading-period restrictions" =
   Test_glob.glob ~anchored:true "**/*" ".hidden";
-  [%expect {| true |}];
+  [%expect {| false |}];
   Test_glob.glob ~anchored:true "**/*" "a/.hidden";
-  [%expect {| true |}];
+  [%expect {| false |}];
   Test_glob.glob ~anchored:true "**?" ".";
   [%expect {| true |}];
   Test_glob.glob ~anchored:true "**.txt" ".txt";
