@@ -71,7 +71,7 @@ val re_result
 (** [compile r] is defined as [Core.compile (Core.longest r)] *)
 val compile : Core.t -> Core.re
 
-(** [compile_pat ?opts regex] compiles the Posix extended regular expression [regexp] *)
+(** [compile_pat ?opts regexp] compiles the Posix extended regular expression [regexp] *)
 val compile_pat : ?opts:opt list -> string -> Core.re
 
 (*
