@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix common-prefix factoring changing the first-match preference when
+  alternatives share a variable-length prefix (#724).
+
 * Fix [Re.Glob] losing the leading-period check after a `**/` globstar, so
   `**/*` matched `.hidden` and `a/.hidden` (#719).
 
