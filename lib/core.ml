@@ -168,7 +168,9 @@ include struct
   let copy_re = copy_re
   let group_names = group_names
   let group_count = group_count
+  let stats = stats
 end
 
+module Stats = Stats
 module Seq = Search
 module Stream = Compile.Stream
