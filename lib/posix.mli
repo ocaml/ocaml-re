@@ -33,13 +33,13 @@
         ; content : string
         }
 
-      let re = Core.compile (Re_posix.re "([^:].*:[^:]*:[^:]{2})<.([^>]+)> (.+)$")
+      let re = Re.compile (Re.Posix.re "([^:].*:[^:]*:[^:]{2})<.([^>]+)> (.+)$")
 
       (* parse a line *)
       let match_line line =
         try
-          let substrings = Core.exec re line in
-          let groups = Core.get_all substrings in
+          let substrings = Re.exec re line in
+          let groups = Re.Group.all substrings in
           (* groups can be obtained directly by index within [substrings] *)
           Some { time = groups.(1); author = groups.(2); content = groups.(3) }
         with
