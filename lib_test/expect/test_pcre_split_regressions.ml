@@ -129,3 +129,22 @@ let%expect_test "full_split zero-width matches" =
     full_split ~max:0 "(|a)" "ab": [Delim ""; Group (1, ""); Text "a"; Delim ""; Group (1, ""); Text "b"; Delim ""; Group (1, "")]
     |}]
 ;;
+
+let%expect_test "full_split zero-width differences from pcre-ocaml" =
+  (* These record remaining differences against pcre-ocaml 8.0.5:
+     - after the nonempty delimiter at 0..1, the empty match at position 1 is
+       skipped (pcre-ocaml: [Delim "a"; Delim ""; Text "b"]);
+     - "b*?" reports empty delimiters at 1 and 2; pcre-ocaml retries at 1 and
+       its trailing-delimiter strip then yields [Delim ""; Text "a"];
+     - "^|a" does not treat a restart position as the subject start
+       (pcre-ocaml: [Delim "a"; Delim ""; Text "b"]). *)
+  full_split "a*" "ab";
+  full_split "b*?" "ab";
+  full_split "^|a" "ab";
+  [%expect
+    {|
+    full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"; Delim ""]
+    full_split ~max:0 "b*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "^|a" "ab": [Delim ""; Text "ab"]
+    |}]
+;;
