@@ -652,12 +652,12 @@ val no_group : t -> t
     For instance:
     {[
       let re = compile (rep1 (nest (alt [ group (str "a"); str "b" ]))) in
-      let group = Re.exec re "ab" in
-      assert (Group.get_opt group 1 = None);
+      let g = Re.exec re "ab" in
+      assert (Group.get_opt g 1 = None);
       (* same thing but without [nest] *)
       let re = compile (rep1 (alt [ group (str "a"); str "b" ])) in
-      let group = Re.exec re "ab" in
-      assert (Group.get_opt group 1 = Some "a")
+      let g = Re.exec re "ab" in
+      assert (Group.get_opt g 1 = Some "a")
     ]} *)
 val nest : t -> t
 
