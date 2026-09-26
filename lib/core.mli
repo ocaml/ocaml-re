@@ -841,7 +841,7 @@ val test : Group.t -> int -> bool
 [@@ocaml.deprecated "Use Group.test"]
 
 (** Alias for {!Mark.t}. Deprecated *)
-type markid = Mark.t [@@ocaml.deprecated "Use Mark."]
+type markid = Mark.t [@@ocaml.deprecated "Use Mark.t"]
 
 (** Same as {!Mark.test}. Deprecated *)
 val marked : Group.t -> Mark.t -> bool
