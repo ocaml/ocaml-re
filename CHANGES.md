@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Glob] globstars bypassing leading-period restrictions in following
+  pattern pieces; `**/*` no longer matches hidden path components (#719).
+
 * Fix [Re.Glob] with `pathname` disabled allowing wildcards to match a leading
   period; leading dots must still be matched explicitly (#708).
 
