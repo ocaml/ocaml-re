@@ -63,13 +63,13 @@ module Group : sig
   (** Return the start of the match. Raise [Not_found] if the group did not match. *)
   val start : t -> int -> int
 
-  (** Similar to {!start_opt}, but returns an option instead of using an exception. *)
+  (** Similar to {!start}, but returns an option instead of using an exception. *)
   val start_opt : t -> int -> int option
 
   (** Return the end of the match. Raise [Not_found] if the group did not match. *)
   val stop : t -> int -> int
 
-  (** Similar to {!stop_opt}, but returns an option instead of using an exception. *)
+  (** Similar to {!stop}, but returns an option instead of using an exception. *)
   val stop_opt : t -> int -> int option
 
   (** Return the empty string for each group which did not match *)
@@ -404,8 +404,8 @@ val split : ?pos:int -> ?len:int -> re -> string -> string list
     ]} *)
 val split_delim : ?pos:int -> ?len:int -> re -> string -> string list
 
-(** [split re s] splits [s] into chunks separated by [re]. It yields the chunks
-    along with the separators. For instance this can be used with a
+(** [split_full re s] splits [s] into chunks separated by [re]. It yields the
+    chunks along with the separators. For instance this can be used with a
     whitespace-matching re such as ["[\t ]+"].
 
     {5 Examples:}
