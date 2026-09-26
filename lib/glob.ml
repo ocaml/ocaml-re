@@ -197,7 +197,7 @@ let exactly state c =
   State.append state (Re.alt (List.map Re.char chars)) ~am_at_start_of_component
 ;;
 
-let many_many state ~component_with_terminator =
+let rec many_many state ~component_with_terminator =
   let explicit_period = state.State.period && state.State.pathname in
   let first_explicit_period = State.explicit_period state in
   let slashes = State.slashes state in
@@ -216,14 +216,52 @@ let many_many state ~component_with_terminator =
   in
   (* We must match components individually when [period] flag is set,
      making sure to not match ["foo/.bar"]. *)
-  State.append
-    state
-    (if component_with_terminator
-     then Re.opt (Re.seq [ match_components; slashes_re ])
-     else match_components)
-;;
+  if component_with_terminator
+  then
+    State.append
+      state
+      (Re.opt (Re.seq [ match_components; slashes_re ]))
+      ~am_at_start_of_component:true
+  else if (not explicit_period) && not first_explicit_period
+  then State.append state match_components
+  else (
+    (* Adjacent stars cannot add constraints to a globstar. After collapsing
+       them, [many] consumes at most one following piece in its lookahead. *)
+    let rec skip_stars = function
+      | Many :: rest | ManyMany { component_with_terminator = false } :: rest ->
+        skip_stars rest
+      | rest -> rest
+    in
+    let state = { state with remaining = skip_stars state.remaining } in
+    let components =
+      Re.seq
+        [ Re.opt (match_component ~explicit_period:first_explicit_period)
+        ; slashes_re
+        ; Re.rep (Re.seq [ Re.opt (match_component ~explicit_period); slashes_re ])
+        ]
+    in
+    if first_explicit_period
+    then many (State.append state (Re.opt components) ~am_at_start_of_component:true)
+    else (
+      (* With no slash, we remain in the first component; after a slash, the
+         final ordinary star must enforce leading-period rules. Consume the
+         following piece in both branches, then share the remaining suffix. *)
+      let start = { state with re_pieces = [] } in
+      let no_slash =
+        let start = many start in
+        match State.next start with
+        | None -> start
+        | Some (p, start) -> piece start p
+      in
+      let after_slash =
+        many (State.append start components ~am_at_start_of_component:true)
+      in
+      { after_slash with
+        re_pieces =
+          Re.alt [ State.to_re no_slash; State.to_re after_slash ] :: state.re_pieces
+      }))
 
-let many (state : State.t) =
+and many (state : State.t) =
   let explicit_slash = State.explicit_slash state in
   let explicit_period = State.explicit_period state in
   let slashes = State.slashes state in
@@ -272,9 +310,8 @@ let many (state : State.t) =
         many_many state ~component_with_terminator
     in
     lookahead state)
-;;
 
-let piece state piece =
+and piece state piece =
   let explicit_slash = State.explicit_slash state in
   let explicit_period = State.explicit_period state in
   let slashes = State.slashes state in
