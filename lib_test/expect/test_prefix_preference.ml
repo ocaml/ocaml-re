@@ -2,19 +2,28 @@ open Import
 open Re
 
 let%expect_test "common variable-length prefixes preserve first-alternative preference" =
+  (* A capturing wrapper prevents the original prefix-factoring pass, providing
+     a reference with the same language and first-match preference. *)
   List.iter
-    [ "a*?b|a*?a", "(a*?b)|(a*?a)"
-    ; "a*a|a*b", "(a*a)|(a*b)"
-    ; "(?:a|aa)b|(?:a|aa)a", "((?:a|aa)b)|((?:a|aa)a)"
+    [ "a*?b|a*?a", "(a*?b)|(a*?a)", "aab"
+    ; "a*a|a*b", "(a*a)|(a*b)", "aab"
+    ; "(?:a|aa)b|(?:a|aa)a", "((?:a|aa)b)|((?:a|aa)a)", "aab"
+    ; "a+?b|a+?a", "(a+?b)|(a+?a)", "aab"
+    ; "a??b|a??a", "(a??b)|(a??a)", "ab"
+    ; "a{0,2}?b|a{0,2}?a", "(a{0,2}?b)|(a{0,2}?a)", "aab"
+    ; "a{1,3}?b|a{1,3}?a", "(a{1,3}?b)|(a{1,3}?a)", "aab"
+    ; "(?:a|aa)+?b|(?:a|aa)+?a", "((?:a|aa)+?b)|((?:a|aa)+?a)", "aab"
+    ; "(?:(?:a|aa))b|(?:(?:a|aa))a", "((?:(?:a|aa))b)|((?:(?:a|aa))a)", "aab"
     ]
-    ~f:(fun (pattern, reference) ->
+    ~f:(fun (pattern, reference, input) ->
       let matched pattern =
-        let groups = exec (Perl.compile_pat pattern) "aab" in
+        let groups = exec (Perl.compile_pat pattern) input in
         Group.get groups 0
       in
       Format.printf
-        "%S on \"aab\": %S; unfactored: %S@."
+        "%S on %S: %S; unfactored: %S@."
         pattern
+        input
         (matched pattern)
         (matched reference));
   [%expect
@@ -22,5 +31,11 @@ let%expect_test "common variable-length prefixes preserve first-alternative pref
     "a*?b|a*?a" on "aab": "a"; unfactored: "aab"
     "a*a|a*b" on "aab": "aab"; unfactored: "aa"
     "(?:a|aa)b|(?:a|aa)a" on "aab": "aa"; unfactored: "aab"
+    "a+?b|a+?a" on "aab": "aa"; unfactored: "aab"
+    "a??b|a??a" on "ab": "a"; unfactored: "ab"
+    "a{0,2}?b|a{0,2}?a" on "aab": "a"; unfactored: "aab"
+    "a{1,3}?b|a{1,3}?a" on "aab": "aa"; unfactored: "aab"
+    "(?:a|aa)+?b|(?:a|aa)+?a" on "aab": "aa"; unfactored: "aab"
+    "(?:(?:a|aa))b|(?:(?:a|aa))a" on "aab": "aa"; unfactored: "aab"
     |}]
 ;;
