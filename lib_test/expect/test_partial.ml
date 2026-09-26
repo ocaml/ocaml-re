@@ -95,14 +95,14 @@ let%expect_test "partial positions are not conservative with bounded repetition"
   ()
 ;;
 
-let%expect_test "leol matches before a final newline are reported as definite" =
+let%expect_test "leol matches before a final newline are partial" =
   let open Re in
   (* [Full] promises that the match survives every extension. A match that relied
      on the final newline does not: appending another newline moves it. *)
   t (group leol) "a\n";
-  [%expect {| `Full [|1,1,"";1,1,""|] |}];
+  [%expect {| `Partial 0 |}];
   t (seq [ str "a"; leol ]) "a\n";
-  [%expect {| `Full [|0,1,"a"|] |}];
+  [%expect {| `Partial 0 |}];
   t (seq [ str "a"; leol ]) "a\nb";
   [%expect {| `Partial 2 |}];
   (* [eol] does not depend on the end of input and stays definite. *)
