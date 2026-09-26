@@ -80,3 +80,17 @@ let%expect_test "partial detailed" =
   [%expect {| `Partial 0 |}];
   ()
 ;;
+
+let%expect_test "partial positions are not conservative with bounded repetition" =
+  let open Re in
+  (* [`Partial n] promises that no match could start before [n]. Extending the
+     input below makes a match start at 2, but the reported position is 3. *)
+  let pat = longest (seq [ greedy (repn any 0 (Some 3)); stop ]) in
+  t pat "\224.\192\192";
+  [%expect {| `Partial 3 |}];
+  (match exec_opt (compile pat) "\224.\192\1920" with
+   | None -> print_endline "None"
+   | Some g -> Printf.printf "match starts at %d\n" (Group.start g 0));
+  [%expect {| match starts at 2 |}];
+  ()
+;;
