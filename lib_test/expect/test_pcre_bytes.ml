@@ -47,6 +47,8 @@ let%expect_test "byte escapes in mixed classes and ranges" =
   List.iter
     [ {|\a|}, "\007"
     ; {|[\a\e\f]|}, "\007\012\027"
+    ; {|\n|}, "\n"
+    ; {|[\n\r\t]|}, "\t\n\r"
     ; {|[\cA-\cZ]|}, Check.bytes_where (fun code -> 1 <= code && code <= 26)
     ; {|[\x41-\x5a]|}, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     ; {|[\101-\132]|}, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -61,7 +63,7 @@ let%expect_test "byte escapes in mixed classes and ranges" =
         ~expected:(Check.text expected)
         (Check.byte_set pattern));
   Check.finish checks;
-  [%expect {| 8 checks; 0 differences |}]
+  [%expect {| 10 checks; 0 differences |}]
 ;;
 
 let%expect_test "control escapes cover printable ASCII operands" =
