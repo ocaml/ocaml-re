@@ -195,7 +195,7 @@ val execp
       - : [ `Full | `Mismatch | `Partial ] = `Full
 
       # Re.exec_partial regex "// a C comment";;
-      - : [ `Full | `Mismatch | `Partial ] = `Partial
+      - : [ `Full | `Mismatch | `Partial ] = `Full
 
       # Re.exec_partial regex "//";;
       - : [ `Full | `Mismatch | `Partial ] = `Partial
@@ -361,17 +361,17 @@ val split : ?pos:int -> ?len:int -> re -> string -> string list
       # let regex = Re.compile (Re.char ',');;
       val regex : re = <abstr>
 
-      # Re.split regex "Re,Ocaml,Jerome Vouillon";;
+      # Re.split_delim regex "Re,Ocaml,Jerome Vouillon";;
       - : string list = ["Re"; "Ocaml"; "Jerome Vouillon"]
 
-      # Re.split regex "No commas in this sentence.";;
+      # Re.split_delim regex "No commas in this sentence.";;
       - : string list = ["No commas in this sentence."]
 
-      # Re.split regex ",1,2,";;
+      # Re.split_delim regex ",1,2,";;
       - : string list = [""; "1"; "2"; ""]
 
-      # Re.split ~pos:3 regex "1,2,3,4. Commas go brrr.";;
-      - : string list = ["3"; "4. Commas go brrr."]
+      # Re.split_delim ~pos:3 regex "1,2,3,4. Commas go brrr.";;
+      - : string list = [""; "3"; "4. Commas go brrr."]
     ]}
 
     {6 Zero-length patterns:}
