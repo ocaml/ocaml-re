@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix [Re.Glob] losing the leading-period check after a `**/` globstar, so
+  `**/*` matched `.hidden` and `a/.hidden` (#719).
+
 * Fix [Re.Glob] with `pathname` disabled allowing wildcards to match a leading
   period; leading dots must still be matched explicitly (#708).
 

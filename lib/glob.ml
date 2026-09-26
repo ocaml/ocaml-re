@@ -216,11 +216,13 @@ let many_many state ~component_with_terminator =
   in
   (* We must match components individually when [period] flag is set,
      making sure to not match ["foo/.bar"]. *)
-  State.append
-    state
-    (if component_with_terminator
-     then Re.opt (Re.seq [ match_components; slashes_re ])
-     else match_components)
+  if component_with_terminator
+  then
+    State.append
+      state
+      (Re.opt (Re.seq [ match_components; slashes_re ]))
+      ~am_at_start_of_component:true
+  else State.append state match_components
 ;;
 
 let many (state : State.t) =
