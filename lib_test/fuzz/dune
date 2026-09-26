@@ -1,3 +1,9 @@
 (executable
  (name fuzz)
  (libraries re crowbar))
+
+(rule
+ (alias runtest)
+ (action
+  (bash
+   "set -o pipefail; %{dep:fuzz.exe} --repeat 100000 --seed 20260920 2>&1 | { grep -v ': PASS' || :; }")))

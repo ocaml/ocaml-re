@@ -381,6 +381,13 @@ module Compare_to_reference = struct
       ~name:"compare_to_reference_sub"
       [ re_gen; string_gen_dyn ~min:2 6 ]
       (fun re input -> same_execution re input ~pos:1 ~len:(String.length input - 2));
+    C.add_test
+      ~name:"compare_to_reference_window"
+      [ re_gen; string_gen_dyn 6; C.range 7; C.range 7 ]
+      (fun re input pos len ->
+         let pos = pos mod (String.length input + 1) in
+         let len = len mod (String.length input - pos + 1) in
+         same_execution re input ~pos ~len);
     ()
   ;;
 
@@ -441,12 +448,19 @@ end
 
 let () =
   Compare_to_reference.add_test ();
-  if false then Exec_partial.add_test ()
+  Exec_partial.add_test ()
 ;;
 
-(* Currently, this fuzzing is run manually, it's not plugged into dune or CI or anything.
-   It can be used either by just running the exe (in which case, it behaves as
-   quickcheck, blindly generating values), or as:
-   mkdir -p _build/input
-   AFL_SKIP_CPUFREQ=1 afl-fuzz -i _build/input -o _build/output _build/default/lib_test/fuzz/fuzz.exe @@
-*)
+(* This fuzzing runs in two modes:
+
+   1. A bounded seeded quickcheck pass is wired into `dune runtest` (see dune).
+   2. For deeper searches, run the exe directly with a larger `--repeat`, or under
+      afl-fuzz:
+
+      {v
+      mkdir -p _build/input
+      AFL_SKIP_CPUFREQ=1 afl-fuzz -i _build/input -o _build/output \
+        _build/default/lib_test/fuzz/fuzz.exe @@
+      v}
+
+   The fixed seed keeps CI deterministic; bump it when adding generators. *)
