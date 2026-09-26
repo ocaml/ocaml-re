@@ -52,7 +52,39 @@ end = struct
   module Id = struct
     type t = int
 
-    module Hash_set = Hash_set
+    (* IDs are dense nonnegative integers. Generation stamps avoid hashing and
+       probing each live expression twice, and avoid clearing the whole table
+       on every derivative. A byte per expression also avoids GC scanning. *)
+    module Hash_set = struct
+      type t =
+        { mutable stamps : bytes
+        ; mutable generation : char
+        }
+
+      let create () = { stamps = Bytes.empty; generation = '\001' }
+
+      let mem t id =
+        id < Bytes.length t.stamps
+        && Char.equal (Bytes.unsafe_get t.stamps id) t.generation
+      ;;
+
+      let add t id =
+        if id >= Bytes.length t.stamps
+        then (
+          let stamps = Bytes.make (max (id + 1) (2 * Bytes.length t.stamps)) '\000' in
+          Bytes.blit t.stamps 0 stamps 0 (Bytes.length t.stamps);
+          t.stamps <- stamps);
+        Bytes.unsafe_set t.stamps id t.generation
+      ;;
+
+      let clear t =
+        if Char.equal t.generation '\255'
+        then (
+          Bytes.fill t.stamps 0 (Bytes.length t.stamps) '\000';
+          t.generation <- '\001')
+        else t.generation <- Char.unsafe_chr (Char.code t.generation + 1)
+      ;;
+    end
 
     let equal = Int.equal
     let zero = 0
