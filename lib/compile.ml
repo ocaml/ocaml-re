@@ -432,7 +432,18 @@ let final_advance re positions ~last state_info ~groups =
 let make_match_str re positions ~len ~groups ~partial s ~pos =
   let slen = String.length s in
   let last = if len = -1 then slen else pos + len in
-  let st =
+  (* [leol] can only match before the final newline. In partial mode the caller
+     decides whether the string is complete, so a match that may depend on the
+     final newline cannot be reported as [Full], and it can also shadow other
+     matches that [exec_opt] would prefer. Answer [`Partial`] without scanning. *)
+  if
+    partial
+    && last = slen
+    && last > pos
+    && (not (Cset.equal_c re.lnl Cset.null_char))
+    && Char.equal (String.get s (last - 1)) '\n'
+  then (Running : Automata.Status.t)
+  else (
     let initial_state =
       let initial_cat =
         Category.(
@@ -441,19 +452,18 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
       in
       find_initial_state re initial_cat
     in
-    scan_str re positions s initial_state ~slen ~pos ~last ~groups
-  in
-  let state_info = State.get_info st in
-  if partial
-  then (
-    match Automata.State.status re.mutex state_info.desc with
-    | (Match _ | Failed) as status -> status
-    | Running -> final_advance re positions ~last state_info ~groups)
-  else (
-    ();
-    if Idx.is_break state_info.idx
-    then Automata.State.status re.mutex state_info.desc
-    else final_boundary_check re positions ~last ~slen s state_info ~groups)
+    let st = scan_str re positions s initial_state ~slen ~pos ~last ~groups in
+    let state_info = State.get_info st in
+    if partial
+    then (
+      match (Automata.State.status re.mutex state_info.desc : Automata.Status.t) with
+      | (Match _ | Failed) as status -> status
+      | Running -> final_advance re positions ~last state_info ~groups)
+    else (
+      ();
+      if Idx.is_break state_info.idx
+      then Automata.State.status re.mutex state_info.desc
+      else final_boundary_check re positions ~last ~slen s state_info ~groups))
 ;;
 
 module Stream = struct
