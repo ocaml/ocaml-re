@@ -1,6 +1,6 @@
 .*.swp
 .scratch/
-_build/
+_build*/
 _opam/
 *.bak
 setup.data
