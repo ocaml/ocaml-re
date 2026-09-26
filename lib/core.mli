@@ -127,7 +127,9 @@ val group_names : re -> (string * int) list
     @param pos optional beginning of the string (default 0)
     @param len
       length of the substring of [str] that can be matched (default [-1],
-      meaning to the end of the string) *)
+      meaning to the end of the string). Zero-width assertions such as {!bol},
+      {!eol}, {!bow} and {!eow} still look at the characters just outside of
+      this substring; use {!start} and {!stop} to anchor to its boundaries. *)
 val exec_opt
   :  ?pos:int (** Default: 0 *)
   -> ?len:int (** Default: -1 (until end of string) *)
