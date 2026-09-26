@@ -235,6 +235,7 @@ let benchmarks =
   @ split
   @ prefixes
   @ [ duplicate_accepting_states ]
+  @ Id_sets.benchmarks
 ;;
 
 let () =
