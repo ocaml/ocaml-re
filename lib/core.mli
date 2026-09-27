@@ -438,7 +438,7 @@ module Seq : sig
         # Re.Seq.all regex "my head, my shoulders, my knees, my toes ...";;
         - : Re.Group.t Seq.t = <fun>
       ]}
-      @since 1.10.0 *)
+      @since 1.9.0 *)
   val all : ?pos:int (** Default: 0 *) -> ?len:int -> re -> string -> Group.t Seq.t
 
   (** Same as {!module-Re.val-matches}, but returns an iterator.
@@ -451,7 +451,7 @@ module Seq : sig
         # Re.Seq.matches regex "my head, my shoulders, my knees, my toes ...";;
         - : string Seq.t = <fun>
       ]}
-      @since 1.10.0 *)
+      @since 1.9.0 *)
   val matches : ?pos:int (** Default: 0 *) -> ?len:int -> re -> string -> string Seq.t
 
   (** Same as {!module-Re.val-split} but returns an iterator.
@@ -464,7 +464,7 @@ module Seq : sig
         # Re.Seq.split regex "Re,Ocaml,Jerome Vouillon";;
         - : string Seq.t = <fun>
       ]}
-      @since 1.10.0 *)
+      @since 1.9.0 *)
   val split : ?pos:int (** Default: 0 *) -> ?len:int -> re -> string -> string Seq.t
 
   (** Same as {!module-Re.val-split_delim} but returns an iterator.
@@ -477,7 +477,7 @@ module Seq : sig
         # Re.Seq.split regex "Re,Ocaml,Jerome Vouillon";;
         - : string Seq.t = <fun>
       ]}
-      @since 1.11.1 *)
+      @since 1.12.0 *)
   val split_delim : ?pos:int (** Default: 0 *) -> ?len:int -> re -> string -> string Seq.t
 
   (** Same as {!module-Re.val-split_full} but returns an iterator.
@@ -490,7 +490,7 @@ module Seq : sig
         # Re.Seq.split_full regex "Re,Ocaml,Jerome Vouillon";;
         - : Re.split_token Seq.t = <fun>
       ]}
-      @since 1.10.0 *)
+      @since 1.9.0 *)
   val split_full
     :  ?pos:int (** Default: 0 *)
     -> ?len:int
