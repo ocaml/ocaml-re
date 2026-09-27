@@ -13,55 +13,30 @@ let print_unsupported patterns =
     Printf.printf "%S: %s\n" pattern (outcome pattern))
 ;;
 
-let%expect_test "inline pattern modifiers are not supported" =
-  (* perlre: "(?adlupimnsx-imnsx)" and "(?^alupimnsx)" turn modifiers on or
-     off for the rest of the pattern or enclosing group. [Re.Perl] only
-     exposes the fixed [`Caseless], [`Multiline], [`Dotall], and friends
-     options; free-spacing [(?x)] has no corresponding option at all. *)
+let%expect_test "inline charset and free-spacing modifiers are not supported" =
+  (* perlre: "x", "a", "d", "l", "u" and "p" control free spacing and the
+     character set rules. [Re.Perl] implements i, m, s and n inline; the rest
+     still raise. *)
   print_unsupported
-    [ {|(?i)abc|}
-    ; {|(?m)abc|}
-    ; {|(?s)abc|}
-    ; {|(?x)abc|}
+    [ {|(?x)abc|}
     ; {|(?xx)abc|}
-    ; {|(?n)abc|}
     ; {|(?a)abc|}
     ; {|(?aa)abc|}
     ; {|(?u)abc|}
     ; {|(?l)abc|}
     ; {|(?d)abc|}
     ; {|(?p)abc|}
-    ; {|(?-i)abc|}
-    ; {|(?i-m)abc|}
-    ; {|(?^)abc|}
-    ; {|(?^i)abc|}
-    ; {|(?i:abc)|}
-    ; {|(?-i:abc)|}
-    ; {|(?^i:abc)|}
-    ; {|(?s-i:more.*than)|}
     ];
   [%expect
     {|
-    "(?i)abc": Parse_error
-    "(?m)abc": Parse_error
-    "(?s)abc": Parse_error
-    "(?x)abc": Parse_error
-    "(?xx)abc": Parse_error
-    "(?n)abc": Parse_error
-    "(?a)abc": Parse_error
-    "(?aa)abc": Parse_error
-    "(?u)abc": Parse_error
-    "(?l)abc": Parse_error
-    "(?d)abc": Parse_error
-    "(?p)abc": Parse_error
-    "(?-i)abc": Parse_error
-    "(?i-m)abc": Parse_error
-    "(?^)abc": Parse_error
-    "(?^i)abc": Parse_error
-    "(?i:abc)": Parse_error
-    "(?-i:abc)": Parse_error
-    "(?^i:abc)": Parse_error
-    "(?s-i:more.*than)": Parse_error
+    "(?x)abc": Not_supported
+    "(?xx)abc": Not_supported
+    "(?a)abc": Not_supported
+    "(?aa)abc": Not_supported
+    "(?u)abc": Not_supported
+    "(?l)abc": Not_supported
+    "(?d)abc": Not_supported
+    "(?p)abc": Not_supported
     |}]
 ;;
 
