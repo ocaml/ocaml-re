@@ -239,20 +239,24 @@ let find_state re desc =
 
 let delta re cat ~color st = Automata.delta re.tbl cat color st.desc
 
-let validate re (s : string) ~pos st =
-  let color = Color_map.Table.get re.colors s.[pos] in
+(* Compute the transition of [st] for the transition table slot [color], unless
+   it has already been computed. The derivative is computed with respect to
+   [real_color], which differs from [color] for the synthetic last newline
+   color. *)
+let[@inline always] ensure_transition re st ~color =
   Mutex.lock re.mutex;
   if State.is_unknown_transition st ~color
   then (
-    let st' =
-      let desc' =
-        let cat = category re ~color in
-        delta re cat ~color (State.get_info st)
-      in
-      find_state re desc'
+    let real_color =
+      if Cset.equal_c color re.lnl then Color_map.Table.get re.colors '\n' else color
     in
-    State.set_transition st ~color st');
+    let desc = delta re (category re ~color) ~color:real_color (State.get_info st) in
+    State.set_transition st ~color (find_state re desc));
   Mutex.unlock re.mutex
+;;
+
+let[@inline always] validate re (s : string) ~pos st =
+  ensure_transition re st ~color:(Color_map.Table.get re.colors s.[pos])
 ;;
 
 let next colors st s pos =
@@ -341,6 +345,53 @@ let find_initial_state re cat =
     res
 ;;
 
+(* The states of the automaton are interned lazily, when a matching run
+   needs them. This explores the whole automaton eagerly: starting from
+   all possible initial states, follow every transition (including the
+   special last newline transition) until a fixpoint is reached,
+   computing all end-of-input and partial-match states along the way.
+
+   The states produced by [final] and [advance] are interned but not
+   explored, exactly like the matching loops, which stop after them. *)
+let force_states re =
+  let boundary_categories =
+    (* The initial category (and the category used by final checks) is
+     [search_boundary] combined with the category of the preceding/following
+     character: nonexistent at the start/end of the input, a letter category
+     otherwise, or the special last newline category. *)
+    let categories =
+      Category.inexistant
+      :: List.init ~len:re.ncolor ~f:(fun i -> category re ~color:(Cset.of_int i))
+    in
+    List.map categories ~f:(fun cat -> Category.(search_boundary ++ cat))
+  in
+  let visited = Automata.State.Table.create 97 in
+  let queue = Queue.create () in
+  let enqueue st =
+    let info = State.get_info st in
+    if (not (Idx.is_break info.idx)) && not (Automata.State.Table.mem visited info.desc)
+    then (
+      Automata.State.Table.add visited info.desc ();
+      Queue.add st queue)
+  in
+  List.iter boundary_categories ~f:(fun cat -> enqueue (find_initial_state re cat));
+  while not (Queue.is_empty queue) do
+    let st = Queue.pop queue in
+    let info = State.get_info st in
+    for i = 0 to re.ncolor - 1 do
+      let color = Cset.of_int i in
+      ensure_transition re st ~color;
+      enqueue (State.follow_transition st ~color)
+    done;
+    List.iter boundary_categories ~f:(fun cat ->
+      let (_ : Automata.Idx.t * Automata.Status.t) = final re info cat in
+      ());
+    match Automata.State.status_no_mutex info.desc with
+    | Running -> ignore (advance re info : Automata.Idx.t * Automata.Status.t)
+    | Match _ | Failed -> ()
+  done
+;;
+
 let get_color re (s : string) pos =
   if pos < 0
   then Cset.null_char
@@ -370,20 +421,7 @@ let rec handle_last_newline re positions ~pos st ~groups =
     st')
   else (
     (* Unknown *)
-    let color = re.lnl in
-    Mutex.lock re.mutex;
-    if State.is_unknown_transition st ~color
-    then (
-      let st' =
-        let desc =
-          let cat = category re ~color in
-          let real_c = Color_map.Table.get re.colors '\n' in
-          delta re cat ~color:real_c (State.get_info st)
-        in
-        find_state re desc
-      in
-      State.set_transition st ~color st');
-    Mutex.unlock re.mutex;
+    ensure_transition re st ~color:re.lnl;
     handle_last_newline re positions ~pos st ~groups)
 ;;
 

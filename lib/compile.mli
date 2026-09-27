@@ -62,6 +62,13 @@ val group_names : re -> (string * int) list
     far. Test and benchmark use only. *)
 val stats : re -> Stats.t
 
+(** Internal: force the construction of every reachable state of the compiled
+    automaton, so that [stats] reports the complete automaton size rather than
+    the number of states interned so far. Beware that the complete automaton
+    can be much, or even exponentially, larger than what a single run reaches.
+    Test and benchmark use only. *)
+val force_states : re -> unit
+
 val pp_re : re Fmt.t
 val copy_re : re -> re
 val to_dyn : ?color_map:bool -> re -> Dyn.t

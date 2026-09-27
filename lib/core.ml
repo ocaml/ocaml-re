@@ -169,6 +169,7 @@ include struct
   let group_names = group_names
   let group_count = group_count
   let stats = stats
+  let force_states = force_states
 end
 
 module Stats = Stats
