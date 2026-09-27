@@ -153,6 +153,10 @@ let to_dyn ?(color_map = false) re =
 let group_count re = re.group_count
 let group_names re = re.group_names
 
+let stats re =
+  { Stats.colors = re.ncolor; states = Automata.State.Table.length re.states }
+;;
+
 module Positions = struct
   (* Information used during matching *)
   type t =

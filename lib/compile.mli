@@ -56,6 +56,12 @@ val match_str_p : re -> string -> pos:int -> len:int -> bool
 val compile : Ast.t -> re
 val group_count : re -> int
 val group_names : re -> (string * int) list
+
+(** Internal: statistics about the compiled automaton. The automaton is built
+    lazily, so [states] counts the states interned by the inputs executed so
+    far. Test and benchmark use only. *)
+val stats : re -> Stats.t
+
 val pp_re : re Fmt.t
 val copy_re : re -> re
 val to_dyn : ?color_map:bool -> re -> Dyn.t

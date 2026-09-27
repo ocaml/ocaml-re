@@ -3,11 +3,39 @@
   (flags
    (:standard -w -58))))
 
-(executables
+(library
+ (name re_benchmarks)
+ (modules cases http import memory_patterns tex)
+ (libraries
+  re_private
+  base
+  stdio
+  ppx_expect.config
+  ppx_expect.config_types
+  ppx_expect_common
+  ppx_inline_test.config)
+ (inline_tests
+  (deps
+   benchmarks/files
+   benchmarks/http-requests.txt
+   benchmarks/tex.gitignore))
+ (preprocess
+  (pps ppx_expect)))
+
+;; The inline-test runner starts in this directory, while the benchmark inputs
+;; use paths relative to the project root.
+
+(subdir
+ benchmarks
+ (copy_files ../{files,http-requests.txt,tex.gitignore}))
+
+(executable
  (enabled_if
   (not %{env:CI=false}))
  (libraries
+  re_benchmarks
   re
+  re_private
   core
   base
   stdio
@@ -15,8 +43,8 @@
   core_bench
   core_unix.command_unix
   memtrace)
- (modules :standard \ compare)
- (names benchmark))
+ (modules benchmark memory id_sets)
+ (name benchmark))
 
 (rule
  (alias runtest)

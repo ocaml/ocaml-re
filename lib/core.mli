@@ -762,6 +762,10 @@ val pp_re : Format.formatter -> re -> unit
 
 val copy_re : re -> re
 
+module Stats = Stats
+
+val stats : re -> Stats.t
+
 (**/**)
 
 (** {2 Experimental functions} *)

@@ -1,41 +1,7 @@
 open Core
 open Core_bench
-
-let str_20_zeroes = String.make 20 '0'
-let re_20_zeroes = Re.(str str_20_zeroes)
-
-let lots_of_a's =
-  String.init 101 ~f:(function
-    | 100 -> 'b'
-    | _ -> 'a')
-;;
-
-let lots_o_a's_re = Re.(seq [ char 'a'; opt (char 'a'); char 'b' ])
-
-let media_type_re =
-  let re = Re.Emacs.re ~case:true "[ \t]*\\([^ \t;]+\\)" in
-  Re.(seq [ start; re ])
-;;
-
-(* Taken from https://github.com/rgrinberg/ocaml-uri/blob/903ef1010f9808d6f3f6d9c1fe4b4eabbd76082d/lib/uri.ml*)
-let uri_reference =
-  Re.Posix.re "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"
-;;
-
-let uris =
-  [ "https://google.com"
-  ; "http://yahoo.com/xxx/yyy?query=param&one=two"
-  ; "file:/random_crap"
-  ]
-;;
-
-let benchmarks =
-  [ "20 zeroes", re_20_zeroes, [ str_20_zeroes ]
-  ; "lots of a's", lots_o_a's_re, [ lots_of_a's ]
-  ; "media type match", media_type_re, [ " foo/bar ; charset=UTF-8" ]
-  ; "uri", uri_reference, uris
-  ]
-;;
+open Re_benchmarks
+open Import
 
 let test ~name re f =
   [ Bench.Test.create ~name:(sprintf "%s (comp)" name) (fun () -> re ())
@@ -75,96 +41,46 @@ let exec_bench_many exec name re cases =
 ;;
 
 let string_traversal =
-  let len = 1000 * 1000 in
-  let s = String.make len 'a' in
-  let re =
-    let re = Re.Pcre.re "aaaaaaaaaaaaaaaaz" in
-    fun () -> Re.compile re
-  in
-  test ~name:"string traversal from #210" re (fun re ->
-    ignore (Re.execp (re ()) s ~pos:0))
+  test
+    ~name:"string traversal from #210"
+    (fun () -> Re.compile Cases.string_traversal_pattern)
+    (fun re -> ignore (Re.execp (re ()) Cases.string_traversal_input ~pos:0))
 ;;
 
 let compile_clean_star =
-  let c = 'c' in
-  let s = String.make 10_000 c in
-  let re = Re.rep (Re.char 'c') in
-  let re () = Re.compile re in
-  test ~name:"kleene star compilation" re (fun re -> ignore (Re.execp (re ()) s))
+  test
+    ~name:"kleene star compilation"
+    (fun () -> Re.compile Cases.kleene_star_pattern)
+    (fun re -> ignore (Re.execp (re ()) Cases.kleene_star_input))
 ;;
 
 let repeated_sequence =
-  let s = String.init 256 ~f:Char.of_int_exn in
-  let re () = Re.repn (Re.str s) 50 (Some 50) |> Re.compile in
-  let s = List.init 50 ~f:(fun _ -> s) |> String.concat ~sep:"" in
-  test ~name:"repeated sequence re" re (fun re ->
-    let re = re () in
-    ignore (Re.execp re s))
+  test
+    ~name:"repeated sequence re"
+    (fun () -> Re.compile Cases.repeated_sequence_pattern)
+    (fun re -> ignore (Re.execp (re ()) Cases.repeated_sequence_input))
 ;;
 
 let split =
-  let s = Bytes.make 1_000 '_' in
-  for i = 0 to 100 do
-    Bytes.set s (i * 9) ' '
-  done;
-  let s = Bytes.to_string s in
-  let re () = Re.(rep1 space |> compile) in
-  test ~name:"split on whitespace" re (fun re -> ignore (Re.split_full (re ()) s))
+  test
+    ~name:"split on whitespace"
+    (fun () -> Re.compile Cases.split_pattern)
+    (fun re -> ignore (Re.split_full (re ()) Cases.split_input))
 ;;
 
 let prefixes =
-  let make_ext =
-    let chars = "abcdefghiklmnopqrstuvwxyz" in
-    let buf = Buffer.create 4 in
-    let rec loop remains =
-      match remains with
-      | 0 -> Buffer.contents buf
-      | _ ->
-        let char = remains mod String.length chars in
-        Buffer.add_char buf chars.[char];
-        loop (remains / String.length chars)
-    in
-    fun n ->
-      Buffer.clear buf;
-      loop n
-  in
-  let n_extensions = 100 in
-  let n_base = 20 in
-  let base = String.make n_base 'x' ^ "." in
-  let extensions = List.init n_extensions ~f:make_ext in
-  let re () =
-    (* This regular expression can be heavily optimized by computing the shared prefix *)
-    List.init 100 ~f:(fun i ->
-      let ext = make_ext i in
-      let open Re in
-      seq [ rep1 any; char '.'; str ext ])
-    |> Re.alt
-    |> Re.compile
-  in
-  let extensions = Array.of_list extensions in
-  test ~name:"shared prefixes" re (fun re ->
-    let re = re () in
-    for i = 0 to Array.length extensions - 1 do
-      let extension = extensions.(i) in
-      let str = base ^ extension in
-      ignore (Re.execp re str)
-    done)
+  let inputs = Array.of_list Cases.prefix_inputs in
+  test
+    ~name:"shared prefixes"
+    (fun () -> Re.compile Cases.prefixes_pattern)
+    (fun re ->
+       let re = re () in
+       Array.iter inputs ~f:(fun str -> ignore (Re.execp re str)))
 ;;
 
 let duplicate_accepting_states =
-  let alphabet = String.init 256 ~f:Char.of_int_exn in
-  let cases =
-    let wordc = Re.compile Re.wordc in
-    List.init 256 ~f:(fun byte -> String.make 1 (Char.of_int_exn byte))
-    |> List.filter ~f:(Re.execp wordc)
-  in
-  (* The empty captures always win. The shadowed literal keeps every byte in a
-     distinct color, so the word-byte inputs learn different transitions to the
-     same accepting state. Eager status computation can build capture metadata
-     for candidates that the state interner then discards. *)
-  let re =
-    Re.alt [ Re.seq (List.init 4 ~f:(fun _ -> Re.group Re.epsilon)); Re.str alphabet ]
-  in
+  let re = Cases.duplicate_pattern in
+  let cases = Cases.duplicate_inputs in
   let bench exec name cases =
     let run re = List.iter cases ~f:(fun input -> ignore (exec re input)) in
     exec_bench_many exec name re cases
@@ -188,7 +104,7 @@ let duplicate_accepting_states =
 
 let benchmarks =
   let benches =
-    List.map benchmarks ~f:(fun (name, re, cases) ->
+    List.map Cases.benchmarks ~f:(fun (name, re, cases) ->
       Bench.Test.create_group
         ~name
         [ exec_bench Re.exec "exec" re cases

@@ -1,16 +1,17 @@
-open Core
+open Base
+open Import
 
 let ignore_re =
   Stdio.In_channel.read_lines "benchmarks/tex.gitignore"
   |> List.map ~f:(fun s ->
-    match Base.String.lsplit2 s ~on:'#' with
-    | Some (pattern, _comment) -> pattern
+    match String.index s '#' with
+    | Some i -> String.sub s ~pos:0 ~len:i
     | None -> s)
   |> List.filter_map ~f:(fun s ->
-    match Base.String.strip s with
+    match String.strip s with
     | "" -> None
     | s -> Some s)
-  |> List.map ~f:Re.Glob.glob
+  |> List.map ~f:(fun s -> Re.Glob.glob s)
   |> Re.alt
 ;;
 
