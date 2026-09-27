@@ -345,18 +345,18 @@ let%expect_test "case-modification escapes" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "\\lFOO" on "fOO": parse error
-    "\\lFOO" on "FOO": parse error
-    "\\uFOO" on "FOO": parse error
-    "\\LFOO\\E" on "foo": parse error
-    "\\LFOO\\E" on "FOO": parse error
-    "\\Ufoo\\E" on "FOO": parse error
-    "\\Ffoo\\E" on "foo": parse error
-    "\\UFOO\\Ebar" on "FOObar": parse error
-    "\\L[A-Z]" on "q": parse error
-    "[\\LA]" on "a": parse error
-    "\\L\\x41" on "A": parse error
-    "\\u\\x61" on "a": parse error
-    "\\Q\\Ufoo\\E" on "FOO": no match
+    "\\lFOO" on "fOO": match "fOO"
+    "\\lFOO" on "FOO": no match
+    "\\uFOO" on "FOO": match "FOO"
+    "\\LFOO\\E" on "foo": match "foo"
+    "\\LFOO\\E" on "FOO": no match
+    "\\Ufoo\\E" on "FOO": match "FOO"
+    "\\Ffoo\\E" on "foo": match "foo"
+    "\\UFOO\\Ebar" on "FOObar": match "FOObar"
+    "\\L[A-Z]" on "q": match "q"
+    "[\\LA]" on "a": match "a"
+    "\\L\\x41" on "A": match "A"
+    "\\u\\x61" on "a": match "a"
+    "\\Q\\Ufoo\\E" on "FOO": match "FOO"
     |}]
 ;;

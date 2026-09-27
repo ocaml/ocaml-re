@@ -309,23 +309,6 @@ let%expect_test
     |}]
 ;;
 
-let%expect_test "case-modification escapes are not supported" =
-  (* perlre: because patterns are processed as double-quoted strings, Perl
-     applies "\l", "\u", "\L", "\U", and "\F" (foldcase) to the following
-     characters before the regex engine sees them. [Re.Perl] parses the raw
-     pattern string, so it could apply them just like it does "\Q...\E",
-     but currently rejects them. *)
-  print_unsupported [ {|\lFOO|}; {|\ufoo|}; {|\LFOO\E|}; {|\Ufoo\E|}; {|\Ffoo\E|} ];
-  [%expect
-    {|
-    "\\lFOO": Parse_error
-    "\\ufoo": Parse_error
-    "\\LFOO\\E": Parse_error
-    "\\Ufoo\\E": Parse_error
-    "\\Ffoo\\E": Parse_error
-    |}]
-;;
-
 let%expect_test "extended bracketed character classes are not supported" =
   (* perlrecharclass: "(?[...])" is a bracketed class with set operators
      ("&", "+", "|", "-", "^", "!") that always runs under "/xx" rules. *)

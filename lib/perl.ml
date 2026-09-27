@@ -62,7 +62,51 @@ let character_type =
   | _ -> None
 ;;
 
+let apply_case_escapes s =
+  let len = String.length s in
+  let buf = Buffer.create len in
+  let mode = ref `None in
+  let one = ref `None in
+  let i = ref 0 in
+  while !i < len do
+    if Char.equal s.[!i] '\\' && !i + 1 < len
+    then (
+      (match s.[!i + 1] with
+       | 'l' -> one := `Lower
+       | 'u' -> one := `Upper
+       | 'L' -> mode := `Lower
+       | 'U' -> mode := `Upper
+       | 'F' -> mode := `Fold
+       | 'E' ->
+         mode := `None;
+         one := `None;
+         Buffer.add_string buf "\\E"
+       | 'Q' -> Buffer.add_string buf "\\Q"
+       | c ->
+         one := `None;
+         Buffer.add_char buf '\\';
+         Buffer.add_char buf c);
+      i := !i + 2)
+    else (
+      let c =
+        match !one with
+        | `Lower -> Char.lowercase_ascii s.[!i]
+        | `Upper -> Char.uppercase_ascii s.[!i]
+        | `None ->
+          (match !mode with
+           | `Lower | `Fold -> Char.lowercase_ascii s.[!i]
+           | `Upper -> Char.uppercase_ascii s.[!i]
+           | `None -> s.[!i])
+      in
+      one := `None;
+      Buffer.add_char buf c;
+      incr i)
+  done;
+  Buffer.contents buf
+;;
+
 let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
+  let s = apply_case_escapes s in
   let buf = Parse_buffer.create s in
   let quoted = ref false in
   let multiline = ref multiline in
