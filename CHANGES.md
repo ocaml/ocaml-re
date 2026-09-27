@@ -144,7 +144,7 @@ Unreleased
 * Add support for `\Q...\E` quoted expressions in Pcre and Perl syntax (#401)
 
 * Re.execp and related function raise [Invalid_argument "$function"] when [pos]
-  or [len] arguments are out of bounds. In 1.12.0, a regerssion was introduced
+  or [len] arguments are out of bounds. In 1.12.0, a regression was introduced
   that raised [Invalid_argument _] from [String.get].
 
 1.12.0 (29-Aug-2024)
@@ -204,7 +204,7 @@ Unreleased
 -------------------
 
 * Fix regression in `Re.exec_partial` (#164)
-* Mov gen related functions to `Re.Gen` and deprecate the old names (#167)
+* Move gen related functions to `Re.Gen` and deprecate the old names (#167)
 * Introduce `Re.View` that exposes the internal representation (#163)
 
 1.8.0 (04-Aug-2018)
@@ -320,7 +320,7 @@ Unreleased
 * Correct OASIS metadata (Christophe Troestler).
 * Fix typo in Invalid_arg error message (Jeremy Yallop).
 
-1.2.0 (15-Jan-2012)
+1.2.0 (15-Jan-2013)
 -------------------
 
 * Rename Pcre module to `Re_pcre` to make it more suitable for
