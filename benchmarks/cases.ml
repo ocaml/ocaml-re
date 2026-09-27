@@ -206,7 +206,7 @@ let%expect_test "benchmark automaton colors and states" =
     20 zeroes colors=2 states=21
     lots of a's colors=3 states=5
     media type match colors=3 states=5
-    uri colors=5 states=15
+    uri colors=6 states=15
     tex gitignore colors=42 states=68
     http/manual/no group colors=13 states=648
     http/manual/group colors=13 states=45
