@@ -7,6 +7,11 @@ Unreleased
 
 * Fix [Re.Posix]'s `.` matching NUL; POSIX excludes NUL from the dot (#772).
 
+* Add parser support for more Perl and Emacs syntax: inline modifiers
+  `(?imsn)`, `(?i:...)` and `(?^...)`, case-modification escapes and non-ASCII
+  capture names in [Re.Perl]; and anchor positions and optional intervals in
+  [Re.Emacs] (#768).
+
 * Add `Bre` to [Re.Posix] to parse POSIX basic regular expressions:
   `\(...\)` groups, `\|` alternation, `\{m,n\}` intervals, and
   positional `^`/`$` (#771).
