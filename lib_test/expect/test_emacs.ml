@@ -130,3 +130,44 @@ let%expect_test "ordinary characters" =
   re "a";
   [%expect {| (Set 97) |}]
 ;;
+
+let outcome pattern subject =
+  match Re.Emacs.re_result pattern with
+  | Error `Parse_error -> "parse error"
+  | Error `Not_supported -> "not supported"
+  | Ok re ->
+    (match Re.exec_opt (Re.compile re) subject with
+     | None -> "no match"
+     | Some groups -> Printf.sprintf "match %S" (Re.Group.get groups 0))
+;;
+
+let show pattern subject =
+  Printf.printf "%S on %S: %s\n" pattern subject (outcome pattern subject)
+;;
+
+let%expect_test "unsupported constructs" =
+  List.iter
+    [ {|[[:alpha:]]|}, "a"
+    ; {|[[:alpha:]]|}, "a]"
+    ; {|[[:digit:]]|}, "7"
+    ; {|^a\{2\}$|}, "aa"
+    ; {|a*?|}, "aaa"
+    ; {|\(?:ab\)|}, "ab"
+    ; {|\d|}, "d"
+    ; {|[z-a]|}, "z"
+    ; {|*foo|}, "*foo"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "[[:alpha:]]" on "a": no match
+    "[[:alpha:]]" on "a]": match "a]"
+    "[[:digit:]]" on "7": no match
+    "^a\\{2\\}$" on "aa": parse error
+    "a*?" on "aaa": parse error
+    "\\(?:ab\\)" on "ab": parse error
+    "\\d" on "d": parse error
+    "[z-a]" on "z": match "z"
+    "*foo" on "*foo": parse error
+    |}]
+;;
