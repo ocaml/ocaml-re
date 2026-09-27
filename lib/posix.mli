@@ -55,9 +55,12 @@ exception Parse_error
 exception Not_supported
 
 type opt =
-  [ `ICase
-  | `NoSub
+  [ `ICase (** Match case-insensitively *)
+  | `NoSub (** Do not report groups: only group 0 (the whole match) is kept *)
   | `Newline
+    (** Treat ['\n'] as a line separator: [.] and negated bracket expressions
+        such as [[^a]] do not match it, and [^] and [$] also match just after
+        and just before it *)
   ]
 
 (** Parsing of a Posix extended regular expression *)
