@@ -446,9 +446,35 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
   let state_info = State.get_info st in
   if partial
   then (
-    match Automata.State.status re.mutex state_info.desc with
-    | (Match _ | Failed) as status -> status
-    | Running -> final_advance re positions ~last state_info ~groups)
+    let status =
+      match Automata.State.status re.mutex state_info.desc with
+      | (Match _ | Failed) as status -> status
+      | Running -> final_advance re positions ~last state_info ~groups
+    in
+    match status with
+    | Running when groups ->
+      (* No match yet: the earliest position a match can still start at is the
+         earliest start recorded by the live threads. The last restart alone is
+         not a sound lower bound, because more input can revive an earlier
+         attempt. *)
+      let live = ref None in
+      Automata.State.iter_mark_positions
+        state_info.desc
+        ~mark:Automata.Mark.start
+        ~f:(fun i ->
+          if i < Positions.length positions
+          then (
+            let p = positions.positions.(i) in
+            live
+            := Some
+                 (match !live with
+                  | None -> p
+                  | Some m -> min m p)));
+      (match !live with
+       | Some p -> Positions.unsafe_set positions 0 p
+       | None -> ());
+      (Running : Automata.Status.t)
+    | _ -> status)
   else (
     ();
     if Idx.is_break state_info.idx
