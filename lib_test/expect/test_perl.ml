@@ -255,8 +255,8 @@ let%expect_test "non-ASCII bytes in capture-group names" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "(?<\195\177>a)" on "a": parse error
-    "(?<\195\177>a)" on "b": parse error
-    "(?<na\195\175ve>b)" on "b": parse error
+    "(?<\195\177>a)" on "a": match "a"
+    "(?<\195\177>a)" on "b": no match
+    "(?<na\195\175ve>b)" on "b": match "b"
     |}]
 ;;

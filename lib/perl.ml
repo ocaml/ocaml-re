@@ -321,12 +321,16 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     let name = name delimiter in
     group ~name ()
   and name delimiter =
+    (* Names are stored verbatim as byte strings and only used for lookup, so
+       any non-ASCII byte is accepted. This is byte transparency, not Unicode
+       identifier validation. *)
     let start = Parse_buffer.position buf in
     let rec find_end pos =
       if pos = String.length s then raise Parse_error;
       match s.[pos] with
       | '_' | 'a' .. 'z' | 'A' .. 'Z' -> find_end (pos + 1)
       | '0' .. '9' when pos > start -> find_end (pos + 1)
+      | c when Char.code c >= 128 -> find_end (pos + 1)
       | c when c = delimiter && pos > start -> pos
       | _ -> raise Parse_error
     in
