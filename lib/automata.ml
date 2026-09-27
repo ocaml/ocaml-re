@@ -422,7 +422,7 @@ module Desc : sig
   val texp : Marks.t -> Expr.t -> t -> t
   val initial : Expr.t -> t
   val empty : t
-  val set_idx : Idx.t -> t -> t
+  val set_idx : Idx.t -> hash:int ref -> t -> t
   val hash : t -> int -> int
   val equal : t -> t -> bool
   val status : t -> Status.t
@@ -585,12 +585,25 @@ end = struct
     | _ -> false
   ;;
 
+  (* Accumulate [E.hash_list]'s left-to-right hash while assigning indices,
+     avoiding a separate traversal of the completed descriptor. Hash each
+     sequence's children before its expression ID and constructor tag. *)
   let set_idx =
-    let rec f idx = function
-      | TMatch marks -> TMatch (Marks.marks_set_idx marks idx)
-      | TSeq (kind, l, x) -> TSeq (kind, set_idx idx l, x)
-      | TExp (marks, x) -> TExp (Marks.marks_set_idx marks idx, x)
-    and set_idx idx xs = List.map xs ~f:(f idx) in
+    let rec f idx ~hash = function
+      | TMatch marks ->
+        let marks = Marks.marks_set_idx marks idx in
+        hash := hash_combine 0x1c205ad5 (Marks.hash marks !hash);
+        TMatch marks
+      | TSeq (kind, l, x) ->
+        let l = set_idx idx ~hash l in
+        hash := hash_combine 0x172a1bce (hash_combine (Id.hash x.id) !hash);
+        TSeq (kind, l, x)
+      | TExp (marks, x) ->
+        let marks = Marks.marks_set_idx marks idx in
+        hash
+        := hash_combine 0x2b4c0d77 (hash_combine (Id.hash x.id) (Marks.hash marks !hash));
+        TExp (marks, x)
+    and set_idx idx ~hash xs = List.map xs ~f:(f idx ~hash) in
     set_idx
   ;;
 
@@ -690,16 +703,18 @@ module State = struct
     }
   ;;
 
-  let hash idx cat desc =
-    Desc.hash desc (hash_combine idx (hash_combine (Category.to_int cat) 0))
-    land 0x3FFFFFFF
+  let hash_seed (idx : Idx.t) cat =
+    hash_combine (idx :> int) (hash_combine (Category.to_int cat) 0)
   ;;
 
-  let mk idx cat desc =
-    { idx; category = cat; desc; status = None; hash = hash (idx :> int) cat desc }
+  let mk idx cat desc hash =
+    { idx; category = cat; desc; status = None; hash = hash land 0x3FFFFFFF }
   ;;
 
-  let create cat e = mk Idx.initial cat (Desc.initial e)
+  let create cat e =
+    let desc = Desc.initial e in
+    mk Idx.initial cat desc (Desc.hash desc (hash_seed Idx.initial cat))
+  ;;
 
   let equal s t =
     Phys_equal.equal s t
@@ -863,8 +878,9 @@ and delta_desc ctx (l : Desc.t) rem =
 
 let create_state tbl_ref next_cat expr =
   let idx = Working_area.free_index tbl_ref expr in
-  let expr = Desc.set_idx idx expr in
-  State.mk idx next_cat expr
+  let hash = ref (State.hash_seed idx next_cat) in
+  let expr = Desc.set_idx idx ~hash expr in
+  State.mk idx next_cat expr !hash
 ;;
 
 let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =
