@@ -29,11 +29,15 @@ exception Not_supported
 
 type opt =
   [ `Ungreedy
-  | `Dotall
+    (** Quantifiers are non-greedy by default; a trailing [?] makes them
+        greedy *)
+  | `Dotall (** [.] also matches ['\n'] *)
   | `Dollar_endonly
-  | `Multiline
-  | `Anchored
-  | `Caseless
+    (** [$] matches only at the end of the string, not before a final
+        ['\n']. Ignored with [`Multiline] *)
+  | `Multiline (** [^] and [$] also match just after and just before a ['\n'] *)
+  | `Anchored (** The match must start at the start position ([~pos]) *)
+  | `Caseless (** Match case-insensitively *)
   ]
 
 (** Parsing of a Perl-style regular expression *)
