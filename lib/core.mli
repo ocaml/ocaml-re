@@ -301,7 +301,7 @@ val matches : ?pos:int -> ?len:int -> re -> string -> string list
 
 (** [split re s] splits [s] into chunks separated by [re]. It yields
     the chunks themselves, not the separator. An occurence of the
-    separator at the beginning or the end of the string is ignoring.
+    separator at the beginning or the end of the string is ignored.
 
     {5 Examples:}
     {[
@@ -661,7 +661,7 @@ val no_group : t -> t
     ]} *)
 val nest : t -> t
 
-(** Mark a regexp. the markid can then be used to know if this regexp was used. *)
+(** Mark a regexp. The mark can then be used to know if this regexp was used. *)
 val mark : t -> Mark.t * t
 
 (** {2 Character sets}
@@ -774,7 +774,7 @@ val copy_re : re -> re
 val witness : t -> string
 
 module Stream : sig
-  (** An experimental for matching a regular expression by feeding individual
+  (** An experimental module for matching a regular expression by feeding individual
       string chunks.
 
       This module is not covered by semver's stability guarantee. *)
@@ -788,8 +788,8 @@ module Stream : sig
   val create : re -> t
   val feed : t -> string -> pos:int -> len:int -> t feed
 
-  (** [finalize s ~pos ~len] feed [s] from [pos] to [len] and return whether
-      the regular expression matched. *)
+  (** [finalize t s ~pos ~len] feeds the [len] bytes of [s] starting at [pos]
+      and returns whether the regular expression matched. *)
   val finalize : t -> string -> pos:int -> len:int -> bool
 
   module Group : sig
