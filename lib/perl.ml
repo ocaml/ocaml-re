@@ -248,8 +248,16 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
             | _ -> ());
            greedy_mod (Re.repn r i j)
          | None ->
-           unget ();
-           r)
+           if accept ','
+           then (
+             match Parse_buffer.integer buf with
+             | Some j ->
+               if not (accept '}') then raise Parse_error;
+               greedy_mod (Re.repn r 0 (Some j))
+             | None -> raise Parse_error)
+           else (
+             unget ();
+             r))
       | _ ->
         unget ();
         r)

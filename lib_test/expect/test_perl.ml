@@ -234,14 +234,14 @@ let show pattern subject =
   Printf.printf "%S on %S: %s\n" pattern subject (outcome pattern subject)
 ;;
 
-let%expect_test "unsupported constructs" =
+let%expect_test "open lower bound quantifiers" =
   List.iter
     [ {|^a{,2}$|}, "aa"; {|^a{,2}?$|}, "aa"; {|^a{,0}$|}, "" ]
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "^a{,2}$" on "aa": parse error
-    "^a{,2}?$" on "aa": parse error
-    "^a{,0}$" on "": parse error
+    "^a{,2}$" on "aa": match "aa"
+    "^a{,2}?$" on "aa": match "aa"
+    "^a{,0}$" on "": match ""
     |}]
 ;;
