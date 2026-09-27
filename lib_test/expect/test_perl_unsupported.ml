@@ -65,20 +65,10 @@ let%expect_test "inline pattern modifiers are not supported" =
     |}]
 ;;
 
-let%expect_test "possessive quantifiers and {,n} are not supported" =
-  (* perlre: a trailing "+" makes a quantifier possessive, and "{,n}" is a
-     quantifier with an omitted lower bound. [Re.Perl] implements only the
-     greedy and lazy forms and raises on the syntax that follows. *)
+let%expect_test "possessive quantifiers are not supported" =
+  (* perlre: a trailing "+" makes a quantifier possessive. *)
   print_unsupported
-    [ {|a*+|}
-    ; {|a++|}
-    ; {|a?+|}
-    ; {|a{2}+|}
-    ; {|a{2,}+|}
-    ; {|a{,3}+|}
-    ; {|a{2,3}+|}
-    ; {|a{,3}|}
-    ];
+    [ {|a*+|}; {|a++|}; {|a?+|}; {|a{2}+|}; {|a{2,}+|}; {|a{,3}+|}; {|a{2,3}+|} ];
   [%expect
     {|
     "a*+": Parse_error
@@ -88,7 +78,6 @@ let%expect_test "possessive quantifiers and {,n} are not supported" =
     "a{2,}+": Parse_error
     "a{,3}+": Parse_error
     "a{2,3}+": Parse_error
-    "a{,3}": Parse_error
     |}]
 ;;
 

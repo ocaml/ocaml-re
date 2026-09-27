@@ -26,10 +26,11 @@ open Import
 exception Parse_error
 exception Not_supported
 
-let by_code f c c' =
-  let c = Char.code c in
-  let c' = Char.code c' in
-  Char.chr (f c c')
+let emacs_of_name = function
+  | "multibyte" -> Some (Re.set "")
+  | "nonascii" -> Some (Re.compl [ Re.ascii ])
+  | "unibyte" -> Some Re.any
+  | name -> Posix_class.of_name name
 ;;
 
 let parse ~emacs_only s =
@@ -43,21 +44,59 @@ let parse ~emacs_only s =
     if Parse_buffer.accept_s buf {|\||}
     then regexp' (branch () :: left)
     else Re.alt (List.rev left)
-  and branch () = branch' []
-  and branch' left =
+  and branch () = branch' true []
+  and branch' start left =
     if eos () || test2 '\\' '|' || test2 '\\' ')'
     then Re.seq (List.rev left)
-    else branch' (piece () :: left)
-  and piece () =
-    let r = atom () in
-    if accept '*'
-    then Re.rep r
+    else (
+      let before = Parse_buffer.position buf in
+      let r = piece start in
+      let next_start =
+        start
+        &&
+        let consumed = Parse_buffer.position buf - before in
+        (consumed = 1 && Char.equal s.[before] '^')
+        || (consumed = 2 && Char.equal s.[before] '\\' && Char.equal s.[before + 1] '`')
+      in
+      branch' next_start (r :: left))
+  and piece start =
+    let before = Parse_buffer.position buf in
+    let r = atom start in
+    let leading_anchor =
+      start
+      &&
+      let consumed = Parse_buffer.position buf - before in
+      (consumed = 1 && Char.equal s.[before] '^')
+      || (consumed = 2 && Char.equal s.[before] '\\' && Char.equal s.[before + 1] '`')
+    in
+    let quantified r = if accept '?' then Re.non_greedy r else r in
+    if leading_anchor
+    then r
+    else if accept '*'
+    then quantified (Re.rep r)
     else if accept '+'
-    then Re.rep1 r
+    then quantified (Re.rep1 r)
     else if accept '?'
-    then Re.opt r
+    then quantified (Re.opt r)
+    else if Parse_buffer.accept_s buf {|\{|}
+    then (
+      match Parse_buffer.integer buf with
+      | Some i ->
+        let j = if accept ',' then Parse_buffer.integer buf else Some i in
+        if not (Parse_buffer.accept_s buf {|\}|}) then raise Parse_error;
+        (match j with
+         | Some j when j < i -> raise Parse_error
+         | _ -> ());
+        Re.repn (Re.nest r) i j
+      | None ->
+        if accept ','
+        then (
+          let j = Parse_buffer.integer buf in
+          if not (Parse_buffer.accept_s buf {|\}|}) then raise Parse_error;
+          Re.repn (Re.nest r) 0 j)
+        else raise Parse_error)
     else r
-  and atom () =
+  and atom start =
     if accept '.'
     then Re.notnl
     else if accept '^'
@@ -69,10 +108,18 @@ let parse ~emacs_only s =
     else if accept '\\'
     then
       if accept '('
-      then (
-        let r = regexp () in
-        if not (Parse_buffer.accept_s buf {|\)|}) then raise Parse_error;
-        Re.group r)
+      then
+        if Parse_buffer.accept_s buf "?:"
+        then (
+          let r = regexp () in
+          if not (Parse_buffer.accept_s buf {|\)|}) then raise Parse_error;
+          r)
+        else if Parse_buffer.test buf '?'
+        then raise Not_supported
+        else (
+          let r = regexp () in
+          if not (Parse_buffer.accept_s buf {|\)|}) then raise Parse_error;
+          Re.group r)
       else if emacs_only && accept '`'
       then Re.bos
       else if emacs_only && accept '\''
@@ -96,33 +143,40 @@ let parse ~emacs_only s =
         match get () with
         | ('*' | '+' | '?' | '[' | ']' | '.' | '^' | '$' | '\\') as c -> Re.char c
         | '0' .. '9' -> raise Not_supported
-        | c -> if emacs_only then raise Parse_error else Re.char c)
+        | ('s' | 'S' | 'c' | 'C' | '_') when emacs_only -> raise Not_supported
+        | c -> Re.char c)
     else (
       if eos () then raise Parse_error;
       match get () with
-      | '*' | '+' | '?' -> raise Parse_error
+      | ('*' | '+' | '?') as c -> if start then Re.char c else raise Parse_error
       | c -> Re.char c)
   and bracket s =
     if s <> [] && accept ']'
     then s
     else (
-      let c = char () in
-      if accept '-'
-      then
-        if accept ']'
-        then Re.char c :: Re.char '-' :: s
-        else (
-          let c' = char () in
-          let range =
-            if (not emacs_only) && Char.compare c c' > 0
-            then Re.set ""
-            else Re.rg c (by_code Int.max c c')
-          in
-          bracket (range :: s))
-      else bracket (Re.char c :: s))
+      match char () with
+      | `Set st -> bracket (st :: s)
+      | `Char c ->
+        if accept '-'
+        then
+          if accept ']'
+          then Re.char c :: Re.char '-' :: s
+          else (
+            match char () with
+            | `Char c' ->
+              let range = if Char.compare c c' > 0 then Re.set "" else Re.rg c c' in
+              bracket (range :: s)
+            | `Set st' -> bracket (Re.char c :: Re.char '-' :: st' :: s))
+        else bracket (Re.char c :: s))
   and char () =
     if eos () then raise Parse_error;
-    get ()
+    let c = get () in
+    if Char.equal c '['
+    then (
+      match Posix_class.parse emacs_of_name buf with
+      | Some set -> `Set set
+      | None -> `Char c)
+    else `Char c
   in
   let res = regexp () in
   if not (eos ()) then raise Parse_error;

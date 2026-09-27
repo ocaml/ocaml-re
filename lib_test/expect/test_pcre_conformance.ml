@@ -69,14 +69,13 @@ let%expect_test "quantifier syntax and literal braces" =
     ];
   [%expect
     {|
-    "a{,2}" on "aaa": parse error; expected match "aa"
     "a{ 1 , 2 }" on "aaa": parse error; expected match "aa"
     "a{foo}" on "a{foo}": parse error; expected match "a{foo}"
     "a{1x}" on "a{1x}": parse error; expected match "a{1x}"
     "a{,}" on "a{,}": parse error; expected match "a{,}"
     "{foo}" on "{foo}": parse error; expected match "{foo}"
     "a{\\Q1\\E,2}" on "a{1,2}": parse error; expected match "a{1,2}"
-    7 checks; 7 differences
+    7 checks; 6 differences
     |}]
 ;;
 

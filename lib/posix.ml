@@ -93,8 +93,20 @@ let parse newline s =
     then (
       if eos () then raise Parse_error;
       match get () with
-      | ('|' | '(' | ')' | '*' | '+' | '?' | '[' | '.' | '^' | '$' | '{' | '\\') as c ->
-        Re.char c
+      | ( '|'
+        | '('
+        | ')'
+        | '*'
+        | '+'
+        | '?'
+        | '['
+        | ']'
+        | '.'
+        | '^'
+        | '$'
+        | '{'
+        | '}'
+        | '\\' ) as c -> Re.char c
       | _ -> raise Parse_error)
     else (
       if eos () then raise Parse_error;
@@ -123,7 +135,7 @@ let parse newline s =
     let c = get () in
     if c = '['
     then (
-      match Posix_class.parse buf with
+      match Posix_class.parse Posix_class.of_name buf with
       | Some set -> `Set set
       | None ->
         if accept '.'
@@ -131,6 +143,13 @@ let parse newline s =
           if eos () then raise Parse_error;
           let c = get () in
           if not (accept '.') then raise Not_supported;
+          if not (accept ']') then raise Parse_error;
+          `Char c)
+        else if accept '='
+        then (
+          if eos () then raise Parse_error;
+          let c = get () in
+          if not (accept '=') then raise Not_supported;
           if not (accept ']') then raise Parse_error;
           `Char c)
         else `Char c)

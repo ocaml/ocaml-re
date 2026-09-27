@@ -13,20 +13,6 @@ let print_unsupported patterns =
     Printf.printf "%S: %s\n" pattern (outcome pattern))
 ;;
 
-let%expect_test "escaped brackets and braces are not supported" =
-  (* POSIX defines "\]" and "\}" as the way to match "]" and "}". They are
-     the only ordinary characters whose escape has a defined meaning.
-     [Re.Posix] accepts "\{" but rejects these two. *)
-  print_unsupported [ {|\]|}; {|\}|}; {|a\]b|}; {|a\}b|} ];
-  [%expect
-    {|
-    "\\]": Parse_error
-    "\\}": Parse_error
-    "a\\]b": Parse_error
-    "a\\}b": Parse_error
-    |}]
-;;
-
 let%expect_test "multi-character collating symbols are not supported" =
   (* POSIX allows a collating element, possibly multi-character, in
      "[[.x.]]". [Re.Posix] accepts a single-character collating symbol and
@@ -40,28 +26,14 @@ let%expect_test "multi-character collating symbols are not supported" =
     |}]
 ;;
 
-let%expect_test "equivalence classes are silently misparsed" =
-  (* POSIX requires "[[=x=]]" to match every collating element equivalent to
-     x. [Re.Posix] has no equivalence classes: it parses the bracket as the
-     literal characters "[", "=" and "x", and leaves the final "]" as a
-     literal, so "[[=a=]]" matches "a]" rather than "a". *)
-  let show pattern subject =
-    Printf.printf
-      "%S on %S: %b\n"
-      pattern
-      subject
-      (Re.execp (Posix.compile_pat pattern) subject)
-  in
-  show {|[[=a=]]|} "a";
-  show {|[[=a=]]|} "a]";
-  show {|[[=a=]]|} "=]";
-  show {|[[=o=]]|} "o]";
+let%expect_test "multi-character equivalence classes are not supported" =
+  (* POSIX also allows a multi-character collating element in "[=x=]".
+     [Re.Posix] handles only the single-character case. *)
+  print_unsupported [ {|[[=ab=]]|}; {|[[=ch=]]|} ];
   [%expect
     {|
-    "[[=a=]]" on "a": false
-    "[[=a=]]" on "a]": true
-    "[[=a=]]" on "=]": true
-    "[[=o=]]" on "o]": true
+    "[[=ab=]]": Not_supported
+    "[[=ch=]]": Not_supported
     |}]
 ;;
 
@@ -87,7 +59,7 @@ let%expect_test "basic regular expressions are not provided" =
     "\\(ab\\)" on "(ab)": true
     "a\\|b" on "a": false
     "a\\|b" on "a|b": true
-    "a\\{2\\}": Parse_error
+    "a\\{2\\}": PARSED: (Sequence (Set 97)(Set 123)(Set 50)(Set 125))
     "\\(a\\)\\1": Parse_error
     |}]
 ;;

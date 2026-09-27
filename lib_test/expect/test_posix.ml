@@ -23,7 +23,7 @@ let show pattern subject =
   Printf.printf "%S on %S: %s\n" pattern subject (outcome pattern subject)
 ;;
 
-let%expect_test "unsupported constructs" =
+let%expect_test "escaped brackets and equivalence classes" =
   List.iter
     [ {|\]|}, "]"
     ; {|\}|}, "}"
@@ -34,10 +34,10 @@ let%expect_test "unsupported constructs" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "\\]" on "]": parse error
-    "\\}" on "}": parse error
-    "^[[=a=]]$" on "a": no match
-    "^[[=a=]]$" on "a]": match "a]"
-    "^[a[=b=]]$" on "b]": match "b]"
+    "\\]" on "]": match "]"
+    "\\}" on "}": match "}"
+    "^[[=a=]]$" on "a": match "a"
+    "^[[=a=]]$" on "a]": no match
+    "^[a[=b=]]$" on "b]": no match
     |}]
 ;;
