@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Add ASCII case-modification escapes `\l`, `\u`, `\L`, `\U`, and `\F`
+  to [Re.Perl] patterns, with `\E` ending a case-modification section (#802).
+
 * Implement positional anchors in [Re.Emacs]: `^` and `$` are anchors only
   where Emacs specifies and ordinary characters elsewhere (#788).
 
