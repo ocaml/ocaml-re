@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Fix `Re.exec_partial_detailed` reporting a `Partial` position that a match
+  in a longer input could start before; the hint is now conservative (#750).
+
 * Add missing syntax to the Perl, Emacs and POSIX parsers: POSIX character
   classes, `\{m,n\}` intervals, lazy quantifiers, shy groups and literal
   escapes in [Re.Emacs]; `{,n}` intervals in [Re.Perl]; and `\]`, `\}` and

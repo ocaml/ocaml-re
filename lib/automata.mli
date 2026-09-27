@@ -138,6 +138,7 @@ module State : sig
   val idx : t -> Idx.t
   val status_no_mutex : t -> Status.t
   val status : Mutex.t -> t -> Status.t
+  val iter_mark_positions : t -> mark:Mark.t -> f:(int -> unit) -> unit
   val to_dyn : t -> Dyn.t
 
   module Table : Hashtbl.S with type key = t
