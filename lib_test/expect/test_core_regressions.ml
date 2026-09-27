@@ -6,6 +6,32 @@ let%expect_test "zero-count repetitions retain named capture declarations" =
   [%expect {| "present": 1 |}]
 ;;
 
+let%expect_test "zero-count repetitions retain named captures" =
+  let absent = Re.group ~name:"absent" (Re.char 'a') in
+  let present = Re.group ~name:"present" (Re.char 'b') in
+  let re = Re.compile (Re.seq [ Re.repn absent 0 (Some 0); present ]) in
+  printf "group_count: %d\n" (Re.group_count re);
+  List.iter (Re.group_names re) ~f:(fun (name, index) -> printf "%S: %d\n" name index);
+  [%expect
+    {|
+    group_count: 2
+    "present": 1
+    |}]
+;;
+
+let%expect_test "zero-count repetitions retain numbered captures" =
+  let r =
+    Re.seq [ Re.repn (Re.group (Re.char 'a')) 0 (Some 0); Re.group (Re.char 'b') ]
+  in
+  printf "group_count: %d\n" (Re.group_count (Re.compile r));
+  test_re r "b";
+  [%expect
+    {|
+    group_count: 2
+    [| (0, 1); (0, 1) |]
+    |}]
+;;
+
 let%expect_test "execution lengths must not overflow the bounds check" =
   let re = Re.compile Re.epsilon in
   invalid_argument (fun () -> Re.exec ~pos:1 ~len:max_int re "a");
