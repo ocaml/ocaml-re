@@ -73,8 +73,6 @@ let%expect_test "matching is byte-oriented, not locale-aware" =
   (* U+00E9 é is two bytes in UTF-8 *)
   assert (matches {|.|} "\xc3\xa9");
   assert (not (matches {|^.$|} "\xc3\xa9"));
-  (* POSIX excludes NUL from "." *)
-  assert (matches {|.|} "\x00");
   (* [:alpha:] is a fixed byte set that happens to include the lead byte *)
   assert (matches {|[[:alpha:]]|} "\xc3");
   [%expect {||}]

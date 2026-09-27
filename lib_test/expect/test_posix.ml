@@ -48,7 +48,7 @@ let%expect_test "dot and NUL" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "." on "\000": match "\000"
+    "." on "\000": no match
     "." on "a": match "a"
     |}]
 ;;
@@ -61,7 +61,7 @@ let%expect_test "dot and NUL with Newline" =
   Printf.printf "newline: %b\n" (matches {|.|} "\n");
   [%expect
     {|
-    NUL: true
+    NUL: false
     newline: false
     |}]
 ;;

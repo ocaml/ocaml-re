@@ -72,7 +72,10 @@ let parse newline s =
     else r
   and atom () =
     if accept '.'
-    then if newline then Re.notnl else Re.any
+    then
+      if newline
+      then Re.diff Re.notnl (Re.char '\000')
+      else Re.diff Re.any (Re.char '\000')
     else if accept '('
     then (
       let r = regexp () in
