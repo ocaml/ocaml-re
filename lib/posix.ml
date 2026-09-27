@@ -123,7 +123,7 @@ let parse newline s =
     let c = get () in
     if c = '['
     then (
-      match Posix_class.parse buf with
+      match Posix_class.parse Posix_class.of_name buf with
       | Some set -> `Set set
       | None ->
         if accept '.'

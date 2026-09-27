@@ -18,7 +18,7 @@ let of_name = function
   | _ -> None
 ;;
 
-let parse buf =
+let parse of_name buf =
   let accept = Parse_buffer.accept buf in
   match accept ':' with
   | false -> None

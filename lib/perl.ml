@@ -354,7 +354,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     else if c = '['
     then (
       if accept '=' then raise Not_supported;
-      match Posix_class.parse buf with
+      match Posix_class.parse Posix_class.of_name buf with
       | Some set -> Set set
       | None ->
         if accept '.'
