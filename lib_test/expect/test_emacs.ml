@@ -13,12 +13,6 @@ let%expect_test "not supported" =
     | Re.Emacs.Parse_error -> print_endline "Parse error"
     | Re.Emacs.Not_supported -> print_endline "Not supported"
   in
-  re "*ab";
-  [%expect {| Parse error |}];
-  re "+ab";
-  [%expect {| Parse error |}];
-  re "?ab";
-  [%expect {| Parse error |}];
   re "\\0";
   [%expect {| Not supported |}]
 ;;
@@ -145,7 +139,7 @@ let show pattern subject =
   Printf.printf "%S on %S: %s\n" pattern subject (outcome pattern subject)
 ;;
 
-let%expect_test "unsupported constructs" =
+let%expect_test "classes, intervals and escapes" =
   List.iter
     [ {|[[:alpha:]]|}, "a"
     ; {|[[:alpha:]]|}, "a]"
@@ -160,14 +154,14 @@ let%expect_test "unsupported constructs" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "[[:alpha:]]" on "a": no match
-    "[[:alpha:]]" on "a]": match "a]"
-    "[[:digit:]]" on "7": no match
-    "^a\\{2\\}$" on "aa": parse error
-    "a*?" on "aaa": parse error
-    "\\(?:ab\\)" on "ab": parse error
-    "\\d" on "d": parse error
-    "[z-a]" on "z": match "z"
-    "*foo" on "*foo": parse error
+    "[[:alpha:]]" on "a": match "a"
+    "[[:alpha:]]" on "a]": match "a"
+    "[[:digit:]]" on "7": match "7"
+    "^a\\{2\\}$" on "aa": match "aa"
+    "a*?" on "aaa": match ""
+    "\\(?:ab\\)" on "ab": match "ab"
+    "\\d" on "d": match "d"
+    "[z-a]" on "z": no match
+    "*foo" on "*foo": match "*foo"
     |}]
 ;;
