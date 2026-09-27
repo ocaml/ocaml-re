@@ -1,6 +1,11 @@
 Unreleased
 ----------
 
+* Add missing syntax to the Perl, Emacs and POSIX parsers: POSIX character
+  classes, `\{m,n\}` intervals, lazy quantifiers, shy groups and literal
+  escapes in [Re.Emacs]; `{,n}` intervals in [Re.Perl]; and `\]`, `\}` and
+  equivalence classes in [Re.Posix] (#753).
+
 * Fix common-prefix factoring changing the first-match preference when
   alternatives share a variable-length prefix (#724).
 
