@@ -1,6 +1,8 @@
 Unreleased
 ----------
 
+* Fix [Re.Posix]'s `.` matching NUL; POSIX excludes NUL from the dot (#772).
+
 * Add missing syntax to the Perl, Emacs and POSIX parsers: POSIX character
   classes, `\{m,n\}` intervals, lazy quantifiers, shy groups and literal
   escapes in [Re.Emacs]; `{,n}` intervals in [Re.Perl]; and `\]`, `\}` and
