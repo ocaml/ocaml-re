@@ -30,6 +30,8 @@ look-ahead/look-behind **assertions**.
 
 There is also a subset of the PCRE interface available in the `Re.Pcre` module.
 This makes it easier to port code from that library to Re with minimal changes.
+Similarly, the `Re.Str` module is a compatibility layer for OCaml's built-in
+`Str` library.
 
 Performances
 ============
