@@ -41,3 +41,27 @@ let%expect_test "escaped brackets and equivalence classes" =
     "^[a[=b=]]$" on "b]": no match
     |}]
 ;;
+
+let%expect_test "dot and NUL" =
+  List.iter
+    [ {|.|}, "\x00"; {|.|}, "a" ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "." on "\000": match "\000"
+    "." on "a": match "a"
+    |}]
+;;
+
+let%expect_test "dot and NUL with Newline" =
+  let matches pattern subject =
+    Re.execp (Re.Posix.compile_pat ~opts:[ `Newline ] pattern) subject
+  in
+  Printf.printf "NUL: %b\n" (matches {|.|} "\x00");
+  Printf.printf "newline: %b\n" (matches {|.|} "\n");
+  [%expect
+    {|
+    NUL: true
+    newline: false
+    |}]
+;;
