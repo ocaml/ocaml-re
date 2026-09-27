@@ -286,3 +286,24 @@ let%expect_test "optional interval repetition" =
     "^a\\{2,3\\}?$" on "aaaa": no match
     |}]
 ;;
+
+let%expect_test "anchor positions" =
+  List.iter
+    [ {|a$b|}, "a$b"
+    ; {|a$b|}, "ab"
+    ; {|a^b|}, "a^b"
+    ; {|^a$|}, "a"
+    ; {|\(^a$\)|}, "a"
+    ; {|a\|^b|}, "b"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "a$b" on "a$b": no match
+    "a$b" on "ab": no match
+    "a^b" on "a^b": no match
+    "^a$" on "a": match "a"
+    "\\(^a$\\)" on "a": match "a"
+    "a\\|^b" on "b": match "b"
+    |}]
+;;
