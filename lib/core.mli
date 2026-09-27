@@ -695,19 +695,50 @@ val any : t
 (** Any character but a newline *)
 val notnl : t
 
+(** Letters ({!alpha}) and decimal digits *)
 val alnum : t
+
+(** Word characters: letters ({!alpha}), decimal digits and ['_'] *)
 val wordc : t
+
+(** Letters, including latin1 ones: ASCII letters, ['\170'], ['\181'],
+    ['\186'] and ['\192'-'\255'] except ['\215'] and ['\247'] *)
 val alpha : t
+
+(** ASCII characters, ['\000'-'\127'] *)
 val ascii : t
+
+(** Space and tab *)
 val blank : t
+
+(** Control characters, ['\000'-'\031'] and ['\127'-'\159'] *)
 val cntrl : t
+
+(** Decimal digits, ['0'-'9'] *)
 val digit : t
+
+(** Printable characters other than space, ['!'-'~'] and ['\160'-'\255'] *)
 val graph : t
+
+(** Lowercase letters, including latin1 ones: ['a'-'z'], ['\181'],
+    ['\223'-'\246'] and ['\248'-'\255'] *)
 val lower : t
+
+(** Printable characters, [' '-'~'] and ['\160'-'\255'] *)
 val print : t
+
+(** Punctuation: ASCII punctuation, and the latin1 characters in
+    ['\160'-'\191'] that are not letters, plus ['\215'] and ['\247'] *)
 val punct : t
+
+(** Whitespace: space, ['\t'], ['\n'], ['\011'], ['\012'] and ['\r'] *)
 val space : t
+
+(** Uppercase letters, including latin1 ones: ['A'-'Z'], ['\192'-'\214']
+    and ['\216'-'\222'] *)
 val upper : t
+
+(** Hexadecimal digits, ['0'-'9'], ['a'-'f'] and ['A'-'F'] *)
 val xdigit : t
 
 (** {2 Case modifiers} *)
