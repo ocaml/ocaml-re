@@ -39,8 +39,9 @@ let%expect_test "multi-character equivalence classes are not supported" =
 
 let%expect_test "basic regular expressions are not provided" =
   (* POSIX also defines basic regular expressions, where "\(...\)" groups,
-     "\|" alternates and "\{m,n\}" repeats. Re.Posix is an ERE parser, so
-     the escaped metacharacters are literals and "\{m,n\}" does not parse. *)
+     "\|" alternates, "\{m,n\}" repeats, and "+", "?", "()" and "{}" are
+     ordinary characters. Re.Posix only parses extended regular expressions,
+     so those constructs are literals or parse errors. *)
   let show pattern subject =
     Printf.printf
       "%S on %S: %b\n"
@@ -52,6 +53,12 @@ let%expect_test "basic regular expressions are not provided" =
   show {|\(ab\)|} "(ab)";
   show {|a\|b|} "a";
   show {|a\|b|} "a|b";
+  show {|^a+$|} "a";
+  show {|^a+$|} "a+";
+  show {|^a?$|} "a";
+  show {|^a?$|} "a?";
+  show {|^a{2}$|} "aa";
+  show {|^a{2}$|} "a{2}";
   print_unsupported [ {|a\{2\}|}; {|\(a\)\1|} ];
   [%expect
     {|
@@ -59,6 +66,12 @@ let%expect_test "basic regular expressions are not provided" =
     "\\(ab\\)" on "(ab)": true
     "a\\|b" on "a": false
     "a\\|b" on "a|b": true
+    "^a+$" on "a": true
+    "^a+$" on "a+": false
+    "^a?$" on "a": true
+    "^a?$" on "a?": false
+    "^a{2}$" on "aa": true
+    "^a{2}$" on "a{2}": false
     "a\\{2\\}": PARSED: (Sequence (Set 97)(Set 123)(Set 50)(Set 125))
     "\\(a\\)\\1": Parse_error
     |}]
