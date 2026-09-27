@@ -67,13 +67,13 @@ let%expect_test "Str group accessors reject nonexistent groups" =
     Str.matched_group -1: Invalid_argument("Str.matched_group")
     Str.group_beginning -1: Invalid_argument("Str.group_beginning")
     Str.group_end -1: Invalid_argument("Str.group_end")
-    Re.Str.matched_group -1: Invalid_argument("index out of bounds")
+    Re.Str.matched_group -1: Invalid_argument("Re.Str.matched_group")
     Re.Str.group_beginning -1: Invalid_argument("Str.group_beginning")
     Re.Str.group_end -1: Invalid_argument("Str.group_end")
     Str.matched_group 2: Invalid_argument("Str.matched_group")
     Str.group_beginning 2: Invalid_argument("Str.group_beginning")
     Str.group_end 2: Invalid_argument("Str.group_end")
-    Re.Str.matched_group 2: Not_found
+    Re.Str.matched_group 2: Invalid_argument("Re.Str.matched_group")
     Re.Str.group_beginning 2: Invalid_argument("Str.group_beginning")
     Re.Str.group_end 2: Invalid_argument("Str.group_end")
     |}]
