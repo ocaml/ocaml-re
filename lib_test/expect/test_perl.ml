@@ -325,3 +325,38 @@ let%expect_test "unsupported inline modifiers" =
     "(?p)a": not supported
     |}]
 ;;
+
+let%expect_test "case-modification escapes" =
+  List.iter
+    [ {|\lFOO|}, "fOO"
+    ; {|\lFOO|}, "FOO"
+    ; {|\uFOO|}, "FOO"
+    ; {|\LFOO\E|}, "foo"
+    ; {|\LFOO\E|}, "FOO"
+    ; {|\Ufoo\E|}, "FOO"
+    ; {|\Ffoo\E|}, "foo"
+    ; {|\UFOO\Ebar|}, "FOObar"
+    ; {|\L[A-Z]|}, "q"
+    ; {|[\LA]|}, "a"
+    ; {|\L\x41|}, "A"
+    ; {|\u\x61|}, "a"
+    ; {|\Q\Ufoo\E|}, "FOO"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "\\lFOO" on "fOO": parse error
+    "\\lFOO" on "FOO": parse error
+    "\\uFOO" on "FOO": parse error
+    "\\LFOO\\E" on "foo": parse error
+    "\\LFOO\\E" on "FOO": parse error
+    "\\Ufoo\\E" on "FOO": parse error
+    "\\Ffoo\\E" on "foo": parse error
+    "\\UFOO\\Ebar" on "FOObar": parse error
+    "\\L[A-Z]" on "q": parse error
+    "[\\LA]" on "a": parse error
+    "\\L\\x41" on "A": parse error
+    "\\u\\x61" on "a": parse error
+    "\\Q\\Ufoo\\E" on "FOO": no match
+    |}]
+;;
