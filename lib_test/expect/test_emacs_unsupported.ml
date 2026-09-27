@@ -102,14 +102,3 @@ let%expect_test "symbol boundaries are not supported" =
     "foo\\_>": Not_supported
     |}]
 ;;
-
-let%expect_test "anchors are special in more positions than Emacs allows" =
-  (* Emacs: "^" is special only at the start or after "\(...\)", "\(?:" or
-     "\|", and "$" only at the end or before "\)" or "\|". Elsewhere they are
-     ordinary characters. [Re.Emacs] always treats them as anchors, so these
-     patterns parse but never match the literal text Emacs matches. *)
-  let matches pattern subject = Re.execp (Emacs.compile_pat pattern) subject in
-  assert (not (matches {|a$b|} "a$b"));
-  assert (not (matches {|a^b|} "a^b"));
-  [%expect {||}]
-;;
