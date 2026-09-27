@@ -260,3 +260,68 @@ let%expect_test "non-ASCII bytes in capture-group names" =
     "(?<na\195\175ve>b)" on "b": match "b"
     |}]
 ;;
+
+let%expect_test "inline modifiers" =
+  List.iter
+    [ {|(?i)abc|}, "ABC"
+    ; {|(?i)abc|}, "abc"
+    ; {|(?-i)abc|}, "ABC"
+    ; {|(?i:abc)d|}, "ABCd"
+    ; {|(?i:abc)d|}, "ABCD"
+    ; {|a(?i)b|}, "aB"
+    ; {|(?s).|}, "\n"
+    ; {|^b|}, "a\nb"
+    ; {|(?m)^b|}, "a\nb"
+    ; {|(?^i)abc|}, "ABC"
+    ; {|(?i-m)abc|}, "ABC"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "(?i)abc" on "ABC": parse error
+    "(?i)abc" on "abc": parse error
+    "(?-i)abc" on "ABC": parse error
+    "(?i:abc)d" on "ABCd": parse error
+    "(?i:abc)d" on "ABCD": parse error
+    "a(?i)b" on "aB": parse error
+    "(?s)." on "\n": parse error
+    "^b" on "a\nb": no match
+    "(?m)^b" on "a\nb": parse error
+    "(?^i)abc" on "ABC": parse error
+    "(?i-m)abc" on "ABC": parse error
+    |}]
+;;
+
+let%expect_test "inline no-capture modifier" =
+  (match Re.Perl.re_result {|(?n)(a)(b)|} with
+   | Error `Parse_error -> print_endline "parse error"
+   | Error `Not_supported -> print_endline "not supported"
+   | Ok re ->
+     Array.iter (Printf.printf "%S\n") (Re.Group.all (Re.exec (Re.compile re) "ab")));
+  [%expect {| parse error |}]
+;;
+
+let%expect_test "unsupported inline modifiers" =
+  List.iter
+    [ {|(?x)a|}
+    ; {|(?xx)a|}
+    ; {|(?a)a|}
+    ; {|(?aa)a|}
+    ; {|(?u)a|}
+    ; {|(?l)a|}
+    ; {|(?d)a|}
+    ; {|(?p)a|}
+    ]
+    ~f:(fun pattern -> Printf.printf "%S: %s\n" pattern (outcome pattern "a"));
+  [%expect
+    {|
+    "(?x)a": parse error
+    "(?xx)a": parse error
+    "(?a)a": parse error
+    "(?aa)a": parse error
+    "(?u)a": parse error
+    "(?l)a": parse error
+    "(?d)a": parse error
+    "(?p)a": parse error
+    |}]
+;;
