@@ -165,3 +165,107 @@ let%expect_test "classes, intervals and escapes" =
     "*foo" on "*foo": match "*foo"
     |}]
 ;;
+
+let%expect_test "character classes" =
+  List.iter
+    [ {|[[:alnum:]]|}, "a"
+    ; {|[[:blank:]]|}, "\t"
+    ; {|[[:cntrl:]]|}, "\001"
+    ; {|[[:graph:]]|}, "!"
+    ; {|[[:lower:]]|}, "a"
+    ; {|[[:print:]]|}, " "
+    ; {|[[:punct:]]|}, "!"
+    ; {|[[:space:]]|}, " "
+    ; {|[[:upper:]]|}, "A"
+    ; {|[[:xdigit:]]|}, "f"
+    ; {|[[:word:]]|}, "_"
+    ; {|[[:ascii:]]|}, "a"
+    ; {|[[:nonascii:]]|}, "\x80"
+    ; {|[[:unibyte:]]|}, "a"
+    ; {|[[:multibyte:]]|}, "a"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "[[:alnum:]]" on "a": match "a"
+    "[[:blank:]]" on "\t": match "\t"
+    "[[:cntrl:]]" on "\001": match "\001"
+    "[[:graph:]]" on "!": match "!"
+    "[[:lower:]]" on "a": match "a"
+    "[[:print:]]" on " ": match " "
+    "[[:punct:]]" on "!": match "!"
+    "[[:space:]]" on " ": match " "
+    "[[:upper:]]" on "A": match "A"
+    "[[:xdigit:]]" on "f": match "f"
+    "[[:word:]]" on "_": match "_"
+    "[[:ascii:]]" on "a": match "a"
+    "[[:nonascii:]]" on "\128": match "\128"
+    "[[:unibyte:]]" on "a": match "a"
+    "[[:multibyte:]]" on "a": no match
+    |}]
+;;
+
+let%expect_test "ranges, intervals and lazy repetition" =
+  List.iter
+    [ {|[a-z]|}, "q"
+    ; {|[z-a]|}, "z"
+    ; {|[z-a]|}, "a"
+    ; {|^a\{2\}$|}, "aaa"
+    ; {|^a\{2,\}$|}, "aaaa"
+    ; {|^a\{,2\}$|}, ""
+    ; {|^a\{,2\}$|}, "aa"
+    ; {|^a\{,2\}$|}, "aaa"
+    ; {|^a\{,\}$|}, "aaa"
+    ; {|^a\{2,3\}$|}, "aaa"
+    ; {|^a\{2,3\}$|}, "aaaa"
+    ; {|^a*a|}, "aaa"
+    ; {|^a*?a|}, "aaa"
+    ; {|^a+a|}, "aaa"
+    ; {|^a+?a|}, "aaa"
+    ; {|^a?a|}, "aa"
+    ; {|^a??a|}, "aa"
+    ; {|\-|}, "-"
+    ; {|\q|}, "q"
+    ; {|+foo|}, "+foo"
+    ; {|?foo|}, "?foo"
+    ; {|^*foo|}, "*foo"
+    ; {|^*foo|}, "foo"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "[a-z]" on "q": match "q"
+    "[z-a]" on "z": no match
+    "[z-a]" on "a": no match
+    "^a\\{2\\}$" on "aaa": no match
+    "^a\\{2,\\}$" on "aaaa": match "aaaa"
+    "^a\\{,2\\}$" on "": match ""
+    "^a\\{,2\\}$" on "aa": match "aa"
+    "^a\\{,2\\}$" on "aaa": no match
+    "^a\\{,\\}$" on "aaa": match "aaa"
+    "^a\\{2,3\\}$" on "aaa": match "aaa"
+    "^a\\{2,3\\}$" on "aaaa": no match
+    "^a*a" on "aaa": match "aaa"
+    "^a*?a" on "aaa": match "a"
+    "^a+a" on "aaa": match "aaa"
+    "^a+?a" on "aaa": match "aa"
+    "^a?a" on "aa": match "aa"
+    "^a??a" on "aa": match "a"
+    "\\-" on "-": match "-"
+    "\\q" on "q": match "q"
+    "+foo" on "+foo": match "+foo"
+    "?foo" on "?foo": match "?foo"
+    "^*foo" on "*foo": match "*foo"
+    "^*foo" on "foo": no match
+    |}]
+;;
+
+let%expect_test "shy groups do not capture" =
+  let groups = Re.exec (Re.Emacs.compile_pat {|\(?:ab\)\(c\)|}) "abc" in
+  Array.iter (Printf.printf "%S\n") (Re.Group.all groups);
+  [%expect
+    {|
+    "abc"
+    "c"
+    |}]
+;;
