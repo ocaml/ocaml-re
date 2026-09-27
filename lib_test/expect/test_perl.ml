@@ -278,17 +278,17 @@ let%expect_test "inline modifiers" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "(?i)abc" on "ABC": parse error
-    "(?i)abc" on "abc": parse error
-    "(?-i)abc" on "ABC": parse error
-    "(?i:abc)d" on "ABCd": parse error
-    "(?i:abc)d" on "ABCD": parse error
-    "a(?i)b" on "aB": parse error
-    "(?s)." on "\n": parse error
+    "(?i)abc" on "ABC": match "ABC"
+    "(?i)abc" on "abc": match "abc"
+    "(?-i)abc" on "ABC": no match
+    "(?i:abc)d" on "ABCd": match "ABCd"
+    "(?i:abc)d" on "ABCD": no match
+    "a(?i)b" on "aB": match "aB"
+    "(?s)." on "\n": match "\n"
     "^b" on "a\nb": no match
-    "(?m)^b" on "a\nb": parse error
-    "(?^i)abc" on "ABC": parse error
-    "(?i-m)abc" on "ABC": parse error
+    "(?m)^b" on "a\nb": match "b"
+    "(?^i)abc" on "ABC": match "ABC"
+    "(?i-m)abc" on "ABC": match "ABC"
     |}]
 ;;
 
@@ -298,7 +298,7 @@ let%expect_test "inline no-capture modifier" =
    | Error `Not_supported -> print_endline "not supported"
    | Ok re ->
      Array.iter (Printf.printf "%S\n") (Re.Group.all (Re.exec (Re.compile re) "ab")));
-  [%expect {| parse error |}]
+  [%expect {| "ab" |}]
 ;;
 
 let%expect_test "unsupported inline modifiers" =
@@ -315,13 +315,13 @@ let%expect_test "unsupported inline modifiers" =
     ~f:(fun pattern -> Printf.printf "%S: %s\n" pattern (outcome pattern "a"));
   [%expect
     {|
-    "(?x)a": parse error
-    "(?xx)a": parse error
-    "(?a)a": parse error
-    "(?aa)a": parse error
-    "(?u)a": parse error
-    "(?l)a": parse error
-    "(?d)a": parse error
-    "(?p)a": parse error
+    "(?x)a": not supported
+    "(?xx)a": not supported
+    "(?a)a": not supported
+    "(?aa)a": not supported
+    "(?u)a": not supported
+    "(?l)a": not supported
+    "(?d)a": not supported
+    "(?p)a": not supported
     |}]
 ;;

@@ -65,6 +65,12 @@ let character_type =
 let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
   let buf = Parse_buffer.create s in
   let quoted = ref false in
+  let multiline = ref multiline in
+  let dollar_endonly = ref dollar_endonly in
+  let dotall = ref dotall in
+  let ungreedy = ref ungreedy in
+  let caseless = ref false in
+  let no_capture = ref false in
   let accept c = (not !quoted) && Parse_buffer.accept buf c in
   let eos () = Parse_buffer.eos buf in
   let unget () = Parse_buffer.unget buf in
@@ -193,10 +199,43 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
     | 'a' .. 'z' | 'A' .. 'Z' -> raise Parse_error
     | c -> c
   in
+  let save_flags () =
+    !multiline, !dollar_endonly, !dotall, !ungreedy, !caseless, !no_capture
+  in
+  let restore_flags (m, d, s, u, c, n) =
+    multiline := m;
+    dollar_endonly := d;
+    dotall := s;
+    ungreedy := u;
+    caseless := c;
+    no_capture := n
+  in
+  let rec modifier_flags negated =
+    if eos () then raise Parse_error;
+    match get () with
+    | 'i' ->
+      caseless := not negated;
+      modifier_flags negated
+    | 'm' ->
+      multiline := not negated;
+      modifier_flags negated
+    | 's' ->
+      dotall := not negated;
+      modifier_flags negated
+    | 'n' ->
+      no_capture := not negated;
+      modifier_flags negated
+    | 'x' | 'a' | 'd' | 'l' | 'u' | 'p' -> raise Not_supported
+    | '-' when not negated -> modifier_flags true
+    | '-' -> raise Parse_error
+    | ':' | ')' -> unget ()
+    | _ -> raise Parse_error
+  in
+  let case r = if !caseless then Re.no_case r else r in
   let greedy_mod r =
     skip_ignored ();
     let gr = accept '?' in
-    let gr = if ungreedy then not gr else gr in
+    let gr = if !ungreedy then not gr else gr in
     if gr then Re.non_greedy r else Re.greedy r
   in
   let sequence first = function
@@ -263,17 +302,19 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
         r)
   and atom c =
     if !quoted
-    then Re.char c
+    then case (Re.char c)
     else (
       match c with
-      | '.' -> if dotall then Re.any else Re.notnl
+      | '.' -> case (if !dotall then Re.any else Re.notnl)
       | '(' ->
         if accept '?'
         then
           if accept ':'
           then (
+            let saved = save_flags () in
             let r = regexp () in
             if not (accept ')') then raise Parse_error;
+            restore_flags saved;
             r)
           else if accept '<'
           then named_group '>'
@@ -283,10 +324,34 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
           then (
             if not (accept '<') then raise Parse_error;
             named_group '>')
-          else raise Parse_error
+          else (
+            let saved = save_flags () in
+            if accept '^'
+            then (
+              caseless := false;
+              multiline := false;
+              dotall := false;
+              no_capture := false);
+            modifier_flags false;
+            if accept ':'
+            then (
+              let r = regexp () in
+              if not (accept ')') then raise Parse_error;
+              restore_flags saved;
+              r)
+            else if accept ')'
+            then Re.epsilon
+            else raise Parse_error)
+        else if !no_capture
+        then (
+          let saved = save_flags () in
+          let r = regexp () in
+          if not (accept ')') then raise Parse_error;
+          restore_flags saved;
+          r)
         else group ()
-      | '^' -> if multiline then Re.bol else Re.bos
-      | '$' -> if multiline then Re.eol else if dollar_endonly then Re.eos else Re.leol
+      | '^' -> if !multiline then Re.bol else Re.bos
+      | '$' -> if !multiline then Re.eol else if !dollar_endonly then Re.eos else Re.leol
       | '[' ->
         if Parse_buffer.accept_s buf "[:<:]]"
         then Re.bow
@@ -294,12 +359,12 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
         then Re.eow
         else (
           skip_quote_markers ();
-          if accept '^' then Re.compl (bracket []) else Re.alt (bracket []))
+          case (if accept '^' then Re.compl (bracket []) else Re.alt (bracket [])))
       | '\\' ->
         if eos () then raise Parse_error;
         (match get () with
-         | 'C' -> Re.any
-         | 'N' -> Re.notnl
+         | 'C' -> case Re.any
+         | 'N' -> case Re.notnl
          | 'b' -> Class._b
          | 'B' -> Re.not_boundary
          | 'A' -> Re.bos
@@ -308,14 +373,16 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
          | 'G' -> Re.start
          | c ->
            (match character_type c with
-            | Some set -> set
-            | None -> Re.char (byte_escape ~in_class:false c)))
+            | Some set -> case set
+            | None -> case (Re.char (byte_escape ~in_class:false c))))
       | '*' | '+' | '?' | '{' -> raise Parse_error
-      | c -> Re.char c)
+      | c -> case (Re.char c))
   and group ?name () =
+    let saved = save_flags () in
     incr captures;
     let r = regexp () in
     if not (accept ')') then raise Parse_error;
+    restore_flags saved;
     Re.group ?name r
   and named_group delimiter =
     let name = name delimiter in

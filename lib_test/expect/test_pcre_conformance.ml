@@ -114,20 +114,12 @@ let%expect_test "branch reset and internal options" =
   [%expect
     {|
     "(?|(a)|(b))" on "b": parse error; expected match "b"
-    "(?i)a" on "A": parse error; expected match "A"
-    "(?i:a)b" on "Ab": parse error; expected match "Ab"
-    "(?i)a(?-i)b" on "Ab": parse error; expected match "Ab"
-    "(?m)^a" on "x\na": parse error; expected match "a"
-    "(?s)." on "\n": parse error; expected match "\n"
     "(?U)a+" on "aaa": parse error; expected match "a"
-    "(?n)(a)" on "a": parse error; expected match "a"
-    "(?x) a # comment\n b" on "ab": parse error; expected match "ab"
-    "(?xx)[ a ]" on "a": parse error; expected match "a"
+    "(?x) a # comment\n b" on "ab": not supported; expected match "ab"
+    "(?xx)[ a ]" on "a": not supported; expected match "a"
     "(?J)(?<a>x)|(?<a>y)" on "y": parse error; expected match "y"
-    "(?)a" on "a": parse error; expected match "a"
-    "(?^)a" on "a": parse error; expected match "a"
-    "(?aT)[[:digit:]]" on "1": parse error; expected match "1"
-    14 checks; 14 differences
+    "(?aT)[[:digit:]]" on "1": not supported; expected match "1"
+    14 checks; 6 differences
     |}]
 ;;
 
