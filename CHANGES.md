@@ -3,6 +3,10 @@ Unreleased
 
 * Fix [Re.Posix]'s `.` matching NUL; POSIX excludes NUL from the dot (#772).
 
+* Add `Bre` to [Re.Posix] to parse POSIX basic regular expressions:
+  `\(...\)` groups, `\|` alternation, `\{m,n\}` intervals, and
+  positional `^`/`$` (#771).
+
 * Add missing syntax to the Perl, Emacs and POSIX parsers: POSIX character
   classes, `\{m,n\}` intervals, lazy quantifiers, shy groups and literal
   escapes in [Re.Emacs]; `{,n}` intervals in [Re.Perl]; and `\]`, `\}` and
