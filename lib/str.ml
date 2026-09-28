@@ -37,8 +37,10 @@ let compile_regexp s c =
 ;;
 
 let state = Domain.DLS.new_key (fun () -> None)
+let check_pos name s p = if p < 0 || p > String.length s then invalid_arg name
 
 let string_match re s p =
+  check_pos "Re.Str.string_match" s p;
   match exec ~pos:p (Lazy.force re.mtch) s with
   | res ->
     Domain.DLS.set state (Some res);
@@ -49,6 +51,7 @@ let string_match re s p =
 ;;
 
 let string_partial_match re s p =
+  check_pos "Re.Str.string_partial_match" s p;
   match exec_partial ~pos:p (Lazy.force re.mtch) s with
   | `Full -> string_match re s p
   | `Partial -> true
@@ -56,6 +59,7 @@ let string_partial_match re s p =
 ;;
 
 let search_forward re s p =
+  check_pos "Re.Str.search_forward" s p;
   match exec ~pos:p (Lazy.force re.srch) s with
   | res ->
     Domain.DLS.set state (Some res);
@@ -66,6 +70,7 @@ let search_forward re s p =
 ;;
 
 let rec search_backward re s p =
+  check_pos "Re.Str.search_backward" s p;
   match exec ~pos:p (Lazy.force re.mtch) s with
   | res ->
     Domain.DLS.set state (Some res);

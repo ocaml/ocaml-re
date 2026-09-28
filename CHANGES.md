@@ -1,6 +1,11 @@
 Unreleased
 ----------
 
+* Make [Re.Str.string_match], [string_partial_match], [search_forward] and
+  [search_backward] reject an out-of-bounds start position with
+  [Invalid_argument] naming the [Re.Str] function, instead of the internal
+  ["Re.exec: out of bounds"] (#778, fixes #777).
+
 * Fix [Re.Posix]'s `.` matching NUL; POSIX excludes NUL from the dot (#772).
 
 * Add missing syntax to the Perl, Emacs and POSIX parsers: POSIX character
