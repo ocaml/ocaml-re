@@ -226,3 +226,84 @@ let%expect_test "marks do not change state identity" =
     plain duplicates, colors=3, states=5
     |}]
 ;;
+
+let forced name ast =
+  let re = Re.compile ast in
+  Re.force_states re;
+  print_stats name re
+;;
+
+let%expect_test "force_states interns the complete automaton" =
+  forced "literal" (Re.str "abc");
+  forced "alternation" Re.(alt [ str "ab"; str "cd" ]);
+  forced "loop" Re.(rep (char 'a'));
+  forced "word boundaries" Re.(seq [ bow; group (rep1 wordc); eow ]);
+  forced "greedy" Re.(seq [ char 'a'; rep any; char 'b' ]);
+  forced "last eol" Re.(seq [ str "abc"; leol ]);
+  forced "wide literal" (Re.str alphabet);
+  [%expect
+    {|
+    literal, colors=4, states=7
+    alternation, colors=5, states=7
+    loop, colors=2, states=6
+    word boundaries, colors=2, states=8
+    greedy, colors=3, states=11
+    last eol, colors=5, states=9
+    wide literal, colors=256, states=266
+    |}]
+;;
+
+let%expect_test "force_states completes a partially built automaton" =
+  let re = Re.compile (Re.str "abc") in
+  print_stats "fresh" re;
+  ignore (Re.execp re "abc" : bool);
+  print_stats "after \"abc\"" re;
+  Re.force_states re;
+  print_stats "forced" re;
+  [%expect
+    {|
+    fresh, colors=4, states=0
+    after "abc", colors=4, states=4
+    forced, colors=4, states=7
+    |}]
+;;
+
+let%expect_test "force_states is a fixed point" =
+  List.iter
+    [ "literal", Re.str "abc"
+    ; ("alternation", Re.(alt [ str "ab"; str "cd" ]))
+    ; ("loop", Re.(rep (char 'a')))
+    ; ("word boundaries", Re.(seq [ bow; group (rep1 wordc); eow ]))
+    ; ("greedy", Re.(seq [ char 'a'; rep any; char 'b' ]))
+    ; ("last eol", Re.(seq [ str "abc"; leol ]))
+    ]
+    ~f:(fun (name, ast) ->
+      let re = Re.compile ast in
+      let { Stats.states = initial; _ } = Re.stats re in
+      Re.force_states re;
+      let { Stats.states = forced; _ } = Re.stats re in
+      Re.force_states re;
+      let { Stats.states = again; _ } = Re.stats re in
+      Stdlib.List.iter
+        (fun input ->
+           ignore (Re.execp re input : bool);
+           ignore (Re.exec_partial_detailed re input))
+        [ ""; "a"; "ab"; "abc"; "cd"; "abc\n"; "x abc x" ];
+      let { Stats.states = after_inputs; _ } = Re.stats re in
+      printf
+        "%s initial=%d forced=%d again=%d after_inputs=%d\n"
+        name
+        initial
+        forced
+        again
+        after_inputs);
+  [%expect
+    {|
+    literal initial=0 forced=7 again=7 after_inputs=7
+    alternation initial=0 forced=7 again=7 after_inputs=7
+    loop initial=0 forced=6 again=6 after_inputs=6
+    word boundaries initial=0 forced=8 again=8 after_inputs=8
+    greedy initial=0 forced=11 again=11 after_inputs=11
+    last eol initial=0 forced=9 again=9 after_inputs=9
+    |}]
+;;

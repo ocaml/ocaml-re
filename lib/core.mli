@@ -766,6 +766,13 @@ module Stats = Stats
 
 val stats : re -> Stats.t
 
+(** [force_states re] eagerly explores the compiled automaton of [re]. It interns
+    every state reachable by any input, so that the state count reported by
+    {!stats} is the size of the complete automaton. Beware that the complete
+    automaton can be much, or even exponentially, larger than what a single run
+    reaches. Test and benchmark use only. *)
+val force_states : re -> unit
+
 (**/**)
 
 (** {2 Experimental functions} *)
