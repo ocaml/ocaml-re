@@ -25,6 +25,13 @@ let%expect_test "stream results are independent of chunk boundaries and source o
       ; group (rep (char 'a'))
       ; seq [ group (char 'a'); opt (group (char 'b')); group epsilon ]
       ; empty
+      ; seq [ group any; bol ]
+      ; seq [ group any; eow ]
+      ; seq [ group any; not_boundary ]
+      ; seq [ group any; eos ]
+      ; seq [ group any; stop ]
+      ; seq [ bol; group (char 'a'); eol ]
+      ; seq [ start; group any; stop ]
       ]
   in
   List.iter
@@ -116,7 +123,21 @@ let%expect_test "stream results are independent of chunk boundaries and source o
                         [ false; true ])
                    [ 0; 2 ])
               (partitions input))
-         [ ""; "a"; "ab"; "xxab"; "aab"; "b" ])
+         [ ""
+         ; "a"
+         ; "ab"
+         ; "xxab"
+         ; "aab"
+         ; "b"
+         ; "!"
+         ; "\n"
+         ; "aa"
+         ; "a!"
+         ; "a\n"
+         ; "a\nb"
+         ; "\na"
+         ; " a"
+         ])
     cases;
   [%expect {| |}]
 ;;

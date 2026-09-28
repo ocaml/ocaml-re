@@ -268,6 +268,47 @@ let%expect_test "force_states completes a partially built automaton" =
     |}]
 ;;
 
+let%expect_test "force_states preserves matches, captures and partial results" =
+  let observe re =
+    List.map
+      [ ""; "abc"; "x abc x"; "abc\n"; "\na\n"; "a!"; "\000"; "\192!"; "a\255" ]
+      ~f:(fun input ->
+        List.init
+          ~len:(String.length input + 1)
+          ~f:(fun pos ->
+            List.init
+              ~len:(String.length input - pos + 1)
+              ~f:(fun len ->
+                let groups = Re.exec_opt ~pos ~len re input in
+                assert (Bool.equal (Re.execp ~pos ~len re input) (Option.is_some groups));
+                Option.map Re.Group.all_offset groups, Re.exec_partial ~pos ~len re input)))
+  in
+  let patterns =
+    Re.(
+      [ group any
+      ; seq [ bol; group any; eol ]
+      ; seq [ bos; group any; leol ]
+      ; seq [ group (rep1 any); eol ]
+      ; seq [ group (rep1 any); eow ]
+      ; seq [ str "abc"; leol ]
+      ]
+      @ List.concat_map
+          [ eol; eos; leol; stop; eow; bow; bol; bos; start; not_boundary ]
+          ~f:(fun assertion ->
+            [ seq [ group any; assertion ]; seq [ assertion; group any ] ]))
+  in
+  List.iter patterns ~f:(fun pattern ->
+    let learned = Re.compile pattern in
+    let expected = observe learned in
+    assert (Poly.equal (observe learned) expected);
+    let forced = Re.compile pattern in
+    Re.force_states forced;
+    assert (Poly.equal (observe forced) expected);
+    Re.force_states learned;
+    assert (Poly.equal (observe learned) expected));
+  [%expect {| |}]
+;;
+
 let%expect_test "force_states is a fixed point" =
   List.iter
     [ "literal", Re.str "abc"
