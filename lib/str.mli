@@ -36,8 +36,8 @@ type regexp
     - [$     ] matches at end of line
     - [\|    ] (infix) alternative between two expressions
     - [\(..\)] grouping and naming of the enclosed expression
-    - [\1    ] the text matched by the first [\(...\)] expression
-      ([\2] for the second expression, etc)
+    - [\1    ] back-references are not supported: unlike [Str], [regexp]
+      raises [Re.Emacs.Not_supported] on [\1], [\2], etc.
     - [\b    ] matches word boundaries
     - [\     ] quotes special characters. *)
 val regexp : string -> regexp
