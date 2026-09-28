@@ -222,3 +222,71 @@ let%expect_test "benchmark automaton colors and states" =
     duplicate accepting states colors=256 states=2
     |}]
 ;;
+
+(* Forcing a state builds all of its transitions eagerly, and the complete
+   automaton of the [tex], non-capturing [http] and [memory] patterns is too
+   large to construct. Only snapshot the patterns whose complete automaton is
+   worth building, always on a copy: forcing mutates the automaton, and the
+   other tests and benchmarks expect a cold regex.
+
+   [expression IDs/narrow/8000000] is skipped as well: its complete automaton
+   needs several GiB. *)
+let%expect_test "fully forced benchmark automata" =
+  let case name =
+    match List.find_opt (fun (c : case) -> String.equal c.name name) cases with
+    | Some { name; pattern; _ } -> name, pattern
+    | None -> failwith ("unknown benchmark case: " ^ name)
+  in
+  let forceable =
+    List.map
+      case
+      [ "20 zeroes"
+      ; "lots of a's"
+      ; "media type match"
+      ; "uri"
+      ; "http/manual/group"
+      ; "http/auto/all_gen"
+      ; "string traversal from #210"
+      ; "kleene star compilation"
+      ; "repeated sequence re"
+      ; "split on whitespace"
+      ; "shared prefixes"
+      ; "duplicate accepting states"
+      ]
+    @ List.map
+        (fun (branches, length) ->
+           ( Id_patterns.broad_name branches length
+           , Id_patterns.broad_then_narrow branches length () ))
+        Id_patterns.broad_params
+    @ List.map
+        (fun length -> Id_patterns.narrow_name length, Id_patterns.narrow length ())
+        (List.filter (fun length -> length < 8_000_000) Id_patterns.narrow_params)
+  in
+  List.iter
+    (fun (name, pattern) ->
+       let re = Re.compile pattern in
+       let forced = Re.copy_re re in
+       Re.force_states forced;
+       report name forced)
+    forceable;
+  [%expect
+    {|
+    20 zeroes colors=2 states=24
+    lots of a's colors=3 states=10
+    media type match colors=3 states=12
+    uri colors=6 states=353
+    http/manual/group colors=13 states=423
+    http/auto/all_gen colors=13 states=795
+    string traversal from #210 colors=3 states=66
+    kleene star compilation colors=2 states=6
+    repeated sequence re colors=256 states=12810
+    split on whitespace colors=2 states=7
+    shared prefixes colors=27 states=11
+    duplicate accepting states colors=256 states=7
+    expression IDs/broad/16/1024 colors=9 states=1035
+    expression IDs/broad/4096/16384 colors=17 states=16405
+    expression IDs/broad/65536/262144 colors=21 states=262169
+    expression IDs/narrow/1024 colors=2 states=1027
+    expression IDs/narrow/1000000 colors=2 states=1000003
+    |}]
+;;
