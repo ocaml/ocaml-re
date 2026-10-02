@@ -61,9 +61,15 @@ type opt =
     (** Treat ['\n'] as a line separator: [.] and negated bracket expressions
         such as [[^a]] do not match it, and [^] and [$] also match just after
         and just before it *)
+  | `Bre
+    (** Parse a basic regular expression instead of an extended one. In a
+        basic regular expression, [\(...\)] groups, [\|] alternates,
+        [\{m,n\}] repeats, and [(], [)], [{], [}], [+], [?] and [|] are
+        ordinary characters *)
   ]
 
-(** Parsing of a Posix extended regular expression *)
+(** Parse a Posix regular expression. The syntax is the extended one unless
+    [`Bre] is given. *)
 val re : ?opts:opt list -> string -> Core.t
 
 val re_result
@@ -74,7 +80,7 @@ val re_result
 (** [compile r] is defined as [Core.compile (Core.longest r)] *)
 val compile : Core.t -> Core.re
 
-(** [compile_pat ?opts regexp] compiles the Posix extended regular expression [regexp] *)
+(** [compile_pat ?opts regexp] compiles the Posix regular expression [regexp] *)
 val compile_pat : ?opts:opt list -> string -> Core.re
 
 (*

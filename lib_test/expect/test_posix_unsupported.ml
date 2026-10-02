@@ -37,43 +37,21 @@ let%expect_test "multi-character equivalence classes are not supported" =
     |}]
 ;;
 
-let%expect_test "basic regular expressions are not provided" =
-  (* POSIX also defines basic regular expressions, where "\(...\)" groups,
-     "\|" alternates, "\{m,n\}" repeats, and "+", "?", "()" and "{}" are
-     ordinary characters. Re.Posix only parses extended regular expressions,
-     so those constructs are literals or parse errors. *)
-  let show pattern subject =
-    Printf.printf
-      "%S on %S: %b\n"
-      pattern
-      subject
-      (Re.execp (Posix.compile_pat pattern) subject)
+let%expect_test "basic regular expression backreferences are not supported" =
+  (* POSIX basic regular expressions support "\1" through "\9". *)
+  let result pattern =
+    match Posix.re_result ~opts:[ `Bre ] pattern with
+    | Ok _ -> "parsed"
+    | Error `Parse_error -> "parse error"
+    | Error `Not_supported -> "not supported"
   in
-  show {|\(ab\)|} "ab";
-  show {|\(ab\)|} "(ab)";
-  show {|a\|b|} "a";
-  show {|a\|b|} "a|b";
-  show {|^a+$|} "a";
-  show {|^a+$|} "a+";
-  show {|^a?$|} "a";
-  show {|^a?$|} "a?";
-  show {|^a{2}$|} "aa";
-  show {|^a{2}$|} "a{2}";
-  print_unsupported [ {|a\{2\}|}; {|\(a\)\1|} ];
+  List.iter [ {|\(a\)\1|}; {|\(a\)\(b\)\2\1|}; {|\1|} ] ~f:(fun pattern ->
+    Printf.printf "%S: %s\n" pattern (result pattern));
   [%expect
     {|
-    "\\(ab\\)" on "ab": false
-    "\\(ab\\)" on "(ab)": true
-    "a\\|b" on "a": false
-    "a\\|b" on "a|b": true
-    "^a+$" on "a": true
-    "^a+$" on "a+": false
-    "^a?$" on "a": true
-    "^a?$" on "a?": false
-    "^a{2}$" on "aa": true
-    "^a{2}$" on "a{2}": false
-    "a\\{2\\}": PARSED: (Sequence (Set 97)(Set 123)(Set 50)(Set 125))
-    "\\(a\\)\\1": Parse_error
+    "\\(a\\)\\1": not supported
+    "\\(a\\)\\(b\\)\\2\\1": not supported
+    "\\1": not supported
     |}]
 ;;
 
