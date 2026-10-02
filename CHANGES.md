@@ -1,6 +1,10 @@
 Unreleased
 ----------
 
+* Make [Re.Str.matched_group] raise [Invalid_argument] for nonexistent
+  groups, like [Str] and [Re.Str.group_beginning], instead of [Not_found]
+  (#774, fixes #773).
+
 * Fix [Re.Posix]'s `.` matching NUL; POSIX excludes NUL from the dot (#772).
 
 * Add missing syntax to the Perl, Emacs and POSIX parsers: POSIX character

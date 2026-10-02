@@ -39,3 +39,42 @@ let%expect_test "Str group offsets accept existing groups above nine" =
     Re.Str.group_end 10: 10
     |}]
 ;;
+
+let%expect_test "Str group accessors reject nonexistent groups" =
+  let input = "a" in
+  assert (Str.string_match (Str.regexp {|\(a\)|}) input 0);
+  assert (Re.Str.string_match (Re.Str.regexp {|\(a\)|}) input 0);
+  List.iter
+    (fun group ->
+       List.iter
+         (fun (name, matched_group, beginning, ending) ->
+            let report operation f =
+              let result =
+                try f group with
+                | exn -> Printexc.to_string exn
+              in
+              Printf.printf "%s.%s %d: %s\n" name operation group result
+            in
+            report "matched_group" (fun n -> matched_group n input);
+            report "group_beginning" (fun n -> string_of_int (beginning n));
+            report "group_end" (fun n -> string_of_int (ending n)))
+         [ "Str", Str.matched_group, Str.group_beginning, Str.group_end
+         ; "Re.Str", Re.Str.matched_group, Re.Str.group_beginning, Re.Str.group_end
+         ])
+    [ -1; 2 ];
+  [%expect
+    {|
+    Str.matched_group -1: Invalid_argument("Str.matched_group")
+    Str.group_beginning -1: Invalid_argument("Str.group_beginning")
+    Str.group_end -1: Invalid_argument("Str.group_end")
+    Re.Str.matched_group -1: Invalid_argument("Re.Str.matched_group")
+    Re.Str.group_beginning -1: Invalid_argument("Str.group_beginning")
+    Re.Str.group_end -1: Invalid_argument("Str.group_end")
+    Str.matched_group 2: Invalid_argument("Str.matched_group")
+    Str.group_beginning 2: Invalid_argument("Str.group_beginning")
+    Str.group_end 2: Invalid_argument("Str.group_end")
+    Re.Str.matched_group 2: Invalid_argument("Re.Str.matched_group")
+    Re.Str.group_beginning 2: Invalid_argument("Str.group_beginning")
+    Re.Str.group_end 2: Invalid_argument("Str.group_end")
+    |}]
+;;

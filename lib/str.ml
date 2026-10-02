@@ -183,6 +183,7 @@ let group_end n =
 ;;
 
 let matched_group n txt =
+  if not (valid_group n) then invalid_arg "Re.Str.matched_group";
   let b, e = offset_group n in
   String.sub txt b (e - b)
 ;;
