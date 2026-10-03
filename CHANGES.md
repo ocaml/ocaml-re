@@ -4,6 +4,9 @@ Unreleased
 * Implement positional anchors in [Re.Emacs]: `^` and `$` are anchors only
   where Emacs specifies and ordinary characters elsewhere (#788).
 
+ Accept non-ASCII bytes in [Re.Perl] capture-group names. Names are opaque
+  byte strings used for lookup, not validated as Unicode identifiers (#785).
+
 * Add optional interval repetition to [Re.Emacs]: `a\{m,n\}?` means
   `(a{m,n})?` (#783).
 

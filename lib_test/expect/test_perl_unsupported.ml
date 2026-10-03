@@ -378,17 +378,6 @@ let%expect_test "code points above 0xFF are not supported" =
     |}]
 ;;
 
-let%expect_test "Unicode capture-group names are not supported" =
-  (* perlre: a capture name must match a Unicode-extended identifier.
-     [Re.Perl]'s name parser accepts only ASCII "[_A-Za-z][_A-Za-z0-9]*". *)
-  print_unsupported [ "(?<ñ>a)"; "(?<naïve>a)" ];
-  [%expect
-    {|
-    "(?<\195\177>a)": Parse_error
-    "(?<na\195\175ve>a)": Parse_error
-    |}]
-;;
-
 let%expect_test "character classes and case folding lack Unicode semantics" =
   (* Perl's "/u" semantics: "\d" matches all Unicode decimal digits, "\s"
      includes U+00A0 NO-BREAK SPACE, "/i" folds É with é, and sharp s folds
