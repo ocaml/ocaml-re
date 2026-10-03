@@ -120,7 +120,7 @@ type re =
        when computing a new state *)
     states : State.t Automata.State.Table.t
   ; (* States of the deterministic automata *)
-    group_names : (string * int) list
+    group_names : (Group_name.t * int) list
   ; (* Named groups in the regular expression *)
     group_count : int
   ; (* Number of groups in the regular expression *)
@@ -151,7 +151,7 @@ let to_dyn ?(color_map = false) re =
 ;;
 
 let group_count re = re.group_count
-let group_names re = re.group_names
+let group_names re = (re.group_names :> (string * int) list)
 
 let stats re =
   { Stats.colors = re.ncolor; states = Automata.State.Table.length re.states }
@@ -788,7 +788,7 @@ type context =
   ; ign_group : bool
   ; greedy : A.Rep_kind.t
   ; pos : A.Mark.t ref
-  ; names : (string * int) list ref
+  ; names : (Group_name.t * int) list ref
   ; cache : Cset.t Cset.CSetMap.t ref
   ; colors : Color_map.Table.t
   ; boundary_table : Color_map.Boundary_table.t

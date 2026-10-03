@@ -84,7 +84,7 @@ let view : Ast.t -> t = function
   | Start -> Start
   | Stop -> Stop
   | No_group a -> No_group a
-  | Group (name, t) -> Group (name, t)
+  | Group (name, t) -> Group (Option.map Group_name.to_string name, t)
   | Nest t -> Nest t
   | Pmark (pmark, t) -> Pmark (pmark, t)
 ;;

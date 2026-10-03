@@ -56,7 +56,7 @@ type ('a, 'case) gen =
   | Last_end_of_line
   | Start
   | Stop
-  | Group of string option * ('a, 'case) gen
+  | Group of Group_name.t option * ('a, 'case) gen
   | No_group of ('a, 'case) gen
   | Nest of ('a, 'case) gen
   | Pmark of Pmark.t * ('a, 'case) gen
@@ -91,7 +91,7 @@ let rec dyn_of_gen f =
       let args = [ dyn_of_gen f t ] in
       match name with
       | None -> args
-      | Some name -> string name :: args
+      | Some name -> Group_name.to_dyn name :: args
     in
     variant "Group" args
   | No_group x -> variant "No_group" [ dyn_of_gen f x ]
@@ -125,7 +125,7 @@ let rec pp_gen pp_cset fmt t =
   | Start -> str fmt "Start"
   | Stop -> str fmt "Stop"
   | Group (None, c) -> var "Group" c
-  | Group (Some n, c) -> sexp fmt "Named_group" (pair str pp) (n, c)
+  | Group (Some n, c) -> sexp fmt "Named_group" (pair Group_name.pp pp) (n, c)
   | Nest c -> var "Nest" c
   | Pmark (m, r) -> sexp fmt "Pmark" (pair Pmark.pp pp) (m, r)
   | Ast a -> pp_ast pp fmt a
