@@ -151,7 +151,7 @@ let%expect_test "automata expression, state and cached status diagnostics" =
     String.equal
       (Format.asprintf "%a" A.pp marked)
       (Printf.sprintf "(pmark %d)" (pmark :> int)));
-  let wa = A.Working_area.create () in
+  let wa = A.Working_area.create Category.dummy in
   let state = A.State.create Category.inexistant (A.seq ids `First (A.mark ids mark) a) in
   let check_cached state =
     let first = A.State.status_no_mutex state in

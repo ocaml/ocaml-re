@@ -31,7 +31,7 @@ let%expect_test "compiled automata report their colors and interned states" =
     wide literal, colors=256, states=257
     no assertion loop, colors=2, states=3
     word boundaries, colors=2, states=4
-    wide empty match, colors=256, states=4
+    wide empty match, colors=256, states=2
     |}]
 ;;
 
@@ -243,13 +243,13 @@ let%expect_test "force_states interns the complete automaton" =
   forced "wide literal" (Re.str alphabet);
   [%expect
     {|
-    literal, colors=4, states=7
-    alternation, colors=5, states=7
-    loop, colors=2, states=6
+    literal, colors=4, states=6
+    alternation, colors=5, states=6
+    loop, colors=2, states=5
     word boundaries, colors=2, states=8
-    greedy, colors=3, states=11
-    last eol, colors=5, states=9
-    wide literal, colors=256, states=266
+    greedy, colors=3, states=10
+    last eol, colors=5, states=6
+    wide literal, colors=256, states=259
     |}]
 ;;
 
@@ -264,7 +264,7 @@ let%expect_test "force_states completes a partially built automaton" =
     {|
     fresh, colors=4, states=0
     after "abc", colors=4, states=4
-    forced, colors=4, states=7
+    forced, colors=4, states=6
     |}]
 ;;
 
@@ -299,11 +299,11 @@ let%expect_test "force_states is a fixed point" =
         after_inputs);
   [%expect
     {|
-    literal initial=0 forced=7 again=7 after_inputs=7
-    alternation initial=0 forced=7 again=7 after_inputs=7
-    loop initial=0 forced=6 again=6 after_inputs=6
+    literal initial=0 forced=6 again=6 after_inputs=6
+    alternation initial=0 forced=6 again=6 after_inputs=6
+    loop initial=0 forced=5 again=5 after_inputs=5
     word boundaries initial=0 forced=8 again=8 after_inputs=8
-    greedy initial=0 forced=11 again=11 after_inputs=11
-    last eol initial=0 forced=9 again=9 after_inputs=9
+    greedy initial=0 forced=10 again=10 after_inputs=10
+    last eol initial=0 forced=6 again=6 after_inputs=6
     |}]
 ;;
