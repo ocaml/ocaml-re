@@ -327,6 +327,7 @@ let parse ~multiline ~dollar_endonly ~dotall ~ungreedy s =
       match s.[pos] with
       | '_' | 'a' .. 'z' | 'A' .. 'Z' -> find_end (pos + 1)
       | '0' .. '9' when pos > start -> find_end (pos + 1)
+      | c when Char.code c >= 128 -> find_end (pos + 1)
       | c when c = delimiter && pos > start -> pos
       | _ -> raise Parse_error
     in

@@ -39,13 +39,15 @@ let%expect_test "capture names preserve ASTs and capture indices" =
 ;;
 
 let%expect_test "capture name character rules cover every byte" =
+  (* Any byte >= 0x80 is accepted: names are byte-transparent, not validated
+     as Unicode identifiers. *)
   for byte = 0 to 255 do
     let c = Char.chr byte in
     let s = String.make 1 c in
     let initial =
       match c with
       | '_' | 'a' .. 'z' | 'A' .. 'Z' -> true
-      | _ -> false
+      | c -> Char.code c >= 128
     in
     if initial
     then same_ast (named s "a") (group ~name:s (char 'a'))
@@ -57,6 +59,7 @@ let%expect_test "capture name character rules cover every byte" =
       match c with
       | '_' | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' ->
         same_ast (named name "a") (group ~name (char 'a'))
+      | c when Char.code c >= 128 -> same_ast (named name "a") (group ~name (char 'a'))
       | _ -> parse_error (named name "a"))
   done;
   [%expect {||}]
