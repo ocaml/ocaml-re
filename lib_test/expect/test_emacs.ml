@@ -269,3 +269,20 @@ let%expect_test "shy groups do not capture" =
     "c"
     |}]
 ;;
+
+let%expect_test "optional interval repetition" =
+  List.iter
+    [ {|^a\{2,3\}?$|}, ""
+    ; {|^a\{2,3\}?$|}, "aa"
+    ; {|^a\{2,3\}?$|}, "aaa"
+    ; {|^a\{2,3\}?$|}, "aaaa"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "^a\\{2,3\\}?$" on "": parse error
+    "^a\\{2,3\\}?$" on "aa": parse error
+    "^a\\{2,3\\}?$" on "aaa": parse error
+    "^a\\{2,3\\}?$" on "aaaa": parse error
+    |}]
+;;
