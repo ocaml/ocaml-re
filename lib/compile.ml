@@ -33,13 +33,7 @@ type match_info =
   | Running of { no_match_starts_before : int }
 
 type state_info =
-  { idx : Idx.t
-  ; (* Index of the current position in the position table.
-       Not yet computed transitions point to a dummy state where
-       [idx] is set to [unknown];
-       If [idx] is set to [break] for states that either always
-       succeed or always fail. *)
-    mutable final : (Category.t * (Automata.Idx.t * Automata.Status.t)) list
+  { mutable final : (Category.t * (Automata.Idx.t * Automata.Status.t)) list
   ; (* Mapping from the category of the next character to
        - the index where the next position should be saved
        - possibly, the list of marks (and the corresponding indices)
@@ -49,56 +43,47 @@ type state_info =
 
 (* Thread-safety: we use double-checked locking to access field [final]. *)
 
-(* A state [t] is a pair composed of some information about the
-   state [state_info] and a transition table [t array], indexed by
-   color. For performance reason, to avoid an indirection, we manually
-   unbox the transition table: we allocate a single array, with the
-   state information at index 0, followed by the transitions. *)
 module State : sig
+  (* A state is morally a tuple: position index * state info * transition array,
+     but for performance reasons, we unbox it manually into a single block. *)
   type t
 
-  val make : ncol:int -> state_info -> t
-  val make_break : state_info -> t
+  val make : ncol:int -> idx:Idx.t -> state_info -> t
+  val make_break : idx:Idx.t -> state_info -> t
   val get_info : t -> state_info
+  val idx : t -> Idx.t
   val follow_transition : t -> color:Cset.c -> t
   val set_transition : t -> color:Cset.c -> t -> unit
   val is_unknown_transition : t -> color:Cset.c -> bool
 end = struct
   type t = Table of t array [@@unboxed]
 
-  (* Thread-safety:
-     We store the state information at index 0. For other elements
-     of the transition table, which are lazily computed, we use
-     double-checked locking. *)
+  let[@inline always] idx (Table st) : Idx.t = Obj.magic (Array.unsafe_get st 0)
+  let[@inline always] get_info (Table st) : state_info = Obj.magic (Array.unsafe_get st 1)
 
-  let get_info (Table st) : state_info = Obj.magic (Array.unsafe_get st 0)
-  [@@inline always]
+  let[@inline always] follow_transition (Table st) ~color =
+    Array.unsafe_get st (2 + Cset.to_int color)
   ;;
 
-  let set_info (Table st) (info : state_info) = st.(0) <- Obj.magic info
-
-  let follow_transition (Table st) ~color = Array.unsafe_get st (1 + Cset.to_int color)
-  [@@inline always]
-  ;;
-
-  let set_transition (Table st) ~color st' = st.(1 + Cset.to_int color) <- st'
+  let set_transition (Table st) ~color st' = st.(2 + Cset.to_int color) <- st'
 
   let is_unknown_transition st ~color =
     let st' = follow_transition st ~color in
-    let info = get_info st' in
-    Idx.is_unknown info.idx
+    Idx.is_unknown (idx st')
   ;;
 
-  let dummy (info : state_info) = Table [| Obj.magic info |]
-  let unknown_state = dummy { idx = Idx.unknown; final = []; desc = Automata.State.dummy }
+  let make_break ~idx info = Table [| Obj.magic idx; Obj.magic info |]
 
-  let make ~ncol state =
-    let st = Table (Array.make (ncol + 1) unknown_state) in
-    set_info st state;
-    st
+  let unknown_state =
+    make_break ~idx:Idx.unknown { final = []; desc = Automata.State.dummy }
   ;;
 
-  let make_break state = Table [| Obj.magic state |]
+  let make ~ncol ~idx info =
+    let row = Array.make (ncol + 2) unknown_state in
+    row.(0) <- Obj.magic idx;
+    row.(1) <- Obj.magic info;
+    Table row
+  ;;
 end
 
 (* Automata (compiled regular expression) *)
@@ -221,15 +206,15 @@ let find_state re desc =
         | Running -> false
         | Failed | Match _ -> true
       in
-      let st =
-        { idx =
-            (let idx = Automata.State.idx desc in
-             if break_state then Idx.make_break idx else Idx.of_idx idx)
-        ; final = []
-        ; desc
-        }
-      in
-      if break_state then State.make_break st else State.make ~ncol:re.ncolor st
+      let idx = Automata.State.idx desc in
+      let st = { final = []; desc } in
+      if break_state
+      then (
+        let idx = Idx.make_break idx in
+        State.make_break ~idx st)
+      else (
+        let idx = Idx.of_idx idx in
+        State.make ~ncol:re.ncolor ~idx st)
     in
     Automata.State.Table.add re.states desc st;
     st
@@ -267,7 +252,7 @@ let rec loop re ~colors ~positions s ~pos ~last st0 st =
   if pos < last
   then (
     let st' = next colors st s pos in
-    let idx = (State.get_info st').idx in
+    let idx = State.idx st' in
     if Idx.is_idx idx
     then
       if Idx.idx idx < Positions.length positions
@@ -293,7 +278,7 @@ let rec loop_no_mark re ~colors s ~pos ~last st0 st =
   if pos < last
   then (
     let st' = next colors st s pos in
-    let idx = (State.get_info st').idx in
+    let idx = State.idx st' in
     if Idx.is_idx idx
     then loop_no_mark re ~colors s ~pos:(pos + 1) ~last st' st'
     else if Idx.is_break idx
@@ -410,14 +395,14 @@ let get_color re (s : string) pos =
 
 let rec handle_last_newline re positions ~pos st ~groups =
   let st' = State.follow_transition st ~color:re.lnl in
-  let info = State.get_info st' in
-  if Idx.is_idx info.idx
+  let idx = State.idx st' in
+  if Idx.is_idx idx
   then (
-    if groups then Positions.set positions (Idx.idx info.idx) pos;
+    if groups then Positions.set positions (Idx.idx idx) pos;
     st')
-  else if Idx.is_break info.idx
+  else if Idx.is_break idx
   then (
-    if groups then Positions.set positions (Idx.break_idx info.idx) pos;
+    if groups then Positions.set positions (Idx.break_idx idx) pos;
     st')
   else (
     (* Unknown *)
@@ -434,7 +419,7 @@ let rec scan_str re positions (s : string) initial_state ~slen ~last ~pos ~group
   then (
     let last = last - 1 in
     let st = scan_str re positions ~pos s initial_state ~slen ~last ~groups in
-    if Idx.is_break (State.get_info st).idx
+    if Idx.is_break (State.idx st)
     then st
     else handle_last_newline re positions ~pos:last st ~groups)
   else if groups
@@ -493,7 +478,7 @@ let make_match_str re positions ~len ~groups ~partial s ~pos =
     | Running -> final_advance re positions ~last state_info ~groups)
   else (
     ();
-    if Idx.is_break state_info.idx
+    if Idx.is_break (State.idx st)
     then Automata.State.status re.mutex state_info.desc
     else final_boundary_check re positions ~last ~slen s state_info ~groups)
 ;;
@@ -523,13 +508,13 @@ module Stream = struct
     check_bounds s ~pos ~len;
     let last = pos + len in
     let state =
-      if Idx.is_break (State.get_info t.state).idx
+      if Idx.is_break (State.idx t.state)
       then t.state
       else loop_no_mark t.re ~colors:t.re.colors s ~last ~pos t.state t.state
     in
     let info = State.get_info state in
     if
-      Idx.is_break info.idx
+      Idx.is_break (State.idx state)
       &&
       match Automata.State.status t.re.mutex info.desc with
       | Failed -> true
@@ -542,7 +527,7 @@ module Stream = struct
     check_bounds s ~pos ~len;
     let last = pos + len in
     let state =
-      if Idx.is_break (State.get_info t.state).idx
+      if Idx.is_break (State.idx t.state)
       then t.state
       else scan_str t.re Positions.empty s t.state ~slen:last ~last ~pos ~groups:false
     in
@@ -607,7 +592,7 @@ module Stream = struct
       if pos < last
       then (
         let st' = next colors st s pos in
-        let idx = (State.get_info st').idx in
+        let idx = State.idx st' in
         if Idx.is_idx idx
         then
           if Idx.idx idx < Positions.length positions
@@ -633,7 +618,7 @@ module Stream = struct
       check_bounds s ~pos ~len;
       let state =
         let last = pos + len in
-        if Idx.is_break (State.get_info t.state).idx
+        if Idx.is_break (State.idx t.state)
         then t.state
         else
           loop
@@ -649,7 +634,7 @@ module Stream = struct
       in
       let info = State.get_info state in
       if
-        Idx.is_break info.idx
+        Idx.is_break (State.idx state)
         &&
         match Automata.State.status t.re.mutex info.desc with
         | Failed -> true
@@ -675,7 +660,7 @@ module Stream = struct
       let last = pos + len in
       let info =
         let state =
-          if Idx.is_break (State.get_info t.state).idx
+          if Idx.is_break (State.idx t.state)
           then t.state
           else
             loop
