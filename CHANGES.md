@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Implement positional anchors in [Re.Emacs]: `^` and `$` are anchors only
+  where Emacs specifies and ordinary characters elsewhere (#788).
+
 * Add optional interval repetition to [Re.Emacs]: `a\{m,n\}?` means
   `(a{m,n})?` (#783).
 

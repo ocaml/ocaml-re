@@ -299,9 +299,9 @@ let%expect_test "anchor positions" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "a$b" on "a$b": no match
+    "a$b" on "a$b": match "a$b"
     "a$b" on "ab": no match
-    "a^b" on "a^b": no match
+    "a^b" on "a^b": match "a^b"
     "^a$" on "a": match "a"
     "\\(^a$\\)" on "a": match "a"
     "a\\|^b" on "b": match "b"

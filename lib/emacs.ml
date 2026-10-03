@@ -44,13 +44,13 @@ let parse ~emacs_only s =
     if Parse_buffer.accept_s buf {|\||}
     then regexp' (branch () :: left)
     else Re.alt (List.rev left)
-  and branch () = branch' true []
-  and branch' start left =
+  and branch () = branch' true true []
+  and branch' anchor_ok start left =
     if eos () || test2 '\\' '|' || test2 '\\' ')'
     then Re.seq (List.rev left)
     else (
       let before = Parse_buffer.position buf in
-      let r = piece start in
+      let r = piece anchor_ok start in
       let next_start =
         start
         &&
@@ -58,10 +58,10 @@ let parse ~emacs_only s =
         (consumed = 1 && Char.equal s.[before] '^')
         || (consumed = 2 && Char.equal s.[before] '\\' && Char.equal s.[before + 1] '`')
       in
-      branch' next_start (r :: left))
-  and piece start =
+      branch' false next_start (r :: left))
+  and piece anchor_ok start =
     let before = Parse_buffer.position buf in
-    let r = atom start in
+    let r = atom anchor_ok start in
     let leading_anchor =
       start
       &&
@@ -99,13 +99,13 @@ let parse ~emacs_only s =
       in
       if accept '?' then Re.opt rep else rep)
     else r
-  and atom start =
+  and atom anchor_ok start =
     if accept '.'
     then Re.notnl
     else if accept '^'
-    then Re.bol
+    then if anchor_ok then Re.bol else Re.char '^'
     else if accept '$'
-    then Re.eol
+    then if eos () || test2 '\\' ')' || test2 '\\' '|' then Re.eol else Re.char '$'
     else if accept '['
     then if accept '^' then Re.compl (bracket []) else Re.alt (bracket [])
     else if accept '\\'
