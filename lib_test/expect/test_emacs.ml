@@ -280,9 +280,9 @@ let%expect_test "optional interval repetition" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "^a\\{2,3\\}?$" on "": parse error
-    "^a\\{2,3\\}?$" on "aa": parse error
-    "^a\\{2,3\\}?$" on "aaa": parse error
-    "^a\\{2,3\\}?$" on "aaaa": parse error
+    "^a\\{2,3\\}?$" on "": match ""
+    "^a\\{2,3\\}?$" on "aa": match "aa"
+    "^a\\{2,3\\}?$" on "aaa": match "aaa"
+    "^a\\{2,3\\}?$" on "aaaa": no match
     |}]
 ;;

@@ -80,21 +80,24 @@ let parse ~emacs_only s =
     then quantified (Re.opt r)
     else if Parse_buffer.accept_s buf {|\{|}
     then (
-      match Parse_buffer.integer buf with
-      | Some i ->
-        let j = if accept ',' then Parse_buffer.integer buf else Some i in
-        if not (Parse_buffer.accept_s buf {|\}|}) then raise Parse_error;
-        (match j with
-         | Some j when j < i -> raise Parse_error
-         | _ -> ());
-        Re.repn (Re.nest r) i j
-      | None ->
-        if accept ','
-        then (
-          let j = Parse_buffer.integer buf in
+      let rep =
+        match Parse_buffer.integer buf with
+        | Some i ->
+          let j = if accept ',' then Parse_buffer.integer buf else Some i in
           if not (Parse_buffer.accept_s buf {|\}|}) then raise Parse_error;
-          Re.repn (Re.nest r) 0 j)
-        else raise Parse_error)
+          (match j with
+           | Some j when j < i -> raise Parse_error
+           | _ -> ());
+          Re.repn (Re.nest r) i j
+        | None ->
+          if accept ','
+          then (
+            let j = Parse_buffer.integer buf in
+            if not (Parse_buffer.accept_s buf {|\}|}) then raise Parse_error;
+            Re.repn (Re.nest r) 0 j)
+          else raise Parse_error
+      in
+      if accept '?' then Re.opt rep else rep)
     else r
   and atom start =
     if accept '.'
