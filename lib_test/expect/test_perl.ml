@@ -245,3 +245,18 @@ let%expect_test "open lower bound quantifiers" =
     "^a{,0}$" on "": match ""
     |}]
 ;;
+
+let%expect_test "non-ASCII bytes in capture-group names" =
+  (* Names are byte strings used for lookup and never affect matching, so
+     non-ASCII bytes are carried through verbatim rather than validated as
+     Unicode identifier characters. *)
+  List.iter
+    [ {|(?<ñ>a)|}, "a"; {|(?<ñ>a)|}, "b"; {|(?<naïve>b)|}, "b" ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "(?<\195\177>a)" on "a": parse error
+    "(?<\195\177>a)" on "b": parse error
+    "(?<na\195\175ve>b)" on "b": parse error
+    |}]
+;;
