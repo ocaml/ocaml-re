@@ -25,7 +25,7 @@ type ('a, 'case) gen = private
   | Last_end_of_line
   | Start
   | Stop
-  | Group of string option * ('a, 'case) gen
+  | Group of Group_name.t option * ('a, 'case) gen
   | No_group of ('a, 'case) gen
   | Nest of ('a, 'case) gen
   | Pmark of Pmark.t * ('a, 'case) gen
@@ -67,7 +67,7 @@ module Export : sig
   val non_greedy : t -> t
   val stop : t
   val not_boundary : t
-  val group : ?name:string -> t -> t
+  val group : ?name:Group_name.t -> t -> t
   val word : t -> t
   val first : t -> t
   val bos : t

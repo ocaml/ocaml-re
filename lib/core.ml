@@ -168,6 +168,7 @@ include struct
   let copy_re = copy_re
   let group_names = group_names
   let group_count = group_count
+  let group ?name x = group ?name:(Option.map Group_name.of_string name) x
   let stats = stats
   let force_states = force_states
 end
