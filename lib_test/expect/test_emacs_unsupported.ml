@@ -24,13 +24,6 @@ let%expect_test "explicitly numbered groups are not supported" =
     |}]
 ;;
 
-let%expect_test "lazy interval repetition is not supported" =
-  (* Emacs accepts "a\{2,3\}?"; [Re.Emacs] implements "?" after "*", "+" and
-     "?" but not after an interval. *)
-  print_unsupported [ {|a\{2,3\}?|} ];
-  [%expect {| "a\\{2,3\\}?": Parse_error |}]
-;;
-
 let%expect_test "backreferences are not supported" =
   (* Emacs: "\1" through "\9" match the corresponding captured group. *)
   print_unsupported [ {|\(a\)\1|}; {|\(a*\)\1|}; {|\(a\)\(b\)\2\1|} ];

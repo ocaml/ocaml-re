@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Add optional interval repetition to [Re.Emacs]: `a\{m,n\}?` means
+  `(a{m,n})?` (#783).
+
 * Make [Re.Str.matched_group] raise [Invalid_argument] for nonexistent
   groups, like [Str] and [Re.Str.group_beginning], instead of [Not_found]
   (#774, fixes #773).
