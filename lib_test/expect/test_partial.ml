@@ -38,6 +38,22 @@ let%expect_test "partial matches" =
   ()
 ;;
 
+let%expect_test "partial and finalized executions keep separate cached results" =
+  List.iter
+    Re.[ eos; eol; leol; eow ]
+    ~f:(fun assertion ->
+      List.iter [ false; true ] ~f:(fun partial_first ->
+        let re = Re.compile Re.(seq [ char 'a'; assertion ]) in
+        let full () = assert (Re.execp re "a") in
+        let partial () = assert (Poly.equal (Re.exec_partial re "a") `Partial) in
+        if partial_first then partial () else full ();
+        for _ = 1 to 3 do
+          full ();
+          partial ()
+        done));
+  [%expect {| |}]
+;;
+
 let t = exec_partial_detailed
 
 let%expect_test "partial detailed" =

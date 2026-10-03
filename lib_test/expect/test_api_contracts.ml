@@ -77,10 +77,10 @@ let%expect_test "iteration and replacement bounds and selected windows" =
   [%expect {| |}]
 ;;
 
-let%expect_test "copying cold and warm regexps preserves groups and marks" =
+let%expect_test "copying cold and warm regexps preserves assertions, groups and marks" =
   let mark_a, a = Re.(mark (group ~name:"a" (char 'a'))) in
   let mark_b, b = Re.(mark (group ~name:"b" (char 'b'))) in
-  let re = Re.(compile (seq [ a; opt b ])) in
+  let re = Re.(compile (seq [ bol; bow; a; opt b; eow ])) in
   assert (Re.group_count re = 3);
   assert (Re.group_names re = [ "a", 1; "b", 2 ]);
   let check copy =
@@ -94,7 +94,7 @@ let%expect_test "copying cold and warm regexps preserves groups and marks" =
              (Re.exec_opt r s)
          in
          assert (extract copy = extract re))
-      [ ""; "a"; "ab"; "xxab"; "b"; "aaa" ]
+      [ ""; "a"; "ab"; "xxab"; "b"; "aaa"; "\na"; "\nab"; " ab"; "ab!" ]
   in
   check (Re.copy_re re);
   check (Re.copy_re re);
