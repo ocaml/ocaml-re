@@ -695,11 +695,16 @@ module State = struct
     land 0x3FFFFFFF
   ;;
 
-  let mk idx cat desc =
-    { idx; category = cat; desc; status = None; hash = hash (idx :> int) cat desc }
+  let mk idx ~masked_cat desc =
+    { idx
+    ; category = masked_cat
+    ; desc
+    ; status = None
+    ; hash = hash (idx :> int) masked_cat desc
+    }
   ;;
 
-  let create cat e = mk Idx.initial cat (Desc.initial e)
+  let create cat e = mk Idx.initial ~masked_cat:cat (Desc.initial e)
 
   let equal s t =
     Phys_equal.equal s t
@@ -744,12 +749,14 @@ module Working_area = struct
     { mutable ids : Bit_vector.t
     ; seen : Id.Hash_set.t
     ; index_count : int Atomic.t
+    ; after_category_mask : Category.t
     }
 
-  let create () =
+  let create after_category_mask =
     { ids = Bit_vector.create_zero 1
     ; seen = Id.Hash_set.create ()
     ; index_count = Atomic.make 0
+    ; after_category_mask
     }
   ;;
 
@@ -864,7 +871,7 @@ and delta_desc ctx (l : Desc.t) rem =
 let create_state tbl_ref next_cat expr =
   let idx = Working_area.free_index tbl_ref expr in
   let expr = Desc.set_idx idx expr in
-  State.mk idx next_cat expr
+  State.mk idx ~masked_cat:(Category.mask next_cat tbl_ref.after_category_mask) expr
 ;;
 
 let delta (tbl_ref : Working_area.t) next_cat char (st : State.t) =

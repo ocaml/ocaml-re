@@ -57,7 +57,7 @@ let%expect_test "string" =
     let ids = Ids.create () in
     str ids `First s
   in
-  let wa = Working_area.create () in
+  let wa = Working_area.create Category.dummy in
   loop wa (State.create cat re) 'a';
   [%expect
     {|
@@ -95,7 +95,7 @@ let%expect_test "alternation" =
       seq ids `First prefix suffix)
     |> Automata.alt ids
   in
-  let wa = Working_area.create () in
+  let wa = Working_area.create Category.dummy in
   loop wa (State.create cat re) 'a';
   [%expect
     {|
@@ -134,7 +134,7 @@ let%expect_test "alternation shared prefix" =
     in
     seq ids `First prefix suffix
   in
-  let wa = Working_area.create () in
+  let wa = Working_area.create Category.dummy in
   loop wa (State.create cat re) 'a';
   [%expect
     {|
@@ -153,7 +153,7 @@ let%expect_test "kleene star" =
     let ids = Ids.create () in
     rep ids `Greedy `First (cst ids (Cset.csingle 'z'))
   in
-  let wa = Working_area.create () in
+  let wa = Working_area.create Category.dummy in
   loop ~max:4 wa (State.create cat re) 'z';
   [%expect
     {|
@@ -185,7 +185,7 @@ let%expect_test "derivative recomputation" =
     in
     seq ids sem lhs rhs
   in
-  let wa = Working_area.create () in
+  let wa = Working_area.create Category.dummy in
   loop ~max:7 wa (State.create cat re) 'z';
   [%expect
     {|
