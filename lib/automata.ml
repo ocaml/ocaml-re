@@ -356,11 +356,14 @@ module Marks = struct
   let marks_set_idx =
     let rec marks_set_idx idx marks =
       match marks with
-      | [] -> []
-      | (a, idx') :: rem ->
-        if Idx.equal idx' Idx.unknown then (a, idx) :: marks_set_idx idx rem else marks
+      | (a, i) :: rem when Idx.equal i Idx.unknown -> (a, idx) :: marks_set_idx idx rem
+      | _ -> marks
     in
-    fun marks idx -> { marks with marks = marks_set_idx idx marks.marks }
+    fun t idx ->
+      match t.marks with
+      | (_, i) :: _ when Idx.equal i Idx.unknown ->
+        { t with marks = marks_set_idx idx t.marks }
+      | _ -> t
   ;;
 
   let filter t (b : Mark.t) (e : Mark.t) =

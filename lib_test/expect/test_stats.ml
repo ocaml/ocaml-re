@@ -355,13 +355,13 @@ let%test_module "fully forced automata" =
             force_complete ();
             [%expect
               {|
-              literal, colors=4, states=6, compiled_words=299, forced_words=728
-              alternation, colors=5, states=6, compiled_words=321, forced_words=762
-              loop, colors=2, states=5, compiled_words=270, forced_words=616
-              word boundaries, colors=2, states=8, compiled_words=352, forced_words=999
-              greedy, colors=3, states=10, compiled_words=300, forced_words=1216
-              last eol, colors=5, states=6, compiled_words=311, forced_words=805
-              wide literal, colors=256, states=259, compiled_words=4885, forced_words=95733
+              literal, colors=4, states=6, compiled_words=299, forced_words=710
+              alternation, colors=5, states=6, compiled_words=321, forced_words=747
+              loop, colors=2, states=5, compiled_words=270, forced_words=613
+              word boundaries, colors=2, states=8, compiled_words=352, forced_words=984
+              greedy, colors=3, states=10, compiled_words=300, forced_words=1165
+              last eol, colors=5, states=6, compiled_words=311, forced_words=787
+              wide literal, colors=256, states=259, compiled_words=4885, forced_words=94197
               |}]
           ;;
 
@@ -371,7 +371,7 @@ let%test_module "fully forced automata" =
               {|
               fresh, colors=4, states=0
               after "abc", colors=4, states=4
-              forced, colors=4, states=6, compiled_words=299, forced_words=728
+              forced, colors=4, states=6, compiled_words=299, forced_words=710
               |}]
           ;;
 
@@ -380,17 +380,17 @@ let%test_module "fully forced automata" =
             [%expect
               {|
               literal initial=0 forced=6 again=6 after_inputs=6
-                reachable_words initial=299 forced=728 again=728 after_inputs=728
+                reachable_words initial=299 forced=710 again=710 after_inputs=710
               alternation initial=0 forced=6 again=6 after_inputs=6
-                reachable_words initial=321 forced=762 again=762 after_inputs=762
+                reachable_words initial=321 forced=747 again=747 after_inputs=747
               loop initial=0 forced=5 again=5 after_inputs=5
-                reachable_words initial=270 forced=616 again=616 after_inputs=616
+                reachable_words initial=270 forced=613 again=613 after_inputs=613
               word boundaries initial=0 forced=8 again=8 after_inputs=8
-                reachable_words initial=352 forced=999 again=999 after_inputs=999
+                reachable_words initial=352 forced=984 again=984 after_inputs=984
               greedy initial=0 forced=10 again=10 after_inputs=10
-                reachable_words initial=300 forced=1216 again=1216 after_inputs=1216
+                reachable_words initial=300 forced=1165 again=1165 after_inputs=1165
               last eol initial=0 forced=6 again=6 after_inputs=6
-                reachable_words initial=311 forced=805 again=805 after_inputs=805
+                reachable_words initial=311 forced=787 again=787 after_inputs=787
               |}]
           ;;
         end
