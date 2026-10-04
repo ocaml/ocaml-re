@@ -1,5 +1,7 @@
 (library
  (name re_tests)
+ (modules
+  (:standard \ test_stats))
  (libraries
   re_private
   ;; This is because of the (implicit_transitive_deps false)
@@ -13,6 +15,23 @@
   ppx_inline_test.config)
  (inline_tests
   (modes native js))
+ (preprocess
+  (pps ppx_expect)))
+
+;; Reachable-word snapshots depend on the native heap representation.
+
+(library
+ (name re_stats_tests)
+ (modules test_stats)
+ (libraries
+  re_private
+  base
+  ppx_expect.config
+  ppx_expect.config_types
+  ppx_expect_common
+  ppx_inline_test.config)
+ (inline_tests
+  (modes native))
  (preprocess
   (pps ppx_expect)))
 

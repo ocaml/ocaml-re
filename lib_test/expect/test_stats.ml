@@ -1,11 +1,19 @@
-open Import
+open Re_private.Import
+module Re = Re_private.Re
 module Stats = Re_private.Stats
 
+let printf = Printf.printf
 let alphabet = String.init 256 Char.chr
+let reachable_words re = Obj.reachable_words (Obj.repr re)
 
-let print_stats name re =
+let print_stats ?compiled_words name re =
   let { Stats.colors; states } = Re.stats re in
-  printf "%s, colors=%d, states=%d\n" name colors states
+  printf "%s, colors=%d, states=%d" name colors states;
+  Option.iter
+    (fun compiled_words ->
+       printf ", compiled_words=%d, forced_words=%d" compiled_words (reachable_words re))
+    compiled_words;
+  printf "\n"
 ;;
 
 let report name pattern inputs =
@@ -229,43 +237,29 @@ let%expect_test "marks do not change state identity" =
 
 let forced name ast =
   let re = Re.compile ast in
+  let compiled_words = reachable_words re in
   Re.force_states re;
-  print_stats name re
+  print_stats ~compiled_words name re
 ;;
 
-let%expect_test "force_states interns the complete automaton" =
+let force_complete () =
   forced "literal" (Re.str "abc");
   forced "alternation" Re.(alt [ str "ab"; str "cd" ]);
   forced "loop" Re.(rep (char 'a'));
   forced "word boundaries" Re.(seq [ bow; group (rep1 wordc); eow ]);
   forced "greedy" Re.(seq [ char 'a'; rep any; char 'b' ]);
   forced "last eol" Re.(seq [ str "abc"; leol ]);
-  forced "wide literal" (Re.str alphabet);
-  [%expect
-    {|
-    literal, colors=4, states=6
-    alternation, colors=5, states=6
-    loop, colors=2, states=5
-    word boundaries, colors=2, states=8
-    greedy, colors=3, states=10
-    last eol, colors=5, states=6
-    wide literal, colors=256, states=259
-    |}]
+  forced "wide literal" (Re.str alphabet)
 ;;
 
-let%expect_test "force_states completes a partially built automaton" =
+let force_partial () =
   let re = Re.compile (Re.str "abc") in
+  let compiled_words = reachable_words re in
   print_stats "fresh" re;
   ignore (Re.execp re "abc" : bool);
   print_stats "after \"abc\"" re;
   Re.force_states re;
-  print_stats "forced" re;
-  [%expect
-    {|
-    fresh, colors=4, states=0
-    after "abc", colors=4, states=4
-    forced, colors=4, states=6
-    |}]
+  print_stats ~compiled_words "forced" re
 ;;
 
 let%expect_test "force_states preserves matches, captures and partial results" =
@@ -309,7 +303,7 @@ let%expect_test "force_states preserves matches, captures and partial results" =
   [%expect {| |}]
 ;;
 
-let%expect_test "force_states is a fixed point" =
+let force_fixed_point () =
   List.iter
     [ "literal", Re.str "abc"
     ; ("alternation", Re.(alt [ str "ab"; str "cd" ]))
@@ -321,10 +315,13 @@ let%expect_test "force_states is a fixed point" =
     ~f:(fun (name, ast) ->
       let re = Re.compile ast in
       let { Stats.states = initial; _ } = Re.stats re in
+      let initial_words = reachable_words re in
       Re.force_states re;
       let { Stats.states = forced; _ } = Re.stats re in
+      let forced_words = reachable_words re in
       Re.force_states re;
       let { Stats.states = again; _ } = Re.stats re in
+      let again_words = reachable_words re in
       Stdlib.List.iter
         (fun input ->
            ignore (Re.execp re input : bool);
@@ -337,14 +334,68 @@ let%expect_test "force_states is a fixed point" =
         initial
         forced
         again
-        after_inputs);
-  [%expect
-    {|
-    literal initial=0 forced=6 again=6 after_inputs=6
-    alternation initial=0 forced=6 again=6 after_inputs=6
-    loop initial=0 forced=5 again=5 after_inputs=5
-    word boundaries initial=0 forced=8 again=8 after_inputs=8
-    greedy initial=0 forced=10 again=10 after_inputs=10
-    last eol initial=0 forced=6 again=6 after_inputs=6
-    |}]
+        after_inputs;
+      printf
+        "  reachable_words initial=%d forced=%d again=%d after_inputs=%d\n"
+        initial_words
+        forced_words
+        again_words
+        (reachable_words re))
+;;
+
+(* Pin heap-size snapshots to the runtime they were recorded with. Other
+   compiler versions still run the remaining stats and semantic tests. *)
+let%test_module "fully forced automata" =
+  (module struct
+    let () =
+      if String.equal Sys.ocaml_version "5.4.1"
+      then
+        let module Tests = struct
+          let%expect_test "complete automaton" =
+            force_complete ();
+            [%expect
+              {|
+              literal, colors=4, states=6, compiled_words=299, forced_words=731
+              alternation, colors=5, states=6, compiled_words=321, forced_words=765
+              loop, colors=2, states=5, compiled_words=270, forced_words=622
+              word boundaries, colors=2, states=8, compiled_words=352, forced_words=1005
+              greedy, colors=3, states=10, compiled_words=300, forced_words=1222
+              last eol, colors=5, states=6, compiled_words=311, forced_words=808
+              wide literal, colors=256, states=259, compiled_words=4885, forced_words=95736
+              |}]
+          ;;
+
+          let%expect_test "partially built automaton" =
+            force_partial ();
+            [%expect
+              {|
+              fresh, colors=4, states=0
+              after "abc", colors=4, states=4
+              forced, colors=4, states=6, compiled_words=299, forced_words=731
+              |}]
+          ;;
+
+          let%expect_test "fixed point" =
+            force_fixed_point ();
+            [%expect
+              {|
+              literal initial=0 forced=6 again=6 after_inputs=6
+                reachable_words initial=299 forced=731 again=731 after_inputs=731
+              alternation initial=0 forced=6 again=6 after_inputs=6
+                reachable_words initial=321 forced=765 again=765 after_inputs=765
+              loop initial=0 forced=5 again=5 after_inputs=5
+                reachable_words initial=270 forced=622 again=622 after_inputs=622
+              word boundaries initial=0 forced=8 again=8 after_inputs=8
+                reachable_words initial=352 forced=1005 again=1005 after_inputs=1005
+              greedy initial=0 forced=10 again=10 after_inputs=10
+                reachable_words initial=300 forced=1222 again=1222 after_inputs=1222
+              last eol initial=0 forced=6 again=6 after_inputs=6
+                reachable_words initial=311 forced=808 again=808 after_inputs=808
+              |}]
+          ;;
+        end
+        in
+        ()
+    ;;
+  end)
 ;;

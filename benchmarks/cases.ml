@@ -187,9 +187,21 @@ let cases =
     ]
 ;;
 
-let report name re =
+(* Count the whole regex graph, so shared blocks are only counted once.
+   Exact sizes are implementation snapshots for 64-bit native OCaml. *)
+let reachable_words re = Obj.reachable_words (Obj.repr re)
+
+let report ?compiled_words name re =
   let { Re.Stats.colors; states } = Re.stats re in
-  Printf.printf "%s colors=%d states=%d\n" name colors states
+  Printf.printf "%s colors=%d states=%d" name colors states;
+  Option.iter
+    (fun compiled_words ->
+       Printf.printf
+         " compiled_words=%d forced_words=%d"
+         compiled_words
+         (reachable_words re))
+    compiled_words;
+  Printf.printf "\n"
 ;;
 
 (* States are interned lazily. Each snapshot compiles a fresh regex and
@@ -231,7 +243,7 @@ let%expect_test "benchmark automaton colors and states" =
 
    [expression IDs/narrow/8000000] is skipped as well: its complete automaton
    needs several GiB. *)
-let%expect_test "fully forced benchmark automata" =
+let force_benchmarks () =
   let case name =
     match List.find_opt (fun (c : case) -> String.equal c.name name) cases with
     | Some { name; pattern; _ } -> name, pattern
@@ -266,27 +278,45 @@ let%expect_test "fully forced benchmark automata" =
     (fun (name, pattern) ->
        let re = Re.compile pattern in
        let forced = Re.copy_re re in
+       let compiled_words = reachable_words forced in
        Re.force_states forced;
-       report name forced)
-    forceable;
-  [%expect
-    {|
-    20 zeroes colors=2 states=23
-    lots of a's colors=3 states=9
-    media type match colors=3 states=10
-    uri colors=6 states=242
-    http/manual/group colors=13 states=374
-    http/auto/all_gen colors=13 states=707
-    string traversal from #210 colors=3 states=65
-    kleene star compilation colors=2 states=5
-    repeated sequence re colors=256 states=12803
-    split on whitespace colors=2 states=5
-    shared prefixes colors=27 states=8
-    duplicate accepting states colors=256 states=2
-    expression IDs/broad/16/1024 colors=9 states=1033
-    expression IDs/broad/4096/16384 colors=17 states=16401
-    expression IDs/broad/65536/262144 colors=21 states=262165
-    expression IDs/narrow/1024 colors=2 states=1027
-    expression IDs/narrow/1000000 colors=2 states=1000003
-    |}]
+       report ~compiled_words name forced)
+    forceable
+;;
+
+(* Pin heap-size snapshots to the runtime they were recorded with. *)
+let%test_module "fully forced benchmark automata" =
+  (module struct
+    let () =
+      if String.equal Sys.ocaml_version "5.4.1"
+      then
+        let module Tests = struct
+          let%expect_test "colors, states and reachable words" =
+            force_benchmarks ();
+            [%expect
+              {|
+              20 zeroes colors=2 states=23 compiled_words=491 forced_words=5418
+              lots of a's colors=3 states=9 compiled_words=307 forced_words=991
+              media type match colors=3 states=10 compiled_words=316 forced_words=1166
+              uri colors=6 states=242 compiled_words=741 forced_words=48656
+              http/manual/group colors=13 states=374 compiled_words=838 forced_words=74794
+              http/auto/all_gen colors=13 states=707 compiled_words=1277 forced_words=157369
+              string traversal from #210 colors=3 states=65 compiled_words=461 forced_words=10895
+              kleene star compilation colors=2 states=5 compiled_words=270 forced_words=622
+              repeated sequence re colors=256 states=12803 compiled_words=130325 forced_words=11930441
+              split on whitespace colors=2 states=5 compiled_words=280 forced_words=683
+              shared prefixes colors=27 states=8 compiled_words=6204 forced_words=13697
+              duplicate accepting states colors=256 states=2 compiled_words=4985 forced_words=5489
+              expression IDs/broad/16/1024 colors=9 states=1033 compiled_words=11053 forced_words=101938
+              expression IDs/broad/4096/16384 colors=17 states=16401 compiled_words=350486 forced_words=2498283
+              expression IDs/broad/65536/262144 colors=21 states=262165 compiled_words=5996822 forced_words=43354319
+              expression IDs/narrow/1024 colors=2 states=1027 compiled_words=10492 forced_words=83724
+              expression IDs/narrow/1000000 colors=2 states=1000003 compiled_words=10000252 forced_words=81024556
+              |}]
+          ;;
+        end
+        in
+        ()
+    ;;
+  end)
 ;;
