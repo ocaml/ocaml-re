@@ -371,8 +371,17 @@ module Marks = struct
     }
   ;;
 
+  let rec remove_mark i marks =
+    match marks with
+    | [] -> []
+    | (j, _) :: rest when Mark.equal i j -> rest
+    | mark :: rest ->
+      let rest' = remove_mark i rest in
+      if Phys_equal.equal rest rest' then marks else mark :: rest'
+  ;;
+
   let set_mark t (i : Mark.t) =
-    { t with marks = (i, Idx.unknown) :: List.remove_assq i t.marks }
+    { t with marks = (i, Idx.unknown) :: remove_mark i t.marks }
   ;;
 
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
