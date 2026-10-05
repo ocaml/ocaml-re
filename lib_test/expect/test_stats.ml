@@ -472,38 +472,38 @@ let%test_module "fully forced automata" =
               literal:
                 colors: 4
                 states: 6
-                compiled_words: 299
-                forced_words: 680
+                compiled_words: 302
+                forced_words: 683
               alternation:
                 colors: 5
                 states: 6
-                compiled_words: 321
-                forced_words: 717
+                compiled_words: 324
+                forced_words: 720
               loop:
                 colors: 2
                 states: 5
-                compiled_words: 270
-                forced_words: 595
+                compiled_words: 273
+                forced_words: 598
               word boundaries:
                 colors: 2
                 states: 8
-                compiled_words: 352
-                forced_words: 944
+                compiled_words: 355
+                forced_words: 947
               greedy:
                 colors: 3
                 states: 10
-                compiled_words: 300
-                forced_words: 1,073
+                compiled_words: 303
+                forced_words: 1,076
               last eol:
                 colors: 5
                 states: 6
-                compiled_words: 311
-                forced_words: 751
+                compiled_words: 314
+                forced_words: 754
               wide literal:
                 colors: 256
                 states: 259
-                compiled_words: 4,885
-                forced_words: 92,143
+                compiled_words: 4,888
+                forced_words: 92,146
               |}]
           ;;
 
@@ -520,8 +520,8 @@ let%test_module "fully forced automata" =
               forced:
                 colors: 4
                 states: 6
-                compiled_words: 299
-                forced_words: 680
+                compiled_words: 302
+                forced_words: 683
               |}]
           ;;
 
@@ -536,10 +536,10 @@ let%test_module "fully forced automata" =
                   again: 6
                   after_inputs: 6
                 reachable_words:
-                  initial: 299
-                  forced: 680
-                  again: 680
-                  after_inputs: 680
+                  initial: 302
+                  forced: 683
+                  again: 683
+                  after_inputs: 683
               alternation:
                 states:
                   initial: 0
@@ -547,10 +547,10 @@ let%test_module "fully forced automata" =
                   again: 6
                   after_inputs: 6
                 reachable_words:
-                  initial: 321
-                  forced: 717
-                  again: 717
-                  after_inputs: 717
+                  initial: 324
+                  forced: 720
+                  again: 720
+                  after_inputs: 720
               loop:
                 states:
                   initial: 0
@@ -558,10 +558,10 @@ let%test_module "fully forced automata" =
                   again: 5
                   after_inputs: 5
                 reachable_words:
-                  initial: 270
-                  forced: 595
-                  again: 595
-                  after_inputs: 595
+                  initial: 273
+                  forced: 598
+                  again: 598
+                  after_inputs: 598
               word boundaries:
                 states:
                   initial: 0
@@ -569,10 +569,10 @@ let%test_module "fully forced automata" =
                   again: 8
                   after_inputs: 8
                 reachable_words:
-                  initial: 352
-                  forced: 944
-                  again: 944
-                  after_inputs: 944
+                  initial: 355
+                  forced: 947
+                  again: 947
+                  after_inputs: 947
               greedy:
                 states:
                   initial: 0
@@ -580,10 +580,10 @@ let%test_module "fully forced automata" =
                   again: 10
                   after_inputs: 10
                 reachable_words:
-                  initial: 300
-                  forced: 1,073
-                  again: 1,073
-                  after_inputs: 1,073
+                  initial: 303
+                  forced: 1,076
+                  again: 1,076
+                  after_inputs: 1,076
               last eol:
                 states:
                   initial: 0
@@ -591,10 +591,10 @@ let%test_module "fully forced automata" =
                   again: 6
                   after_inputs: 6
                 reachable_words:
-                  initial: 311
-                  forced: 751
-                  again: 751
-                  after_inputs: 751
+                  initial: 314
+                  forced: 754
+                  again: 754
+                  after_inputs: 754
               |}]
           ;;
         end

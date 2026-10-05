@@ -366,6 +366,25 @@ module Marks = struct
       | _ -> t
   ;;
 
+  module Assignment_cache = struct
+    type nonrec t = (t * t) option ref
+
+    let create () = ref None
+    let clear t = t := None
+
+    let assign cache idx marks =
+      match marks.marks with
+      | (_, i) :: _ when Idx.equal i Idx.unknown ->
+        (match !cache with
+         | Some (source, assigned) when Phys_equal.equal source marks -> assigned
+         | _ ->
+           let assigned = marks_set_idx marks idx in
+           cache := Some (marks, assigned);
+           assigned)
+      | _ -> marks
+    ;;
+  end
+
   let filter t (b : Mark.t) (e : Mark.t) =
     { t with
       marks =
@@ -431,7 +450,7 @@ module Desc : sig
   val texp : Marks.t -> Expr.t -> t -> t
   val initial : Expr.t -> t
   val empty : t
-  val set_idx : Idx.t -> t -> t
+  val set_idx : Marks.Assignment_cache.t -> Idx.t -> t -> t
   val hash : t -> int -> int
   val equal : t -> t -> bool
   val status : t -> Status.t
@@ -614,26 +633,37 @@ end = struct
     | _ -> false
   ;;
 
-  let rec set_idx idx = function
-    | Empty -> Empty
-    | TMatch (m, rest) as t ->
-      let m' = Marks.marks_set_idx m idx in
-      let rest' = set_idx idx rest in
-      if Phys_equal.equal m m' && Phys_equal.equal rest rest'
-      then t
-      else TMatch (m', rest')
-    | TExp (m, e, rest) as t ->
-      let m' = Marks.marks_set_idx m idx in
-      let rest' = set_idx idx rest in
-      if Phys_equal.equal m m' && Phys_equal.equal rest rest'
-      then t
-      else TExp (m', e, rest')
-    | TSeq (k, l, e, rest) as t ->
-      let l' = set_idx idx l in
-      let rest' = set_idx idx rest in
-      if Phys_equal.equal l l' && Phys_equal.equal rest rest'
-      then t
-      else TSeq (k, l', e, rest')
+  let set_idx =
+    let rec map cache idx = function
+      | Empty -> Empty
+      | TMatch (m, rest) as t ->
+        let m' = Marks.Assignment_cache.assign cache idx m in
+        let rest' = map cache idx rest in
+        if Phys_equal.equal m m' && Phys_equal.equal rest rest'
+        then t
+        else TMatch (m', rest')
+      | TExp (m, e, rest) as t ->
+        let m' = Marks.Assignment_cache.assign cache idx m in
+        let rest' = map cache idx rest in
+        if Phys_equal.equal m m' && Phys_equal.equal rest rest'
+        then t
+        else TExp (m', e, rest')
+      | TSeq (k, l, e, rest) as t ->
+        let l' = map cache idx l in
+        let rest' = map cache idx rest in
+        if Phys_equal.equal l l' && Phys_equal.equal rest rest'
+        then t
+        else TSeq (k, l', e, rest')
+    in
+    fun cache idx xs ->
+      (* Alternatives often carry the same unresolved history. Resolve it once.
+         Scope the memo to this assignment: do not retain discarded histories
+         or reuse a result with a different position index. Reusing the empty
+         scratch cell avoids allocating closures/refs for every derivative. *)
+      Marks.Assignment_cache.clear cache;
+      let result = map cache idx xs in
+      Marks.Assignment_cache.clear cache;
+      result
   ;;
 
   let empty = Empty
@@ -781,6 +811,7 @@ module Working_area = struct
     ; seen : Id.Hash_set.t
     ; index_count : int Atomic.t
     ; after_category_mask : Category.t
+    ; assignment_cache : Marks.Assignment_cache.t
     }
 
   let create after_category_mask =
@@ -788,6 +819,7 @@ module Working_area = struct
     ; seen = Id.Hash_set.create ()
     ; index_count = Atomic.make 0
     ; after_category_mask
+    ; assignment_cache = Marks.Assignment_cache.create ()
     }
   ;;
 
@@ -902,7 +934,7 @@ and delta_desc ctx (l : Desc.t) rem =
 
 let create_state tbl_ref next_cat expr =
   let idx = Working_area.free_index tbl_ref expr in
-  let expr = Desc.set_idx idx expr in
+  let expr = Desc.set_idx tbl_ref.assignment_cache idx expr in
   State.mk idx ~masked_cat:(Category.mask next_cat tbl_ref.after_category_mask) expr
 ;;
 
