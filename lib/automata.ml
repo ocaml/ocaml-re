@@ -417,17 +417,25 @@ module Status = struct
 end
 
 module Desc : sig
-  (* Each final [t] links to the remaining alternatives. *)
-  type t = private
-    | Empty
-    | TSeq of Sem.t * t * Expr.t * t
-    | TExp of Marks.t * Expr.t * t
-    | TMatch of Marks.t * t
+  type no_match
+  type has_match
+
+  (* Each final [node] links to the remaining alternatives. *)
+  type _ node = private
+    | Empty : no_match node
+    | TSeq : Sem.t * no_match node * Expr.t * 'k node -> 'k node
+    | TExp : Marks.t * Expr.t * 'k node -> 'k node
+    | TMatch : Marks.t * 'k node -> has_match node
+
+  type t = Desc : 'k node -> t [@@unboxed]
+
+  type _ match_result =
+    | No_match : no_match match_result
+    | First_match : Marks.t -> has_match match_result
 
   val pp : t Fmt.t
   val to_dyn : t -> Dyn.t
-  val fold_right : t -> init:'acc -> f:(t -> 'acc -> 'acc) -> 'acc
-  val tseq : Sem.t -> t -> Expr.t -> t -> t
+  val tseq : Sem.t -> no_match node -> Expr.t -> t -> t
   val texp : Marks.t -> Expr.t -> t -> t
   val initial : Expr.t -> t
   val empty : t
@@ -436,211 +444,225 @@ module Desc : sig
   val equal : t -> t -> bool
   val status : t -> Status.t
   val status_is_ambiguous : t -> ambiguity_mark:Pmark.t -> bool
-  val first_match : t -> Marks.t option
-  val remove_matches : t -> t
-  val split_at_match : t -> t * t
+  val first_match : 'k node -> 'k match_result
+  val remove_matches : has_match node -> no_match node
+  val split_at_match : has_match node -> no_match node * no_match node
   val add_match : t -> Marks.t -> t
   val add_eps : t -> Marks.t -> t
-  val add_expr : t -> expr:t -> t
   val iter_marks : t -> f:(Marks.t -> unit) -> unit
   val remove_duplicates : Id.Hash_set.t -> t -> Expr.t -> t
 end = struct
   (* TMatch is produced when deriving a regex succeeds without consuming the
-     input character. As a result, the derivation proceeds into whatever
-     follows the TMatch, which means we have the invariant that TMatch can only
-     show up in the top-most list (i.e. not nested inside a Tseq. This happens
-     because TMatch are dropped via remove_matches or split_at_match or bubble
-     up to the top).
-   *)
-  type t =
-    | Empty
-    | TSeq of Sem.t * t * Expr.t * t
-    | TExp of Marks.t * Expr.t * t
-    | TMatch of Marks.t * t
+     input character. Derivation therefore proceeds into whatever follows the
+     TMatch. Matches are dropped by remove_matches or split_at_match, or bubble
+     up to the top, so they only occur in the outermost chain, never inside a TSeq.
 
-  let tail = function
-    | Empty -> assert false
-    | TSeq (_, _, _, rest) | TExp (_, _, rest) | TMatch (_, rest) -> rest
-  ;;
+     The index records whether the alternative chain contains a TMatch. A TSeq
+     can only nest a chain without one; sequencing must first bubble matches out. *)
+  type no_match = [ `No_match ]
+  type has_match = [ `Has_match ]
 
-  let with_tail t rest =
-    if Phys_equal.equal (tail t) rest
-    then t
-    else (
-      match t with
-      | Empty -> assert false
-      | TSeq (k, l, e, _) -> TSeq (k, l, e, rest)
-      | TExp (m, e, _) -> TExp (m, e, rest)
-      | TMatch (m, _) -> TMatch (m, rest))
-  ;;
+  type _ node =
+    | Empty : no_match node
+    | TSeq : Sem.t * no_match node * Expr.t * 'k node -> 'k node
+    | TExp : Marks.t * Expr.t * 'k node -> 'k node
+    | TMatch : Marks.t * 'k node -> has_match node
 
-  let rec equal x y =
-    Phys_equal.equal x y
+  type t = Desc : 'k node -> t [@@unboxed]
+
+  type _ match_result =
+    | No_match : no_match match_result
+    | First_match : Marks.t -> has_match match_result
+
+  let rec equal (Desc x as a) (Desc y as b) =
+    Phys_equal.equal a b
     ||
     match x, y with
     | TSeq (_, l1, e1, rest1), TSeq (_, l2, e2, rest2) ->
-      Id.equal e1.id e2.id && equal l1 l2 && equal rest1 rest2
+      Id.equal e1.id e2.id && equal (Desc l1) (Desc l2) && equal (Desc rest1) (Desc rest2)
     | TExp (m1, e1, rest1), TExp (m2, e2, rest2) ->
-      Id.equal e1.id e2.id && Marks.equal m1 m2 && equal rest1 rest2
-    | TMatch (m1, rest1), TMatch (m2, rest2) -> Marks.equal m1 m2 && equal rest1 rest2
+      Id.equal e1.id e2.id && Marks.equal m1 m2 && equal (Desc rest1) (Desc rest2)
+    | TMatch (m1, rest1), TMatch (m2, rest2) ->
+      Marks.equal m1 m2 && equal (Desc rest1) (Desc rest2)
     | _, _ -> false
   ;;
 
-  let rec hash t accu =
+  let rec hash (Desc t) accu =
     match t with
     | Empty -> accu
     | TSeq (_, l, e, rest) ->
-      hash rest (hash_combine 0x172a1bce (hash_combine (Id.hash e.id) (hash l accu)))
+      hash
+        (Desc rest)
+        (hash_combine 0x172a1bce (hash_combine (Id.hash e.id) (hash (Desc l) accu)))
     | TExp (m, e, rest) ->
       hash
-        rest
+        (Desc rest)
         (hash_combine 0x2b4c0d77 (hash_combine (Id.hash e.id) (Marks.hash m accu)))
-    | TMatch (m, rest) -> hash rest (hash_combine 0x1c205ad5 (Marks.hash m accu))
+    | TMatch (m, rest) -> hash (Desc rest) (hash_combine 0x1c205ad5 (Marks.hash m accu))
   ;;
 
-  let rec fold_right t ~init ~f =
-    match t with
-    | Empty -> init
-    | _ -> f t (fold_right (tail t) ~init ~f)
-  ;;
+  let rec to_dyn t = Dyn.list (dyn_of_nodes t)
 
-  let rec to_dyn t =
-    Dyn.list (fold_right t ~init:[] ~f:(fun e rest -> dyn_of_e e :: rest))
-
-  and dyn_of_e =
+  and dyn_of_nodes (Desc t) =
     let open Dyn in
-    function
-    | Empty -> assert false
-    | TSeq (sem, x, y, _) ->
-      variant ("TSeq" ^ sem_kind_suffix sem) [ to_dyn x; Expr.to_dyn y ]
-    | TExp (marks, e, _) ->
+    match t with
+    | Empty -> []
+    | TSeq (sem, x, y, rest) ->
+      variant ("TSeq" ^ sem_kind_suffix sem) [ to_dyn (Desc x); Expr.to_dyn y ]
+      :: dyn_of_nodes (Desc rest)
+    | TExp (marks, e, rest) ->
       let base = [ Expr.to_dyn e ] in
       variant
         "TExp"
         (if Marks.(equal empty marks) then base else Marks.to_dyn marks :: base)
-    | TMatch (m, _) -> variant "TMatch" [ Marks.to_dyn m ]
+      :: dyn_of_nodes (Desc rest)
+    | TMatch (m, rest) -> variant "TMatch" [ Marks.to_dyn m ] :: dyn_of_nodes (Desc rest)
   ;;
 
-  let tseq kind x y rem =
+  let tseq_node kind (x : no_match node) y rem =
     match x with
     | Empty -> rem
     | TExp (marks, { def = Eps; _ }, Empty) -> TExp (marks, y, rem)
     | _ -> TSeq (kind, x, y, rem)
   ;;
 
-  let texp marks e rem = TExp (marks, e, rem)
+  let tseq kind x y (Desc rem) = Desc (tseq_node kind x y rem)
+  let texp marks e (Desc rem) = Desc (TExp (marks, e, rem))
 
-  let rec iter_marks t ~f =
+  let rec iter_marks (Desc t) ~f =
     match t with
     | Empty -> ()
     | TSeq (_, l, _, rest) ->
-      iter_marks l ~f;
-      iter_marks rest ~f
-    | TExp (marks, _, rest) | TMatch (marks, rest) ->
+      iter_marks (Desc l) ~f;
+      iter_marks (Desc rest) ~f
+    | TExp (marks, _, rest) ->
       f marks;
-      iter_marks rest ~f
+      iter_marks (Desc rest) ~f
+    | TMatch (marks, rest) ->
+      f marks;
+      iter_marks (Desc rest) ~f
   ;;
 
-  let rec print_state_rec ch e (y : Expr.t) =
+  let rec print_state_lst ch ~(sep : (_, _, _) format) (Desc e) (y : Expr.t) =
     match e with
-    | Empty -> assert false
-    | TMatch (marks, _) -> Format.fprintf ch "@[<2>(TMatch@ %a)@]" Marks.pp marks
-    | TSeq (sem, l', x, _) ->
-      Format.fprintf ch "@[<2>(TSeq@ %a@ " Sem.pp sem;
-      print_state_lst ch l' x;
-      Format.fprintf ch "@ %a)@]" Expr.pp x
-    | TExp (marks, { def = Eps; _ }, _) ->
-      Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ (eps))@]" Id.pp y.id Marks.pp marks
-    | TExp (marks, x, _) ->
-      Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ %a)@]" Id.pp x.id Marks.pp marks Expr.pp x
-
-  and print_state_lst ch l y =
-    match l with
     | Empty -> Format.fprintf ch "()"
-    | e ->
-      print_state_rec ch e y;
-      let rec loop = function
-        | Empty -> ()
-        | e ->
-          Format.fprintf ch "@ | ";
-          print_state_rec ch e y;
-          loop (tail e)
-      in
-      loop (tail e)
+    | TMatch (marks, rest) ->
+      Format.fprintf ch "@[<2>(TMatch@ %a)@]" Marks.pp marks;
+      print_state_rest ch ~sep (Desc rest) y
+    | TSeq (sem, l', x, rest) ->
+      Format.fprintf ch "@[<2>(TSeq@ %a@ " Sem.pp sem;
+      print_state_lst ch ~sep:"@ | " (Desc l') x;
+      Format.fprintf ch "@ %a)@]" Expr.pp x;
+      print_state_rest ch ~sep (Desc rest) y
+    | TExp (marks, { def = Eps; _ }, rest) ->
+      Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ (eps))@]" Id.pp y.id Marks.pp marks;
+      print_state_rest ch ~sep (Desc rest) y
+    | TExp (marks, x, rest) ->
+      Format.fprintf ch "@[<2>(TExp@ %a@ (%a)@ %a)@]" Id.pp x.id Marks.pp marks Expr.pp x;
+      print_state_rest ch ~sep (Desc rest) y
+
+  and print_state_rest ch ~sep (Desc rest as t) y =
+    match rest with
+    | Empty -> ()
+    | _ ->
+      Format.fprintf ch sep;
+      print_state_lst ch ~sep t y
   ;;
 
-  let pp ch t =
+  let pp ch (Desc e as t) =
     Format.fprintf ch "[";
-    let rec loop sep = function
-      | Empty -> ()
-      | e ->
-        if sep then Format.fprintf ch ";@ ";
-        print_state_rec ch e { id = Id.zero; def = Eps };
-        loop true (tail e)
-    in
-    loop false t;
+    (match e with
+     | Empty -> ()
+     | _ -> print_state_lst ch ~sep:";@ " t { id = Id.zero; def = Eps });
     Format.fprintf ch "]"
   ;;
 
-  let rec first_match = function
-    | Empty -> None
-    | TMatch (marks, _) -> Some marks
-    | t -> first_match (tail t)
+  let rec first_match : type k. k node -> k match_result = function
+    | Empty -> No_match
+    | TMatch (marks, _) -> First_match marks
+    | TExp (_, _, rest) -> first_match rest
+    | TSeq (_, _, _, rest) -> first_match rest
   ;;
 
-  let rec remove_matches = function
-    | Empty -> Empty
-    | TMatch (_, rest) -> remove_matches rest
-    | t -> with_tail t (remove_matches (tail t))
+  type _ presence =
+    | Absent : no_match presence
+    | Present : has_match presence
+
+  (* Unlike [first_match], this check does not allocate a result carrying marks.
+     Its index lets us return an entirely match-free suffix without rebuilding it. *)
+  let rec presence : type k. k node -> k presence = function
+    | Empty -> Absent
+    | TMatch _ -> Present
+    | TExp (_, _, rest) -> presence rest
+    | TSeq (_, _, _, rest) -> presence rest
   ;;
 
-  let rec split_at_match = function
-    | Empty -> assert false
-    | TMatch (_, rest) -> Empty, remove_matches rest
-    | t ->
-      let before, after = split_at_match (tail t) in
-      with_tail t before, after
+  (* Every node before a known match must change, so no physical-equality checks
+     are needed on that prefix. After the match, [presence] lets us reuse a clean
+     suffix. A suffix containing another match is scanned and then rebuilt. *)
+  let rec remove_matches : has_match node -> no_match node = function
+    | TMatch (_, rest) -> remove_any_matches rest
+    | TExp (m, e, rest) -> TExp (m, e, remove_matches rest)
+    | TSeq (k, l, e, rest) -> TSeq (k, l, e, remove_matches rest)
+
+  and remove_any_matches : type k. k node -> no_match node =
+    fun t ->
+    match presence t with
+    | Absent -> t
+    | Present -> remove_matches t
   ;;
 
-  let status : _ -> Status.t = function
+  let rec split_at_match : has_match node -> no_match node * no_match node = function
+    | TMatch (_, rest) -> Empty, remove_any_matches rest
+    | TExp (m, e, rest) ->
+      let before, after = split_at_match rest in
+      TExp (m, e, before), after
+    | TSeq (k, inner, e, rest) ->
+      let before, after = split_at_match rest in
+      TSeq (k, inner, e, before), after
+  ;;
+
+  let status (Desc t) : Status.t =
+    match t with
     | Empty -> Failed
     | TMatch (m, _) -> Match (Mark_infos.make (m.marks :> (int * int) list), m.pmarks)
     | _ -> Running
   ;;
 
-  let status_is_ambiguous t ~ambiguity_mark =
+  let status_is_ambiguous (Desc t) ~ambiguity_mark =
     match t with
     | TMatch (m, _) -> Pmark.Set.mem ambiguity_mark m.pmarks
     | _ -> false
   ;;
 
-  let rec set_idx idx = function
+  let rec set_idx_node : type k. Idx.t -> k node -> k node =
+    fun idx -> function
     | Empty -> Empty
     | TMatch (m, rest) as t ->
       let m' = Marks.marks_set_idx m idx in
-      let rest' = set_idx idx rest in
+      let rest' = set_idx_node idx rest in
       if Phys_equal.equal m m' && Phys_equal.equal rest rest'
       then t
       else TMatch (m', rest')
     | TExp (m, e, rest) as t ->
       let m' = Marks.marks_set_idx m idx in
-      let rest' = set_idx idx rest in
+      let rest' = set_idx_node idx rest in
       if Phys_equal.equal m m' && Phys_equal.equal rest rest'
       then t
       else TExp (m', e, rest')
     | TSeq (k, l, e, rest) as t ->
-      let l' = set_idx idx l in
-      let rest' = set_idx idx rest in
+      let l' = set_idx_node idx l in
+      let rest' = set_idx_node idx rest in
       if Phys_equal.equal l l' && Phys_equal.equal rest rest'
       then t
       else TSeq (k, l', e, rest')
   ;;
 
-  let empty = Empty
-  let initial expr = TExp (Marks.empty, expr, Empty)
-  let add_match t marks = TMatch (marks, t)
-  let add_eps t marks = TExp (marks, eps_expr, t)
-  let add_expr t ~expr = with_tail expr t
+  let set_idx idx (Desc t) = Desc (set_idx_node idx t)
+  let empty = Desc Empty
+  let initial expr = Desc (TExp (Marks.empty, expr, Empty))
+  let add_match (Desc t) marks = Desc (TMatch (marks, t))
+  let add_eps (Desc t) marks = Desc (TExp (marks, eps_expr, t))
 
   let remove_duplicates =
     (* Removing duplicates is necessary for the automata to be finite.
@@ -664,38 +686,41 @@ end = struct
        occurence of a and rep a still have a single continuation, namely rep a and
        whatever comes syntactically after rep a.
     *)
-    let rec loop seen l y =
+    let rec loop : type k. Id.Hash_set.t -> k node -> Expr.t -> k node =
+      fun seen l y ->
       match l with
       | Empty -> Empty
-      | TMatch _ as t ->
+      | TMatch (m, rest) as t ->
         (* Truncate after first match *)
-        with_tail t Empty
+        (match rest with
+         | Empty -> t
+         | _ -> TMatch (m, Empty))
       | TSeq (kind, l, x, rest) as t ->
         let l' = loop seen l x in
         let rest' = loop seen rest y in
         if Phys_equal.equal l l' && Phys_equal.equal rest rest'
         then t
-        else tseq kind l' x rest'
-      | TExp (_marks, { def = Eps; _ }, rest) as t ->
+        else tseq_node kind l' x rest'
+      | TExp (marks, ({ def = Eps; _ } as x), rest) as t ->
         if Id.Hash_set.mem seen y.id
         then loop seen rest y
         else (
           Id.Hash_set.add seen y.id;
-          with_tail t (loop seen rest y))
-      | TExp (_marks, x, rest) as t ->
+          let rest' = loop seen rest y in
+          if Phys_equal.equal rest rest' then t else TExp (marks, x, rest'))
+      | TExp (marks, x, rest) as t ->
         if Id.Hash_set.mem seen x.id
         then loop seen rest y
         else (
           Id.Hash_set.add seen x.id;
-          with_tail t (loop seen rest y))
+          let rest' = loop seen rest y in
+          if Phys_equal.equal rest rest' then t else TExp (marks, x, rest'))
     in
-    fun seen l y ->
+    fun seen (Desc l) y ->
       Id.Hash_set.clear seen;
-      loop seen l y
+      Desc (loop seen l y)
   ;;
 end
-
-module E = Desc
 
 module State = struct
   type t =
@@ -863,11 +888,11 @@ let rec delta_expr ctx marks (x : Expr.t) rem =
     if Category.intersect prev_cat cat then Desc.add_match rem marks else rem
 
 and delta_rep ctx marks x rep_kind kind y rem =
-  let y, marks' =
-    let y = delta_expr ctx marks y Desc.empty in
+  let ((y, marks') : Desc.no_match Desc.node * Marks.t) =
+    let (Desc.Desc y) = delta_expr ctx marks y Desc.empty in
     match Desc.first_match y with
-    | None -> y, marks
-    | Some marks -> Desc.remove_matches y, marks
+    | No_match -> y, marks
+    | First_match marks -> Desc.remove_matches y, marks
   in
   match rep_kind with
   | `Greedy -> Desc.tseq kind y x (Desc.add_match rem marks')
@@ -875,10 +900,10 @@ and delta_rep ctx marks x rep_kind kind y rem =
 
 and delta_alt ctx marks l rem = List.fold_right l ~init:rem ~f:(delta_expr ctx marks)
 
-and delta_seq ctx (kind : Sem.t) y z rem =
+and delta_seq ctx (kind : Sem.t) (Desc.Desc y) z rem =
   match Desc.first_match y with
-  | None -> Desc.tseq kind y z rem
-  | Some marks ->
+  | No_match -> Desc.tseq kind y z rem
+  | First_match marks ->
     (match kind with
      | `Longest -> Desc.tseq kind (Desc.remove_matches y) z (delta_expr ctx marks z rem)
      | `Shortest -> delta_expr ctx marks z (Desc.tseq kind (Desc.remove_matches y) z rem)
@@ -887,17 +912,17 @@ and delta_seq ctx (kind : Sem.t) y z rem =
        Desc.tseq kind y z (delta_expr ctx marks z (Desc.tseq kind y' z rem)))
 ;;
 
-let rec delta_e ctx (x : E.t) rem =
+let rec delta_desc ctx (Desc.Desc x as original) rem =
   match x with
-  | Empty -> assert false
-  | TSeq (kind, y, z, _) ->
-    let y = delta_desc ctx y Desc.empty in
+  | Empty -> rem
+  | TSeq (kind, y, z, rest) ->
+    let rem = delta_desc ctx (Desc.Desc rest) rem in
+    let y = delta_desc ctx (Desc.Desc y) Desc.empty in
     delta_seq ctx kind y z rem
-  | TExp (marks, e, _) -> delta_expr ctx marks e rem
-  | TMatch _ -> Desc.add_expr rem ~expr:x
-
-and delta_desc ctx (l : Desc.t) rem =
-  Desc.fold_right l ~init:rem ~f:(fun y acc -> delta_e ctx y acc)
+  | TExp (marks, e, rest) -> delta_expr ctx marks e (delta_desc ctx (Desc.Desc rest) rem)
+  | TMatch (marks, rest) ->
+    let rem = delta_desc ctx (Desc.Desc rest) rem in
+    if Phys_equal.equal (Desc.Desc rest) rem then original else Desc.add_match rem marks
 ;;
 
 let create_state tbl_ref next_cat expr =
