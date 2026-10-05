@@ -598,11 +598,25 @@ end = struct
   ;;
 
   let set_idx =
-    let rec f idx = function
-      | TMatch marks -> TMatch (Marks.marks_set_idx marks idx)
-      | TSeq (kind, l, x) -> TSeq (kind, set_idx idx l, x)
-      | TExp (marks, x) -> TExp (Marks.marks_set_idx marks idx, x)
-    and set_idx idx xs = List.map xs ~f:(f idx) in
+    let rec f idx t =
+      match t with
+      | TMatch marks ->
+        let marks' = Marks.marks_set_idx marks idx in
+        if Phys_equal.equal marks marks' then t else TMatch marks'
+      | TSeq (kind, l, x) ->
+        let l' = set_idx idx l in
+        if Phys_equal.equal l l' then t else TSeq (kind, l', x)
+      | TExp (marks, x) ->
+        let marks' = Marks.marks_set_idx marks idx in
+        if Phys_equal.equal marks marks' then t else TExp (marks', x)
+    and set_idx idx xs =
+      match xs with
+      | [] -> []
+      | x :: rest ->
+        let x' = f idx x in
+        let rest' = set_idx idx rest in
+        if Phys_equal.equal x x' && Phys_equal.equal rest rest' then xs else x' :: rest'
+    in
     set_idx
   ;;
 
