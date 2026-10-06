@@ -14,6 +14,19 @@ let%expect_test "fixed repetition" =
   [%expect {| true |}]
 ;;
 
+let%expect_test "counted repetitions preserve overlapping search starts" =
+  (* At the third 'a', the second copy and a new search attempt both await 'b',
+     but their continuations differ. Deduplication must keep both paths. *)
+  let repeated min = seq [ repn (str "ab") min (Some 2); eos ] in
+  test_re (repeated 2) "ababab";
+  test_re (repeated 0) "ababab";
+  [%expect
+    {|
+    [| (2, 6) |]
+    [| (2, 6) |]
+    |}]
+;;
+
 let%expect_test "repn" =
   let a = char 'a' in
   test_re (repn a 0 None) "";
