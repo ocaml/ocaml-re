@@ -1354,6 +1354,372 @@ let%test_module "consolidated workload statistics" =
                 compiled_words: 17,983
                 forced_words: 698,227
                 forcing: full
+              boolean/literal-short-hit:
+                colors: 5
+                states: 9
+                compiled_words: 341
+                forced_words: 986
+                forcing: full
+              boolean/literal-long-miss:
+                colors: 5
+                states: 9
+                compiled_words: 341
+                forced_words: 986
+                forcing: full
+              boolean/literal-long-late:
+                colors: 5
+                states: 9
+                compiled_words: 341
+                forced_words: 986
+                forcing: full
+              boolean/literal-overlap-miss:
+                colors: 3
+                states: 65
+                compiled_words: 461
+                forced_words: 9,620
+                forcing: full
+              boolean/alt-long-miss:
+                colors: 10
+                states: 15
+                compiled_words: 468
+                forced_words: 1,661
+                forcing: full
+              boolean/suffix-miss:
+                colors: 4
+                states: 5
+                compiled_words: 311
+                forced_words: 738
+                forcing: full
+              boolean/star-greedy-hit:
+                colors: 2
+                states: 5
+                compiled_words: 270
+                forced_words: 613
+                forcing: full
+              boolean/plus-greedy-hit:
+                colors: 2
+                states: 5
+                compiled_words: 280
+                forced_words: 620
+                forcing: full
+              boolean/anchored-repeat:
+                colors: 2
+                states: 5
+                compiled_words: 279
+                forced_words: 574
+                forcing: full
+              boolean/anchored-class:
+                colors: 2
+                states: 5
+                compiled_words: 279
+                forced_words: 574
+                forcing: full
+              boolean/anchored-class-varied:
+                colors: 2
+                states: 5
+                compiled_words: 279
+                forced_words: 574
+                forcing: full
+              boolean/anchored-class-fail:
+                colors: 2
+                states: 5
+                compiled_words: 279
+                forced_words: 574
+                forcing: full
+              boolean/email-hit:
+                colors: 6
+                states: 10
+                compiled_words: 407
+                forced_words: 1,174
+                forcing: full
+              boolean/email-miss:
+                colors: 6
+                states: 10
+                compiled_words: 407
+                forced_words: 1,174
+                forcing: full
+              boolean/http-hit:
+                colors: 18
+                states: 30
+                compiled_words: 707
+                forced_words: 3,546
+                forcing: full
+              boolean/word-boundary-miss:
+                colors: 6
+                states: 12
+                compiled_words: 389
+                forced_words: 1,368
+                forcing: full
+              boolean/line-anchor-miss:
+                colors: 5
+                states: 11
+                compiled_words: 347
+                forced_words: 1,222
+                forcing: full
+              boolean/longest-hit:
+                colors: 3
+                states: 9
+                compiled_words: 324
+                forced_words: 1,007
+                forcing: full
+              boolean/ambiguous-miss:
+                colors: 3
+                states: 7
+                compiled_words: 316
+                forced_words: 868
+                forcing: full
+              boolean/short-reject:
+                colors: 7
+                states: 9
+                compiled_words: 352
+                forced_words: 944
+                forcing: full
+              boolean/short-accept:
+                colors: 7
+                states: 9
+                compiled_words: 352
+                forced_words: 944
+                forcing: full
+              boolean/literal-dense-candidates:
+                colors: 3
+                states: 259
+                compiled_words: 3,329
+                forced_words: 22,711
+                forcing: full
+              boolean/literal-dense-short:
+                colors: 3
+                states: 11
+                compiled_words: 353
+                forced_words: 1,131
+                forcing: full
+              boolean/cycle-anchored:
+                colors: 3
+                states: 6
+                compiled_words: 307
+                forced_words: 683
+                forcing: full
+              boolean/class-late-hit:
+                colors: 3
+                states: 6
+                compiled_words: 298
+                forced_words: 768
+                forcing: full
+              boolean/word-boundary-late-hit:
+                colors: 6
+                states: 12
+                compiled_words: 389
+                forced_words: 1,368
+                forcing: full
+              boolean/literal-1k-miss:
+                colors: 5
+                states: 9
+                compiled_words: 341
+                forced_words: 986
+                forcing: full
+              boolean/literal-1m-miss:
+                colors: 5
+                states: 9
+                compiled_words: 341
+                forced_words: 986
+                forcing: full
+              boolean/path-glob:
+                colors: 6
+                states: 16
+                compiled_words: 730
+                forced_words: 3,167
+                forcing: full
+              histories/literal/captures:
+                colors: 5
+                states: 9
+                compiled_words: 341
+                forced_words: 986
+                forcing: full
+              histories/literal/no group:
+                colors: 5
+                states: 9
+                compiled_words: 341
+                forced_words: 986
+                forcing: full
+              histories/overlap/captures:
+                colors: 3
+                states: 125
+                compiled_words: 641
+                forced_words: 27,402
+                forcing: full
+              histories/overlap/no group:
+                colors: 3
+                states: 125
+                compiled_words: 641
+                forced_words: 27,402
+                forcing: full
+              histories/email/captures:
+                colors: 6
+                states: 11
+                compiled_words: 479
+                forced_words: 1,439
+                forcing: full
+              histories/email/no group:
+                colors: 6
+                states: 10
+                compiled_words: 407
+                forced_words: 1,174
+                forcing: full
+              histories/http/captures:
+                colors: 18
+                states: 30
+                compiled_words: 779
+                forced_words: 3,857
+                forcing: full
+              histories/http/no group:
+                colors: 18
+                states: 29
+                compiled_words: 707
+                forced_words: 3,466
+                forcing: full
+              histories/ambiguous/captures:
+                colors: 3
+                states: 10
+                compiled_words: 388
+                forced_words: 1,357
+                forcing: full
+              histories/ambiguous/no group:
+                colors: 3
+                states: 7
+                compiled_words: 316
+                forced_words: 868
+                forcing: full
+              histories/boundaries/captures:
+                colors: 6
+                states: 12
+                compiled_words: 413
+                forced_words: 1,452
+                forcing: full
+              histories/boundaries/no group:
+                colors: 6
+                states: 12
+                compiled_words: 389
+                forced_words: 1,368
+                forcing: full
+              histories/many-groups/captures:
+                colors: 2
+                states: 35
+                compiled_words: 1,850
+                forced_words: 86,352
+                forcing: full
+              histories/many-groups/no group:
+                colors: 2
+                states: 35
+                compiled_words: 1,082
+                forced_words: 6,871
+                forcing: full
+              histories/many-marks/captures:
+                colors: 2
+                states: 35
+                compiled_words: 1,466
+                forced_words: 29,539
+                forcing: full
+              histories/many-marks/no group:
+                colors: 2
+                states: 35
+                compiled_words: 1,466
+                forced_words: 29,539
+                forcing: full
+              matching/literal:
+                colors: 9
+                states: 11
+                compiled_words: 390
+                forced_words: 1,228
+                forcing: full
+              matching/greedy:
+                colors: 3
+                states: 25
+                compiled_words: 324
+                forced_words: 2,916
+                forcing: full
+              matching/lazy:
+                colors: 3
+                states: 11
+                compiled_words: 324
+                forced_words: 1,300
+                forcing: full
+              matching/captures:
+                colors: 4
+                states: 9
+                compiled_words: 382
+                forced_words: 1,117
+                forcing: full
+              matching/word boundaries:
+                colors: 2
+                states: 8
+                compiled_words: 352
+                forced_words: 984
+                forcing: full
+              matching/broad alternatives:
+                colors: 12
+                states: 34
+                compiled_words: 2,220
+                forced_words: 8,606
+                forcing: full
+              matching/fixed repetition:
+                colors: 2
+                states: 131
+                compiled_words: 1,532
+                forced_words: 10,319
+                forcing: full
+              matching/longest:
+                colors: 2
+                states: 21
+                compiled_words: 316
+                forced_words: 2,670
+                forcing: full
+              matching/nullable:
+                colors: 2
+                states: 5
+                compiled_words: 308
+                forced_words: 751
+                forcing: full
+              matching/nested erasure:
+                colors: 3
+                states: 9
+                compiled_words: 490
+                forced_words: 1,302
+                forcing: full
+              matching/capture loop:
+                colors: 4
+                states: 13
+                compiled_words: 396
+                forced_words: 1,549
+                forcing: full
+              matching/unanchored bytes:
+                colors: 256
+                states: 259
+                compiled_words: 4,885
+                forced_words: 94,197
+                forcing: full
+              matching/sequential32:
+                colors: 2
+                states: 35
+                compiled_words: 1,402
+                forced_words: 4,489
+                forcing: full
+              matching/promotion email:
+                colors: 6
+                states: 35
+                compiled_words: 408
+                forced_words: 3,908
+                forcing: full
+              matching/promotion http:
+                colors: 16
+                states: 27
+                compiled_words: 713
+                forced_words: 3,317
+                forcing: full
+              boolean/tex:
+                colors: 42
+                states: 68
+                compiled_words: 11,359
+                forced_words: 108,456
+                forcing: inputs (exponential complete automaton)
               |}]
           ;;
         end

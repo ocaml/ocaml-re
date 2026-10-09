@@ -15,6 +15,7 @@
   http
   id_patterns
   import
+  matching_cases
   memory_patterns
   pattern
   suite
@@ -100,7 +101,7 @@
    %{workspace_root}
    (setenv
     RE_BENCH_FILTER
-    "capture histories/,automata/tiny,parser/empty,literal/anchored/32,gitignore/latex-ignore-suffixes/noncapturing"
+    "capture histories/,automata/tiny,parser/empty,literal/anchored/32,gitignore/latex-ignore-suffixes/noncapturing,boolean/short-accept"
     (ignore-stdout
      (run %{exe:benchmark.exe} -thin-overhead 1))))))
 
