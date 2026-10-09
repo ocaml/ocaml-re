@@ -5,7 +5,14 @@
 
 (library
  (name re_benchmarks)
- (modules cases http id_patterns import memory_patterns tex)
+ (modules
+  capture_histories
+  cases
+  http
+  id_patterns
+  import
+  memory_patterns
+  tex)
  (libraries
   re_private
   base
@@ -30,8 +37,6 @@
  (copy_files ../{files,http-requests.txt,tex.gitignore}))
 
 (executable
- (enabled_if
-  (not %{env:CI=false}))
  (libraries
   re_benchmarks
   re
@@ -48,8 +53,6 @@
 
 (rule
  (alias runtest)
- (enabled_if
-  (not %{env:CI=false}))
  (deps files http-requests.txt tex.gitignore)
  (action
   (chdir
@@ -62,8 +65,6 @@
 
 (rule
  (alias runtest)
- (enabled_if
-  (not %{env:CI=false}))
  (deps files http-requests.txt tex.gitignore)
  (action
   (chdir
@@ -74,9 +75,19 @@
     (ignore-stdout
      (run %{exe:benchmark.exe} -thin-overhead 1))))))
 
+(rule
+ (alias runtest)
+ (deps files http-requests.txt tex.gitignore)
+ (action
+  (chdir
+   %{workspace_root}
+   (setenv
+    RE_BENCH_FILTER
+    "capture histories/"
+    (ignore-stdout
+     (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
 (executable
- (enabled_if
-  (not %{env:CI=false}))
  (name compare)
  (modules compare)
  (libraries
