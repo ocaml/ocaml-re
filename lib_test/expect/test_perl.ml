@@ -360,3 +360,66 @@ let%expect_test "case-modification escapes" =
     "\\Q\\Ufoo\\E" on "FOO": no match
     |}]
 ;;
+
+let%expect_test "case-modification escapes inside comments are ignored" =
+  List.iter
+    [ {|(?#\L)ABC|}, "ABC"; {|(?#\L)ABC|}, "abc" ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "(?#\\L)ABC" on "ABC": match "ABC"
+    "(?#\\L)ABC" on "abc": no match
+    |}]
+;;
+
+let%expect_test "nested case and quoting scopes (known limitations)" =
+  (* Perl's first \E closes only the most recently opened scope. The first
+     pattern matches FOO.bar, not FOOxbar; the second matches FOO.BARBAZ,
+     not FOO.BARbaz. These snapshots record the current limitations. *)
+  List.iter
+    [ {|\Q\Ufoo\E.bar\E|}, "FOO.bar"
+    ; {|\Q\Ufoo\E.bar\E|}, "FOOxbar"
+    ; {|\Ufoo\Q.bar\Ebaz\E|}, "FOO.BARBAZ"
+    ; {|\Ufoo\Q.bar\Ebaz\E|}, "FOO.BARbaz"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "\\Q\\Ufoo\\E.bar\\E" on "FOO.bar": no match
+    "\\Q\\Ufoo\\E.bar\\E" on "FOOxbar": no match
+    "\\Ufoo\\Q.bar\\Ebaz\\E" on "FOO.BARBAZ": parse error
+    "\\Ufoo\\Q.bar\\Ebaz\\E" on "FOO.BARbaz": parse error
+    |}]
+;;
+
+let%expect_test "stacked single-character case modifiers (known limitations)" =
+  (* Perl composes the modifiers: \u\lFOO matches FOO, not fOO, and
+     \l\ufoo matches foo, not Foo. Re.Perl currently rejects both patterns. *)
+  List.iter
+    [ {|\u\lFOO|}, "FOO"
+    ; {|\u\lFOO|}, "fOO"
+    ; {|\l\ufoo|}, "foo"
+    ; {|\l\ufoo|}, "Foo"
+    ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "\\u\\lFOO" on "FOO": parse error
+    "\\u\\lFOO" on "fOO": parse error
+    "\\l\\ufoo" on "foo": parse error
+    "\\l\\ufoo" on "Foo": parse error
+    |}]
+;;
+
+let%expect_test "pending case modifier across an empty quote (known limitation)" =
+  (* In Perl, the empty quote does not consume \u: this matches Foo, not foo.
+     Re.Perl currently rejects the pattern. *)
+  List.iter
+    [ {|\u\Q\Efoo|}, "Foo"; {|\u\Q\Efoo|}, "foo" ]
+    ~f:(fun (pattern, subject) -> show pattern subject);
+  [%expect
+    {|
+    "\\u\\Q\\Efoo" on "Foo": parse error
+    "\\u\\Q\\Efoo" on "foo": parse error
+    |}]
+;;
