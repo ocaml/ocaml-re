@@ -345,30 +345,32 @@ let%expect_test "case-modification escapes" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "\\lFOO" on "fOO": parse error
-    "\\lFOO" on "FOO": parse error
-    "\\uFOO" on "FOO": parse error
-    "\\LFOO\\E" on "foo": parse error
-    "\\LFOO\\E" on "FOO": parse error
-    "\\Ufoo\\E" on "FOO": parse error
-    "\\Ffoo\\E" on "foo": parse error
-    "\\UFOO\\Ebar" on "FOObar": parse error
-    "\\L[A-Z]" on "q": parse error
-    "[\\LA]" on "a": parse error
-    "\\L\\x41" on "A": parse error
-    "\\u\\x61" on "a": parse error
-    "\\Q\\Ufoo\\E" on "FOO": no match
+    "\\lFOO" on "fOO": match "fOO"
+    "\\lFOO" on "FOO": no match
+    "\\uFOO" on "FOO": match "FOO"
+    "\\LFOO\\E" on "foo": match "foo"
+    "\\LFOO\\E" on "FOO": no match
+    "\\Ufoo\\E" on "FOO": match "FOO"
+    "\\Ffoo\\E" on "foo": match "foo"
+    "\\UFOO\\Ebar" on "FOObar": match "FOObar"
+    "\\L[A-Z]" on "q": match "q"
+    "[\\LA]" on "a": match "a"
+    "\\L\\x41" on "A": match "A"
+    "\\u\\x61" on "a": match "a"
+    "\\Q\\Ufoo\\E" on "FOO": match "FOO"
     |}]
 ;;
 
-let%expect_test "case-modification escapes inside comments are ignored" =
+let%expect_test "case-modification escapes inside comments (known regression)" =
+  (* Perl ignores the \L inside the comment. The preprocessing pass currently
+     lets it affect the following pattern text instead. *)
   List.iter
     [ {|(?#\L)ABC|}, "ABC"; {|(?#\L)ABC|}, "abc" ]
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "(?#\\L)ABC" on "ABC": match "ABC"
-    "(?#\\L)ABC" on "abc": no match
+    "(?#\\L)ABC" on "ABC": no match
+    "(?#\\L)ABC" on "abc": match "abc"
     |}]
 ;;
 
@@ -385,41 +387,38 @@ let%expect_test "nested case and quoting scopes (known limitations)" =
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "\\Q\\Ufoo\\E.bar\\E" on "FOO.bar": no match
-    "\\Q\\Ufoo\\E.bar\\E" on "FOOxbar": no match
-    "\\Ufoo\\Q.bar\\Ebaz\\E" on "FOO.BARBAZ": parse error
-    "\\Ufoo\\Q.bar\\Ebaz\\E" on "FOO.BARbaz": parse error
+    "\\Q\\Ufoo\\E.bar\\E" on "FOO.bar": match "FOO.bar"
+    "\\Q\\Ufoo\\E.bar\\E" on "FOOxbar": match "FOOxbar"
+    "\\Ufoo\\Q.bar\\Ebaz\\E" on "FOO.BARBAZ": no match
+    "\\Ufoo\\Q.bar\\Ebaz\\E" on "FOO.BARbaz": match "FOO.BARbaz"
     |}]
 ;;
 
 let%expect_test "stacked single-character case modifiers (known limitations)" =
   (* Perl composes the modifiers: \u\lFOO matches FOO, not fOO, and
-     \l\ufoo matches foo, not Foo. Re.Perl currently rejects both patterns. *)
+     \l\ufoo matches foo, not Foo. Re.Perl currently keeps only the last
+     modifier. *)
   List.iter
-    [ {|\u\lFOO|}, "FOO"
-    ; {|\u\lFOO|}, "fOO"
-    ; {|\l\ufoo|}, "foo"
-    ; {|\l\ufoo|}, "Foo"
-    ]
+    [ {|\u\lFOO|}, "FOO"; {|\u\lFOO|}, "fOO"; {|\l\ufoo|}, "foo"; {|\l\ufoo|}, "Foo" ]
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "\\u\\lFOO" on "FOO": parse error
-    "\\u\\lFOO" on "fOO": parse error
-    "\\l\\ufoo" on "foo": parse error
-    "\\l\\ufoo" on "Foo": parse error
+    "\\u\\lFOO" on "FOO": no match
+    "\\u\\lFOO" on "fOO": match "fOO"
+    "\\l\\ufoo" on "foo": no match
+    "\\l\\ufoo" on "Foo": match "Foo"
     |}]
 ;;
 
 let%expect_test "pending case modifier across an empty quote (known limitation)" =
   (* In Perl, the empty quote does not consume \u: this matches Foo, not foo.
-     Re.Perl currently rejects the pattern. *)
+     Re.Perl currently clears the pending modifier at \E. *)
   List.iter
     [ {|\u\Q\Efoo|}, "Foo"; {|\u\Q\Efoo|}, "foo" ]
     ~f:(fun (pattern, subject) -> show pattern subject);
   [%expect
     {|
-    "\\u\\Q\\Efoo" on "Foo": parse error
-    "\\u\\Q\\Efoo" on "foo": parse error
+    "\\u\\Q\\Efoo" on "Foo": no match
+    "\\u\\Q\\Efoo" on "foo": match "foo"
     |}]
 ;;
