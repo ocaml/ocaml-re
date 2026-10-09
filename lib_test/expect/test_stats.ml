@@ -8,12 +8,15 @@ let reachable_words re = Obj.reachable_words (Obj.repr re)
 
 let print_stats ?compiled_words name re =
   let { Stats.colors; states } = Re.stats re in
-  printf "%s, colors=%d, states=%d" name colors states;
+  (* One metric per line: changing a value must not reflow its neighbours. *)
+  printf "%s:\n  colors: %d\n  states: %d\n" name colors states;
   Option.iter
     (fun compiled_words ->
-       printf ", compiled_words=%d, forced_words=%d" compiled_words (reachable_words re))
-    compiled_words;
-  printf "\n"
+       printf
+         "  compiled_words: %d\n  forced_words: %d\n"
+         compiled_words
+         (reachable_words re))
+    compiled_words
 ;;
 
 let report name pattern inputs =
@@ -35,11 +38,21 @@ let%expect_test "compiled automata report their colors and interned states" =
   report "wide empty match" (Re.alt [ Re.seq empty_groups; Re.str alphabet ]) bytes;
   [%expect
     {|
-    literal, colors=4, states=4
-    wide literal, colors=256, states=257
-    no assertion loop, colors=2, states=3
-    word boundaries, colors=2, states=4
-    wide empty match, colors=256, states=2
+    literal:
+      colors: 4
+      states: 4
+    wide literal:
+      colors: 256
+      states: 257
+    no assertion loop:
+      colors: 2
+      states: 3
+    word boundaries:
+      colors: 2
+      states: 4
+    wide empty match:
+      colors: 256
+      states: 2
     |}]
 ;;
 
@@ -52,9 +65,15 @@ let%expect_test "state counts only cover interned states" =
   print_stats "after \"cd\"" re;
   [%expect
     {|
-    fresh, colors=5, states=0
-    after "ab", colors=5, states=3
-    after "cd", colors=5, states=4
+    fresh:
+      colors: 5
+      states: 0
+    after "ab":
+      colors: 5
+      states: 3
+    after "cd":
+      colors: 5
+      states: 4
     |}]
 ;;
 
@@ -63,14 +82,23 @@ let%expect_test "repeated and complemented bytes reuse colors" =
   report "complemented byte" Re.(alt [ char 'b'; compl [ char 'b' ] ]) [ "b"; "c" ];
   [%expect
     {|
-    repeated byte, colors=2, states=4
-    complemented byte, colors=1, states=2
+    repeated byte:
+      colors: 2
+      states: 4
+    complemented byte:
+      colors: 1
+      states: 2
     |}]
 ;;
 
 let%expect_test "case-insensitive literals share colors" =
   report "no case" (Re.no_case (Re.str "aB")) [ "ab"; "AB" ];
-  [%expect {| no case, colors=3, states=3 |}]
+  [%expect
+    {|
+    no case:
+      colors: 3
+      states: 3
+    |}]
 ;;
 
 let%expect_test "boundary and anchor categories" =
@@ -83,12 +111,24 @@ let%expect_test "boundary and anchor categories" =
   report "anchored" (Re.Perl.re ~opts:[ `Anchored ] "abc") inputs;
   [%expect
     {|
-    bol/eol, colors=5, states=6
-    multiline, colors=5, states=6
-    leol, colors=5, states=6
-    not_boundary, colors=4, states=5
-    bos/eos, colors=4, states=5
-    anchored, colors=4, states=6
+    bol/eol:
+      colors: 5
+      states: 6
+    multiline:
+      colors: 5
+      states: 6
+    leol:
+      colors: 5
+      states: 6
+    not_boundary:
+      colors: 4
+      states: 5
+    bos/eos:
+      colors: 4
+      states: 5
+    anchored:
+      colors: 4
+      states: 6
     |}]
 ;;
 
@@ -99,9 +139,15 @@ let%expect_test "equivalent descriptors share states" =
   report "prefix branch" Re.(alt [ str "a"; str "ab" ]) inputs;
   [%expect
     {|
-    common suffix, colors=4, states=6
-    suffix branch, colors=3, states=6
-    prefix branch, colors=3, states=4
+    common suffix:
+      colors: 4
+      states: 6
+    suffix branch:
+      colors: 3
+      states: 6
+    prefix branch:
+      colors: 3
+      states: 4
     |}]
 ;;
 
@@ -120,14 +166,30 @@ let%expect_test "capture groups" =
   report "plain repeat" Re.(seq [ rep1 wordc; char '!' ]) [ "ab!cd!"; "x!" ];
   [%expect
     {|
-    captured alternation, colors=4, states=6
-    plain alternation, colors=4, states=6
-    nested groups, colors=3, states=4
-    plain sequence, colors=3, states=4
-    optional group, colors=3, states=3
-    plain optional, colors=3, states=3
-    repeated group, colors=3, states=5
-    plain repeat, colors=3, states=5
+    captured alternation:
+      colors: 4
+      states: 6
+    plain alternation:
+      colors: 4
+      states: 6
+    nested groups:
+      colors: 3
+      states: 4
+    plain sequence:
+      colors: 3
+      states: 4
+    optional group:
+      colors: 3
+      states: 3
+    plain optional:
+      colors: 3
+      states: 3
+    repeated group:
+      colors: 3
+      states: 5
+    plain repeat:
+      colors: 3
+      states: 5
     |}]
 ;;
 
@@ -138,9 +200,15 @@ let%expect_test "nullable repetitions" =
   report "empty group loop" Re.(rep (group epsilon)) [ ""; "a" ];
   [%expect
     {|
-    optional loop, colors=2, states=4
-    nested loop, colors=2, states=4
-    empty group loop, colors=1, states=2
+    optional loop:
+      colors: 2
+      states: 4
+    nested loop:
+      colors: 2
+      states: 4
+    empty group loop:
+      colors: 1
+      states: 2
     |}]
 ;;
 
@@ -154,9 +222,15 @@ let%expect_test "greedy and lazy repetition" =
     [ "aa" ];
   [%expect
     {|
-    greedy, colors=3, states=7
-    non-greedy, colors=4, states=6
-    shortest, colors=2, states=3
+    greedy:
+      colors: 3
+      states: 7
+    non-greedy:
+      colors: 4
+      states: 6
+    shortest:
+      colors: 2
+      states: 3
     |}]
 ;;
 
@@ -168,10 +242,18 @@ let%expect_test "character class algebra and folding" =
   report "dotall" (Re.Pcre.re ~flags:[ `DOTALL ] "a.b") [ "a\nb" ];
   [%expect
     {|
-    difference, colors=2, states=3
-    intersection, colors=2, states=4
-    folded range, colors=2, states=2
-    dotall, colors=3, states=4
+    difference:
+      colors: 2
+      states: 3
+    intersection:
+      colors: 2
+      states: 4
+    folded range:
+      colors: 2
+      states: 2
+    dotall:
+      colors: 3
+      states: 4
     |}]
 ;;
 
@@ -200,12 +282,22 @@ let%expect_test "partial and streaming matches" =
   [%expect
     {|
     partial 0
-    after "abc", colors=7, states=4
+    after "abc":
+      colors: 7
+      states: 4
     partial 0
-    after "abcd", colors=7, states=5
-    stream fresh, colors=5, states=0
-    stream after "ab", colors=5, states=3
-    stream after "cd", colors=5, states=5
+    after "abcd":
+      colors: 7
+      states: 5
+    stream fresh:
+      colors: 5
+      states: 0
+    stream after "ab":
+      colors: 5
+      states: 3
+    stream after "cd":
+      colors: 5
+      states: 5
     |}]
 ;;
 
@@ -226,12 +318,24 @@ let%expect_test "marks do not change state identity" =
   report "plain duplicates" Re.(alt [ str "ab"; str "ab" ]) inputs;
   [%expect
     {|
-    mark literal, colors=5, states=7
-    mark in loop, colors=3, states=7
-    marked branches, colors=7, states=5
-    plain branches, colors=7, states=5
-    marked duplicates, colors=3, states=5
-    plain duplicates, colors=3, states=5
+    mark literal:
+      colors: 5
+      states: 7
+    mark in loop:
+      colors: 3
+      states: 7
+    marked branches:
+      colors: 7
+      states: 5
+    plain branches:
+      colors: 7
+      states: 5
+    marked duplicates:
+      colors: 3
+      states: 5
+    plain duplicates:
+      colors: 3
+      states: 5
     |}]
 ;;
 
@@ -329,14 +433,23 @@ let force_fixed_point () =
         [ ""; "a"; "ab"; "abc"; "cd"; "abc\n"; "x abc x" ];
       let { Stats.states = after_inputs; _ } = Re.stats re in
       printf
-        "%s initial=%d forced=%d again=%d after_inputs=%d\n"
+        "%s:\n\
+        \  states:\n\
+        \    initial: %d\n\
+        \    forced: %d\n\
+        \    again: %d\n\
+        \    after_inputs: %d\n"
         name
         initial
         forced
         again
         after_inputs;
       printf
-        "  reachable_words initial=%d forced=%d again=%d after_inputs=%d\n"
+        "  reachable_words:\n\
+        \    initial: %d\n\
+        \    forced: %d\n\
+        \    again: %d\n\
+        \    after_inputs: %d\n"
         initial_words
         forced_words
         again_words
@@ -355,13 +468,41 @@ let%test_module "fully forced automata" =
             force_complete ();
             [%expect
               {|
-              literal, colors=4, states=6, compiled_words=299, forced_words=710
-              alternation, colors=5, states=6, compiled_words=321, forced_words=747
-              loop, colors=2, states=5, compiled_words=270, forced_words=613
-              word boundaries, colors=2, states=8, compiled_words=352, forced_words=984
-              greedy, colors=3, states=10, compiled_words=300, forced_words=1161
-              last eol, colors=5, states=6, compiled_words=311, forced_words=787
-              wide literal, colors=256, states=259, compiled_words=4885, forced_words=94197
+              literal:
+                colors: 4
+                states: 6
+                compiled_words: 299
+                forced_words: 710
+              alternation:
+                colors: 5
+                states: 6
+                compiled_words: 321
+                forced_words: 747
+              loop:
+                colors: 2
+                states: 5
+                compiled_words: 270
+                forced_words: 613
+              word boundaries:
+                colors: 2
+                states: 8
+                compiled_words: 352
+                forced_words: 984
+              greedy:
+                colors: 3
+                states: 10
+                compiled_words: 300
+                forced_words: 1161
+              last eol:
+                colors: 5
+                states: 6
+                compiled_words: 311
+                forced_words: 787
+              wide literal:
+                colors: 256
+                states: 259
+                compiled_words: 4885
+                forced_words: 94197
               |}]
           ;;
 
@@ -369,9 +510,17 @@ let%test_module "fully forced automata" =
             force_partial ();
             [%expect
               {|
-              fresh, colors=4, states=0
-              after "abc", colors=4, states=4
-              forced, colors=4, states=6, compiled_words=299, forced_words=710
+              fresh:
+                colors: 4
+                states: 0
+              after "abc":
+                colors: 4
+                states: 4
+              forced:
+                colors: 4
+                states: 6
+                compiled_words: 299
+                forced_words: 710
               |}]
           ;;
 
@@ -379,18 +528,72 @@ let%test_module "fully forced automata" =
             force_fixed_point ();
             [%expect
               {|
-              literal initial=0 forced=6 again=6 after_inputs=6
-                reachable_words initial=299 forced=710 again=710 after_inputs=710
-              alternation initial=0 forced=6 again=6 after_inputs=6
-                reachable_words initial=321 forced=747 again=747 after_inputs=747
-              loop initial=0 forced=5 again=5 after_inputs=5
-                reachable_words initial=270 forced=613 again=613 after_inputs=613
-              word boundaries initial=0 forced=8 again=8 after_inputs=8
-                reachable_words initial=352 forced=984 again=984 after_inputs=984
-              greedy initial=0 forced=10 again=10 after_inputs=10
-                reachable_words initial=300 forced=1161 again=1161 after_inputs=1161
-              last eol initial=0 forced=6 again=6 after_inputs=6
-                reachable_words initial=311 forced=787 again=787 after_inputs=787
+              literal:
+                states:
+                  initial: 0
+                  forced: 6
+                  again: 6
+                  after_inputs: 6
+                reachable_words:
+                  initial: 299
+                  forced: 710
+                  again: 710
+                  after_inputs: 710
+              alternation:
+                states:
+                  initial: 0
+                  forced: 6
+                  again: 6
+                  after_inputs: 6
+                reachable_words:
+                  initial: 321
+                  forced: 747
+                  again: 747
+                  after_inputs: 747
+              loop:
+                states:
+                  initial: 0
+                  forced: 5
+                  again: 5
+                  after_inputs: 5
+                reachable_words:
+                  initial: 270
+                  forced: 613
+                  again: 613
+                  after_inputs: 613
+              word boundaries:
+                states:
+                  initial: 0
+                  forced: 8
+                  again: 8
+                  after_inputs: 8
+                reachable_words:
+                  initial: 352
+                  forced: 984
+                  again: 984
+                  after_inputs: 984
+              greedy:
+                states:
+                  initial: 0
+                  forced: 10
+                  again: 10
+                  after_inputs: 10
+                reachable_words:
+                  initial: 300
+                  forced: 1161
+                  again: 1161
+                  after_inputs: 1161
+              last eol:
+                states:
+                  initial: 0
+                  forced: 6
+                  again: 6
+                  after_inputs: 6
+                reachable_words:
+                  initial: 311
+                  forced: 787
+                  again: 787
+                  after_inputs: 787
               |}]
           ;;
         end
