@@ -1060,6 +1060,300 @@ let%test_module "consolidated workload statistics" =
                 compiled_words: 4,199
                 forced_words: 21,665
                 forcing: full
+              parser/empty:
+                colors: 1
+                states: 2
+                compiled_words: 245
+                forced_words: 368
+                forcing: full
+              parser/one byte:
+                colors: 2
+                states: 4
+                compiled_words: 263
+                forced_words: 516
+                forcing: full
+              parser/short literal:
+                colors: 13
+                states: 37
+                compiled_words: 516
+                forced_words: 4,245
+                forcing: full
+              parser/small alternation:
+                colors: 2
+                states: 4
+                compiled_words: 263
+                forced_words: 516
+                forcing: full
+              parser/captures:
+                colors: 2
+                states: 131
+                compiled_words: 4,859
+                forced_words: 302,800
+                forcing: full
+              parser/noncapturing:
+                colors: 3
+                states: 259
+                compiled_words: 3,329
+                forced_words: 293,003
+                forcing: full
+              parser/empty groups:
+                colors: 1
+                states: 2
+                compiled_words: 3,317
+                forced_words: 6,000
+                forcing: full
+              parser/classes:
+                colors: 2
+                states: 131
+                compiled_words: 1,787
+                forced_words: 118,184
+                forcing: full
+              parser/ranges:
+                colors: 2
+                states: 131
+                compiled_words: 1,787
+                forced_words: 118,184
+                forcing: full
+              parser/escapes:
+                colors: 4
+                states: 8
+                compiled_words: 14,574
+                forced_words: 15,333
+                forcing: full
+              parser/numeric escapes:
+                colors: 5
+                states: 515
+                compiled_words: 6,413
+                forced_words: 469,954
+                forcing: full
+              parser/named groups:
+                colors: 2
+                states: 131
+                compiled_words: 6,011
+                forced_words: 303,952
+                forcing: full
+              parser/long name:
+                colors: 2
+                states: 4
+                compiled_words: 807
+                forced_words: 1,087
+                forcing: full
+              parser/comment 4K:
+                colors: 1
+                states: 2
+                compiled_words: 245
+                forced_words: 368
+                forcing: full
+              parser/comment 64K:
+                colors: 1
+                states: 2
+                compiled_words: 245
+                forced_words: 368
+                forcing: full
+              parser/quoted backslashes:
+                colors: 5
+                states: 3,075
+                compiled_words: 37,133
+                forced_words: 10,510,182
+                forcing: full
+              parser/quantifiers:
+                colors: 5
+                states: 1
+                compiled_words: 18,701
+                forced_words: 18,760
+                forcing: inputs (exponential complete automaton)
+              literal/plain/32:
+                colors: 26
+                states: 35
+                compiled_words: 782
+                forced_words: 4,130
+                forcing: full
+              literal/quoted/32:
+                colors: 26
+                states: 35
+                compiled_words: 782
+                forced_words: 4,130
+                forcing: full
+              literal/mixed/32:
+                colors: 27
+                states: 67
+                compiled_words: 1,140
+                forced_words: 7,697
+                forcing: full
+              literal/alternation/32:
+                colors: 28
+                states: 36
+                compiled_words: 822
+                forced_words: 4,346
+                forcing: full
+              literal/plain/256:
+                colors: 64
+                states: 515
+                compiled_words: 3,703
+                forced_words: 73,861
+                forcing: full
+              literal/quoted/256:
+                colors: 64
+                states: 515
+                compiled_words: 3,703
+                forced_words: 73,861
+                forcing: full
+              literal/mixed/256:
+                colors: 64
+                states: 515
+                compiled_words: 6,301
+                forced_words: 76,836
+                forcing: full
+              literal/alternation/256:
+                colors: 64
+                states: 517
+                compiled_words: 3,731
+                forced_words: 74,224
+                forcing: full
+              literal/plain/4096:
+                colors: 64
+                states: 8,195
+                compiled_words: 49,783
+                forced_words: 1,168,717
+                forcing: full
+              literal/quoted/4096:
+                colors: 64
+                states: 8,195
+                compiled_words: 49,783
+                forced_words: 1,168,717
+                forcing: full
+              literal/mixed/4096:
+                colors: 64
+                states: 8,195
+                compiled_words: 90,781
+                forced_words: 1,217,316
+                forcing: full
+              literal/alternation/4096:
+                colors: 64
+                states: 8,197
+                compiled_words: 49,811
+                forced_words: 1,170,040
+                forcing: full
+              literal/plain/65536:
+                colors: 64
+                states: 131,075
+                compiled_words: 787,063
+                forced_words: 18,692,323
+                forcing: full
+              literal/quoted/65536:
+                colors: 64
+                states: 131,075
+                compiled_words: 787,063
+                forced_words: 18,692,323
+                forcing: full
+              literal/mixed/65536:
+                colors: 64
+                states: 131,075
+                compiled_words: 1,442,461
+                forced_words: 19,464,996
+                forcing: full
+              literal/hit/32:
+                colors: 26
+                states: 35
+                compiled_words: 782
+                forced_words: 4,130
+                forcing: full
+              literal/absent/32:
+                colors: 26
+                states: 35
+                compiled_words: 782
+                forced_words: 4,130
+                forcing: full
+              literal/late miss/32:
+                colors: 26
+                states: 35
+                compiled_words: 782
+                forced_words: 4,130
+                forcing: full
+              literal/anchored/32:
+                colors: 26
+                states: 35
+                compiled_words: 781
+                forced_words: 3,679
+                forcing: full
+              literal/hit/256:
+                colors: 64
+                states: 515
+                compiled_words: 3,703
+                forced_words: 73,861
+                forcing: full
+              literal/absent/256:
+                colors: 64
+                states: 515
+                compiled_words: 3,703
+                forced_words: 73,861
+                forcing: full
+              literal/late miss/256:
+                colors: 64
+                states: 515
+                compiled_words: 3,703
+                forced_words: 73,861
+                forcing: full
+              literal/anchored/256:
+                colors: 64
+                states: 259
+                compiled_words: 3,702
+                forced_words: 35,404
+                forcing: full
+              literal/hit/4096:
+                colors: 64
+                states: 8,195
+                compiled_words: 49,783
+                forced_words: 1,168,717
+                forcing: full
+              literal/absent/4096:
+                colors: 64
+                states: 8,195
+                compiled_words: 49,783
+                forced_words: 1,168,717
+                forcing: full
+              literal/late miss/4096:
+                colors: 64
+                states: 8,195
+                compiled_words: 49,783
+                forced_words: 1,168,717
+                forcing: full
+              literal/anchored/4096:
+                colors: 64
+                states: 4,099
+                compiled_words: 49,782
+                forced_words: 554,764
+                forcing: full
+              literal/overlap/256:
+                colors: 3
+                states: 1,021
+                compiled_words: 3,329
+                forced_words: 1,337,294
+                forcing: full
+              gitignore/joomla/capturing:
+                colors: 48
+                states: 6,947
+                compiled_words: 383,321
+                forced_words: 1,352,040
+                forcing: full
+              gitignore/joomla/noncapturing:
+                colors: 48
+                states: 6,947
+                compiled_words: 106,033
+                forced_words: 921,442
+                forcing: full
+              gitignore/latex-ignore-suffixes/capturing:
+                colors: 42
+                states: 375
+                compiled_words: 17,983
+                forced_words: 698,227
+                forcing: full
+              gitignore/latex-ignore-suffixes/noncapturing:
+                colors: 42
+                states: 375
+                compiled_words: 17,983
+                forced_words: 698,227
+                forcing: full
               |}]
           ;;
         end
