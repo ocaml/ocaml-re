@@ -634,6 +634,432 @@ let%test_module "consolidated workload statistics" =
                 compiled_words: 10,000,252
                 forced_words: 78,024,559
                 forcing: full
+              automata/tiny:
+                colors: 2
+                states: 4
+                compiled_words: 263
+                forced_words: 516
+                forcing: full
+              automata/class:
+                colors: 2
+                states: 5
+                compiled_words: 303
+                forced_words: 658
+                forcing: full
+              automata/pair:
+                colors: 3
+                states: 7
+                compiled_words: 359
+                forced_words: 969
+                forcing: full
+              automata/rotation:
+                colors: 2
+                states: 5
+                compiled_words: 293
+                forced_words: 632
+                forcing: full
+              automata/short:
+                colors: 4
+                states: 8
+                compiled_words: 381
+                forced_words: 1,137
+                forcing: full
+              automata/categories:
+                colors: 2
+                states: 5
+                compiled_words: 293
+                forced_words: 632
+                forcing: full
+              automata/boundaries:
+                colors: 4
+                states: 14
+                compiled_words: 411
+                forced_words: 1,677
+                forcing: full
+              automata/literal256:
+                colors: 256
+                states: 259
+                compiled_words: 4,884
+                forced_words: 92,615
+                forcing: full
+              automata/wide run:
+                colors: 256
+                states: 259
+                compiled_words: 4,933
+                forced_words: 86,535
+                forcing: inputs (exponential complete automaton)
+              automata/class run:
+                colors: 2
+                states: 5
+                compiled_words: 303
+                forced_words: 622
+                forcing: full
+              automata/search:
+                colors: 5
+                states: 8
+                compiled_words: 351
+                forced_words: 1,015
+                forcing: full
+              automata/alternating:
+                colors: 3
+                states: 9
+                compiled_words: 419
+                forced_words: 1,132
+                forcing: full
+              automata/overlapping alternatives:
+                colors: 11
+                states: 10
+                compiled_words: 4,998
+                forced_words: 19,037
+                forcing: inputs (exponential complete automaton)
+              automata/wide alphabet:
+                colors: 256
+                states: 7
+                compiled_words: 7,005
+                forced_words: 9,480
+                forcing: inputs (exponential complete automaton)
+              automata/token classifier:
+                colors: 17
+                states: 17
+                compiled_words: 1,105
+                forced_words: 2,734
+                forcing: full
+              automata/nested captures:
+                colors: 2
+                states: 9
+                compiled_words: 359
+                forced_words: 1,343
+                forcing: full
+              automata/repeated bytes4:
+                colors: 256
+                states: 1,027
+                compiled_words: 12,565
+                forced_words: 404,177
+                forcing: full
+              expression IDs/broad/256/4096:
+                colors: 13
+                states: 4,109
+                compiled_words: 51,349
+                forced_words: 434,231
+                forcing: full
+              automata/captures/sequential/16:
+                colors: 2
+                states: 19
+                compiled_words: 826
+                forced_words: 2,438
+                forcing: full
+              automata/captures/repeated/16:
+                colors: 2
+                states: 35
+                compiled_words: 833
+                forced_words: 5,570
+                forcing: full
+              automata/captures/erase/16:
+                colors: 2
+                states: 35
+                compiled_words: 846
+                forced_words: 4,140
+                forcing: full
+              automata/captures/sequential/128:
+                colors: 2
+                states: 131
+                compiled_words: 4,858
+                forced_words: 16,792
+                forcing: full
+              automata/captures/repeated/128:
+                colors: 2
+                states: 259
+                compiled_words: 4,865
+                forced_words: 127,908
+                forcing: full
+              automata/captures/erase/128:
+                colors: 2
+                states: 259
+                compiled_words: 4,878
+                forced_words: 30,382
+                forcing: full
+              automata/captures/sequential/512:
+                colors: 2
+                states: 515
+                compiled_words: 18,682
+                forced_words: 66,388
+                forcing: full
+              automata/captures/repeated/512:
+                colors: 2
+                states: 1,027
+                compiled_words: 18,689
+                forced_words: 1,690,464
+                forcing: full
+              automata/captures/erase/512:
+                colors: 2
+                states: 1,027
+                compiled_words: 18,702
+                forced_words: 120,682
+                forcing: full
+              automata/overlap/128:
+                colors: 255
+                states: 131
+                compiled_words: 2,579
+                forced_words: 46,596
+                forcing: full
+              automata/overlap/256:
+                colors: 255
+                states: 259
+                compiled_words: 4,115
+                forced_words: 91,588
+                forcing: full
+              automata/overlap/512:
+                colors: 255
+                states: 515
+                compiled_words: 7,187
+                forced_words: 181,572
+                forcing: full
+              automata/overlap/2048:
+                colors: 255
+                states: 2,051
+                compiled_words: 25,619
+                forced_words: 721,476
+                forcing: full
+              automata/pathological/100:
+                colors: 3
+                states: 103
+                compiled_words: 1,290
+                forced_words: 37,830
+                forcing: inputs (exponential complete automaton)
+              automata/pathological/1000:
+                colors: 3
+                states: 1,003
+                compiled_words: 10,290
+                forced_words: 3,074,364
+                forcing: inputs (exponential complete automaton)
+              automata/occupancy/8:
+                colors: 256
+                states: 772
+                compiled_words: 13,088
+                forced_words: 277,437
+                forcing: full
+              automata/occupancy/32:
+                colors: 256
+                states: 772
+                compiled_words: 13,088
+                forced_words: 277,437
+                forcing: full
+              automata/occupancy/64:
+                colors: 256
+                states: 772
+                compiled_words: 13,088
+                forced_words: 277,437
+                forcing: full
+              automata/occupancy/128:
+                colors: 256
+                states: 772
+                compiled_words: 13,088
+                forced_words: 277,437
+                forcing: full
+              automata/occupancy/256:
+                colors: 256
+                states: 772
+                compiled_words: 13,088
+                forced_words: 277,437
+                forcing: full
+              automata/duplicate status/0/1:
+                colors: 256
+                states: 2
+                compiled_words: 4,899
+                forced_words: 5,307
+                forcing: full
+              automata/duplicate status/0/8:
+                colors: 256
+                states: 2
+                compiled_words: 4,899
+                forced_words: 5,307
+                forcing: full
+              automata/duplicate status/0/32:
+                colors: 256
+                states: 2
+                compiled_words: 4,899
+                forced_words: 5,307
+                forcing: full
+              automata/duplicate status/0/128:
+                colors: 256
+                states: 2
+                compiled_words: 4,899
+                forced_words: 5,307
+                forcing: full
+              automata/duplicate status/1/1:
+                colors: 256
+                states: 2
+                compiled_words: 4,913
+                forced_words: 5,345
+                forcing: full
+              automata/duplicate status/1/8:
+                colors: 256
+                states: 2
+                compiled_words: 4,913
+                forced_words: 5,345
+                forcing: full
+              automata/duplicate status/1/32:
+                colors: 256
+                states: 2
+                compiled_words: 4,913
+                forced_words: 5,345
+                forcing: full
+              automata/duplicate status/1/128:
+                colors: 256
+                states: 2
+                compiled_words: 4,913
+                forced_words: 5,345
+                forcing: full
+              automata/duplicate status/4/1:
+                colors: 256
+                states: 2
+                compiled_words: 4,985
+                forced_words: 5,489
+                forcing: full
+              automata/duplicate status/4/8:
+                colors: 256
+                states: 2
+                compiled_words: 4,985
+                forced_words: 5,489
+                forcing: full
+              automata/duplicate status/4/32:
+                colors: 256
+                states: 2
+                compiled_words: 4,985
+                forced_words: 5,489
+                forcing: full
+              automata/duplicate status/4/128:
+                colors: 256
+                states: 2
+                compiled_words: 4,985
+                forced_words: 5,489
+                forcing: full
+              automata/duplicate status/16/1:
+                colors: 256
+                states: 2
+                compiled_words: 5,273
+                forced_words: 6,065
+                forcing: full
+              automata/duplicate status/16/8:
+                colors: 256
+                states: 2
+                compiled_words: 5,273
+                forced_words: 6,065
+                forcing: full
+              automata/duplicate status/16/32:
+                colors: 256
+                states: 2
+                compiled_words: 5,273
+                forced_words: 6,065
+                forcing: full
+              automata/duplicate status/16/128:
+                colors: 256
+                states: 2
+                compiled_words: 5,273
+                forced_words: 6,065
+                forcing: full
+              automata/duplicate status/64/1:
+                colors: 256
+                states: 2
+                compiled_words: 6,425
+                forced_words: 8,369
+                forcing: full
+              automata/duplicate status/64/8:
+                colors: 256
+                states: 2
+                compiled_words: 6,425
+                forced_words: 8,369
+                forcing: full
+              automata/duplicate status/64/32:
+                colors: 256
+                states: 2
+                compiled_words: 6,425
+                forced_words: 8,369
+                forcing: full
+              automata/duplicate status/64/128:
+                colors: 256
+                states: 2
+                compiled_words: 6,425
+                forced_words: 8,369
+                forcing: full
+              automata/descriptor width/16/1:
+                colors: 23
+                states: 189
+                compiled_words: 6,828
+                forced_words: 45,621
+                forcing: full
+              automata/descriptor width/16/8:
+                colors: 23
+                states: 189
+                compiled_words: 6,828
+                forced_words: 45,621
+                forcing: full
+              automata/descriptor width/128/1:
+                colors: 26
+                states: 332
+                compiled_words: 52,597
+                forced_words: 342,029
+                forcing: full
+              automata/descriptor width/128/8:
+                colors: 26
+                states: 332
+                compiled_words: 52,597
+                forced_words: 342,029
+                forcing: full
+              automata/descriptor width/1024/1:
+                colors: 29
+                states: 745
+                compiled_words: 422,773
+                forced_words: 3,233,459
+                forcing: full
+              automata/descriptor width/1024/8:
+                colors: 29
+                states: 745
+                compiled_words: 422,773
+                forced_words: 3,233,459
+                forcing: full
+              automata/descriptor width/4096/1:
+                colors: 31
+                states: 1,883
+                compiled_words: 1,702,261
+                forced_words: 14,644,739
+                forcing: full
+              automata/descriptor width/4096/8:
+                colors: 31
+                states: 1,883
+                compiled_words: 1,702,261
+                forced_words: 14,644,739
+                forcing: full
+              automata/interleaved/1:
+                colors: 5
+                states: 8
+                compiled_words: 436
+                forced_words: 1,032
+                forcing: full
+              automata/interleaved/4:
+                colors: 11
+                states: 11
+                compiled_words: 833
+                forced_words: 2,106
+                forcing: full
+              automata/interleaved/8:
+                colors: 12
+                states: 16
+                compiled_words: 1,319
+                forced_words: 3,859
+                forcing: full
+              automata/interleaved/16:
+                colors: 12
+                states: 26
+                compiled_words: 2,279
+                forced_words: 8,376
+                forcing: full
+              automata/interleaved/32:
+                colors: 12
+                states: 45
+                compiled_words: 4,199
+                forced_words: 21,665
+                forcing: full
               |}]
           ;;
         end

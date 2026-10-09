@@ -6,6 +6,7 @@
 (library
  (name re_benchmarks)
  (modules
+  automata_cases
   capture_histories
   cases
   common_patterns
@@ -90,7 +91,7 @@
    %{workspace_root}
    (setenv
     RE_BENCH_FILTER
-    "capture histories/"
+    "capture histories/,automata/tiny"
     (ignore-stdout
      (run %{exe:benchmark.exe} -thin-overhead 1))))))
 
@@ -104,7 +105,7 @@
    %{workspace_root}
    (setenv
     RE_BENCH_FILTER
-    "20 zeroes/execp/warm,expression IDs/narrow/1024/exec_opt/cold,expression IDs/narrow/1024/exec/build+compile+exec,uri/input/1/exec/warm"
+    "automata/tiny/execp/warm,expression IDs/narrow/1024/exec_opt/cold,expression IDs/narrow/1024/exec/build+compile+exec,uri/input/1/exec/warm"
     (ignore-stdout
      (run %{exe:benchmark.exe} -thin-overhead 1))))))
 

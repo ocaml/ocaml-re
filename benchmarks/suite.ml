@@ -1,1 +1,1 @@
-let cases = Cases.cases
+let cases = Cases.cases @ Automata_cases.cases
