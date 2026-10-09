@@ -15,7 +15,10 @@
   import
   memory_patterns
   pattern
-  tex)
+  suite
+  tex
+  workload
+  workload_tests)
  (libraries
   re_private
   re_test_util
@@ -52,7 +55,7 @@
   core_bench
   core_unix.command_unix
   memtrace)
- (modules benchmark memory id_sets)
+ (modules benchmark)
  (name benchmark))
 
 (rule
@@ -90,6 +93,37 @@
     "capture histories/"
     (ignore-stdout
      (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
+;; Phase filters must not initialize unrelated, potentially multi-GiB workloads.
+
+(rule
+ (alias runtest)
+ (deps files http-requests.txt tex.gitignore)
+ (action
+  (chdir
+   %{workspace_root}
+   (setenv
+    RE_BENCH_FILTER
+    "20 zeroes/execp/warm,expression IDs/narrow/1024/exec_opt/cold,expression IDs/narrow/1024/exec/build+compile+exec,uri/input/1/exec/warm"
+    (ignore-stdout
+     (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
+(rule
+ (alias runtest)
+ (deps files http-requests.txt tex.gitignore)
+ (action
+  (chdir
+   %{workspace_root}
+   (setenv
+    RE_BENCH_FILTER
+    "edge/nested-repetition/"
+    (ignore-stdout
+     (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
+(executable
+ (name stats)
+ (modules stats)
+ (libraries re_benchmarks))
 
 (executable
  (name compare)
