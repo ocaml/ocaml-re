@@ -102,6 +102,18 @@ let duplicate_accepting_states =
            (bench Re.exec "exec" cases @ bench Re.execp "execp" cases)))
 ;;
 
+let capture_histories =
+  List.concat_map Capture_histories.cases ~f:(fun case ->
+    let name = Capture_histories.name case in
+    let run = Capture_histories.run case in
+    test ~name (fun () -> Re.compile case.pattern) (fun fresh -> run (fresh ()))
+    @ [ Bench.Test.create_with_initialization ~name:(name ^ " (warm exec)") (fun `init ->
+          let re = Re.compile case.pattern in
+          run re;
+          fun () -> run re)
+      ])
+;;
+
 let benchmarks =
   let benches =
     List.map Cases.benchmarks ~f:(fun (name, re, cases) ->
@@ -151,6 +163,7 @@ let benchmarks =
   @ split
   @ prefixes
   @ [ duplicate_accepting_states ]
+  @ capture_histories
   @ Id_sets.benchmarks
 ;;
 

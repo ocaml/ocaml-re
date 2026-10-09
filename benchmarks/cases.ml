@@ -185,6 +185,13 @@ let cases =
           (fun re -> List.iter (fun input -> ignore (Re.exec re input)) duplicate_inputs)
       }
     ]
+  @ List.map
+      (fun (case : Capture_histories.case) ->
+         { name = Capture_histories.name case
+         ; pattern = case.pattern
+         ; run = Capture_histories.run case
+         })
+      Capture_histories.cases
 ;;
 
 (* Count the whole regex graph, so shared blocks are only counted once.
@@ -266,6 +273,27 @@ let%expect_test "benchmark automaton colors and states" =
     duplicate accepting states:
       colors: 256
       states: 2
+    capture histories/adjacent:
+      colors: 8
+      states: 7
+    capture histories/interleaved:
+      colors: 5
+      states: 5
+    capture histories/nested/4:
+      colors: 11
+      states: 10
+    capture histories/nested/16:
+      colors: 12
+      states: 25
+    capture histories/log files:
+      colors: 10
+      states: 29
+    capture histories/escape tokens:
+      colors: 10
+      states: 15
+    capture histories/routes:
+      colors: 21
+      states: 56
     |}]
 ;;
 
@@ -299,6 +327,9 @@ let force_benchmarks () =
       ; "shared prefixes"
       ; "duplicate accepting states"
       ]
+    @ List.map
+        (fun (case : Capture_histories.case) -> Capture_histories.name case, case.pattern)
+        Capture_histories.cases
     @ List.map
         (fun (branches, length) ->
            ( Id_patterns.broad_name branches length
@@ -389,6 +420,41 @@ let%test_module "fully forced benchmark automata" =
                 states: 2
                 compiled_words: 4985
                 forced_words: 5489
+              capture histories/adjacent:
+                colors: 8
+                states: 8
+                compiled_words: 365
+                forced_words: 948
+              capture histories/interleaved:
+                colors: 5
+                states: 6
+                compiled_words: 364
+                forced_words: 782
+              capture histories/nested/4:
+                colors: 11
+                states: 11
+                compiled_words: 833
+                forced_words: 2106
+              capture histories/nested/16:
+                colors: 12
+                states: 26
+                compiled_words: 2279
+                forced_words: 8376
+              capture histories/log files:
+                colors: 10
+                states: 30
+                compiled_words: 1115
+                forced_words: 4393
+              capture histories/escape tokens:
+                colors: 10
+                states: 16
+                compiled_words: 623
+                forced_words: 2139
+              capture histories/routes:
+                colors: 21
+                states: 65
+                compiled_words: 1271
+                forced_words: 9295
               expression IDs/broad/16/1024:
                 colors: 9
                 states: 1033
