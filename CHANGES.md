@@ -34,6 +34,9 @@ Unreleased
 * Fix [Re.Glob] losing the leading-period check after a `**/` globstar, so
   `**/*` matched `.hidden` and `a/.hidden` (#719).
 
+* Fix [Re.exec_partial] reporting a match before a final newline as [`Full];
+  such a match depends on the end of the input and is now [`Partial] (#721).
+
 * Fix [Re.Glob] with `pathname` disabled allowing wildcards to match a leading
   period; leading dots must still be matched explicitly (#708).
 
