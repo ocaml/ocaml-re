@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Omit empty text tokens between adjacent delimiters in [Re.Pcre.full_split]
+  (#666).
+
 * Add ASCII case-modification escapes `\l`, `\u`, `\L`, `\U`, and `\F`
   to [Re.Perl] patterns, with `\E` ending a case-modification section (#802).
 
