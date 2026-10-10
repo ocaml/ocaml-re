@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Include delimiter capture groups in [Re.Pcre.split] results, using empty
+  fields for nonparticipating groups (#667).
+
 * Add ASCII case-modification escapes `\l`, `\u`, `\L`, `\U`, and `\F`
   to [Re.Perl] patterns, with `\E` ending a case-modification section (#802).
 
