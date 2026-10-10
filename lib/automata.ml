@@ -716,6 +716,15 @@ module State = struct
     }
   ;;
 
+  (* Positions indices recorded for [mark] by the threads still alive in this
+     state. *)
+  let iter_mark_positions t ~mark ~f =
+    Desc.iter_marks t.desc ~f:(fun (m : Marks.t) ->
+      match List.find_opt m.marks ~f:(fun (m', _) -> Mark.equal mark m') with
+      | None -> ()
+      | Some (_, idx) -> f (Idx.to_int idx))
+  ;;
+
   let hash idx cat desc =
     Desc.hash desc (hash_combine idx (hash_combine (Category.to_int cat) 0))
     land 0x3FFFFFFF

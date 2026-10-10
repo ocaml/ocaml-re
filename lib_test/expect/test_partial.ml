@@ -97,18 +97,40 @@ let%expect_test "partial detailed" =
   ()
 ;;
 
-let%expect_test "partial positions are not conservative with bounded repetition" =
+let%expect_test "partial positions stay conservative" =
   let open Re in
   (* [`Partial n] promises that no match could start before [n]. Extending the
-     input below makes a match start at 2, but the reported position is 3. *)
+     input below enables a match starting at 2, so the bound must stay at or
+     before it. *)
   let pat = longest (seq [ greedy (repn any 0 (Some 3)); stop ]) in
   t pat "\224.\192\192";
-  [%expect {| `Partial 3 |}];
+  [%expect {| `Partial 1 |}];
   (match exec_opt (compile pat) "\224.\192\1920" with
    | None -> print_endline "None"
    | Some g -> Printf.printf "match starts at %d\n" (Group.start g 0));
   [%expect {| match starts at 2 |}];
   ()
+;;
+
+let%expect_test "partial positions are conservative with extensions" =
+  let open Re in
+  let check pat prefix rest =
+    let re = compile pat in
+    match exec_partial_detailed re prefix with
+    | `Partial n ->
+      (match exec_opt re (prefix ^ rest) with
+       | None -> ()
+       | Some g -> assert (Group.start g 0 >= n))
+    | `Full _ | `Mismatch -> ()
+  in
+  List.iter
+    ~f:(fun (pat, prefix, rest) -> check pat prefix rest)
+    [ longest (seq [ greedy (repn any 0 (Some 3)); stop ]), "\224.\192\192", "0"
+    ; seq [ repn any 0 (Some 2); stop ], "ab", "cd"
+    ; seq [ repn any 0 (Some 2); eos ], "ab", "cd"
+    ; seq [ any; any; stop ], "a", "b"
+    ];
+  [%expect {| |}]
 ;;
 
 let%expect_test "leol matches before a final newline are reported as definite" =
