@@ -10,6 +10,10 @@ race_top:^camlRe__Compile.find_initial_state
 # (between Compile.State.get_info and Compile.State.set_info, both inlined)
 race_top:^camlRe__Compile.loop
 
+# Spurious data race due to the two-step initialization in Compile.State.make
+# (read of State.get_info in Compile.make_match_str)
+race_top:^camlRe__Compile.make_match_str
+
 # Race within Automata.Desc.status and Automata.Desc.status_no_mutex
 # (read/write s.status)
 race_top:^camlRe__Automata.status
@@ -20,3 +24,7 @@ race_top:^camlRe__Compile.final
 # Spurious data race due to the two-step initialization in Mark_info.make
 # (between Mark_info.make and other functions in module Mark_infos)
 race_top:^camlRe__Mark_infos.set
+
+# Spurious data race due to the two-step initialization in Mark_info.make
+# (read of Mark_infos.iteri on the freshly allocated offsets array)
+race_top:^camlRe__Mark_infos.iteri
