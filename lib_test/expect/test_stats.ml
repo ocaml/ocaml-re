@@ -5,17 +5,18 @@ module Stats = Re_private.Stats
 let printf = Printf.printf
 let alphabet = String.init 256 Char.chr
 let reachable_words re = Obj.reachable_words (Obj.repr re)
+let commas = Re_test_util.commas
 
 let print_stats ?compiled_words name re =
   let { Stats.colors; states } = Re.stats re in
   (* One metric per line: changing a value must not reflow its neighbours. *)
-  printf "%s:\n  colors: %d\n  states: %d\n" name colors states;
+  printf "%s:\n  colors: %s\n  states: %s\n" name (commas colors) (commas states);
   Option.iter
     (fun compiled_words ->
        printf
-         "  compiled_words: %d\n  forced_words: %d\n"
-         compiled_words
-         (reachable_words re))
+         "  compiled_words: %s\n  forced_words: %s\n"
+         (commas compiled_words)
+         (commas (reachable_words re)))
     compiled_words
 ;;
 
@@ -435,25 +436,25 @@ let force_fixed_point () =
       printf
         "%s:\n\
         \  states:\n\
-        \    initial: %d\n\
-        \    forced: %d\n\
-        \    again: %d\n\
-        \    after_inputs: %d\n"
+        \    initial: %s\n\
+        \    forced: %s\n\
+        \    again: %s\n\
+        \    after_inputs: %s\n"
         name
-        initial
-        forced
-        again
-        after_inputs;
+        (commas initial)
+        (commas forced)
+        (commas again)
+        (commas after_inputs);
       printf
         "  reachable_words:\n\
-        \    initial: %d\n\
-        \    forced: %d\n\
-        \    again: %d\n\
-        \    after_inputs: %d\n"
-        initial_words
-        forced_words
-        again_words
-        (reachable_words re))
+        \    initial: %s\n\
+        \    forced: %s\n\
+        \    again: %s\n\
+        \    after_inputs: %s\n"
+        (commas initial_words)
+        (commas forced_words)
+        (commas again_words)
+        (commas (reachable_words re)))
 ;;
 
 (* Pin heap-size snapshots to the runtime they were recorded with. Other
@@ -492,7 +493,7 @@ let%test_module "fully forced automata" =
                 colors: 3
                 states: 10
                 compiled_words: 300
-                forced_words: 1161
+                forced_words: 1,161
               last eol:
                 colors: 5
                 states: 6
@@ -501,8 +502,8 @@ let%test_module "fully forced automata" =
               wide literal:
                 colors: 256
                 states: 259
-                compiled_words: 4885
-                forced_words: 94197
+                compiled_words: 4,885
+                forced_words: 94,197
               |}]
           ;;
 
@@ -580,9 +581,9 @@ let%test_module "fully forced automata" =
                   after_inputs: 10
                 reachable_words:
                   initial: 300
-                  forced: 1161
-                  again: 1161
-                  after_inputs: 1161
+                  forced: 1,161
+                  again: 1,161
+                  after_inputs: 1,161
               last eol:
                 states:
                   initial: 0

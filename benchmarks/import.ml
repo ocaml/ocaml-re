@@ -2,3 +2,5 @@
    released [re]. Use the mangled copy of the library (as lib_test/expect does)
    so the inline-test runner does not link two modules named [Re__]. *)
 module Re = Re_private.Re
+
+let commas = Re_test_util.commas
