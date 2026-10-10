@@ -37,8 +37,8 @@ let benchmarks =
   ; "uri", uri_reference, uris
   ]
   @ List.map
-      (fun (case : Common_patterns.case) -> case.name, case.pattern, case.yes @ case.no)
-      Common_patterns.cases
+      (fun (case : Pattern.case) -> case.name, case.pattern, case.yes @ case.no)
+      (Common_patterns.cases @ Edge_patterns.cases)
 ;;
 
 let all_bytes = String.init 256 Char.chr
@@ -305,6 +305,22 @@ let%expect_test "benchmark automaton colors" =
       colors: 21
     common/date/us-slash:
       colors: 8
+    edge/nested-repetition/seq-of-reps:
+      colors: 10
+    edge/nested-repetition/capture-stars:
+      colors: 6
+    edge/nested-repetition/star-plus:
+      colors: 4
+    edge/nested-repetition/alt-of-reps:
+      colors: 6
+    edge/nested-repetition/flat-reps:
+      colors: 5
+    edge/nested-repetition/word-digit:
+      colors: 4
+    edge/nested-repetition/alt-literals:
+      colors: 9
+    edge/nested-repetition/single-rep:
+      colors: 4
     tex gitignore:
       colors: 42
     http/manual/no group:
@@ -379,9 +395,9 @@ let force_benchmarks () =
       ; "duplicate accepting states"
       ]
     @ List.filter_map
-        (fun (case : Common_patterns.case) ->
+        (fun (case : Pattern.case) ->
            if case.forceable then Some (case.name, case.pattern) else None)
-        Common_patterns.cases
+        (Common_patterns.cases @ Edge_patterns.cases)
     @ List.map
         (fun (case : Capture_histories.case) -> Capture_histories.name case, case.pattern)
         Capture_histories.cases
@@ -635,6 +651,46 @@ let%test_module "fully forced benchmark automata" =
                 states: 95
                 compiled_words: 648
                 forced_words: 12,234
+              edge/nested-repetition/seq-of-reps:
+                colors: 10
+                states: 83
+                compiled_words: 720
+                forced_words: 14,782
+              edge/nested-repetition/capture-stars:
+                colors: 6
+                states: 305
+                compiled_words: 785
+                forced_words: 65,569
+              edge/nested-repetition/star-plus:
+                colors: 4
+                states: 21
+                compiled_words: 423
+                forced_words: 2,486
+              edge/nested-repetition/alt-of-reps:
+                colors: 6
+                states: 22
+                compiled_words: 471
+                forced_words: 2,876
+              edge/nested-repetition/flat-reps:
+                colors: 5
+                states: 17
+                compiled_words: 613
+                forced_words: 2,447
+              edge/nested-repetition/word-digit:
+                colors: 4
+                states: 11
+                compiled_words: 419
+                forced_words: 1,323
+              edge/nested-repetition/alt-literals:
+                colors: 9
+                states: 13
+                compiled_words: 588
+                forced_words: 1,870
+              edge/nested-repetition/single-rep:
+                colors: 4
+                states: 13
+                compiled_words: 365
+                forced_words: 1,483
               capture histories/adjacent:
                 colors: 8
                 states: 8
