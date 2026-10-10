@@ -472,37 +472,37 @@ let%test_module "fully forced automata" =
                 colors: 4
                 states: 6
                 compiled_words: 299
-                forced_words: 710
+                forced_words: 680
               alternation:
                 colors: 5
                 states: 6
                 compiled_words: 321
-                forced_words: 747
+                forced_words: 717
               loop:
                 colors: 2
                 states: 5
                 compiled_words: 270
-                forced_words: 613
+                forced_words: 595
               word boundaries:
                 colors: 2
                 states: 8
                 compiled_words: 352
-                forced_words: 984
+                forced_words: 944
               greedy:
                 colors: 3
                 states: 10
                 compiled_words: 300
-                forced_words: 1161
+                forced_words: 1073
               last eol:
                 colors: 5
                 states: 6
                 compiled_words: 311
-                forced_words: 787
+                forced_words: 751
               wide literal:
                 colors: 256
                 states: 259
                 compiled_words: 4885
-                forced_words: 94197
+                forced_words: 92143
               |}]
           ;;
 
@@ -520,7 +520,7 @@ let%test_module "fully forced automata" =
                 colors: 4
                 states: 6
                 compiled_words: 299
-                forced_words: 710
+                forced_words: 680
               |}]
           ;;
 
@@ -536,9 +536,9 @@ let%test_module "fully forced automata" =
                   after_inputs: 6
                 reachable_words:
                   initial: 299
-                  forced: 710
-                  again: 710
-                  after_inputs: 710
+                  forced: 680
+                  again: 680
+                  after_inputs: 680
               alternation:
                 states:
                   initial: 0
@@ -547,9 +547,9 @@ let%test_module "fully forced automata" =
                   after_inputs: 6
                 reachable_words:
                   initial: 321
-                  forced: 747
-                  again: 747
-                  after_inputs: 747
+                  forced: 717
+                  again: 717
+                  after_inputs: 717
               loop:
                 states:
                   initial: 0
@@ -558,9 +558,9 @@ let%test_module "fully forced automata" =
                   after_inputs: 5
                 reachable_words:
                   initial: 270
-                  forced: 613
-                  again: 613
-                  after_inputs: 613
+                  forced: 595
+                  again: 595
+                  after_inputs: 595
               word boundaries:
                 states:
                   initial: 0
@@ -569,9 +569,9 @@ let%test_module "fully forced automata" =
                   after_inputs: 8
                 reachable_words:
                   initial: 352
-                  forced: 984
-                  again: 984
-                  after_inputs: 984
+                  forced: 944
+                  again: 944
+                  after_inputs: 944
               greedy:
                 states:
                   initial: 0
@@ -580,9 +580,9 @@ let%test_module "fully forced automata" =
                   after_inputs: 10
                 reachable_words:
                   initial: 300
-                  forced: 1161
-                  again: 1161
-                  after_inputs: 1161
+                  forced: 1073
+                  again: 1073
+                  after_inputs: 1073
               last eol:
                 states:
                   initial: 0
@@ -591,9 +591,9 @@ let%test_module "fully forced automata" =
                   after_inputs: 6
                 reachable_words:
                   initial: 311
-                  forced: 787
-                  again: 787
-                  after_inputs: 787
+                  forced: 751
+                  again: 751
+                  after_inputs: 751
               |}]
           ;;
         end
