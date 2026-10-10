@@ -8,6 +8,7 @@
  (modules
   capture_histories
   cases
+  common_patterns
   http
   id_patterns
   import
