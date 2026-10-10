@@ -71,4 +71,5 @@ val force_states : re -> unit
 
 val pp_re : re Fmt.t
 val copy_re : re -> re
+val not_empty_at_start : re -> re
 val to_dyn : ?color_map:bool -> re -> Dyn.t
