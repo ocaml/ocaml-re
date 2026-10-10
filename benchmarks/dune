@@ -9,10 +9,12 @@
   capture_histories
   cases
   common_patterns
+  edge_patterns
   http
   id_patterns
   import
   memory_patterns
+  pattern
   tex)
  (libraries
   re_private
