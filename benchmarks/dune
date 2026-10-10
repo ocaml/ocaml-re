@@ -16,6 +16,7 @@
   tex)
  (libraries
   re_private
+  re_test_util
   base
   stdio
   ppx_expect.config

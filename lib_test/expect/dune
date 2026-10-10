@@ -25,6 +25,7 @@
  (modules test_stats)
  (libraries
   re_private
+  re_test_util
   base
   ppx_expect.config
   ppx_expect.config_types

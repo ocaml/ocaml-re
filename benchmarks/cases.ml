@@ -204,19 +204,19 @@ let reachable_words re = Obj.reachable_words (Obj.repr re)
 let report ?compiled_words name re =
   let { Re.Stats.colors; states } = Re.stats re in
   (* Match the line-oriented snapshots in lib_test/expect/test_stats.ml. *)
-  Printf.printf "%s:\n  colors: %d\n  states: %d\n" name colors states;
+  Printf.printf "%s:\n  colors: %s\n  states: %s\n" name (commas colors) (commas states);
   Option.iter
     (fun compiled_words ->
        Printf.printf
-         "  compiled_words: %d\n  forced_words: %d\n"
-         compiled_words
-         (reachable_words re))
+         "  compiled_words: %s\n  forced_words: %s\n"
+         (commas compiled_words)
+         (commas (reachable_words re)))
     compiled_words
 ;;
 
 let report_colors name re =
   let { Re.Stats.colors; _ } = Re.stats re in
-  Printf.printf "%s:\n  colors: %d\n" name colors
+  Printf.printf "%s:\n  colors: %s\n" name (commas colors)
 ;;
 
 (* Colors are fixed at compile time; states are only reported once forced. *)
@@ -419,7 +419,7 @@ let%test_module "fully forced benchmark automata" =
                 colors: 2
                 states: 23
                 compiled_words: 491
-                forced_words: 4782
+                forced_words: 4,782
               lots of a's:
                 colors: 3
                 states: 9
@@ -429,27 +429,27 @@ let%test_module "fully forced benchmark automata" =
                 colors: 3
                 states: 10
                 compiled_words: 316
-                forced_words: 1130
+                forced_words: 1,130
               uri:
                 colors: 6
                 states: 242
                 compiled_words: 741
-                forced_words: 38630
+                forced_words: 38,630
               http/manual/group:
                 colors: 13
                 states: 374
                 compiled_words: 838
-                forced_words: 69592
+                forced_words: 69,592
               http/auto/all_gen:
                 colors: 13
                 states: 707
-                compiled_words: 1277
-                forced_words: 146683
+                compiled_words: 1,277
+                forced_words: 146,683
               string traversal from #210:
                 colors: 3
                 states: 65
                 compiled_words: 461
-                forced_words: 9620
+                forced_words: 9,620
               kleene star compilation:
                 colors: 2
                 states: 5
@@ -457,9 +457,9 @@ let%test_module "fully forced benchmark automata" =
                 forced_words: 613
               repeated sequence re:
                 colors: 256
-                states: 12803
-                compiled_words: 130325
-                forced_words: 10912985
+                states: 12,803
+                compiled_words: 130,325
+                forced_words: 10,912,985
               split on whitespace:
                 colors: 2
                 states: 5
@@ -468,173 +468,173 @@ let%test_module "fully forced benchmark automata" =
               shared prefixes:
                 colors: 27
                 states: 8
-                compiled_words: 6204
-                forced_words: 12754
+                compiled_words: 6,204
+                forced_words: 12,754
               duplicate accepting states:
                 colors: 256
                 states: 2
-                compiled_words: 4985
-                forced_words: 5489
+                compiled_words: 4,985
+                forced_words: 5,489
               common/validation/email-html5:
                 colors: 7
                 states: 256
-                compiled_words: 3348
-                forced_words: 31160
+                compiled_words: 3,348
+                forced_words: 31,160
               common/validation/url:
                 colors: 12
                 states: 17
                 compiled_words: 516
-                forced_words: 2124
+                forced_words: 2,124
               common/validation/ipv4:
                 colors: 8
                 states: 35
                 compiled_words: 966
-                forced_words: 5398
+                forced_words: 5,398
               common/validation/ipv6:
                 colors: 16
-                states: 1244
-                compiled_words: 11200
-                forced_words: 283017
+                states: 1,244
+                compiled_words: 11,200
+                forced_words: 283,017
               common/validation/mac:
                 colors: 4
                 states: 21
                 compiled_words: 560
-                forced_words: 2589
+                forced_words: 2,589
               common/validation/iso-date:
                 colors: 8
                 states: 17
                 compiled_words: 536
-                forced_words: 2057
+                forced_words: 2,057
               common/validation/time-24h:
                 colors: 8
                 states: 13
                 compiled_words: 418
-                forced_words: 1473
+                forced_words: 1,473
               common/validation/iso-timestamp:
                 colors: 9
                 states: 31
                 compiled_words: 666
-                forced_words: 3358
+                forced_words: 3,358
               common/validation/phone-us:
                 colors: 8
                 states: 35
                 compiled_words: 576
-                forced_words: 3777
+                forced_words: 3,777
               common/validation/credit-card:
                 colors: 11
                 states: 66
-                compiled_words: 1011
-                forced_words: 6679
+                compiled_words: 1,011
+                forced_words: 6,679
               common/validation/uuid:
                 colors: 6
                 states: 40
                 compiled_words: 650
-                forced_words: 4029
+                forced_words: 4,029
               common/validation/semver:
                 colors: 8
                 states: 41
                 compiled_words: 923
-                forced_words: 5570
+                forced_words: 5,570
               common/validation/base64:
                 colors: 4
                 states: 12
                 compiled_words: 413
-                forced_words: 1481
+                forced_words: 1,481
               common/validation/domain:
                 colors: 6
                 states: 316
-                compiled_words: 4791
-                forced_words: 42174
+                compiled_words: 4,791
+                forced_words: 42,174
               common/log/apache-combined:
                 colors: 8
                 states: 82
                 compiled_words: 960
-                forced_words: 9079
+                forced_words: 9,079
               common/log/syslog-rfc3164:
                 colors: 13
                 states: 33
                 compiled_words: 782
-                forced_words: 3461
+                forced_words: 3,461
               common/csv/rfc4180-row:
                 colors: 5
                 states: 16
                 compiled_words: 481
-                forced_words: 2059
+                forced_words: 2,059
               common/json/string:
                 colors: 8
                 states: 12
                 compiled_words: 435
-                forced_words: 1577
+                forced_words: 1,577
               common/json/number:
                 colors: 8
                 states: 14
                 compiled_words: 495
-                forced_words: 1715
+                forced_words: 1,715
               common/html/tag:
                 colors: 7
                 states: 26
                 compiled_words: 495
-                forced_words: 3059
+                forced_words: 3,059
               common/html/comment:
                 colors: 5
                 states: 15
                 compiled_words: 372
-                forced_words: 1776
+                forced_words: 1,776
               common/comment/c-style:
                 colors: 3
                 states: 27
                 compiled_words: 426
-                forced_words: 3391
+                forced_words: 3,391
               common/code/keywords:
                 colors: 26
                 states: 225
-                compiled_words: 3804
-                forced_words: 29387
+                compiled_words: 3,804
+                forced_words: 29,387
               common/code/lexer:
                 colors: 19
                 states: 246
-                compiled_words: 1119
-                forced_words: 39204
+                compiled_words: 1,119
+                forced_words: 39,204
               common/code/number-literals:
                 colors: 15
                 states: 27
                 compiled_words: 787
-                forced_words: 3542
+                forced_words: 3,542
               common/number/roman:
                 colors: 9
                 states: 30
                 compiled_words: 817
-                forced_words: 3578
+                forced_words: 3,578
               common/money/usd:
                 colors: 6
                 states: 15
                 compiled_words: 439
-                forced_words: 1713
+                forced_words: 1,713
               common/docker/reference:
                 colors: 18
                 states: 344
-                compiled_words: 4458
-                forced_words: 46282
+                compiled_words: 4,458
+                forced_words: 46,282
               common/secret/aws-access-key:
                 colors: 9
-                states: 5473
+                states: 5,473
                 compiled_words: 608
-                forced_words: 731003
+                forced_words: 731,003
               common/secret/api-key-line:
                 colors: 18
                 states: 893
                 compiled_words: 840
-                forced_words: 107726
+                forced_words: 107,726
               common/youtube/video-id:
                 colors: 21
                 states: 294
                 compiled_words: 957
-                forced_words: 36932
+                forced_words: 36,932
               common/date/us-slash:
                 colors: 8
                 states: 95
                 compiled_words: 648
-                forced_words: 12234
+                forced_words: 12,234
               capture histories/adjacent:
                 colors: 8
                 states: 8
@@ -649,52 +649,52 @@ let%test_module "fully forced benchmark automata" =
                 colors: 11
                 states: 11
                 compiled_words: 833
-                forced_words: 2106
+                forced_words: 2,106
               capture histories/nested/16:
                 colors: 12
                 states: 26
-                compiled_words: 2279
-                forced_words: 8376
+                compiled_words: 2,279
+                forced_words: 8,376
               capture histories/log files:
                 colors: 10
                 states: 30
-                compiled_words: 1115
-                forced_words: 4393
+                compiled_words: 1,115
+                forced_words: 4,393
               capture histories/escape tokens:
                 colors: 10
                 states: 16
                 compiled_words: 623
-                forced_words: 2139
+                forced_words: 2,139
               capture histories/routes:
                 colors: 21
                 states: 65
-                compiled_words: 1271
-                forced_words: 9295
+                compiled_words: 1,271
+                forced_words: 9,295
               expression IDs/broad/16/1024:
                 colors: 9
-                states: 1033
-                compiled_words: 11053
-                forced_words: 98863
+                states: 1,033
+                compiled_words: 11,053
+                forced_words: 98,863
               expression IDs/broad/4096/16384:
                 colors: 17
-                states: 16401
-                compiled_words: 350486
-                forced_words: 2449128
+                states: 16,401
+                compiled_words: 350,486
+                forced_words: 2,449,128
               expression IDs/broad/65536/262144:
                 colors: 21
-                states: 262165
-                compiled_words: 5996822
-                forced_words: 42567884
+                states: 262,165
+                compiled_words: 5,996,822
+                forced_words: 42,567,884
               expression IDs/narrow/1024:
                 colors: 2
-                states: 1027
-                compiled_words: 10492
-                forced_words: 80655
+                states: 1,027
+                compiled_words: 10,492
+                forced_words: 80,655
               expression IDs/narrow/1000000:
                 colors: 2
-                states: 1000003
-                compiled_words: 10000252
-                forced_words: 78024559
+                states: 1,000,003
+                compiled_words: 10,000,252
+                forced_words: 78,024,559
               |}]
           ;;
         end

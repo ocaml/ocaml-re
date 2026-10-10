@@ -2,3 +2,6 @@
  (_
   (flags
    (:standard -w -58))))
+
+(library
+ (name re_test_util))
