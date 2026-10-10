@@ -152,7 +152,29 @@ let full_split ?(max = 0) ~rex s =
   else if max = 1
   then [ Text s ]
   else (
-    let results = Re.split_full rex s in
+    let rec limit remaining acc seq =
+      match seq () with
+      | Seq.Nil -> List.rev acc
+      | Seq.Cons ((`Text text as token), tail) ->
+        let remaining = if text = "" then remaining else remaining - 1 in
+        limit remaining (token :: acc) tail
+      | Seq.Cons ((`Delim d as token), tail) ->
+        if remaining <> 0
+        then limit remaining (token :: acc) tail
+        else (
+          let pos = Group.stop d 0 in
+          let rest =
+            if pos = String.length s
+            then []
+            else [ `Text (String.sub s pos (String.length s - pos)) ]
+          in
+          List.rev_append acc (token :: rest))
+    in
+    let results =
+      if max <= 0
+      then Re.split_full rex s
+      else limit (max - 1) [] (Re.Seq.split_full rex s)
+    in
     let matches =
       List.map
         (function
