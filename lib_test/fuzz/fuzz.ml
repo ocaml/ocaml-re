@@ -371,6 +371,17 @@ module Compare_to_reference = struct
         | _, None | None, _ -> ())
   ;;
 
+  let shared_prefix_re_gen =
+    C.with_printer
+      (fun fmt (_, re) -> Re.pp fmt re)
+      (C.map
+         [ C.list char_gen; char_gen; char_gen; C.bool ]
+         (fun chars c1 c2 greedy ->
+            let prefix = Re.rep (Re.set (string_of_chars chars)) in
+            let prefix = if greedy then Re.greedy prefix else Re.non_greedy prefix in
+            ref 0, Re.alt [ Re.seq [ prefix; Re.char c1 ]; Re.seq [ prefix; Re.char c2 ] ]))
+  ;;
+
   let add_test () =
     (* As of writing, about 13s for 1M tests, 10min for 50M. *)
     C.add_test
@@ -388,6 +399,10 @@ module Compare_to_reference = struct
          let pos = pos mod (String.length input + 1) in
          let len = len mod (String.length input - pos + 1) in
          same_execution re input ~pos ~len);
+    C.add_test
+      ~name:"compare_to_reference_shared_prefix"
+      [ shared_prefix_re_gen; string_gen_dyn 6 ]
+      (fun re input -> same_execution re input);
     ()
   ;;
 
