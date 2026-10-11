@@ -123,7 +123,7 @@ let cases =
            if c.forceable then `Full else `Inputs "impractical complete automaton"
          in
          inputs ~force c.name (fun () -> c.pattern, List.map yes c.yes @ List.map no c.no))
-      (Common_patterns.cases @ Edge_patterns.cases)
+      (Common_patterns.cases @ Edge_patterns.cases @ Idiom_patterns.cases)
   @ List.map
       (fun (c : Capture_histories.case) ->
          custom (Capture_histories.name c) (fun () ->
