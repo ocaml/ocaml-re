@@ -2,7 +2,8 @@ open Re_benchmarks
 open Import
 module Bench = Core_bench.Bench
 
-let benchmarks ({ Workload.name; make; modes; construction; runtest = _ } : Workload.case)
+let benchmarks
+      ({ Workload.name; make; modes; construction; runtest = _; force } : Workload.case)
   =
   let construction_phases =
     match construction with
@@ -37,6 +38,15 @@ let benchmarks ({ Workload.name; make; modes; construction; runtest = _ } : Work
        [ test "build+compile" (fun t ->
            let construct = Option.get t.construct in
            fun () -> ignore (Sys.opaque_identity (Re.compile (construct ()))))
+       ])
+  @ (match force with
+     | `Inputs _ -> []
+     | `Full ->
+       [ test "force" (fun t ->
+           (* Forcing mutates the regex. A cold copy is cheap and gives each
+              run a fresh automaton, like the [cold] exec phases. *)
+           let template = Re.compile t.pattern in
+           fun () -> Re.force_states (Re.copy_re template))
        ])
   @ List.concat_map
       (fun mode ->

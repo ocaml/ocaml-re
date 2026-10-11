@@ -13,6 +13,7 @@ let check_workload (c : Workload.case) =
   let t = c.make () in
   assert (Option.is_some c.construction = Option.is_some t.construct);
   assert (c.modes = List.map fst t.runs);
+  assert (c.force = t.force);
   let check_pattern pattern =
     let re = Re.compile pattern in
     t.check re;
