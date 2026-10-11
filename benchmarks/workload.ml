@@ -18,6 +18,7 @@ type case =
   ; modes : string list
   ; construction : construction option
   ; runtest : bool
+  ; force : [ `Full | `Inputs of string ]
   }
 
 let repeat n text = String.concat "" (List.init n (fun _ -> text))
@@ -66,6 +67,7 @@ let inputs ?(force = `Full) ?check ?(runtest = true) name make =
   ; modes = List.map fst input_runs
   ; construction = None
   ; runtest
+  ; force
   ; make =
       (fun () ->
         let pattern, samples = make () in
@@ -78,6 +80,7 @@ let perl ?(no_group = false) ?(force = `Full) name make =
   ; modes = List.map fst input_runs
   ; construction = Some Parse
   ; runtest = true
+  ; force
   ; make =
       (fun () ->
         let source, samples = make () in
@@ -94,6 +97,7 @@ let generated ?(runtest = true) name ~pattern ~samples =
   ; modes = List.map fst input_runs
   ; construction = Some Build
   ; runtest
+  ; force = `Full
   ; make =
       (fun () ->
         prepare_inputs ~construct:pattern ~force:`Full name (pattern ()) (samples ()))
@@ -105,6 +109,7 @@ let custom ?(force = `Full) name make =
   ; modes = [ "run" ]
   ; construction = None
   ; runtest = true
+  ; force
   ; make =
       (fun () ->
         let pattern, run, check = make () in
