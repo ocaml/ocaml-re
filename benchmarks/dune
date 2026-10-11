@@ -6,16 +6,22 @@
 (library
  (name re_benchmarks)
  (modules
+  automata_cases
   capture_histories
   cases
   common_patterns
   edge_patterns
+  frontend_cases
   http
   id_patterns
   import
+  matching_cases
   memory_patterns
   pattern
-  tex)
+  suite
+  tex
+  workload
+  workload_tests)
  (libraries
   re_private
   re_test_util
@@ -29,7 +35,8 @@
   (deps
    benchmarks/files
    benchmarks/http-requests.txt
-   benchmarks/tex.gitignore))
+   benchmarks/tex.gitignore
+   (glob_files benchmarks/gitignore/*)))
  (preprocess
   (pps ppx_expect)))
 
@@ -38,7 +45,10 @@
 
 (subdir
  benchmarks
- (copy_files ../{files,http-requests.txt,tex.gitignore}))
+ (copy_files ../{files,http-requests.txt,tex.gitignore})
+ (subdir
+  gitignore
+  (copy_files ../../gitignore/*)))
 
 (executable
  (libraries
@@ -52,7 +62,7 @@
   core_bench
   core_unix.command_unix
   memtrace)
- (modules benchmark memory id_sets)
+ (modules benchmark)
  (name benchmark))
 
 (rule
@@ -81,15 +91,50 @@
 
 (rule
  (alias runtest)
+ (deps
+  files
+  http-requests.txt
+  tex.gitignore
+  (glob_files gitignore/*))
+ (action
+  (chdir
+   %{workspace_root}
+   (setenv
+    RE_BENCH_FILTER
+    "capture histories/,automata/tiny,parser/empty,literal/anchored/32,gitignore/latex-ignore-suffixes/noncapturing,boolean/short-accept"
+    (ignore-stdout
+     (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
+;; Phase filters must not initialize unrelated, potentially multi-GiB workloads.
+
+(rule
+ (alias runtest)
  (deps files http-requests.txt tex.gitignore)
  (action
   (chdir
    %{workspace_root}
    (setenv
     RE_BENCH_FILTER
-    "capture histories/"
+    "automata/tiny/execp/warm,parser/empty/parse,expression IDs/narrow/1024/exec_opt/cold,expression IDs/narrow/1024/exec/build+compile+exec,uri/input/1/exec/warm"
     (ignore-stdout
      (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
+(rule
+ (alias runtest)
+ (deps files http-requests.txt tex.gitignore)
+ (action
+  (chdir
+   %{workspace_root}
+   (setenv
+    RE_BENCH_FILTER
+    "edge/nested-repetition/"
+    (ignore-stdout
+     (run %{exe:benchmark.exe} -thin-overhead 1))))))
+
+(executable
+ (name stats)
+ (modules stats)
+ (libraries re_benchmarks))
 
 (executable
  (name compare)

@@ -15,4 +15,19 @@ let ignore_re =
   |> Re.alt
 ;;
 
-let ignore_filesnames = Stdio.In_channel.read_lines "benchmarks/files"
+let samples =
+  (* In this pinned corpus only *.log, *.idx and *.[1-9] match. The last
+     rule is an unanchored search, so it also finds version components. *)
+  Stdio.In_channel.read_lines "benchmarks/files"
+  |> List.map ~f:(fun input ->
+    let numeric_component =
+      String.existsi input ~f:(fun i c ->
+        Char.equal c '.'
+        && i + 1 < String.length input
+        && Char.between input.[i + 1] ~low:'1' ~high:'9')
+    in
+    ( input
+    , String.is_suffix input ~suffix:".log"
+      || String.is_suffix input ~suffix:".idx"
+      || numeric_component ))
+;;

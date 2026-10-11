@@ -220,21 +220,23 @@ let cases =
   [ adjacent; interleaved; nested 4; nested 16; log_files; escape_tokens; routes ]
 ;;
 
+let check case re =
+  List.iter
+    (fun { input; expected } ->
+       let actual =
+         Option.map
+           (fun groups -> List.init (Re.group_count re) (Re.Group.get_opt groups))
+           (Re.exec_opt re input)
+       in
+       if actual <> expected
+       then failwith (Printf.sprintf "%s: captures for %S" case.name input))
+    case.samples
+;;
+
 let%test_unit "capture-history workloads retain expected captures" =
   List.iter
     (fun case ->
-       let check re =
-         List.iter
-           (fun { input; expected } ->
-              let actual =
-                Option.map
-                  (fun groups -> List.init (Re.group_count re) (Re.Group.get_opt groups))
-                  (Re.exec_opt re input)
-              in
-              if actual <> expected
-              then failwith (Printf.sprintf "%s: captures for %S" case.name input))
-           case.samples
-       in
+       let check = check case in
        let re = Re.compile case.pattern in
        check re;
        check re;
