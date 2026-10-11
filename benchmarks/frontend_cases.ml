@@ -1,3 +1,4 @@
+open Import
 open Workload
 
 let parser =
@@ -34,6 +35,23 @@ let literal length =
   String.init length (fun _ ->
     state := ((!state * 251) + 17) mod 65521;
     alphabet.[!state mod String.length alphabet])
+;;
+
+(* Nested groups under [Re.no_group]. Exposing each group's fixed prefix must
+   stay linear in the source size: the compile-time counters should roughly
+   double when the nesting depth and the literal length double. Rescanning the
+   literal once per nesting level shows up as roughly quadrupling. *)
+let nested_groups =
+  List.concat_map
+    (fun size ->
+       let literal = String.make size 'a' in
+       let rec nest depth re = if depth = 0 then re else nest (depth - 1) (Re.group re) in
+       [ inputs (Printf.sprintf "nested groups/capturing/%d" size) (fun () ->
+           Re.no_group (nest size (Re.str literal)), [ yes literal; no "!" ])
+       ; inputs (Printf.sprintf "nested groups/plain/%d" size) (fun () ->
+           Re.no_group (Re.str literal), [ yes literal; no "!" ])
+       ])
+    [ 64; 128; 256; 512; 1024 ]
 ;;
 
 let literals =
@@ -130,4 +148,4 @@ let gitignore =
     [ "joomla"; "latex-ignore-suffixes" ]
 ;;
 
-let cases = parser @ literals @ gitignore
+let cases = parser @ nested_groups @ literals @ gitignore
