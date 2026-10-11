@@ -114,6 +114,21 @@ let custom ?(force = `Full) name make =
 
 let words re = Obj.reachable_words (Obj.repr re)
 
+let allocation f =
+  (* Compacting first makes promotion independent of the major heap's history;
+     the final minor collection keeps the tuple allocated by [Gc.counters]
+     from landing on a minor-GC boundary. *)
+  Gc.compact ();
+  let minor0 = Gc.minor_words () in
+  let _, promoted0, major0 = Gc.counters () in
+  let x = f () in
+  ignore (Sys.opaque_identity x);
+  Gc.minor ();
+  let minor1 = Gc.minor_words () in
+  let _, promoted1, major1 = Gc.counters () in
+  minor1 -. minor0, major1 -. major0, promoted1 -. promoted0
+;;
+
 let print_stats ?compiled_words name re =
   let { Re.Stats.colors; states } = Re.stats re in
   Printf.printf "%s:\n  colors: %s\n  states: %s\n" name (commas colors) (commas states);
@@ -130,12 +145,31 @@ let print_stats ?compiled_words name re =
    cases have exponential complete automata; label their input-forced sizes
    explicitly instead of presenting them as complete automata. *)
 let report name t =
+  let compile_minor, compile_major, compile_promoted =
+    allocation (fun () -> Re.compile t.pattern)
+  in
+  let construct_allocation = Option.map allocation t.construct in
   let re = Re.compile t.pattern in
   let compiled_words = words re in
   (match t.force with
    | `Full -> Re.force_states re
    | `Inputs _ -> List.iter (fun (_, run) -> run re) t.runs);
   print_stats ~compiled_words name re;
+  Printf.printf
+    "  compile_alloc_words: %s\n  compile_major_words: %s\n  compile_promoted_words: %s\n"
+    (commas (Int.of_float compile_minor))
+    (commas (Int.of_float compile_major))
+    (commas (Int.of_float compile_promoted));
+  Option.iter
+    (fun (minor, major, promoted) ->
+       Printf.printf
+         "  construct_alloc_words: %s\n\
+         \  construct_major_words: %s\n\
+         \  construct_promoted_words: %s\n"
+         (commas (Int.of_float minor))
+         (commas (Int.of_float major))
+         (commas (Int.of_float promoted)))
+    construct_allocation;
   (match t.force with
    | `Full -> Printf.printf "  forcing: full\n%!"
    | `Inputs reason -> Printf.printf "  forcing: inputs (%s)\n%!" reason);
