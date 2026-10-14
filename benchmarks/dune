@@ -14,12 +14,14 @@
   frontend_cases
   http
   id_patterns
+  idiom_patterns
   import
   matching_cases
   memory_patterns
   pattern
   suite
   tex
+  word_sets
   workload
   workload_tests)
  (libraries
@@ -36,7 +38,8 @@
    benchmarks/files
    benchmarks/http-requests.txt
    benchmarks/tex.gitignore
-   (glob_files benchmarks/gitignore/*)))
+   (glob_files benchmarks/gitignore/*)
+   (glob_files benchmarks/words/*)))
  (preprocess
   (pps ppx_expect)))
 
@@ -48,7 +51,10 @@
  (copy_files ../{files,http-requests.txt,tex.gitignore})
  (subdir
   gitignore
-  (copy_files ../../gitignore/*)))
+  (copy_files ../../gitignore/*))
+ (subdir
+  words
+  (copy_files ../../words/*)))
 
 (executable
  (libraries
@@ -67,7 +73,11 @@
 
 (rule
  (alias runtest)
- (deps files http-requests.txt tex.gitignore)
+ (deps
+  files
+  http-requests.txt
+  tex.gitignore
+  (glob_files words/*))
  (action
   (chdir
    %{workspace_root}
@@ -79,7 +89,11 @@
 
 (rule
  (alias runtest)
- (deps files http-requests.txt tex.gitignore)
+ (deps
+  files
+  http-requests.txt
+  tex.gitignore
+  (glob_files words/*))
  (action
   (chdir
    %{workspace_root}
@@ -95,7 +109,8 @@
   files
   http-requests.txt
   tex.gitignore
-  (glob_files gitignore/*))
+  (glob_files gitignore/*)
+  (glob_files words/*))
  (action
   (chdir
    %{workspace_root}
@@ -109,7 +124,11 @@
 
 (rule
  (alias runtest)
- (deps files http-requests.txt tex.gitignore)
+ (deps
+  files
+  http-requests.txt
+  tex.gitignore
+  (glob_files words/*))
  (action
   (chdir
    %{workspace_root}
@@ -121,7 +140,11 @@
 
 (rule
  (alias runtest)
- (deps files http-requests.txt tex.gitignore)
+ (deps
+  files
+  http-requests.txt
+  tex.gitignore
+  (glob_files words/*))
  (action
   (chdir
    %{workspace_root}
