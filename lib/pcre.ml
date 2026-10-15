@@ -112,7 +112,11 @@ let split ~rex s =
       | exception Not_found -> String.sub s start (String.length s - start) :: accu
       | g ->
         let next = Group.stop g 0 in
-        split (String.sub s start (Group.start g 0 - start) :: accu) next)
+        let accu = ref (String.sub s start (Group.start g 0 - start) :: accu) in
+        for i = 1 to Group.nb_groups g - 1 do
+          accu := Option.value (Group.get_opt g i) ~default:"" :: !accu
+        done;
+        split !accu next)
   in
   split [] 0
   |> drop_while ~f:(function
