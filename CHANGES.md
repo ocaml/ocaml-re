@@ -1,6 +1,9 @@
 Unreleased
 ----------
 
+* Remove trailing uncaptured delimiters from [Re.Pcre.full_split] results
+  with the default [max=0], while retaining captured delimiters (#668).
+
 * Add ASCII case-modification escapes `\l`, `\u`, `\L`, `\U`, and `\F`
   to [Re.Perl] patterns, with `\E` ending a case-modification section (#802).
 

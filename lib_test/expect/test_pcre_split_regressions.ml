@@ -72,12 +72,14 @@ let%expect_test "full_split trailing delimiters" =
   (* The default max=0 should strip trailing delimiters without captures. *)
   full_split "," "a,";
   full_split "," ",,";
+  full_split "," "a,,";
   full_split ~max:(-1) "," "a,";
   full_split "(,)" "a,";
   [%expect
     {|
-    full_split ~max:0 "," "a,": [Text "a"; Delim ","]
-    full_split ~max:0 "," ",,": [Delim ","; Text ""; Delim ","]
+    full_split ~max:0 "," "a,": [Text "a"]
+    full_split ~max:0 "," ",,": []
+    full_split ~max:0 "," "a,,": [Text "a"]
     full_split ~max:-1 "," "a,": [Text "a"; Delim ","]
     full_split ~max:0 "(,)" "a,": [Text "a"; Delim ","; Group (1, ",")]
     |}]
@@ -122,10 +124,10 @@ let%expect_test "full_split zero-width matches" =
   full_split "(|a)" "ab";
   [%expect
     {|
-    full_split ~max:0 "a*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "a*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"]
     full_split ~max:2 "a*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
-    full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"; Delim ""]
-    full_split ~max:0 "(?:|a)" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"]
+    full_split ~max:0 "(?:|a)" "ab": [Delim ""; Text "a"; Delim ""; Text "b"]
     full_split ~max:0 "(|a)" "ab": [Delim ""; Group (1, ""); Text "a"; Delim ""; Group (1, ""); Text "b"; Delim ""; Group (1, "")]
     |}]
 ;;
@@ -134,7 +136,7 @@ let%expect_test "full_split zero-width differences from pcre-ocaml" =
   (* These record remaining differences against pcre-ocaml 8.0.5:
      - after the nonempty delimiter at 0..1, the empty match at position 1 is
        skipped (pcre-ocaml: [Delim "a"; Delim ""; Text "b"]);
-     - "b*?" reports empty delimiters at 1 and 2; pcre-ocaml retries at 1 and
+     - "b*?" reports the empty delimiter at 1; pcre-ocaml retries at 1 and
        its trailing-delimiter strip then yields [Delim ""; Text "a"];
      - "^|a" does not treat a restart position as the subject start
        (pcre-ocaml: [Delim "a"; Delim ""; Text "b"]). *)
@@ -143,8 +145,8 @@ let%expect_test "full_split zero-width differences from pcre-ocaml" =
   full_split "^|a" "ab";
   [%expect
     {|
-    full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"; Delim ""]
-    full_split ~max:0 "b*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"]
+    full_split ~max:0 "b*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"]
     full_split ~max:0 "^|a" "ab": [Delim ""; Text "ab"]
     |}]
 ;;

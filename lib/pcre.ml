@@ -171,7 +171,15 @@ let full_split ?(max = 0) ~rex s =
              List.rev !l))
         results
     in
-    List.concat matches)
+    let matches = List.concat matches in
+    if max <> 0
+    then matches
+    else
+      List.rev matches
+      |> drop_while ~f:(function
+        | Delim _ | Text "" -> true
+        | Text _ | Group _ | NoGroup -> false)
+      |> List.rev)
 ;;
 
 type substrings = Group.t
