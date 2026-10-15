@@ -92,9 +92,18 @@ end = struct
      the initialization of its header slots, not the dummy values installed by
      Array.make. The header slots are never changed after construction.
 
-     The OCaml memory model does not itself guarantee this. We rely on the
-     implementation, which, according to Jérôme Vouillon, uses "release-acquire
-     primitives which provide stronger guarantees". *)
+     The OCaml memory model does not itself guarantee this.
+
+     We rely on the compiler implementation, which currently provides the stronger
+     guarantee that you can freely modify a value while it is private to a thread. Once
+     you publish it by assigning it to a shared reference or array, any thread that
+     reads it from there is guaranteed to see at least all the modifications made
+     before publication. Modifications made after publication are not covered and need
+     synchronization.
+     This comes from the use of release-acquire primitives, and not having optimizations
+     that reorder writes to a private value after the write that publishes the value.
+     KC Sivaramakrishnan confirmed to Jérôme Vouillon this is safe, and Leo White had no
+     objection to this. *)
   let make ~ncol ~idx info =
     let row = Array.make (ncol + 2) unknown_state in
     row.(0) <- Obj.magic idx;
