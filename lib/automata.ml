@@ -318,9 +318,14 @@ module Marks = struct
   type t =
     { marks : (Mark.t * Idx.t) list
     ; pmarks : Pmark.Set.t
+    ; hash : int (* Ordered hash of [marks], or [invalid_hash] while dirty. *)
     }
 
-  let to_dyn { marks; pmarks } : Dyn.t =
+  (* Rehash replaced/erased histories only after descriptor pruning.
+     A real hash equal to this sentinel merely gets recomputed. *)
+  let invalid_hash = min_int
+
+  let to_dyn { marks; pmarks; hash = _ } : Dyn.t =
     let open Dyn in
     record
       [ ( "marks"
@@ -338,40 +343,73 @@ module Marks = struct
     | _, _ -> false
   ;;
 
-  let equal m ({ marks; pmarks } as t) =
-    Phys_equal.equal m t || (equal_marks m.marks marks && Pmark.Set.equal m.pmarks pmarks)
+  let equal ({ marks; pmarks; hash } as t1) t =
+    Phys_equal.equal t1 t
+    || ((Int.equal hash invalid_hash
+         || Int.equal t.hash invalid_hash
+         || Int.equal hash t.hash)
+        && equal_marks marks t.marks
+        && Pmark.Set.equal pmarks t.pmarks)
   ;;
 
-  let empty = { marks = []; pmarks = Pmark.Set.empty }
+  let empty = { marks = []; pmarks = Pmark.Set.empty; hash = 0 }
 
-  let hash_marks_offset =
-    let f acc ((a : Mark.t), (i : Idx.t)) =
-      hash_combine (a :> int) (hash_combine (i :> int) acc)
+  (* Head-first polynomial: prepending a binding is constant time. Changing
+     the unknown-index prefix only changes the corresponding leading terms;
+     the hash of the (potentially very long) shared tail remains valid. *)
+  let cons_hash (a : Mark.t) (i : Idx.t) tail =
+    hash_combine ((a :> int) + 1) (hash_combine (i :> int) tail)
+  ;;
+
+  let hash_marks marks =
+    let rec loop marks factor acc =
+      match marks with
+      | [] -> acc
+      | (a, i) :: rest ->
+        loop
+          rest
+          (hash_combine 0 (hash_combine 0 factor))
+          (acc + (factor * cons_hash a i 0))
     in
-    fun l init -> List.fold_left l ~init ~f
+    loop marks 1 0
   ;;
 
-  let hash m accu = hash_marks_offset m.marks (hash_combine (Hashtbl.hash m.pmarks) accu)
+  let hash m accu =
+    let hash = if Int.equal m.hash invalid_hash then hash_marks m.marks else m.hash in
+    hash_combine hash (hash_combine (Hashtbl.hash m.pmarks) accu)
+  ;;
 
   let marks_set_idx =
-    let rec marks_set_idx idx marks =
-      match marks with
-      | (a, i) :: rem when Idx.equal i Idx.unknown -> (a, idx) :: marks_set_idx idx rem
-      | _ -> marks
+    let rec assign idx = function
+      | (a, i) :: rem when Idx.equal i Idx.unknown -> (a, idx) :: assign idx rem
+      | marks -> marks
     in
-    fun t idx ->
+    let rec weight marks acc =
+      match marks with
+      | (_, i) :: rem when Idx.equal i Idx.unknown ->
+        weight rem (1 + hash_combine 0 (hash_combine 0 acc))
+      | _ -> acc
+    in
+    fun t (idx : Idx.t) ->
       match t.marks with
       | (_, i) :: _ when Idx.equal i Idx.unknown ->
-        { t with marks = marks_set_idx idx t.marks }
-      | _ -> t
+        let marks = assign idx t.marks in
+        let hash =
+          if Int.equal t.hash invalid_hash
+          then hash_marks marks
+          else t.hash + (hash_combine 0 ((idx :> int) + 1) * weight t.marks 0)
+        in
+        { t with marks; hash }
+      | _ ->
+        if Int.equal t.hash invalid_hash then { t with hash = hash_marks t.marks } else t
   ;;
 
   let filter t (b : Mark.t) (e : Mark.t) =
-    { t with
-      marks =
-        List.filter t.marks ~f:(fun ((i : Mark.t), _) ->
-          Mark.outside_range i ~start_inclusive:b ~stop_inclusive:e)
-    }
+    let marks =
+      List.filter t.marks ~f:(fun ((i : Mark.t), _) ->
+        Mark.outside_range i ~start_inclusive:b ~stop_inclusive:e)
+    in
+    { t with marks; hash = invalid_hash }
   ;;
 
   let rec remove_mark i marks =
@@ -384,12 +422,18 @@ module Marks = struct
   ;;
 
   let set_mark t (i : Mark.t) =
-    { t with marks = (i, Idx.unknown) :: remove_mark i t.marks }
+    let marks = remove_mark i t.marks in
+    let hash =
+      if Int.equal t.hash invalid_hash || not (Phys_equal.equal marks t.marks)
+      then invalid_hash
+      else cons_hash i Idx.unknown t.hash
+    in
+    { t with marks = (i, Idx.unknown) :: marks; hash }
   ;;
 
   let set_pmark t i = { t with pmarks = Pmark.Set.add i t.pmarks }
 
-  let pp fmt { marks; pmarks } =
+  let pp fmt { marks; pmarks; hash = _ } =
     Format.pp_open_box fmt 1;
     (match marks with
      | [] -> ()
