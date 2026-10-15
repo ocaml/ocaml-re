@@ -1,0 +1,10 @@
+(executable
+ (name probe)
+ (modules probe)
+ (libraries re crowbar))
+
+(rule
+ (alias runtest)
+ (action
+  (bash
+   "set -o pipefail; %{dep:probe.exe} --repeat 5000 --seed 20260920 2>&1 | { grep -v ': PASS' || :; }")))
