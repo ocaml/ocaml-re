@@ -13,7 +13,11 @@
 
 (* $Id: re_str.mli,v 1.1 2002/01/16 14:16:04 vouillon Exp $ *)
 
-(** Module [Str]: regular expressions and high-level string processing *)
+(** Module [Str]: regular expressions and high-level string processing
+
+    This module as a whole is neither thread-safe nor domain-safe, but [re] and
+    [re_result] can be used to combine the [Str] syntax with the matching functions in
+    [Re], which are domain-safe and thread-safe. *)
 
 (** {2 Regular expressions} *)
 
@@ -58,6 +62,12 @@ val regexp_string : string -> regexp
 (** [Str.regexp_string_case_fold] is similar to [Str.regexp_string], but the regexp
     matches in a case-insensitive way. *)
 val regexp_string_case_fold : string -> regexp
+
+(** [re s] parses [s] just like [regexp] does, but gives you back a regexp to be used
+    with [Re.exec*]. *)
+val re : string -> Core.t
+
+val re_result : string -> (Core.t, [ `Not_supported | `Parse_error ]) result
 
 (** {2 String matching and searching} *)
 
