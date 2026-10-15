@@ -101,20 +101,19 @@ let%expect_test "split empty alternatives" =
   Format.printf "empty pattern, 10000 bytes: %d fields@." (List.length fields);
   [%expect
     {|
-    split "(?:|a)" "ab": ["a"; "b"]
-    split "^|a" "ab": ["ab"]
-    split "a*?" "ab": ["a"; "b"]
-    split "(?:|ab)" "abc": ["a"; "b"; "c"]
-    split "(|a)" "ab": ["a"; "b"]
-    split "(?:|a)" "ba": ["b"; "a"]
+    split "(?:|a)" "ab": [""; "b"]
+    split "^|a" "ab": [""; "b"]
+    split "a*?" "ab": [""; "b"]
+    split "(?:|ab)" "abc": [""; "c"]
+    split "(|a)" "ab": [""; "b"]
+    split "(?:|a)" "ba": ["b"]
     empty pattern, 10000 bytes: 10000 fields
     |}]
 ;;
 
 let%expect_test "full_split zero-width matches" =
-  (* As in [split], a nonempty match at the same position should be tried
-     before moving past an empty delimiter. [a*?] currently splits at the
-     empty match instead of at "a". *)
+  (* As in [split], a nonempty match at the same position is preferred over
+     advancing past an empty delimiter. *)
   full_split "a*?" "ab";
   full_split ~max:2 "a*?" "ab";
   full_split "a*" "ab";
@@ -122,11 +121,11 @@ let%expect_test "full_split zero-width matches" =
   full_split "(|a)" "ab";
   [%expect
     {|
-    full_split ~max:0 "a*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
-    full_split ~max:2 "a*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "a*?" "ab": [Delim "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:2 "a*?" "ab": [Delim "a"; Delim ""; Text "b"; Delim ""]
     full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"; Delim ""]
-    full_split ~max:0 "(?:|a)" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
-    full_split ~max:0 "(|a)" "ab": [Delim ""; Group (1, ""); Text "a"; Delim ""; Group (1, ""); Text "b"; Delim ""; Group (1, "")]
+    full_split ~max:0 "(?:|a)" "ab": [Delim "a"; Delim ""; Text "b"; Delim ""]
+    full_split ~max:0 "(|a)" "ab": [Delim "a"; Group (1, "a"); Delim ""; Group (1, ""); Text "b"; Delim ""; Group (1, "")]
     |}]
 ;;
 
@@ -134,17 +133,18 @@ let%expect_test "full_split zero-width differences from pcre-ocaml" =
   (* These record remaining differences against pcre-ocaml 8.0.5:
      - after the nonempty delimiter at 0..1, the empty match at position 1 is
        skipped (pcre-ocaml: [Delim "a"; Delim ""; Text "b"]);
-     - "b*?" reports empty delimiters at 1 and 2; pcre-ocaml retries at 1 and
-       its trailing-delimiter strip then yields [Delim ""; Text "a"];
-     - "^|a" does not treat a restart position as the subject start
-       (pcre-ocaml: [Delim "a"; Delim ""; Text "b"]). *)
+     - "b*?" retries the nonempty match at 1 like pcre-ocaml, but keeps the
+       trailing empty delimiter, which pcre-ocaml strips, yielding
+       [Delim ""; Text "a"];
+     - "^|a" retries and uses the nonempty match at 0, and likewise skips the
+       empty match at 1 (pcre-ocaml: [Delim "a"; Delim ""; Text "b"]). *)
   full_split "a*" "ab";
   full_split "b*?" "ab";
   full_split "^|a" "ab";
   [%expect
     {|
     full_split ~max:0 "a*" "ab": [Delim "a"; Text "b"; Delim ""]
-    full_split ~max:0 "b*?" "ab": [Delim ""; Text "a"; Delim ""; Text "b"; Delim ""]
-    full_split ~max:0 "^|a" "ab": [Delim ""; Text "ab"]
+    full_split ~max:0 "b*?" "ab": [Delim ""; Text "a"; Delim "b"; Delim ""]
+    full_split ~max:0 "^|a" "ab": [Delim "a"; Text "b"]
     |}]
 ;;

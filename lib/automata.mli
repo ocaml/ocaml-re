@@ -89,6 +89,9 @@ end
 
 type expr
 
+(** Anchor a compiled expression and reject empty matches of group 0. *)
+val anchored_nonempty : expr -> expr
+
 val is_eps : expr -> bool
 val pp : expr Fmt.t
 val to_dyn : expr -> Dyn.t

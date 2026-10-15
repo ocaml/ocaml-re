@@ -101,13 +101,19 @@ let rec drop_while l ~f =
 ;;
 
 let split ~rex s =
+  let nonempty = lazy (Compile.not_empty_at_start rex) in
   let rec split accu start =
     if start = String.length s
     then accu
     else (
       match
         let g = Re.exec rex s ~pos:start in
-        if Group.stop g 0 = start then Re.exec rex s ~pos:(start + 1) else g
+        if Group.stop g 0 <> start
+        then g
+        else (
+          match Re.exec (Lazy.force nonempty) s ~pos:start with
+          | g -> g
+          | exception Not_found -> Re.exec rex s ~pos:(start + 1))
       with
       | exception Not_found -> String.sub s start (String.length s - start) :: accu
       | g ->
@@ -152,7 +158,45 @@ let full_split ?(max = 0) ~rex s =
   else if max = 1
   then [ Text s ]
   else (
-    let results = Re.split_full rex s in
+    (* pcre-ocaml tries a nonempty match at the same position before moving
+       past an empty delimiter. Replace the empty delimiter with that match
+       and drop the tokens it covers. *)
+    let nonempty = lazy (Compile.not_empty_at_start rex) in
+    let is_empty g = Group.start g 0 = Group.stop g 0 in
+    let rec tokens pos seq () =
+      match seq () with
+      | Seq.Nil -> Seq.Nil
+      | Seq.Cons ((`Text text as token), tail) ->
+        Seq.Cons (token, tokens (pos + String.length text) tail)
+      | Seq.Cons ((`Delim d as token), tail) ->
+        if not (is_empty d)
+        then Seq.Cons (token, tokens (Group.stop d 0) tail)
+        else (
+          match Re.exec (Lazy.force nonempty) s ~pos:(Group.start d 0) with
+          | exception Not_found -> Seq.Cons (token, tokens (Group.stop d 0) tail)
+          | g ->
+            if is_empty g
+            then Seq.Cons (token, tokens (Group.stop d 0) tail)
+            else (
+              let stop = Group.stop g 0 in
+              Seq.Cons (`Delim g, skip stop (Group.start d 0) tail)))
+    and skip stop pos seq () =
+      match seq () with
+      | Seq.Nil -> Seq.Nil
+      | Seq.Cons (`Delim d, tail) ->
+        let start = Group.start d 0 in
+        if start < stop then skip stop (Group.stop d 0) tail () else tokens start seq ()
+      | Seq.Cons (`Text text, tail) ->
+        let text_stop = pos + String.length text in
+        if text_stop <= stop
+        then skip stop text_stop tail ()
+        else if pos >= stop
+        then tokens pos seq ()
+        else (
+          let suffix = String.sub text (stop - pos) (text_stop - stop) in
+          Seq.Cons (`Text suffix, tokens text_stop tail))
+    in
+    let results = List.of_seq (tokens 0 (Re.Seq.split_full rex s)) in
     let matches =
       List.map
         (function
