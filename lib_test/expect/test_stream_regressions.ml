@@ -11,14 +11,21 @@ let group_stream re = Stream.Group.create (Stream.create re)
 let%expect_test "group finalization recognizes the last newline" =
   let re = Re.compile Re.(seq [ str "a"; leol ]) in
   printf "exec: %b\n" (Re.execp re "a\n");
-  (match Stream.Group.finalize (group_stream re) "a\n" ~pos:0 ~len:2 with
-   | No_match -> print_endline "stream: No_match"
-   | Ok m ->
-     Format.printf "stream: %a@." (Fmt.opt Fmt.quoted_string) (Stream.Group.Match.get m 0));
+  List.iter
+    [ "a\n", 0; "_a\n__", 1 ]
+    ~f:(fun (s, pos) ->
+      match Stream.Group.finalize (group_stream re) s ~pos ~len:2 with
+      | No_match -> print_endline "stream: No_match"
+      | Ok m ->
+        Format.printf
+          "stream: %a@."
+          (Fmt.opt Fmt.quoted_string)
+          (Stream.Group.Match.get m 0));
   [%expect
     {|
     exec: true
-    stream: No_match
+    stream: "a"
+    stream: "a"
     |}]
 ;;
 
@@ -30,7 +37,7 @@ let%expect_test "a fed final newline is retained until finalization" =
   [%expect
     {|
     exec: true
-    stream: false
+    stream: true
     |}]
 ;;
 
