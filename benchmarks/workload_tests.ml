@@ -128,909 +128,909 @@ let%test_module "consolidated workload statistics" =
               20 zeroes:
                 colors: 2
                 states: 23
-                compiled_words: 491
-                forced_words: 3,856
-                compile_alloc_words: 1,486
+                compiled_words: 495
+                forced_words: 3,860
+                compile_alloc_words: 1,490
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               lots of a's:
                 colors: 3
                 states: 9
-                compiled_words: 307
-                forced_words: 901
-                compile_alloc_words: 1,050
+                compiled_words: 311
+                forced_words: 905
+                compile_alloc_words: 1,054
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               media type match:
                 colors: 3
                 states: 10
-                compiled_words: 316
-                forced_words: 1,084
-                compile_alloc_words: 1,135
+                compiled_words: 320
+                forced_words: 1,088
+                compile_alloc_words: 1,139
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               uri:
                 colors: 6
                 states: 242
-                compiled_words: 741
-                forced_words: 36,756
-                compile_alloc_words: 2,854
+                compiled_words: 745
+                forced_words: 36,760
+                compile_alloc_words: 2,858
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               tex gitignore:
                 colors: 42
                 states: 68
-                compiled_words: 11,359
-                forced_words: 81,982
-                compile_alloc_words: 51,757
+                compiled_words: 11,363
+                forced_words: 81,986
+                compile_alloc_words: 51,761
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               http/manual/no group:
                 colors: 13
                 states: 557
-                compiled_words: 958
-                forced_words: 43,704
-                compile_alloc_words: 4,000
+                compiled_words: 962
+                forced_words: 43,708
+                compile_alloc_words: 4,004
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               http/manual/group:
                 colors: 13
                 states: 374
-                compiled_words: 838
-                forced_words: 58,100
-                compile_alloc_words: 3,878
+                compiled_words: 842
+                forced_words: 58,104
+                compile_alloc_words: 3,882
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               http/auto/execp no group:
                 colors: 13
                 states: 799
-                compiled_words: 1,497
-                forced_words: 97,762
-                compile_alloc_words: 4,568
+                compiled_words: 1,501
+                forced_words: 97,766
+                compile_alloc_words: 4,572
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               http/auto/all_gen:
                 colors: 13
                 states: 707
-                compiled_words: 1,277
-                forced_words: 121,883
-                compile_alloc_words: 4,346
+                compiled_words: 1,281
+                forced_words: 121,887
+                compile_alloc_words: 4,350
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               string traversal from #210:
                 colors: 3
                 states: 65
-                compiled_words: 461
-                forced_words: 7,858
-                compile_alloc_words: 1,436
+                compiled_words: 465
+                forced_words: 7,862
+                compile_alloc_words: 1,440
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               kleene star compilation:
                 colors: 2
                 states: 5
-                compiled_words: 270
-                forced_words: 595
-                compile_alloc_words: 901
+                compiled_words: 274
+                forced_words: 599
+                compile_alloc_words: 905
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               memory 1:
                 colors: 3
                 states: 1,003
-                compiled_words: 10,290
-                forced_words: 2,061,340
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 2,061,344
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 2:
                 colors: 4
                 states: 1,003
-                compiled_words: 10,308
-                forced_words: 4,564,597
-                compile_alloc_words: 11,183
+                compiled_words: 10,312
+                forced_words: 4,564,601
+                compile_alloc_words: 11,187
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               repeated sequence re:
                 colors: 256
                 states: 12,803
-                compiled_words: 130,325
-                forced_words: 8,906,439
-                compile_alloc_words: 157,960
+                compiled_words: 130,329
+                forced_words: 8,906,443
+                compile_alloc_words: 157,964
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               split on whitespace:
                 colors: 2
                 states: 5
-                compiled_words: 280
-                forced_words: 646
-                compile_alloc_words: 951
+                compiled_words: 284
+                forced_words: 650
+                compile_alloc_words: 955
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               shared prefixes:
                 colors: 27
                 states: 8
-                compiled_words: 6,204
-                forced_words: 11,296
-                compile_alloc_words: 24,993
+                compiled_words: 6,208
+                forced_words: 11,300
+                compile_alloc_words: 24,997
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               uri/input/1:
                 colors: 6
                 states: 242
-                compiled_words: 741
-                forced_words: 36,756
-                compile_alloc_words: 2,854
+                compiled_words: 745
+                forced_words: 36,760
+                compile_alloc_words: 2,858
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               uri/input/2:
                 colors: 6
                 states: 242
-                compiled_words: 741
-                forced_words: 36,756
-                compile_alloc_words: 2,854
+                compiled_words: 745
+                forced_words: 36,760
+                compile_alloc_words: 2,858
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               uri/input/3:
                 colors: 6
                 states: 242
-                compiled_words: 741
-                forced_words: 36,756
-                compile_alloc_words: 2,854
+                compiled_words: 745
+                forced_words: 36,760
+                compile_alloc_words: 2,858
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/email-html5:
                 colors: 7
                 states: 256
-                compiled_words: 3,348
-                forced_words: 28,676
-                compile_alloc_words: 8,896
+                compiled_words: 3,352
+                forced_words: 28,680
+                compile_alloc_words: 8,900
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/url:
                 colors: 12
                 states: 17
-                compiled_words: 516
-                forced_words: 2,052
-                compile_alloc_words: 2,321
+                compiled_words: 520
+                forced_words: 2,056
+                compile_alloc_words: 2,325
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/ipv4:
                 colors: 8
                 states: 35
-                compiled_words: 966
-                forced_words: 5,002
-                compile_alloc_words: 3,240
+                compiled_words: 970
+                forced_words: 5,006
+                compile_alloc_words: 3,244
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/ipv6:
                 colors: 16
                 states: 1,244
-                compiled_words: 11,200
-                forced_words: 258,969
-                compile_alloc_words: 23,240
+                compiled_words: 11,204
+                forced_words: 258,973
+                compile_alloc_words: 23,244
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/mac:
                 colors: 4
                 states: 21
-                compiled_words: 560
-                forced_words: 2,425
-                compile_alloc_words: 1,528
+                compiled_words: 564
+                forced_words: 2,429
+                compile_alloc_words: 1,532
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/iso-date:
                 colors: 8
                 states: 17
-                compiled_words: 536
-                forced_words: 1,969
-                compile_alloc_words: 2,061
+                compiled_words: 540
+                forced_words: 1,973
+                compile_alloc_words: 2,065
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/time-24h:
                 colors: 8
                 states: 13
-                compiled_words: 418
-                forced_words: 1,423
-                compile_alloc_words: 1,755
+                compiled_words: 422
+                forced_words: 1,427
+                compile_alloc_words: 1,759
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/iso-timestamp:
                 colors: 9
                 states: 31
-                compiled_words: 666
-                forced_words: 3,212
-                compile_alloc_words: 2,811
+                compiled_words: 670
+                forced_words: 3,216
+                compile_alloc_words: 2,815
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/phone-us:
                 colors: 8
                 states: 35
-                compiled_words: 576
-                forced_words: 3,563
-                compile_alloc_words: 2,305
+                compiled_words: 580
+                forced_words: 3,567
+                compile_alloc_words: 2,309
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/credit-card:
                 colors: 11
                 states: 66
-                compiled_words: 1,011
-                forced_words: 6,273
-                compile_alloc_words: 2,968
+                compiled_words: 1,015
+                forced_words: 6,277
+                compile_alloc_words: 2,972
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/uuid:
                 colors: 6
                 states: 40
-                compiled_words: 650
-                forced_words: 3,829
-                compile_alloc_words: 2,096
+                compiled_words: 654
+                forced_words: 3,833
+                compile_alloc_words: 2,100
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/semver:
                 colors: 8
                 states: 41
-                compiled_words: 923
-                forced_words: 5,226
-                compile_alloc_words: 4,277
+                compiled_words: 927
+                forced_words: 5,230
+                compile_alloc_words: 4,281
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/base64:
                 colors: 4
                 states: 12
-                compiled_words: 413
-                forced_words: 1,393
-                compile_alloc_words: 1,738
+                compiled_words: 417
+                forced_words: 1,397
+                compile_alloc_words: 1,742
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/validation/domain:
                 colors: 6
                 states: 316
-                compiled_words: 4,791
-                forced_words: 37,848
-                compile_alloc_words: 8,062
+                compiled_words: 4,795
+                forced_words: 37,852
+                compile_alloc_words: 8,066
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/log/apache-combined:
                 colors: 8
                 states: 82
-                compiled_words: 960
-                forced_words: 8,599
-                compile_alloc_words: 3,308
+                compiled_words: 964
+                forced_words: 8,603
+                compile_alloc_words: 3,312
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/log/syslog-rfc3164:
                 colors: 13
                 states: 33
-                compiled_words: 782
-                forced_words: 3,315
-                compile_alloc_words: 3,107
+                compiled_words: 786
+                forced_words: 3,319
+                compile_alloc_words: 3,111
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/log/structured-line:
                 colors: 13
                 states: 37
-                compiled_words: 846
-                forced_words: 3,288
-                compile_alloc_words: 3,289
+                compiled_words: 850
+                forced_words: 3,292
+                compile_alloc_words: 3,293
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (impractical complete automaton)
               common/csv/rfc4180-row:
                 colors: 5
                 states: 16
-                compiled_words: 481
-                forced_words: 1,957
-                compile_alloc_words: 2,100
+                compiled_words: 485
+                forced_words: 1,961
+                compile_alloc_words: 2,104
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/json/string:
                 colors: 8
                 states: 12
-                compiled_words: 435
-                forced_words: 1,467
-                compile_alloc_words: 1,862
+                compiled_words: 439
+                forced_words: 1,471
+                compile_alloc_words: 1,866
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/json/number:
                 colors: 8
                 states: 14
-                compiled_words: 495
-                forced_words: 1,655
-                compile_alloc_words: 2,073
+                compiled_words: 499
+                forced_words: 1,659
+                compile_alloc_words: 2,077
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/html/tag:
                 colors: 7
                 states: 26
-                compiled_words: 495
-                forced_words: 2,803
-                compile_alloc_words: 1,995
+                compiled_words: 499
+                forced_words: 2,807
+                compile_alloc_words: 1,999
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/html/comment:
                 colors: 5
                 states: 15
-                compiled_words: 372
-                forced_words: 1,626
-                compile_alloc_words: 1,349
+                compiled_words: 376
+                forced_words: 1,630
+                compile_alloc_words: 1,353
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/markdown/link:
                 colors: 7
                 states: 17
-                compiled_words: 571
-                forced_words: 1,526
-                compile_alloc_words: 2,331
+                compiled_words: 575
+                forced_words: 1,530
+                compile_alloc_words: 2,335
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (impractical complete automaton)
               common/comment/c-style:
                 colors: 3
                 states: 27
-                compiled_words: 426
-                forced_words: 3,001
-                compile_alloc_words: 1,659
+                compiled_words: 430
+                forced_words: 3,005
+                compile_alloc_words: 1,663
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/code/keywords:
                 colors: 26
                 states: 225
-                compiled_words: 3,804
-                forced_words: 27,175
-                compile_alloc_words: 16,561
+                compiled_words: 3,808
+                forced_words: 27,179
+                compile_alloc_words: 16,565
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/code/lexer:
                 colors: 19
                 states: 246
-                compiled_words: 1,119
-                forced_words: 35,562
-                compile_alloc_words: 6,793
+                compiled_words: 1,123
+                forced_words: 35,566
+                compile_alloc_words: 6,797
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/code/number-literals:
                 colors: 15
                 states: 27
-                compiled_words: 787
-                forced_words: 3,384
-                compile_alloc_words: 4,318
+                compiled_words: 791
+                forced_words: 3,388
+                compile_alloc_words: 4,322
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/number/roman:
                 colors: 9
                 states: 30
-                compiled_words: 817
-                forced_words: 3,416
-                compile_alloc_words: 2,662
+                compiled_words: 821
+                forced_words: 3,420
+                compile_alloc_words: 2,666
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/money/usd:
                 colors: 6
                 states: 15
-                compiled_words: 439
-                forced_words: 1,641
-                compile_alloc_words: 1,528
+                compiled_words: 443
+                forced_words: 1,645
+                compile_alloc_words: 1,532
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/docker/reference:
                 colors: 18
                 states: 344
-                compiled_words: 4,458
-                forced_words: 43,142
-                compile_alloc_words: 12,101
+                compiled_words: 4,462
+                forced_words: 43,146
+                compile_alloc_words: 12,105
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/secret/aws-access-key:
                 colors: 9
                 states: 5,473
-                compiled_words: 608
-                forced_words: 610,947
-                compile_alloc_words: 2,283
+                compiled_words: 612
+                forced_words: 610,951
+                compile_alloc_words: 2,287
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/secret/api-key-line:
                 colors: 18
                 states: 893
-                compiled_words: 840
-                forced_words: 95,720
-                compile_alloc_words: 4,985
+                compiled_words: 844
+                forced_words: 95,724
+                compile_alloc_words: 4,989
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/youtube/video-id:
                 colors: 21
                 states: 294
-                compiled_words: 957
-                forced_words: 33,076
-                compile_alloc_words: 4,007
+                compiled_words: 961
+                forced_words: 33,080
+                compile_alloc_words: 4,011
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               common/date/us-slash:
                 colors: 8
                 states: 95
-                compiled_words: 648
-                forced_words: 10,706
-                compile_alloc_words: 2,834
+                compiled_words: 652
+                forced_words: 10,710
+                compile_alloc_words: 2,838
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/seq-of-reps:
                 colors: 10
                 states: 83
-                compiled_words: 720
-                forced_words: 13,396
-                compile_alloc_words: 2,123
+                compiled_words: 724
+                forced_words: 13,400
+                compile_alloc_words: 2,127
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/capture-stars:
                 colors: 6
                 states: 305
-                compiled_words: 785
-                forced_words: 59,221
-                compile_alloc_words: 1,822
+                compiled_words: 789
+                forced_words: 59,225
+                compile_alloc_words: 1,826
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/star-plus:
                 colors: 4
                 states: 21
-                compiled_words: 423
-                forced_words: 2,304
-                compile_alloc_words: 1,130
+                compiled_words: 427
+                forced_words: 2,308
+                compile_alloc_words: 1,134
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/alt-of-reps:
                 colors: 6
                 states: 22
-                compiled_words: 471
-                forced_words: 2,658
-                compile_alloc_words: 1,442
+                compiled_words: 475
+                forced_words: 2,662
+                compile_alloc_words: 1,446
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/flat-reps:
                 colors: 5
                 states: 17
-                compiled_words: 613
-                forced_words: 2,279
-                compile_alloc_words: 1,439
+                compiled_words: 617
+                forced_words: 2,283
+                compile_alloc_words: 1,443
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/word-digit:
                 colors: 4
                 states: 11
-                compiled_words: 419
-                forced_words: 1,247
-                compile_alloc_words: 1,182
+                compiled_words: 423
+                forced_words: 1,251
+                compile_alloc_words: 1,186
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/alt-literals:
                 colors: 9
                 states: 13
-                compiled_words: 588
-                forced_words: 1,766
-                compile_alloc_words: 1,852
+                compiled_words: 592
+                forced_words: 1,770
+                compile_alloc_words: 1,856
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               edge/nested-repetition/single-rep:
                 colors: 4
                 states: 13
-                compiled_words: 365
-                forced_words: 1,395
-                compile_alloc_words: 1,028
+                compiled_words: 369
+                forced_words: 1,399
+                compile_alloc_words: 1,032
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/whitespace/trim:
                 colors: 3
                 states: 8
-                compiled_words: 337
-                forced_words: 1,063
-                compile_alloc_words: 1,233
+                compiled_words: 341
+                forced_words: 1,067
+                compile_alloc_words: 1,237
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/whitespace/run:
                 colors: 2
                 states: 5
-                compiled_words: 280
-                forced_words: 646
-                compile_alloc_words: 965
+                compiled_words: 284
+                forced_words: 650
+                compile_alloc_words: 969
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/list/tab-separated:
                 colors: 3
                 states: 47
-                compiled_words: 409
-                forced_words: 5,232
-                compile_alloc_words: 1,241
+                compiled_words: 413
+                forced_words: 5,236
+                compile_alloc_words: 1,245
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/list/separator-run:
                 colors: 3
                 states: 5
-                compiled_words: 288
-                forced_words: 658
-                compile_alloc_words: 1,136
+                compiled_words: 292
+                forced_words: 662
+                compile_alloc_words: 1,140
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/line/crlf:
                 colors: 3
                 states: 6
-                compiled_words: 295
-                forced_words: 806
-                compile_alloc_words: 1,035
+                compiled_words: 299
+                forced_words: 810
+                compile_alloc_words: 1,039
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/line/blank:
                 colors: 3
                 states: 9
-                compiled_words: 294
-                forced_words: 1,000
-                compile_alloc_words: 1,121
+                compiled_words: 298
+                forced_words: 1,004
+                compile_alloc_words: 1,125
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/comment/hash:
                 colors: 4
                 states: 11
-                compiled_words: 331
-                forced_words: 1,282
-                compile_alloc_words: 1,329
+                compiled_words: 335
+                forced_words: 1,286
+                compile_alloc_words: 1,333
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/number/integer:
                 colors: 3
                 states: 7
-                compiled_words: 312
-                forced_words: 860
-                compile_alloc_words: 1,123
+                compiled_words: 316
+                forced_words: 864
+                compile_alloc_words: 1,127
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/number/float:
                 colors: 3
                 states: 10
-                compiled_words: 403
-                forced_words: 1,374
-                compile_alloc_words: 1,389
+                compiled_words: 407
+                forced_words: 1,378
+                compile_alloc_words: 1,393
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/number/hex:
                 colors: 4
                 states: 8
-                compiled_words: 316
-                forced_words: 874
-                compile_alloc_words: 1,192
+                compiled_words: 320
+                forced_words: 878
+                compile_alloc_words: 1,196
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/config/key-value:
                 colors: 4
                 states: 13
-                compiled_words: 427
-                forced_words: 1,795
-                compile_alloc_words: 1,715
+                compiled_words: 431
+                forced_words: 1,799
+                compile_alloc_words: 1,719
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/config/colon-value:
                 colors: 4
                 states: 15
-                compiled_words: 392
-                forced_words: 2,253
-                compile_alloc_words: 1,491
+                compiled_words: 396
+                forced_words: 2,257
+                compile_alloc_words: 1,495
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/string/double-quoted:
                 colors: 2
                 states: 9
-                compiled_words: 324
-                forced_words: 1,059
-                compile_alloc_words: 1,101
+                compiled_words: 328
+                forced_words: 1,063
+                compile_alloc_words: 1,105
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/string/single-quoted:
                 colors: 2
                 states: 9
-                compiled_words: 324
-                forced_words: 1,059
-                compile_alloc_words: 1,101
+                compiled_words: 328
+                forced_words: 1,063
+                compile_alloc_words: 1,105
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/unit/duration:
                 colors: 8
                 states: 8
-                compiled_words: 445
-                forced_words: 1,157
-                compile_alloc_words: 1,665
+                compiled_words: 449
+                forced_words: 1,161
+                compile_alloc_words: 1,669
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/version/dotted:
                 colors: 3
                 states: 13
-                compiled_words: 478
-                forced_words: 1,704
-                compile_alloc_words: 1,572
+                compiled_words: 482
+                forced_words: 1,708
+                compile_alloc_words: 1,576
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/terminal/ansi:
                 colors: 5
                 states: 7
-                compiled_words: 324
-                forced_words: 843
-                compile_alloc_words: 1,239
+                compiled_words: 328
+                forced_words: 847
+                compile_alloc_words: 1,243
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/html/entity:
                 colors: 9
                 states: 10
-                compiled_words: 426
-                forced_words: 1,302
-                compile_alloc_words: 1,686
+                compiled_words: 430
+                forced_words: 1,306
+                compile_alloc_words: 1,690
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/template/opam:
                 colors: 4
                 states: 10
-                compiled_words: 346
-                forced_words: 1,143
-                compile_alloc_words: 1,253
+                compiled_words: 350
+                forced_words: 1,147
+                compile_alloc_words: 1,257
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               idiom/template/mustache:
                 colors: 3
                 states: 11
-                compiled_words: 340
-                forced_words: 1,253
-                compile_alloc_words: 1,189
+                compiled_words: 344
+                forced_words: 1,257
+                compile_alloc_words: 1,193
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               capture histories/adjacent:
                 colors: 8
                 states: 8
-                compiled_words: 365
-                forced_words: 912
-                compile_alloc_words: 1,441
+                compiled_words: 369
+                forced_words: 916
+                compile_alloc_words: 1,445
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               capture histories/interleaved:
                 colors: 5
                 states: 6
-                compiled_words: 364
-                forced_words: 756
-                compile_alloc_words: 1,210
+                compiled_words: 368
+                forced_words: 760
+                compile_alloc_words: 1,214
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               capture histories/nested/4:
                 colors: 11
                 states: 11
-                compiled_words: 833
-                forced_words: 1,972
-                compile_alloc_words: 2,860
+                compiled_words: 837
+                forced_words: 1,976
+                compile_alloc_words: 2,864
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               capture histories/nested/16:
                 colors: 12
                 states: 26
-                compiled_words: 2,279
-                forced_words: 7,668
-                compile_alloc_words: 7,398
+                compiled_words: 2,283
+                forced_words: 7,672
+                compile_alloc_words: 7,402
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               capture histories/log files:
                 colors: 10
                 states: 30
-                compiled_words: 1,115
-                forced_words: 4,021
-                compile_alloc_words: 3,294
+                compiled_words: 1,119
+                forced_words: 4,025
+                compile_alloc_words: 3,298
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               capture histories/escape tokens:
                 colors: 10
                 states: 16
-                compiled_words: 623
-                forced_words: 2,021
-                compile_alloc_words: 2,398
+                compiled_words: 627
+                forced_words: 2,025
+                compile_alloc_words: 2,402
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               capture histories/routes:
                 colors: 21
                 states: 65
-                compiled_words: 1,271
-                forced_words: 8,477
-                compile_alloc_words: 4,418
+                compiled_words: 1,275
+                forced_words: 8,481
+                compile_alloc_words: 4,422
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               memory 1/10:
                 colors: 3
                 states: 11
-                compiled_words: 10,290
-                forced_words: 11,224
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 11,228
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 1/20:
                 colors: 3
                 states: 21
-                compiled_words: 10,290
-                forced_words: 12,244
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 12,248
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 1/40:
                 colors: 3
                 states: 41
-                compiled_words: 10,290
-                forced_words: 15,484
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 15,488
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 1/80:
                 colors: 3
                 states: 81
-                compiled_words: 10,290
-                forced_words: 26,764
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 26,768
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 1/100:
                 colors: 3
                 states: 101
-                compiled_words: 10,290
-                forced_words: 34,804
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 34,808
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 1/1000:
                 colors: 3
                 states: 1,001
-                compiled_words: 10,290
-                forced_words: 2,052,988
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 2,052,992
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 2/10:
                 colors: 4
                 states: 11
-                compiled_words: 10,308
-                forced_words: 11,434
-                compile_alloc_words: 11,183
+                compiled_words: 10,312
+                forced_words: 11,438
+                compile_alloc_words: 11,187
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 2/20:
                 colors: 4
                 states: 21
-                compiled_words: 10,308
-                forced_words: 13,139
-                compile_alloc_words: 11,183
+                compiled_words: 10,312
+                forced_words: 13,143
+                compile_alloc_words: 11,187
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 2/40:
                 colors: 4
                 states: 41
-                compiled_words: 10,308
-                forced_words: 19,249
-                compile_alloc_words: 11,183
+                compiled_words: 10,312
+                forced_words: 19,253
+                compile_alloc_words: 11,187
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 2/80:
                 colors: 4
                 states: 81
-                compiled_words: 10,308
-                forced_words: 42,269
-                compile_alloc_words: 11,183
+                compiled_words: 10,312
+                forced_words: 42,273
+                compile_alloc_words: 11,187
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 2/100:
                 colors: 4
                 states: 101
-                compiled_words: 10,308
-                forced_words: 59,179
-                compile_alloc_words: 11,183
+                compiled_words: 10,312
+                forced_words: 59,183
+                compile_alloc_words: 11,187
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               memory 2/1000:
                 colors: 4
                 states: 1,001
-                compiled_words: 10,308
-                forced_words: 4,546,513
-                compile_alloc_words: 11,183
+                compiled_words: 10,312
+                forced_words: 4,546,517
+                compile_alloc_words: 11,187
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               expression IDs/broad/16/1024:
                 colors: 9
                 states: 1,033
-                compiled_words: 11,053
-                forced_words: 92,585
-                compile_alloc_words: 14,067
+                compiled_words: 11,057
+                forced_words: 92,589
+                compile_alloc_words: 14,071
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 801
@@ -1040,9 +1040,9 @@ let%test_module "consolidated workload statistics" =
               expression IDs/broad/4096/16384:
                 colors: 17
                 states: 16,401
-                compiled_words: 350,486
-                forced_words: 2,293,394
-                compile_alloc_words: 1,248,163
+                compiled_words: 350,490
+                forced_words: 2,293,398
+                compile_alloc_words: 1,248,167
                 compile_major_words: 407,092
                 compile_promoted_words: 407,092
                 construct_alloc_words: 500,327
@@ -1052,9 +1052,9 @@ let%test_module "consolidated workload statistics" =
               expression IDs/broad/65536/262144:
                 colors: 21
                 states: 262,165
-                compiled_words: 5,996,822
-                forced_words: 39,815,262
-                compile_alloc_words: 22,876,972
+                compiled_words: 5,996,826
+                forced_words: 39,815,266
+                compile_alloc_words: 22,876,976
                 compile_major_words: 8,771,131
                 compile_promoted_words: 8,771,131
                 construct_alloc_words: 11,666,969
@@ -1064,9 +1064,9 @@ let%test_module "consolidated workload statistics" =
               expression IDs/narrow/1024:
                 colors: 2
                 states: 1,027
-                compiled_words: 10,492
-                forced_words: 74,509
-                compile_alloc_words: 11,058
+                compiled_words: 10,496
+                forced_words: 74,513
+                compile_alloc_words: 11,062
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 37
@@ -1076,9 +1076,9 @@ let%test_module "consolidated workload statistics" =
               expression IDs/narrow/1000000:
                 colors: 2
                 states: 1,000,003
-                compiled_words: 10,000,252
-                forced_words: 72,024,557
-                compile_alloc_words: 10,000,818
+                compiled_words: 10,000,256
+                forced_words: 72,024,561
+                compile_alloc_words: 10,000,822
                 compile_major_words: 9,829,801
                 compile_promoted_words: 9,829,801
                 construct_alloc_words: 37
@@ -1088,162 +1088,162 @@ let%test_module "consolidated workload statistics" =
               automata/tiny:
                 colors: 2
                 states: 4
-                compiled_words: 263
-                forced_words: 502
-                compile_alloc_words: 870
+                compiled_words: 267
+                forced_words: 506
+                compile_alloc_words: 874
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/class:
                 colors: 2
                 states: 5
-                compiled_words: 303
-                forced_words: 638
-                compile_alloc_words: 917
+                compiled_words: 307
+                forced_words: 642
+                compile_alloc_words: 921
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/pair:
                 colors: 3
                 states: 7
-                compiled_words: 359
-                forced_words: 921
-                compile_alloc_words: 996
+                compiled_words: 363
+                forced_words: 925
+                compile_alloc_words: 1,000
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/rotation:
                 colors: 2
                 states: 5
-                compiled_words: 293
-                forced_words: 612
-                compile_alloc_words: 826
+                compiled_words: 297
+                forced_words: 616
+                compile_alloc_words: 830
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/short:
                 colors: 4
                 states: 8
-                compiled_words: 381
-                forced_words: 1,079
-                compile_alloc_words: 1,297
+                compiled_words: 385
+                forced_words: 1,083
+                compile_alloc_words: 1,301
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/categories:
                 colors: 2
                 states: 5
-                compiled_words: 293
-                forced_words: 612
-                compile_alloc_words: 867
+                compiled_words: 297
+                forced_words: 616
+                compile_alloc_words: 871
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/boundaries:
                 colors: 4
                 states: 14
-                compiled_words: 411
-                forced_words: 1,599
-                compile_alloc_words: 1,479
+                compiled_words: 415
+                forced_words: 1,603
+                compile_alloc_words: 1,483
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/literal256:
                 colors: 256
                 states: 259
-                compiled_words: 4,884
-                forced_words: 91,077
-                compile_alloc_words: 29,067
+                compiled_words: 4,888
+                forced_words: 91,081
+                compile_alloc_words: 29,071
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/wide run:
                 colors: 256
                 states: 259
-                compiled_words: 4,933
-                forced_words: 83,441
-                compile_alloc_words: 29,995
+                compiled_words: 4,937
+                forced_words: 83,445
+                compile_alloc_words: 29,999
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               automata/class run:
                 colors: 2
                 states: 5
-                compiled_words: 303
-                forced_words: 602
-                compile_alloc_words: 919
+                compiled_words: 307
+                forced_words: 606
+                compile_alloc_words: 923
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/search:
                 colors: 5
                 states: 8
-                compiled_words: 351
-                forced_words: 967
-                compile_alloc_words: 1,356
+                compiled_words: 355
+                forced_words: 971
+                compile_alloc_words: 1,360
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/alternating:
                 colors: 3
                 states: 9
-                compiled_words: 419
-                forced_words: 1,060
-                compile_alloc_words: 1,182
+                compiled_words: 423
+                forced_words: 1,064
+                compile_alloc_words: 1,186
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/overlapping alternatives:
                 colors: 11
                 states: 10
-                compiled_words: 4,998
-                forced_words: 15,245
-                compile_alloc_words: 16,243
+                compiled_words: 5,002
+                forced_words: 15,249
+                compile_alloc_words: 16,247
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               automata/wide alphabet:
                 colors: 256
                 states: 7
-                compiled_words: 7,005
-                forced_words: 9,410
-                compile_alloc_words: 46,109
+                compiled_words: 7,009
+                forced_words: 9,414
+                compile_alloc_words: 46,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               automata/token classifier:
                 colors: 17
                 states: 17
-                compiled_words: 1,105
-                forced_words: 2,628
-                compile_alloc_words: 17,852
+                compiled_words: 1,109
+                forced_words: 2,632
+                compile_alloc_words: 17,856
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/nested captures:
                 colors: 2
                 states: 9
-                compiled_words: 359
-                forced_words: 1,277
-                compile_alloc_words: 1,105
+                compiled_words: 363
+                forced_words: 1,281
+                compile_alloc_words: 1,109
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/repeated bytes4:
                 colors: 256
                 states: 1,027
-                compiled_words: 12,565
-                forced_words: 385,245
-                compile_alloc_words: 40,200
+                compiled_words: 12,569
+                forced_words: 385,249
+                compile_alloc_words: 40,204
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               expression IDs/broad/256/4096:
                 colors: 13
                 states: 4,109
-                compiled_words: 51,349
-                forced_words: 407,033
-                compile_alloc_words: 97,614
+                compiled_words: 51,353
+                forced_words: 407,037
+                compile_alloc_words: 97,618
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 20,094
@@ -1253,486 +1253,486 @@ let%test_module "consolidated workload statistics" =
               automata/captures/sequential/16:
                 colors: 2
                 states: 19
-                compiled_words: 826
-                forced_words: 2,308
-                compile_alloc_words: 1,737
+                compiled_words: 830
+                forced_words: 2,312
+                compile_alloc_words: 1,741
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/repeated/16:
                 colors: 2
                 states: 35
-                compiled_words: 833
-                forced_words: 5,250
-                compile_alloc_words: 1,768
+                compiled_words: 837
+                forced_words: 5,254
+                compile_alloc_words: 1,772
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/erase/16:
                 colors: 2
                 states: 35
-                compiled_words: 846
-                forced_words: 3,820
-                compile_alloc_words: 1,786
+                compiled_words: 850
+                forced_words: 3,824
+                compile_alloc_words: 1,790
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/sequential/128:
                 colors: 2
                 states: 131
-                compiled_words: 4,858
-                forced_words: 15,766
-                compile_alloc_words: 8,569
+                compiled_words: 4,862
+                forced_words: 15,770
+                compile_alloc_words: 8,573
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/repeated/128:
                 colors: 2
                 states: 259
-                compiled_words: 4,865
-                forced_words: 125,348
-                compile_alloc_words: 8,600
+                compiled_words: 4,869
+                forced_words: 125,352
+                compile_alloc_words: 8,604
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/erase/128:
                 colors: 2
                 states: 259
-                compiled_words: 4,878
-                forced_words: 27,822
-                compile_alloc_words: 8,618
+                compiled_words: 4,882
+                forced_words: 27,826
+                compile_alloc_words: 8,622
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/sequential/512:
                 colors: 2
                 states: 515
-                compiled_words: 18,682
-                forced_words: 62,290
-                compile_alloc_words: 31,993
+                compiled_words: 18,686
+                forced_words: 62,294
+                compile_alloc_words: 31,997
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/repeated/512:
                 colors: 2
                 states: 1,027
-                compiled_words: 18,689
-                forced_words: 1,680,224
-                compile_alloc_words: 32,024
+                compiled_words: 18,693
+                forced_words: 1,680,228
+                compile_alloc_words: 32,028
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/captures/erase/512:
                 colors: 2
                 states: 1,027
-                compiled_words: 18,702
-                forced_words: 110,442
-                compile_alloc_words: 32,042
+                compiled_words: 18,706
+                forced_words: 110,446
+                compile_alloc_words: 32,046
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/overlap/128:
                 colors: 255
                 states: 131
-                compiled_words: 2,579
-                forced_words: 45,826
-                compile_alloc_words: 82,805
+                compiled_words: 2,583
+                forced_words: 45,830
+                compile_alloc_words: 82,809
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/overlap/256:
                 colors: 255
                 states: 259
-                compiled_words: 4,115
-                forced_words: 90,050
-                compile_alloc_words: 94,947
+                compiled_words: 4,119
+                forced_words: 90,054
+                compile_alloc_words: 94,951
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/overlap/512:
                 colors: 255
                 states: 515
-                compiled_words: 7,187
-                forced_words: 178,498
-                compile_alloc_words: 121,478
+                compiled_words: 7,191
+                forced_words: 178,502
+                compile_alloc_words: 121,482
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/overlap/2048:
                 colors: 255
                 states: 2,051
-                compiled_words: 25,619
-                forced_words: 709,186
-                compile_alloc_words: 284,876
+                compiled_words: 25,623
+                forced_words: 709,190
+                compile_alloc_words: 284,880
                 compile_major_words: 18,847
                 compile_promoted_words: 18,847
                 forcing: full
               automata/pathological/100:
                 colors: 3
                 states: 103
-                compiled_words: 1,290
-                forced_words: 26,506
-                compile_alloc_words: 2,109
+                compiled_words: 1,294
+                forced_words: 26,510
+                compile_alloc_words: 2,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               automata/pathological/1000:
                 colors: 3
                 states: 1,003
-                compiled_words: 10,290
-                forced_words: 2,061,340
-                compile_alloc_words: 11,109
+                compiled_words: 10,294
+                forced_words: 2,061,344
+                compile_alloc_words: 11,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               automata/occupancy/8:
                 colors: 256
                 states: 772
-                compiled_words: 13,088
-                forced_words: 272,821
-                compile_alloc_words: 60,734
+                compiled_words: 13,092
+                forced_words: 272,825
+                compile_alloc_words: 60,738
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/occupancy/32:
                 colors: 256
                 states: 772
-                compiled_words: 13,088
-                forced_words: 272,821
-                compile_alloc_words: 60,734
+                compiled_words: 13,092
+                forced_words: 272,825
+                compile_alloc_words: 60,738
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/occupancy/64:
                 colors: 256
                 states: 772
-                compiled_words: 13,088
-                forced_words: 272,821
-                compile_alloc_words: 60,734
+                compiled_words: 13,092
+                forced_words: 272,825
+                compile_alloc_words: 60,738
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/occupancy/128:
                 colors: 256
                 states: 772
-                compiled_words: 13,088
-                forced_words: 272,821
-                compile_alloc_words: 60,734
+                compiled_words: 13,092
+                forced_words: 272,825
+                compile_alloc_words: 60,738
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/occupancy/256:
                 colors: 256
                 states: 772
-                compiled_words: 13,088
-                forced_words: 272,821
-                compile_alloc_words: 60,734
+                compiled_words: 13,092
+                forced_words: 272,825
+                compile_alloc_words: 60,738
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/0/1:
                 colors: 256
                 states: 2
-                compiled_words: 4,899
-                forced_words: 5,303
-                compile_alloc_words: 30,005
+                compiled_words: 4,903
+                forced_words: 5,307
+                compile_alloc_words: 30,009
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/0/8:
                 colors: 256
                 states: 2
-                compiled_words: 4,899
-                forced_words: 5,303
-                compile_alloc_words: 30,005
+                compiled_words: 4,903
+                forced_words: 5,307
+                compile_alloc_words: 30,009
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/0/32:
                 colors: 256
                 states: 2
-                compiled_words: 4,899
-                forced_words: 5,303
-                compile_alloc_words: 30,005
+                compiled_words: 4,903
+                forced_words: 5,307
+                compile_alloc_words: 30,009
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/0/128:
                 colors: 256
                 states: 2
-                compiled_words: 4,899
-                forced_words: 5,303
-                compile_alloc_words: 30,005
+                compiled_words: 4,903
+                forced_words: 5,307
+                compile_alloc_words: 30,009
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/1/1:
                 colors: 256
                 states: 2
-                compiled_words: 4,913
-                forced_words: 5,341
-                compile_alloc_words: 30,028
+                compiled_words: 4,917
+                forced_words: 5,345
+                compile_alloc_words: 30,032
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/1/8:
                 colors: 256
                 states: 2
-                compiled_words: 4,913
-                forced_words: 5,341
-                compile_alloc_words: 30,028
+                compiled_words: 4,917
+                forced_words: 5,345
+                compile_alloc_words: 30,032
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/1/32:
                 colors: 256
                 states: 2
-                compiled_words: 4,913
-                forced_words: 5,341
-                compile_alloc_words: 30,028
+                compiled_words: 4,917
+                forced_words: 5,345
+                compile_alloc_words: 30,032
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/1/128:
                 colors: 256
                 states: 2
-                compiled_words: 4,913
-                forced_words: 5,341
-                compile_alloc_words: 30,028
+                compiled_words: 4,917
+                forced_words: 5,345
+                compile_alloc_words: 30,032
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/4/1:
                 colors: 256
                 states: 2
-                compiled_words: 4,985
-                forced_words: 5,485
-                compile_alloc_words: 30,231
+                compiled_words: 4,989
+                forced_words: 5,489
+                compile_alloc_words: 30,235
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/4/8:
                 colors: 256
                 states: 2
-                compiled_words: 4,985
-                forced_words: 5,485
-                compile_alloc_words: 30,231
+                compiled_words: 4,989
+                forced_words: 5,489
+                compile_alloc_words: 30,235
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/4/32:
                 colors: 256
                 states: 2
-                compiled_words: 4,985
-                forced_words: 5,485
-                compile_alloc_words: 30,231
+                compiled_words: 4,989
+                forced_words: 5,489
+                compile_alloc_words: 30,235
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/4/128:
                 colors: 256
                 states: 2
-                compiled_words: 4,985
-                forced_words: 5,485
-                compile_alloc_words: 30,231
+                compiled_words: 4,989
+                forced_words: 5,489
+                compile_alloc_words: 30,235
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/16/1:
                 colors: 256
                 states: 2
-                compiled_words: 5,273
-                forced_words: 6,061
-                compile_alloc_words: 30,915
+                compiled_words: 5,277
+                forced_words: 6,065
+                compile_alloc_words: 30,919
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/16/8:
                 colors: 256
                 states: 2
-                compiled_words: 5,273
-                forced_words: 6,061
-                compile_alloc_words: 30,915
+                compiled_words: 5,277
+                forced_words: 6,065
+                compile_alloc_words: 30,919
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/16/32:
                 colors: 256
                 states: 2
-                compiled_words: 5,273
-                forced_words: 6,061
-                compile_alloc_words: 30,915
+                compiled_words: 5,277
+                forced_words: 6,065
+                compile_alloc_words: 30,919
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/16/128:
                 colors: 256
                 states: 2
-                compiled_words: 5,273
-                forced_words: 6,061
-                compile_alloc_words: 30,915
+                compiled_words: 5,277
+                forced_words: 6,065
+                compile_alloc_words: 30,919
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/64/1:
                 colors: 256
                 states: 2
-                compiled_words: 6,425
-                forced_words: 8,365
-                compile_alloc_words: 33,651
+                compiled_words: 6,429
+                forced_words: 8,369
+                compile_alloc_words: 33,655
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/64/8:
                 colors: 256
                 states: 2
-                compiled_words: 6,425
-                forced_words: 8,365
-                compile_alloc_words: 33,651
+                compiled_words: 6,429
+                forced_words: 8,369
+                compile_alloc_words: 33,655
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/64/32:
                 colors: 256
                 states: 2
-                compiled_words: 6,425
-                forced_words: 8,365
-                compile_alloc_words: 33,651
+                compiled_words: 6,429
+                forced_words: 8,369
+                compile_alloc_words: 33,655
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/duplicate status/64/128:
                 colors: 256
                 states: 2
-                compiled_words: 6,425
-                forced_words: 8,365
-                compile_alloc_words: 33,651
+                compiled_words: 6,429
+                forced_words: 8,369
+                compile_alloc_words: 33,655
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/descriptor width/16/1:
                 colors: 23
                 states: 189
-                compiled_words: 6,828
-                forced_words: 38,345
-                compile_alloc_words: 13,520
+                compiled_words: 6,832
+                forced_words: 38,349
+                compile_alloc_words: 13,524
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/descriptor width/16/8:
                 colors: 23
                 states: 189
-                compiled_words: 6,828
-                forced_words: 38,345
-                compile_alloc_words: 13,520
+                compiled_words: 6,832
+                forced_words: 38,349
+                compile_alloc_words: 13,524
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/descriptor width/128/1:
                 colors: 26
                 states: 332
-                compiled_words: 52,597
-                forced_words: 262,757
-                compile_alloc_words: 98,952
+                compiled_words: 52,601
+                forced_words: 262,761
+                compile_alloc_words: 98,956
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/descriptor width/128/8:
                 colors: 26
                 states: 332
-                compiled_words: 52,597
-                forced_words: 262,757
-                compile_alloc_words: 98,952
+                compiled_words: 52,601
+                forced_words: 262,761
+                compile_alloc_words: 98,956
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/descriptor width/1024/1:
                 colors: 29
                 states: 745
-                compiled_words: 422,773
-                forced_words: 2,403,095
-                compile_alloc_words: 814,836
+                compiled_words: 422,777
+                forced_words: 2,403,099
+                compile_alloc_words: 814,840
                 compile_major_words: 489,829
                 compile_promoted_words: 489,829
                 forcing: full
               automata/descriptor width/1024/8:
                 colors: 29
                 states: 745
-                compiled_words: 422,773
-                forced_words: 2,403,095
-                compile_alloc_words: 814,836
+                compiled_words: 422,777
+                forced_words: 2,403,099
+                compile_alloc_words: 814,840
                 compile_major_words: 489,829
                 compile_promoted_words: 489,829
                 forcing: full
               automata/descriptor width/4096/1:
                 colors: 31
                 states: 1,883
-                compiled_words: 1,702,261
-                forced_words: 10,786,975
-                compile_alloc_words: 3,365,322
+                compiled_words: 1,702,265
+                forced_words: 10,786,979
+                compile_alloc_words: 3,365,326
                 compile_major_words: 2,001,357
                 compile_promoted_words: 2,001,357
                 forcing: full
               automata/descriptor width/4096/8:
                 colors: 31
                 states: 1,883
-                compiled_words: 1,702,261
-                forced_words: 10,786,975
-                compile_alloc_words: 3,365,322
+                compiled_words: 1,702,265
+                forced_words: 10,786,979
+                compile_alloc_words: 3,365,326
                 compile_major_words: 2,001,357
                 compile_promoted_words: 2,001,357
                 forcing: full
               automata/interleaved/1:
                 colors: 5
                 states: 8
-                compiled_words: 436
-                forced_words: 982
-                compile_alloc_words: 1,392
+                compiled_words: 440
+                forced_words: 986
+                compile_alloc_words: 1,396
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/interleaved/4:
                 colors: 11
                 states: 11
-                compiled_words: 833
-                forced_words: 1,972
-                compile_alloc_words: 2,860
+                compiled_words: 837
+                forced_words: 1,976
+                compile_alloc_words: 2,864
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/interleaved/8:
                 colors: 12
                 states: 16
-                compiled_words: 1,319
-                forced_words: 3,569
-                compile_alloc_words: 4,414
+                compiled_words: 1,323
+                forced_words: 3,573
+                compile_alloc_words: 4,418
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/interleaved/16:
                 colors: 12
                 states: 26
-                compiled_words: 2,279
-                forced_words: 7,668
-                compile_alloc_words: 7,398
+                compiled_words: 2,283
+                forced_words: 7,672
+                compile_alloc_words: 7,402
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               automata/interleaved/32:
                 colors: 12
                 states: 45
-                compiled_words: 4,199
-                forced_words: 19,657
-                compile_alloc_words: 13,366
+                compiled_words: 4,203
+                forced_words: 19,661
+                compile_alloc_words: 13,370
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               parser/empty:
                 colors: 1
                 states: 2
-                compiled_words: 245
-                forced_words: 364
-                compile_alloc_words: 829
+                compiled_words: 249
+                forced_words: 368
+                compile_alloc_words: 833
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 212
@@ -1742,9 +1742,9 @@ let%test_module "consolidated workload statistics" =
               parser/one byte:
                 colors: 2
                 states: 4
-                compiled_words: 263
-                forced_words: 502
-                compile_alloc_words: 870
+                compiled_words: 267
+                forced_words: 506
+                compile_alloc_words: 874
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 212
@@ -1754,9 +1754,9 @@ let%test_module "consolidated workload statistics" =
               parser/short literal:
                 colors: 13
                 states: 37
-                compiled_words: 516
-                forced_words: 3,967
-                compile_alloc_words: 2,006
+                compiled_words: 520
+                forced_words: 3,971
+                compile_alloc_words: 2,010
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 311
@@ -1766,9 +1766,9 @@ let%test_module "consolidated workload statistics" =
               parser/small alternation:
                 colors: 2
                 states: 4
-                compiled_words: 263
-                forced_words: 502
-                compile_alloc_words: 938
+                compiled_words: 267
+                forced_words: 506
+                compile_alloc_words: 942
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 256
@@ -1778,9 +1778,9 @@ let%test_module "consolidated workload statistics" =
               parser/captures:
                 colors: 2
                 states: 131
-                compiled_words: 4,859
-                forced_words: 252,746
-                compile_alloc_words: 8,674
+                compiled_words: 4,863
+                forced_words: 252,750
+                compile_alloc_words: 8,678
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 2,355
@@ -1790,9 +1790,9 @@ let%test_module "consolidated workload statistics" =
               parser/noncapturing:
                 colors: 3
                 states: 259
-                compiled_words: 3,329
-                forced_words: 209,415
-                compile_alloc_words: 12,299
+                compiled_words: 3,333
+                forced_words: 209,419
+                compile_alloc_words: 12,303
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 3,475
@@ -1802,9 +1802,9 @@ let%test_module "consolidated workload statistics" =
               parser/empty groups:
                 colors: 1
                 states: 2
-                compiled_words: 3,317
-                forced_words: 5,996
-                compile_alloc_words: 8,125
+                compiled_words: 3,321
+                forced_words: 6,000
+                compile_alloc_words: 8,129
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 2,323
@@ -1814,9 +1814,9 @@ let%test_module "consolidated workload statistics" =
               parser/classes:
                 colors: 2
                 states: 131
-                compiled_words: 1,787
-                forced_words: 84,642
-                compile_alloc_words: 10,272
+                compiled_words: 1,791
+                forced_words: 84,646
+                compile_alloc_words: 10,276
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 5,235
@@ -1826,9 +1826,9 @@ let%test_module "consolidated workload statistics" =
               parser/ranges:
                 colors: 2
                 states: 131
-                compiled_words: 1,787
-                forced_words: 84,642
-                compile_alloc_words: 13,884
+                compiled_words: 1,791
+                forced_words: 84,646
+                compile_alloc_words: 13,888
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 11,091
@@ -1838,9 +1838,9 @@ let%test_module "consolidated workload statistics" =
               parser/escapes:
                 colors: 4
                 states: 8
-                compiled_words: 14,574
-                forced_words: 15,315
-                compile_alloc_words: 47,275
+                compiled_words: 14,578
+                forced_words: 15,319
+                compile_alloc_words: 47,279
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 5,971
@@ -1850,9 +1850,9 @@ let%test_module "consolidated workload statistics" =
               parser/numeric escapes:
                 colors: 5
                 states: 515
-                compiled_words: 6,413
-                forced_words: 335,804
-                compile_alloc_words: 16,885
+                compiled_words: 6,417
+                forced_words: 335,808
+                compile_alloc_words: 16,889
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 9,039
@@ -1862,9 +1862,9 @@ let%test_module "consolidated workload statistics" =
               parser/named groups:
                 colors: 2
                 states: 131
-                compiled_words: 6,011
-                forced_words: 253,898
-                compile_alloc_words: 9,826
+                compiled_words: 6,015
+                forced_words: 253,902
+                compile_alloc_words: 9,830
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 3,919
@@ -1874,9 +1874,9 @@ let%test_module "consolidated workload statistics" =
               parser/long name:
                 colors: 2
                 states: 4
-                compiled_words: 807
-                forced_words: 1,071
-                compile_alloc_words: 909
+                compiled_words: 811
+                forced_words: 1,075
+                compile_alloc_words: 913
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 228
@@ -1886,9 +1886,9 @@ let%test_module "consolidated workload statistics" =
               parser/comment 4K:
                 colors: 1
                 states: 2
-                compiled_words: 245
-                forced_words: 364
-                compile_alloc_words: 829
+                compiled_words: 249
+                forced_words: 368
+                compile_alloc_words: 833
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 208
@@ -1898,9 +1898,9 @@ let%test_module "consolidated workload statistics" =
               parser/comment 64K:
                 colors: 1
                 states: 2
-                compiled_words: 245
-                forced_words: 364
-                compile_alloc_words: 829
+                compiled_words: 249
+                forced_words: 368
+                compile_alloc_words: 833
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 208
@@ -1910,9 +1910,9 @@ let%test_module "consolidated workload statistics" =
               parser/quoted backslashes:
                 colors: 5
                 states: 3,075
-                compiled_words: 37,133
-                forced_words: 7,346,016
-                compile_alloc_words: 96,243
+                compiled_words: 37,137
+                forced_words: 7,346,020
+                compile_alloc_words: 96,247
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 18,639
@@ -1922,9 +1922,9 @@ let%test_module "consolidated workload statistics" =
               parser/quantifiers:
                 colors: 5
                 states: 1
-                compiled_words: 18,701
-                forced_words: 18,758
-                compile_alloc_words: 51,701
+                compiled_words: 18,705
+                forced_words: 18,762
+                compile_alloc_words: 51,705
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 7,859
@@ -1934,99 +1934,99 @@ let%test_module "consolidated workload statistics" =
               nested groups/capturing/64:
                 colors: 2
                 states: 67
-                compiled_words: 1,019
-                forced_words: 24,097
-                compile_alloc_words: 3,055
+                compiled_words: 1,023
+                forced_words: 24,101
+                compile_alloc_words: 3,059
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/plain/64:
                 colors: 2
                 states: 67
-                compiled_words: 1,019
-                forced_words: 24,097
-                compile_alloc_words: 2,863
+                compiled_words: 1,023
+                forced_words: 24,101
+                compile_alloc_words: 2,867
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/capturing/128:
                 colors: 2
                 states: 131
-                compiled_words: 1,787
-                forced_words: 84,642
-                compile_alloc_words: 5,231
+                compiled_words: 1,791
+                forced_words: 84,646
+                compile_alloc_words: 5,235
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/plain/128:
                 colors: 2
                 states: 131
-                compiled_words: 1,787
-                forced_words: 84,642
-                compile_alloc_words: 4,847
+                compiled_words: 1,791
+                forced_words: 84,646
+                compile_alloc_words: 4,851
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/capturing/256:
                 colors: 2
                 states: 259
-                compiled_words: 3,323
-                forced_words: 316,452
-                compile_alloc_words: 9,583
+                compiled_words: 3,327
+                forced_words: 316,456
+                compile_alloc_words: 9,587
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/plain/256:
                 colors: 2
                 states: 259
-                compiled_words: 3,323
-                forced_words: 316,452
-                compile_alloc_words: 8,815
+                compiled_words: 3,327
+                forced_words: 316,456
+                compile_alloc_words: 8,819
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/capturing/512:
                 colors: 2
                 states: 515
-                compiled_words: 6,395
-                forced_words: 1,222,440
-                compile_alloc_words: 18,287
+                compiled_words: 6,399
+                forced_words: 1,222,444
+                compile_alloc_words: 18,291
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/plain/512:
                 colors: 2
                 states: 515
-                compiled_words: 6,395
-                forced_words: 1,222,440
-                compile_alloc_words: 16,751
+                compiled_words: 6,399
+                forced_words: 1,222,444
+                compile_alloc_words: 16,755
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/capturing/1024:
                 colors: 2
                 states: 1,027
-                compiled_words: 12,539
-                forced_words: 4,803,888
-                compile_alloc_words: 35,695
+                compiled_words: 12,543
+                forced_words: 4,803,892
+                compile_alloc_words: 35,699
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               nested groups/plain/1024:
                 colors: 2
                 states: 1,027
-                compiled_words: 12,539
-                forced_words: 4,803,888
-                compile_alloc_words: 32,623
+                compiled_words: 12,543
+                forced_words: 4,803,892
+                compile_alloc_words: 32,627
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               literal/plain/32:
                 colors: 26
                 states: 35
-                compiled_words: 782
-                forced_words: 3,868
-                compile_alloc_words: 3,202
+                compiled_words: 786
+                forced_words: 3,872
+                compile_alloc_words: 3,206
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2036,9 +2036,9 @@ let%test_module "consolidated workload statistics" =
               literal/quoted/32:
                 colors: 26
                 states: 35
-                compiled_words: 782
-                forced_words: 3,868
-                compile_alloc_words: 3,202
+                compiled_words: 786
+                forced_words: 3,872
+                compile_alloc_words: 3,206
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2048,9 +2048,9 @@ let%test_module "consolidated workload statistics" =
               literal/mixed/32:
                 colors: 27
                 states: 67
-                compiled_words: 1,140
-                forced_words: 7,187
-                compile_alloc_words: 3,723
+                compiled_words: 1,144
+                forced_words: 7,191
+                compile_alloc_words: 3,727
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 479
@@ -2060,9 +2060,9 @@ let%test_module "consolidated workload statistics" =
               literal/alternation/32:
                 colors: 28
                 states: 36
-                compiled_words: 822
-                forced_words: 4,076
-                compile_alloc_words: 5,455
+                compiled_words: 826
+                forced_words: 4,080
+                compile_alloc_words: 5,459
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 640
@@ -2072,9 +2072,9 @@ let%test_module "consolidated workload statistics" =
               literal/plain/256:
                 colors: 64
                 states: 515
-                compiled_words: 3,703
-                forced_words: 69,711
-                compile_alloc_words: 12,625
+                compiled_words: 3,707
+                forced_words: 69,715
+                compile_alloc_words: 12,629
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2084,9 +2084,9 @@ let%test_module "consolidated workload statistics" =
               literal/quoted/256:
                 colors: 64
                 states: 515
-                compiled_words: 3,703
-                forced_words: 69,711
-                compile_alloc_words: 12,625
+                compiled_words: 3,707
+                forced_words: 69,715
+                compile_alloc_words: 12,629
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2096,9 +2096,9 @@ let%test_module "consolidated workload statistics" =
               literal/mixed/256:
                 colors: 64
                 states: 515
-                compiled_words: 6,301
-                forced_words: 72,742
-                compile_alloc_words: 15,192
+                compiled_words: 6,305
+                forced_words: 72,746
+                compile_alloc_words: 15,196
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,879
@@ -2108,9 +2108,9 @@ let%test_module "consolidated workload statistics" =
               literal/alternation/256:
                 colors: 64
                 states: 517
-                compiled_words: 3,731
-                forced_words: 70,058
-                compile_alloc_words: 29,092
+                compiled_words: 3,735
+                forced_words: 70,062
+                compile_alloc_words: 29,096
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 3,440
@@ -2120,9 +2120,9 @@ let%test_module "consolidated workload statistics" =
               literal/plain/4096:
                 colors: 64
                 states: 8,195
-                compiled_words: 49,783
-                forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compiled_words: 49,787
+                forced_words: 1,102,699
+                compile_alloc_words: 131,669
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2132,9 +2132,9 @@ let%test_module "consolidated workload statistics" =
               literal/quoted/4096:
                 colors: 64
                 states: 8,195
-                compiled_words: 49,783
-                forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compiled_words: 49,787
+                forced_words: 1,102,699
+                compile_alloc_words: 131,669
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2144,9 +2144,9 @@ let%test_module "consolidated workload statistics" =
               literal/mixed/4096:
                 colors: 64
                 states: 8,195
-                compiled_words: 90,781
-                forced_words: 1,151,782
-                compile_alloc_words: 172,632
+                compiled_words: 90,785
+                forced_words: 1,151,786
+                compile_alloc_words: 172,636
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,849
@@ -2156,9 +2156,9 @@ let%test_module "consolidated workload statistics" =
               literal/alternation/4096:
                 colors: 64
                 states: 8,197
-                compiled_words: 49,811
-                forced_words: 1,104,002
-                compile_alloc_words: 393,892
+                compiled_words: 49,815
+                forced_words: 1,104,006
+                compile_alloc_words: 393,896
                 compile_major_words: 164,172
                 compile_promoted_words: 164,172
                 construct_alloc_words: 49,388
@@ -2168,9 +2168,9 @@ let%test_module "consolidated workload statistics" =
               literal/plain/65536:
                 colors: 64
                 states: 131,075
-                compiled_words: 787,063
-                forced_words: 17,635,173
-                compile_alloc_words: 2,036,305
+                compiled_words: 787,067
+                forced_words: 17,635,177
+                compile_alloc_words: 2,036,309
                 compile_major_words: 913,411
                 compile_promoted_words: 913,411
                 construct_alloc_words: 393,425
@@ -2180,9 +2180,9 @@ let%test_module "consolidated workload statistics" =
               literal/quoted/65536:
                 colors: 64
                 states: 131,075
-                compiled_words: 787,063
-                forced_words: 17,635,173
-                compile_alloc_words: 2,036,305
+                compiled_words: 787,067
+                forced_words: 17,635,177
+                compile_alloc_words: 2,036,309
                 compile_major_words: 913,411
                 compile_promoted_words: 913,411
                 construct_alloc_words: 393,425
@@ -2192,9 +2192,9 @@ let%test_module "consolidated workload statistics" =
               literal/mixed/65536:
                 colors: 64
                 states: 131,075
-                compiled_words: 1,442,461
-                forced_words: 18,416,422
-                compile_alloc_words: 2,691,672
+                compiled_words: 1,442,465
+                forced_words: 18,416,426
+                compile_alloc_words: 2,691,676
                 compile_major_words: 1,568,909
                 compile_promoted_words: 1,568,909
                 construct_alloc_words: 393,489
@@ -2204,9 +2204,9 @@ let%test_module "consolidated workload statistics" =
               literal/hit/32:
                 colors: 26
                 states: 35
-                compiled_words: 782
-                forced_words: 3,868
-                compile_alloc_words: 3,202
+                compiled_words: 786
+                forced_words: 3,872
+                compile_alloc_words: 3,206
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2216,9 +2216,9 @@ let%test_module "consolidated workload statistics" =
               literal/absent/32:
                 colors: 26
                 states: 35
-                compiled_words: 782
-                forced_words: 3,868
-                compile_alloc_words: 3,202
+                compiled_words: 786
+                forced_words: 3,872
+                compile_alloc_words: 3,206
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2228,9 +2228,9 @@ let%test_module "consolidated workload statistics" =
               literal/late miss/32:
                 colors: 26
                 states: 35
-                compiled_words: 782
-                forced_words: 3,868
-                compile_alloc_words: 3,202
+                compiled_words: 786
+                forced_words: 3,872
+                compile_alloc_words: 3,206
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2240,9 +2240,9 @@ let%test_module "consolidated workload statistics" =
               literal/anchored/32:
                 colors: 26
                 states: 35
-                compiled_words: 781
-                forced_words: 3,547
-                compile_alloc_words: 2,998
+                compiled_words: 785
+                forced_words: 3,551
+                compile_alloc_words: 3,002
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 425
@@ -2252,9 +2252,9 @@ let%test_module "consolidated workload statistics" =
               literal/hit/256:
                 colors: 64
                 states: 515
-                compiled_words: 3,703
-                forced_words: 69,711
-                compile_alloc_words: 12,625
+                compiled_words: 3,707
+                forced_words: 69,715
+                compile_alloc_words: 12,629
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2264,9 +2264,9 @@ let%test_module "consolidated workload statistics" =
               literal/absent/256:
                 colors: 64
                 states: 515
-                compiled_words: 3,703
-                forced_words: 69,711
-                compile_alloc_words: 12,625
+                compiled_words: 3,707
+                forced_words: 69,715
+                compile_alloc_words: 12,629
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2276,9 +2276,9 @@ let%test_module "consolidated workload statistics" =
               literal/late miss/256:
                 colors: 64
                 states: 515
-                compiled_words: 3,703
-                forced_words: 69,711
-                compile_alloc_words: 12,625
+                compiled_words: 3,707
+                forced_words: 69,715
+                compile_alloc_words: 12,629
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2288,9 +2288,9 @@ let%test_module "consolidated workload statistics" =
               literal/anchored/256:
                 colors: 64
                 states: 259
-                compiled_words: 3,702
-                forced_words: 34,376
-                compile_alloc_words: 12,307
+                compiled_words: 3,706
+                forced_words: 34,380
+                compile_alloc_words: 12,311
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,825
@@ -2300,9 +2300,9 @@ let%test_module "consolidated workload statistics" =
               literal/hit/4096:
                 colors: 64
                 states: 8,195
-                compiled_words: 49,783
-                forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compiled_words: 49,787
+                forced_words: 1,102,699
+                compile_alloc_words: 131,669
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2312,9 +2312,9 @@ let%test_module "consolidated workload statistics" =
               literal/absent/4096:
                 colors: 64
                 states: 8,195
-                compiled_words: 49,783
-                forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compiled_words: 49,787
+                forced_words: 1,102,699
+                compile_alloc_words: 131,669
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2324,9 +2324,9 @@ let%test_module "consolidated workload statistics" =
               literal/late miss/4096:
                 colors: 64
                 states: 8,195
-                compiled_words: 49,783
-                forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compiled_words: 49,787
+                forced_words: 1,102,699
+                compile_alloc_words: 131,669
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2336,9 +2336,9 @@ let%test_module "consolidated workload statistics" =
               literal/anchored/4096:
                 colors: 64
                 states: 4,099
-                compiled_words: 49,782
-                forced_words: 538,376
-                compile_alloc_words: 131,347
+                compiled_words: 49,786
+                forced_words: 538,380
+                compile_alloc_words: 131,351
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,797
@@ -2348,9 +2348,9 @@ let%test_module "consolidated workload statistics" =
               literal/overlap/256:
                 colors: 3
                 states: 1,021
-                compiled_words: 3,329
-                forced_words: 943,572
-                compile_alloc_words: 8,856
+                compiled_words: 3,333
+                forced_words: 943,576
+                compile_alloc_words: 8,860
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2360,9 +2360,9 @@ let%test_module "consolidated workload statistics" =
               gitignore/joomla/capturing:
                 colors: 48
                 states: 6,947
-                compiled_words: 383,321
-                forced_words: 1,278,364
-                compile_alloc_words: 1,034,744
+                compiled_words: 383,325
+                forced_words: 1,278,368
+                compile_alloc_words: 1,034,748
                 compile_major_words: 558,178
                 compile_promoted_words: 558,178
                 construct_alloc_words: 220,816
@@ -2372,9 +2372,9 @@ let%test_module "consolidated workload statistics" =
               gitignore/joomla/noncapturing:
                 colors: 48
                 states: 6,947
-                compiled_words: 106,033
-                forced_words: 893,126
-                compile_alloc_words: 1,369,620
+                compiled_words: 106,037
+                forced_words: 893,130
+                compile_alloc_words: 1,369,624
                 compile_major_words: 470,378
                 compile_promoted_words: 470,378
                 construct_alloc_words: 216,586
@@ -2384,9 +2384,9 @@ let%test_module "consolidated workload statistics" =
               gitignore/latex-ignore-suffixes/capturing:
                 colors: 42
                 states: 375
-                compiled_words: 17,983
-                forced_words: 501,965
-                compile_alloc_words: 64,373
+                compiled_words: 17,987
+                forced_words: 501,969
+                compile_alloc_words: 64,377
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 18,040
@@ -2396,9 +2396,9 @@ let%test_module "consolidated workload statistics" =
               gitignore/latex-ignore-suffixes/noncapturing:
                 colors: 42
                 states: 375
-                compiled_words: 17,983
-                forced_words: 501,965
-                compile_alloc_words: 63,857
+                compiled_words: 17,987
+                forced_words: 501,969
+                compile_alloc_words: 63,861
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 16,879
@@ -2408,558 +2408,558 @@ let%test_module "consolidated workload statistics" =
               boolean/literal-short-hit:
                 colors: 5
                 states: 9
-                compiled_words: 341
-                forced_words: 932
-                compile_alloc_words: 1,204
+                compiled_words: 345
+                forced_words: 936
+                compile_alloc_words: 1,208
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/literal-long-miss:
                 colors: 5
                 states: 9
-                compiled_words: 341
-                forced_words: 932
-                compile_alloc_words: 1,204
+                compiled_words: 345
+                forced_words: 936
+                compile_alloc_words: 1,208
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/literal-long-late:
                 colors: 5
                 states: 9
-                compiled_words: 341
-                forced_words: 932
-                compile_alloc_words: 1,204
+                compiled_words: 345
+                forced_words: 936
+                compile_alloc_words: 1,208
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/literal-overlap-miss:
                 colors: 3
                 states: 65
-                compiled_words: 461
-                forced_words: 7,858
-                compile_alloc_words: 1,449
+                compiled_words: 465
+                forced_words: 7,862
+                compile_alloc_words: 1,453
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/alt-long-miss:
                 colors: 10
                 states: 15
-                compiled_words: 468
-                forced_words: 1,559
-                compile_alloc_words: 1,808
+                compiled_words: 472
+                forced_words: 1,563
+                compile_alloc_words: 1,812
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/suffix-miss:
                 colors: 4
                 states: 5
-                compiled_words: 311
-                forced_words: 704
-                compile_alloc_words: 1,119
+                compiled_words: 315
+                forced_words: 708
+                compile_alloc_words: 1,123
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/star-greedy-hit:
                 colors: 2
                 states: 5
-                compiled_words: 270
-                forced_words: 595
-                compile_alloc_words: 914
+                compiled_words: 274
+                forced_words: 599
+                compile_alloc_words: 918
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/plus-greedy-hit:
                 colors: 2
                 states: 5
-                compiled_words: 280
-                forced_words: 598
-                compile_alloc_words: 924
+                compiled_words: 284
+                forced_words: 602
+                compile_alloc_words: 928
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/anchored-repeat:
                 colors: 2
                 states: 5
-                compiled_words: 279
-                forced_words: 558
-                compile_alloc_words: 819
+                compiled_words: 283
+                forced_words: 562
+                compile_alloc_words: 823
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/anchored-class:
                 colors: 2
                 states: 5
-                compiled_words: 279
-                forced_words: 558
-                compile_alloc_words: 846
+                compiled_words: 283
+                forced_words: 562
+                compile_alloc_words: 850
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/anchored-class-varied:
                 colors: 2
                 states: 5
-                compiled_words: 279
-                forced_words: 558
-                compile_alloc_words: 846
+                compiled_words: 283
+                forced_words: 562
+                compile_alloc_words: 850
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/anchored-class-fail:
                 colors: 2
                 states: 5
-                compiled_words: 279
-                forced_words: 558
-                compile_alloc_words: 846
+                compiled_words: 283
+                forced_words: 562
+                compile_alloc_words: 850
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/email-hit:
                 colors: 6
                 states: 10
-                compiled_words: 407
-                forced_words: 1,120
-                compile_alloc_words: 1,651
+                compiled_words: 411
+                forced_words: 1,124
+                compile_alloc_words: 1,655
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/email-miss:
                 colors: 6
                 states: 10
-                compiled_words: 407
-                forced_words: 1,120
-                compile_alloc_words: 1,651
+                compiled_words: 411
+                forced_words: 1,124
+                compile_alloc_words: 1,655
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/http-hit:
                 colors: 18
                 states: 30
-                compiled_words: 707
-                forced_words: 3,414
-                compile_alloc_words: 2,941
+                compiled_words: 711
+                forced_words: 3,418
+                compile_alloc_words: 2,945
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/word-boundary-miss:
                 colors: 6
                 states: 12
-                compiled_words: 389
-                forced_words: 1,294
-                compile_alloc_words: 1,441
+                compiled_words: 393
+                forced_words: 1,298
+                compile_alloc_words: 1,445
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/line-anchor-miss:
                 colors: 5
                 states: 11
-                compiled_words: 347
-                forced_words: 1,158
-                compile_alloc_words: 1,268
+                compiled_words: 351
+                forced_words: 1,162
+                compile_alloc_words: 1,272
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/longest-hit:
                 colors: 3
                 states: 9
-                compiled_words: 324
-                forced_words: 948
-                compile_alloc_words: 1,118
+                compiled_words: 328
+                forced_words: 952
+                compile_alloc_words: 1,122
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/ambiguous-miss:
                 colors: 3
                 states: 7
-                compiled_words: 316
-                forced_words: 820
-                compile_alloc_words: 1,153
+                compiled_words: 320
+                forced_words: 824
+                compile_alloc_words: 1,157
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/short-reject:
                 colors: 7
                 states: 9
-                compiled_words: 352
-                forced_words: 906
-                compile_alloc_words: 1,216
+                compiled_words: 356
+                forced_words: 910
+                compile_alloc_words: 1,220
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/short-accept:
                 colors: 7
                 states: 9
-                compiled_words: 352
-                forced_words: 906
-                compile_alloc_words: 1,216
+                compiled_words: 356
+                forced_words: 910
+                compile_alloc_words: 1,220
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/literal-dense-candidates:
                 colors: 3
                 states: 259
-                compiled_words: 3,329
-                forced_words: 20,657
-                compile_alloc_words: 8,856
+                compiled_words: 3,333
+                forced_words: 20,661
+                compile_alloc_words: 8,860
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/literal-dense-short:
                 colors: 3
                 states: 11
-                compiled_words: 353
-                forced_words: 1,061
-                compile_alloc_words: 1,168
+                compiled_words: 357
+                forced_words: 1,065
+                compile_alloc_words: 1,172
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/cycle-anchored:
                 colors: 3
                 states: 6
-                compiled_words: 307
-                forced_words: 657
-                compile_alloc_words: 925
+                compiled_words: 311
+                forced_words: 661
+                compile_alloc_words: 929
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/class-late-hit:
                 colors: 3
                 states: 6
-                compiled_words: 298
-                forced_words: 734
-                compile_alloc_words: 1,058
+                compiled_words: 302
+                forced_words: 738
+                compile_alloc_words: 1,062
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/word-boundary-late-hit:
                 colors: 6
                 states: 12
-                compiled_words: 389
-                forced_words: 1,294
-                compile_alloc_words: 1,441
+                compiled_words: 393
+                forced_words: 1,298
+                compile_alloc_words: 1,445
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/literal-1k-miss:
                 colors: 5
                 states: 9
-                compiled_words: 341
-                forced_words: 932
-                compile_alloc_words: 1,204
+                compiled_words: 345
+                forced_words: 936
+                compile_alloc_words: 1,208
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/literal-1m-miss:
                 colors: 5
                 states: 9
-                compiled_words: 341
-                forced_words: 932
-                compile_alloc_words: 1,204
+                compiled_words: 345
+                forced_words: 936
+                compile_alloc_words: 1,208
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/path-glob:
                 colors: 6
                 states: 16
-                compiled_words: 730
-                forced_words: 2,753
-                compile_alloc_words: 3,633
+                compiled_words: 734
+                forced_words: 2,757
+                compile_alloc_words: 3,637
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/literal/captures:
                 colors: 5
                 states: 9
-                compiled_words: 341
-                forced_words: 932
-                compile_alloc_words: 1,191
+                compiled_words: 345
+                forced_words: 936
+                compile_alloc_words: 1,195
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/literal/no group:
                 colors: 5
                 states: 9
-                compiled_words: 341
-                forced_words: 932
-                compile_alloc_words: 1,204
+                compiled_words: 345
+                forced_words: 936
+                compile_alloc_words: 1,208
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/overlap/captures:
                 colors: 3
                 states: 125
-                compiled_words: 641
-                forced_words: 21,200
-                compile_alloc_words: 1,899
+                compiled_words: 645
+                forced_words: 21,204
+                compile_alloc_words: 1,903
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/overlap/no group:
                 colors: 3
                 states: 125
-                compiled_words: 641
-                forced_words: 21,200
-                compile_alloc_words: 1,912
+                compiled_words: 645
+                forced_words: 21,204
+                compile_alloc_words: 1,916
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/email/captures:
                 colors: 6
                 states: 11
-                compiled_words: 479
-                forced_words: 1,361
-                compile_alloc_words: 1,728
+                compiled_words: 483
+                forced_words: 1,365
+                compile_alloc_words: 1,732
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/email/no group:
                 colors: 6
                 states: 10
-                compiled_words: 407
-                forced_words: 1,120
-                compile_alloc_words: 1,660
+                compiled_words: 411
+                forced_words: 1,124
+                compile_alloc_words: 1,664
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/http/captures:
                 colors: 18
                 states: 30
-                compiled_words: 779
-                forced_words: 3,685
-                compile_alloc_words: 3,072
+                compiled_words: 783
+                forced_words: 3,689
+                compile_alloc_words: 3,076
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/http/no group:
                 colors: 18
                 states: 29
-                compiled_words: 707
-                forced_words: 3,334
-                compile_alloc_words: 3,004
+                compiled_words: 711
+                forced_words: 3,338
+                compile_alloc_words: 3,008
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/ambiguous/captures:
                 colors: 3
                 states: 10
-                compiled_words: 388
-                forced_words: 1,285
-                compile_alloc_words: 1,230
+                compiled_words: 392
+                forced_words: 1,289
+                compile_alloc_words: 1,234
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/ambiguous/no group:
                 colors: 3
                 states: 7
-                compiled_words: 316
-                forced_words: 820
-                compile_alloc_words: 1,162
+                compiled_words: 320
+                forced_words: 824
+                compile_alloc_words: 1,166
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/boundaries/captures:
                 colors: 6
                 states: 12
-                compiled_words: 413
-                forced_words: 1,366
-                compile_alloc_words: 1,458
+                compiled_words: 417
+                forced_words: 1,370
+                compile_alloc_words: 1,462
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/boundaries/no group:
                 colors: 6
                 states: 12
-                compiled_words: 389
-                forced_words: 1,294
-                compile_alloc_words: 1,444
+                compiled_words: 393
+                forced_words: 1,298
+                compile_alloc_words: 1,448
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/many-groups/captures:
                 colors: 2
                 states: 35
-                compiled_words: 1,850
-                forced_words: 84,172
-                compile_alloc_words: 4,313
+                compiled_words: 1,854
+                forced_words: 84,176
+                compile_alloc_words: 4,317
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/many-groups/no group:
                 colors: 2
                 states: 35
-                compiled_words: 1,082
-                forced_words: 5,685
-                compile_alloc_words: 3,462
+                compiled_words: 1,086
+                forced_words: 5,689
+                compile_alloc_words: 3,466
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/many-marks/captures:
                 colors: 2
                 states: 35
-                compiled_words: 1,466
-                forced_words: 28,353
-                compile_alloc_words: 3,929
+                compiled_words: 1,470
+                forced_words: 28,357
+                compile_alloc_words: 3,933
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               histories/many-marks/no group:
                 colors: 2
                 states: 35
-                compiled_words: 1,466
-                forced_words: 28,353
-                compile_alloc_words: 3,942
+                compiled_words: 1,470
+                forced_words: 28,357
+                compile_alloc_words: 3,946
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/literal:
                 colors: 9
                 states: 11
-                compiled_words: 390
-                forced_words: 1,158
-                compile_alloc_words: 1,504
+                compiled_words: 394
+                forced_words: 1,162
+                compile_alloc_words: 1,508
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/greedy:
                 colors: 3
                 states: 25
-                compiled_words: 324
-                forced_words: 2,634
-                compile_alloc_words: 1,077
+                compiled_words: 328
+                forced_words: 2,638
+                compile_alloc_words: 1,081
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/lazy:
                 colors: 3
                 states: 11
-                compiled_words: 324
-                forced_words: 1,198
-                compile_alloc_words: 1,091
+                compiled_words: 328
+                forced_words: 1,202
+                compile_alloc_words: 1,095
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/captures:
                 colors: 4
                 states: 9
-                compiled_words: 382
-                forced_words: 1,053
-                compile_alloc_words: 1,147
+                compiled_words: 386
+                forced_words: 1,057
+                compile_alloc_words: 1,151
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/word boundaries:
                 colors: 2
                 states: 8
-                compiled_words: 352
-                forced_words: 944
-                compile_alloc_words: 1,170
+                compiled_words: 356
+                forced_words: 948
+                compile_alloc_words: 1,174
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/broad alternatives:
                 colors: 12
                 states: 34
-                compiled_words: 2,220
-                forced_words: 7,848
-                compile_alloc_words: 7,492
+                compiled_words: 2,224
+                forced_words: 7,852
+                compile_alloc_words: 7,496
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/fixed repetition:
                 colors: 2
                 states: 131
-                compiled_words: 1,532
-                forced_words: 9,549
-                compile_alloc_words: 2,098
+                compiled_words: 1,536
+                forced_words: 9,553
+                compile_alloc_words: 2,102
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/longest:
                 colors: 2
                 states: 21
-                compiled_words: 316
-                forced_words: 2,392
-                compile_alloc_words: 1,032
+                compiled_words: 320
+                forced_words: 2,396
+                compile_alloc_words: 1,036
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/nullable:
                 colors: 2
                 states: 5
-                compiled_words: 308
-                forced_words: 729
-                compile_alloc_words: 981
+                compiled_words: 312
+                forced_words: 733
+                compile_alloc_words: 985
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/nested erasure:
                 colors: 3
                 states: 9
-                compiled_words: 490
-                forced_words: 1,234
-                compile_alloc_words: 1,179
+                compiled_words: 494
+                forced_words: 1,238
+                compile_alloc_words: 1,183
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/capture loop:
                 colors: 4
                 states: 13
-                compiled_words: 396
-                forced_words: 1,485
-                compile_alloc_words: 1,088
+                compiled_words: 400
+                forced_words: 1,489
+                compile_alloc_words: 1,092
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/unanchored bytes:
                 colors: 256
                 states: 259
-                compiled_words: 4,885
-                forced_words: 92,143
-                compile_alloc_words: 29,934
+                compiled_words: 4,889
+                forced_words: 92,147
+                compile_alloc_words: 29,938
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/sequential32:
                 colors: 2
                 states: 35
-                compiled_words: 1,402
-                forced_words: 4,231
-                compile_alloc_words: 2,713
+                compiled_words: 1,406
+                forced_words: 4,235
+                compile_alloc_words: 2,717
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/promotion email:
                 colors: 6
                 states: 35
-                compiled_words: 408
-                forced_words: 3,534
-                compile_alloc_words: 1,712
+                compiled_words: 412
+                forced_words: 3,538
+                compile_alloc_words: 1,716
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               matching/promotion http:
                 colors: 16
                 states: 27
-                compiled_words: 713
-                forced_words: 3,179
-                compile_alloc_words: 2,776
+                compiled_words: 717
+                forced_words: 3,183
+                compile_alloc_words: 2,780
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
               boolean/tex:
                 colors: 42
                 states: 68
-                compiled_words: 11,359
-                forced_words: 81,982
-                compile_alloc_words: 51,770
+                compiled_words: 11,363
+                forced_words: 81,986
+                compile_alloc_words: 51,774
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
               words/dictionary/250:
                 colors: 27
                 states: 8,135
-                compiled_words: 23,752
-                forced_words: 992,141
-                compile_alloc_words: 89,599
+                compiled_words: 23,756
+                forced_words: 992,145
+                compile_alloc_words: 89,603
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 8,242
@@ -2969,9 +2969,9 @@ let%test_module "consolidated workload statistics" =
               words/dictionary/500:
                 colors: 27
                 states: 19,768
-                compiled_words: 45,304
-                forced_words: 2,442,243
-                compile_alloc_words: 180,258
+                compiled_words: 45,308
+                forced_words: 2,442,247
+                compile_alloc_words: 180,262
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 16,542
@@ -2981,9 +2981,9 @@ let%test_module "consolidated workload statistics" =
               words/dictionary/1000/whole-string:
                 colors: 27
                 states: 6,034
-                compiled_words: 83,435
-                forced_words: 608,524
-                compile_alloc_words: 353,464
+                compiled_words: 83,439
+                forced_words: 608,528
+                compile_alloc_words: 353,468
                 compile_major_words: 139,804
                 compile_promoted_words: 139,804
                 construct_alloc_words: 32,403
@@ -2993,9 +2993,9 @@ let%test_module "consolidated workload statistics" =
               words/dictionary/2500/whole-string:
                 colors: 27
                 states: 14,174
-                compiled_words: 197,699
-                forced_words: 1,430,165
-                compile_alloc_words: 901,181
+                compiled_words: 197,703
+                forced_words: 1,430,169
+                compile_alloc_words: 901,185
                 compile_major_words: 349,197
                 compile_promoted_words: 349,197
                 construct_alloc_words: 81,630
@@ -3005,9 +3005,9 @@ let%test_module "consolidated workload statistics" =
               words/dictionary/5000/whole-string:
                 colors: 27
                 states: 26,331
-                compiled_words: 371,915
-                forced_words: 2,663,245
-                compile_alloc_words: 1,818,888
+                compiled_words: 371,919
+                forced_words: 2,663,249
+                compile_alloc_words: 1,818,892
                 compile_major_words: 695,989
                 compile_promoted_words: 695,989
                 construct_alloc_words: 162,656
@@ -3017,9 +3017,9 @@ let%test_module "consolidated workload statistics" =
               words/dictionary/5000/word-boundary:
                 colors: 28
                 states: 26,334
-                compiled_words: 371,964
-                forced_words: 3,163,948
-                compile_alloc_words: 1,819,295
+                compiled_words: 371,968
+                forced_words: 3,163,952
+                compile_alloc_words: 1,819,299
                 compile_major_words: 696,095
                 compile_promoted_words: 696,095
                 construct_alloc_words: 162,656

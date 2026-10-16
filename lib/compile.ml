@@ -253,8 +253,20 @@ let[@inline always] ensure_transition re st ~color =
     let real_color =
       if Cset.equal_c color re.lnl then Color_map.Table.get re.colors '\n' else color
     in
-    let desc = delta re (category re ~color) ~color:real_color (State.get_info st) in
-    State.set_transition st ~color (find_state re desc));
+    let cat = category re ~color in
+    let st' = find_state re (delta re cat ~color:real_color (State.get_info st)) in
+    if Cset.equal_c color re.lnl
+    then State.set_transition st ~color st'
+    else (
+      (* Membership tests during derivation narrow an interval of equivalent
+         colors. Share only within the same assertion category, and never with
+         the synthetic last-newline color. *)
+      let first, last = Automata.Working_area.color_range re.tbl in
+      let last = min (Cset.to_int last) (Color_map.Repr.length re.color_repr - 1) in
+      for i = Cset.to_int first to last do
+        let color = Cset.of_int i in
+        if Category.equal (category re ~color) cat then State.set_transition st ~color st'
+      done));
   Mutex.unlock re.mutex
 ;;
 
