@@ -130,7 +130,7 @@ let%test_module "consolidated workload statistics" =
                 states: 23
                 compiled_words: 491
                 forced_words: 3,856
-                compile_alloc_words: 1,486
+                compile_alloc_words: 1,540
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -139,7 +139,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 307
                 forced_words: 901
-                compile_alloc_words: 1,050
+                compile_alloc_words: 1,072
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -148,7 +148,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 316
                 forced_words: 1,084
-                compile_alloc_words: 1,135
+                compile_alloc_words: 1,155
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -157,7 +157,7 @@ let%test_module "consolidated workload statistics" =
                 states: 242
                 compiled_words: 741
                 forced_words: 36,756
-                compile_alloc_words: 2,854
+                compile_alloc_words: 2,939
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -166,7 +166,7 @@ let%test_module "consolidated workload statistics" =
                 states: 68
                 compiled_words: 11,359
                 forced_words: 81,982
-                compile_alloc_words: 51,757
+                compile_alloc_words: 54,348
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -175,7 +175,7 @@ let%test_module "consolidated workload statistics" =
                 states: 557
                 compiled_words: 958
                 forced_words: 43,704
-                compile_alloc_words: 4,000
+                compile_alloc_words: 4,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -184,7 +184,7 @@ let%test_module "consolidated workload statistics" =
                 states: 374
                 compiled_words: 838
                 forced_words: 58,100
-                compile_alloc_words: 3,878
+                compile_alloc_words: 4,137
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -193,7 +193,7 @@ let%test_module "consolidated workload statistics" =
                 states: 799
                 compiled_words: 1,497
                 forced_words: 97,762
-                compile_alloc_words: 4,568
+                compile_alloc_words: 4,703
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -202,7 +202,7 @@ let%test_module "consolidated workload statistics" =
                 states: 707
                 compiled_words: 1,277
                 forced_words: 121,883
-                compile_alloc_words: 4,346
+                compile_alloc_words: 4,607
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -211,7 +211,7 @@ let%test_module "consolidated workload statistics" =
                 states: 65
                 compiled_words: 461
                 forced_words: 7,858
-                compile_alloc_words: 1,436
+                compile_alloc_words: 1,484
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -220,7 +220,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 270
                 forced_words: 595
-                compile_alloc_words: 901
+                compile_alloc_words: 916
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -229,7 +229,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,003
                 compiled_words: 10,290
                 forced_words: 2,061,340
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -238,7 +238,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,003
                 compiled_words: 10,308
                 forced_words: 4,564,597
-                compile_alloc_words: 11,183
+                compile_alloc_words: 11,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -247,7 +247,7 @@ let%test_module "consolidated workload statistics" =
                 states: 12,803
                 compiled_words: 130,325
                 forced_words: 8,906,439
-                compile_alloc_words: 157,960
+                compile_alloc_words: 158,488
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -256,7 +256,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 280
                 forced_words: 646
-                compile_alloc_words: 951
+                compile_alloc_words: 966
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -265,7 +265,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 6,204
                 forced_words: 11,296
-                compile_alloc_words: 24,993
+                compile_alloc_words: 26,483
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -274,7 +274,7 @@ let%test_module "consolidated workload statistics" =
                 states: 242
                 compiled_words: 741
                 forced_words: 36,756
-                compile_alloc_words: 2,854
+                compile_alloc_words: 2,939
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -283,7 +283,7 @@ let%test_module "consolidated workload statistics" =
                 states: 242
                 compiled_words: 741
                 forced_words: 36,756
-                compile_alloc_words: 2,854
+                compile_alloc_words: 2,939
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -292,7 +292,7 @@ let%test_module "consolidated workload statistics" =
                 states: 242
                 compiled_words: 741
                 forced_words: 36,756
-                compile_alloc_words: 2,854
+                compile_alloc_words: 2,939
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -301,7 +301,7 @@ let%test_module "consolidated workload statistics" =
                 states: 256
                 compiled_words: 3,348
                 forced_words: 28,676
-                compile_alloc_words: 8,896
+                compile_alloc_words: 8,956
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -310,7 +310,7 @@ let%test_module "consolidated workload statistics" =
                 states: 17
                 compiled_words: 516
                 forced_words: 2,052
-                compile_alloc_words: 2,321
+                compile_alloc_words: 2,375
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -319,7 +319,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 966
                 forced_words: 5,002
-                compile_alloc_words: 3,240
+                compile_alloc_words: 3,340
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -328,7 +328,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,244
                 compiled_words: 11,200
                 forced_words: 258,969
-                compile_alloc_words: 23,240
+                compile_alloc_words: 23,846
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -337,7 +337,7 @@ let%test_module "consolidated workload statistics" =
                 states: 21
                 compiled_words: 560
                 forced_words: 2,425
-                compile_alloc_words: 1,528
+                compile_alloc_words: 1,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -346,7 +346,7 @@ let%test_module "consolidated workload statistics" =
                 states: 17
                 compiled_words: 536
                 forced_words: 1,969
-                compile_alloc_words: 2,061
+                compile_alloc_words: 2,125
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -355,7 +355,7 @@ let%test_module "consolidated workload statistics" =
                 states: 13
                 compiled_words: 418
                 forced_words: 1,423
-                compile_alloc_words: 1,755
+                compile_alloc_words: 1,800
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -364,7 +364,7 @@ let%test_module "consolidated workload statistics" =
                 states: 31
                 compiled_words: 666
                 forced_words: 3,212
-                compile_alloc_words: 2,811
+                compile_alloc_words: 2,913
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -373,7 +373,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 576
                 forced_words: 3,563
-                compile_alloc_words: 2,305
+                compile_alloc_words: 2,381
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -382,7 +382,7 @@ let%test_module "consolidated workload statistics" =
                 states: 66
                 compiled_words: 1,011
                 forced_words: 6,273
-                compile_alloc_words: 2,968
+                compile_alloc_words: 3,061
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -391,7 +391,7 @@ let%test_module "consolidated workload statistics" =
                 states: 40
                 compiled_words: 650
                 forced_words: 3,829
-                compile_alloc_words: 2,096
+                compile_alloc_words: 2,147
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -400,7 +400,7 @@ let%test_module "consolidated workload statistics" =
                 states: 41
                 compiled_words: 923
                 forced_words: 5,226
-                compile_alloc_words: 4,277
+                compile_alloc_words: 4,468
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -409,7 +409,7 @@ let%test_module "consolidated workload statistics" =
                 states: 12
                 compiled_words: 413
                 forced_words: 1,393
-                compile_alloc_words: 1,738
+                compile_alloc_words: 1,788
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -418,7 +418,7 @@ let%test_module "consolidated workload statistics" =
                 states: 316
                 compiled_words: 4,791
                 forced_words: 37,848
-                compile_alloc_words: 8,062
+                compile_alloc_words: 8,103
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -427,7 +427,7 @@ let%test_module "consolidated workload statistics" =
                 states: 82
                 compiled_words: 960
                 forced_words: 8,599
-                compile_alloc_words: 3,308
+                compile_alloc_words: 3,428
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -436,7 +436,7 @@ let%test_module "consolidated workload statistics" =
                 states: 33
                 compiled_words: 782
                 forced_words: 3,315
-                compile_alloc_words: 3,107
+                compile_alloc_words: 3,203
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -445,7 +445,7 @@ let%test_module "consolidated workload statistics" =
                 states: 37
                 compiled_words: 846
                 forced_words: 3,288
-                compile_alloc_words: 3,289
+                compile_alloc_words: 3,393
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (impractical complete automaton)
@@ -454,7 +454,7 @@ let%test_module "consolidated workload statistics" =
                 states: 16
                 compiled_words: 481
                 forced_words: 1,957
-                compile_alloc_words: 2,100
+                compile_alloc_words: 2,182
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -463,7 +463,7 @@ let%test_module "consolidated workload statistics" =
                 states: 12
                 compiled_words: 435
                 forced_words: 1,467
-                compile_alloc_words: 1,862
+                compile_alloc_words: 1,906
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -472,7 +472,7 @@ let%test_module "consolidated workload statistics" =
                 states: 14
                 compiled_words: 495
                 forced_words: 1,655
-                compile_alloc_words: 2,073
+                compile_alloc_words: 2,140
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -481,7 +481,7 @@ let%test_module "consolidated workload statistics" =
                 states: 26
                 compiled_words: 495
                 forced_words: 2,803
-                compile_alloc_words: 1,995
+                compile_alloc_words: 2,051
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -490,7 +490,7 @@ let%test_module "consolidated workload statistics" =
                 states: 15
                 compiled_words: 372
                 forced_words: 1,626
-                compile_alloc_words: 1,349
+                compile_alloc_words: 1,386
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -499,7 +499,7 @@ let%test_module "consolidated workload statistics" =
                 states: 17
                 compiled_words: 571
                 forced_words: 1,526
-                compile_alloc_words: 2,331
+                compile_alloc_words: 2,394
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (impractical complete automaton)
@@ -508,7 +508,7 @@ let%test_module "consolidated workload statistics" =
                 states: 27
                 compiled_words: 426
                 forced_words: 3,001
-                compile_alloc_words: 1,659
+                compile_alloc_words: 1,712
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -517,7 +517,7 @@ let%test_module "consolidated workload statistics" =
                 states: 225
                 compiled_words: 3,804
                 forced_words: 27,175
-                compile_alloc_words: 16,561
+                compile_alloc_words: 17,448
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -526,7 +526,7 @@ let%test_module "consolidated workload statistics" =
                 states: 246
                 compiled_words: 1,119
                 forced_words: 35,562
-                compile_alloc_words: 6,793
+                compile_alloc_words: 7,008
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -535,7 +535,7 @@ let%test_module "consolidated workload statistics" =
                 states: 27
                 compiled_words: 787
                 forced_words: 3,384
-                compile_alloc_words: 4,318
+                compile_alloc_words: 4,458
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -544,7 +544,7 @@ let%test_module "consolidated workload statistics" =
                 states: 30
                 compiled_words: 817
                 forced_words: 3,416
-                compile_alloc_words: 2,662
+                compile_alloc_words: 2,773
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -553,7 +553,7 @@ let%test_module "consolidated workload statistics" =
                 states: 15
                 compiled_words: 439
                 forced_words: 1,641
-                compile_alloc_words: 1,528
+                compile_alloc_words: 1,575
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -562,7 +562,7 @@ let%test_module "consolidated workload statistics" =
                 states: 344
                 compiled_words: 4,458
                 forced_words: 43,142
-                compile_alloc_words: 12,101
+                compile_alloc_words: 12,222
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -571,7 +571,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5,473
                 compiled_words: 608
                 forced_words: 610,947
-                compile_alloc_words: 2,283
+                compile_alloc_words: 2,350
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -580,7 +580,7 @@ let%test_module "consolidated workload statistics" =
                 states: 893
                 compiled_words: 840
                 forced_words: 95,720
-                compile_alloc_words: 4,985
+                compile_alloc_words: 5,077
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -589,7 +589,7 @@ let%test_module "consolidated workload statistics" =
                 states: 294
                 compiled_words: 957
                 forced_words: 33,076
-                compile_alloc_words: 4,007
+                compile_alloc_words: 4,134
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -598,7 +598,7 @@ let%test_module "consolidated workload statistics" =
                 states: 95
                 compiled_words: 648
                 forced_words: 10,706
-                compile_alloc_words: 2,834
+                compile_alloc_words: 2,930
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -607,7 +607,7 @@ let%test_module "consolidated workload statistics" =
                 states: 83
                 compiled_words: 720
                 forced_words: 13,396
-                compile_alloc_words: 2,123
+                compile_alloc_words: 2,199
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -616,7 +616,7 @@ let%test_module "consolidated workload statistics" =
                 states: 305
                 compiled_words: 785
                 forced_words: 59,221
-                compile_alloc_words: 1,822
+                compile_alloc_words: 1,888
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -625,7 +625,7 @@ let%test_module "consolidated workload statistics" =
                 states: 21
                 compiled_words: 423
                 forced_words: 2,304
-                compile_alloc_words: 1,130
+                compile_alloc_words: 1,162
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -634,7 +634,7 @@ let%test_module "consolidated workload statistics" =
                 states: 22
                 compiled_words: 471
                 forced_words: 2,658
-                compile_alloc_words: 1,442
+                compile_alloc_words: 1,494
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -643,7 +643,7 @@ let%test_module "consolidated workload statistics" =
                 states: 17
                 compiled_words: 613
                 forced_words: 2,279
-                compile_alloc_words: 1,439
+                compile_alloc_words: 1,481
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -652,7 +652,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 419
                 forced_words: 1,247
-                compile_alloc_words: 1,182
+                compile_alloc_words: 1,212
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -661,7 +661,7 @@ let%test_module "consolidated workload statistics" =
                 states: 13
                 compiled_words: 588
                 forced_words: 1,766
-                compile_alloc_words: 1,852
+                compile_alloc_words: 1,915
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -670,7 +670,7 @@ let%test_module "consolidated workload statistics" =
                 states: 13
                 compiled_words: 365
                 forced_words: 1,395
-                compile_alloc_words: 1,028
+                compile_alloc_words: 1,054
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -679,7 +679,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 337
                 forced_words: 1,063
-                compile_alloc_words: 1,233
+                compile_alloc_words: 1,269
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -688,7 +688,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 280
                 forced_words: 646
-                compile_alloc_words: 965
+                compile_alloc_words: 982
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -697,7 +697,7 @@ let%test_module "consolidated workload statistics" =
                 states: 47
                 compiled_words: 409
                 forced_words: 5,232
-                compile_alloc_words: 1,241
+                compile_alloc_words: 1,278
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -706,7 +706,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 288
                 forced_words: 658
-                compile_alloc_words: 1,136
+                compile_alloc_words: 1,158
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -715,7 +715,7 @@ let%test_module "consolidated workload statistics" =
                 states: 6
                 compiled_words: 295
                 forced_words: 806
-                compile_alloc_words: 1,035
+                compile_alloc_words: 1,057
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -724,7 +724,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 294
                 forced_words: 1,000
-                compile_alloc_words: 1,121
+                compile_alloc_words: 1,148
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -733,7 +733,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 331
                 forced_words: 1,282
-                compile_alloc_words: 1,329
+                compile_alloc_words: 1,362
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -742,7 +742,7 @@ let%test_module "consolidated workload statistics" =
                 states: 7
                 compiled_words: 312
                 forced_words: 860
-                compile_alloc_words: 1,123
+                compile_alloc_words: 1,149
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -751,7 +751,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 403
                 forced_words: 1,374
-                compile_alloc_words: 1,389
+                compile_alloc_words: 1,430
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -760,7 +760,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 316
                 forced_words: 874
-                compile_alloc_words: 1,192
+                compile_alloc_words: 1,216
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -769,7 +769,7 @@ let%test_module "consolidated workload statistics" =
                 states: 13
                 compiled_words: 427
                 forced_words: 1,795
-                compile_alloc_words: 1,715
+                compile_alloc_words: 1,759
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -778,7 +778,7 @@ let%test_module "consolidated workload statistics" =
                 states: 15
                 compiled_words: 392
                 forced_words: 2,253
-                compile_alloc_words: 1,491
+                compile_alloc_words: 1,529
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -787,7 +787,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 324
                 forced_words: 1,059
-                compile_alloc_words: 1,101
+                compile_alloc_words: 1,127
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -796,7 +796,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 324
                 forced_words: 1,059
-                compile_alloc_words: 1,101
+                compile_alloc_words: 1,127
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -805,7 +805,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 445
                 forced_words: 1,157
-                compile_alloc_words: 1,665
+                compile_alloc_words: 1,711
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -814,7 +814,7 @@ let%test_module "consolidated workload statistics" =
                 states: 13
                 compiled_words: 478
                 forced_words: 1,704
-                compile_alloc_words: 1,572
+                compile_alloc_words: 1,623
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -823,7 +823,7 @@ let%test_module "consolidated workload statistics" =
                 states: 7
                 compiled_words: 324
                 forced_words: 843
-                compile_alloc_words: 1,239
+                compile_alloc_words: 1,265
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -832,7 +832,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 426
                 forced_words: 1,302
-                compile_alloc_words: 1,686
+                compile_alloc_words: 1,732
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -841,7 +841,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 346
                 forced_words: 1,143
-                compile_alloc_words: 1,253
+                compile_alloc_words: 1,281
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -850,7 +850,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 340
                 forced_words: 1,253
-                compile_alloc_words: 1,189
+                compile_alloc_words: 1,217
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -859,7 +859,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 365
                 forced_words: 912
-                compile_alloc_words: 1,441
+                compile_alloc_words: 1,474
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -868,7 +868,7 @@ let%test_module "consolidated workload statistics" =
                 states: 6
                 compiled_words: 364
                 forced_words: 756
-                compile_alloc_words: 1,210
+                compile_alloc_words: 1,245
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -877,7 +877,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 833
                 forced_words: 1,972
-                compile_alloc_words: 2,860
+                compile_alloc_words: 2,988
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -886,7 +886,7 @@ let%test_module "consolidated workload statistics" =
                 states: 26
                 compiled_words: 2,279
                 forced_words: 7,668
-                compile_alloc_words: 7,398
+                compile_alloc_words: 7,850
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -895,7 +895,7 @@ let%test_module "consolidated workload statistics" =
                 states: 30
                 compiled_words: 1,115
                 forced_words: 4,021
-                compile_alloc_words: 3,294
+                compile_alloc_words: 3,443
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -904,7 +904,7 @@ let%test_module "consolidated workload statistics" =
                 states: 16
                 compiled_words: 623
                 forced_words: 2,021
-                compile_alloc_words: 2,398
+                compile_alloc_words: 2,488
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -913,7 +913,7 @@ let%test_module "consolidated workload statistics" =
                 states: 65
                 compiled_words: 1,271
                 forced_words: 8,477
-                compile_alloc_words: 4,418
+                compile_alloc_words: 4,596
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -922,7 +922,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 10,290
                 forced_words: 11,224
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -931,7 +931,7 @@ let%test_module "consolidated workload statistics" =
                 states: 21
                 compiled_words: 10,290
                 forced_words: 12,244
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -940,7 +940,7 @@ let%test_module "consolidated workload statistics" =
                 states: 41
                 compiled_words: 10,290
                 forced_words: 15,484
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -949,7 +949,7 @@ let%test_module "consolidated workload statistics" =
                 states: 81
                 compiled_words: 10,290
                 forced_words: 26,764
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -958,7 +958,7 @@ let%test_module "consolidated workload statistics" =
                 states: 101
                 compiled_words: 10,290
                 forced_words: 34,804
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -967,7 +967,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,001
                 compiled_words: 10,290
                 forced_words: 2,052,988
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -976,7 +976,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 10,308
                 forced_words: 11,434
-                compile_alloc_words: 11,183
+                compile_alloc_words: 11,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -985,7 +985,7 @@ let%test_module "consolidated workload statistics" =
                 states: 21
                 compiled_words: 10,308
                 forced_words: 13,139
-                compile_alloc_words: 11,183
+                compile_alloc_words: 11,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -994,7 +994,7 @@ let%test_module "consolidated workload statistics" =
                 states: 41
                 compiled_words: 10,308
                 forced_words: 19,249
-                compile_alloc_words: 11,183
+                compile_alloc_words: 11,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1003,7 +1003,7 @@ let%test_module "consolidated workload statistics" =
                 states: 81
                 compiled_words: 10,308
                 forced_words: 42,269
-                compile_alloc_words: 11,183
+                compile_alloc_words: 11,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1012,7 +1012,7 @@ let%test_module "consolidated workload statistics" =
                 states: 101
                 compiled_words: 10,308
                 forced_words: 59,179
-                compile_alloc_words: 11,183
+                compile_alloc_words: 11,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1021,7 +1021,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,001
                 compiled_words: 10,308
                 forced_words: 4,546,513
-                compile_alloc_words: 11,183
+                compile_alloc_words: 11,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1030,7 +1030,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,033
                 compiled_words: 11,053
                 forced_words: 92,585
-                compile_alloc_words: 14,067
+                compile_alloc_words: 14,198
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 801
@@ -1042,9 +1042,9 @@ let%test_module "consolidated workload statistics" =
                 states: 16,401
                 compiled_words: 350,486
                 forced_words: 2,293,394
-                compile_alloc_words: 1,248,163
-                compile_major_words: 407,092
-                compile_promoted_words: 407,092
+                compile_alloc_words: 1,276,854
+                compile_major_words: 396,902
+                compile_promoted_words: 396,902
                 construct_alloc_words: 500,327
                 construct_major_words: 141,345
                 construct_promoted_words: 141,345
@@ -1054,9 +1054,9 @@ let%test_module "consolidated workload statistics" =
                 states: 262,165
                 compiled_words: 5,996,822
                 forced_words: 39,815,262
-                compile_alloc_words: 22,876,972
-                compile_major_words: 8,771,131
-                compile_promoted_words: 8,771,131
+                compile_alloc_words: 23,335,743
+                compile_major_words: 8,831,198
+                compile_promoted_words: 8,831,198
                 construct_alloc_words: 11,666,969
                 construct_major_words: 2,654,611
                 construct_promoted_words: 2,654,611
@@ -1066,7 +1066,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,027
                 compiled_words: 10,492
                 forced_words: 74,509
-                compile_alloc_words: 11,058
+                compile_alloc_words: 11,071
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 37
@@ -1078,9 +1078,9 @@ let%test_module "consolidated workload statistics" =
                 states: 1,000,003
                 compiled_words: 10,000,252
                 forced_words: 72,024,557
-                compile_alloc_words: 10,000,818
-                compile_major_words: 9,829,801
-                compile_promoted_words: 9,829,801
+                compile_alloc_words: 10,000,831
+                compile_major_words: 9,829,791
+                compile_promoted_words: 9,829,791
                 construct_alloc_words: 37
                 construct_major_words: 10
                 construct_promoted_words: 10
@@ -1090,7 +1090,7 @@ let%test_module "consolidated workload statistics" =
                 states: 4
                 compiled_words: 263
                 forced_words: 502
-                compile_alloc_words: 870
+                compile_alloc_words: 883
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1099,7 +1099,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 303
                 forced_words: 638
-                compile_alloc_words: 917
+                compile_alloc_words: 932
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1108,7 +1108,7 @@ let%test_module "consolidated workload statistics" =
                 states: 7
                 compiled_words: 359
                 forced_words: 921
-                compile_alloc_words: 996
+                compile_alloc_words: 1,022
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1117,7 +1117,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 293
                 forced_words: 612
-                compile_alloc_words: 826
+                compile_alloc_words: 841
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1126,7 +1126,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 381
                 forced_words: 1,079
-                compile_alloc_words: 1,297
+                compile_alloc_words: 1,329
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1135,7 +1135,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 293
                 forced_words: 612
-                compile_alloc_words: 867
+                compile_alloc_words: 882
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1144,7 +1144,7 @@ let%test_module "consolidated workload statistics" =
                 states: 14
                 compiled_words: 411
                 forced_words: 1,599
-                compile_alloc_words: 1,479
+                compile_alloc_words: 1,518
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1153,7 +1153,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 4,884
                 forced_words: 91,077
-                compile_alloc_words: 29,067
+                compile_alloc_words: 29,591
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1162,7 +1162,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 4,933
                 forced_words: 83,441
-                compile_alloc_words: 29,995
+                compile_alloc_words: 30,528
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1171,7 +1171,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 303
                 forced_words: 602
-                compile_alloc_words: 919
+                compile_alloc_words: 934
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1180,7 +1180,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 351
                 forced_words: 967
-                compile_alloc_words: 1,356
+                compile_alloc_words: 1,386
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1189,7 +1189,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 419
                 forced_words: 1,060
-                compile_alloc_words: 1,182
+                compile_alloc_words: 1,212
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1198,7 +1198,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 4,998
                 forced_words: 15,245
-                compile_alloc_words: 16,243
+                compile_alloc_words: 17,359
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1207,7 +1207,7 @@ let%test_module "consolidated workload statistics" =
                 states: 7
                 compiled_words: 7,005
                 forced_words: 9,410
-                compile_alloc_words: 46,109
+                compile_alloc_words: 47,924
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1216,7 +1216,7 @@ let%test_module "consolidated workload statistics" =
                 states: 17
                 compiled_words: 1,105
                 forced_words: 2,628
-                compile_alloc_words: 17,852
+                compile_alloc_words: 18,815
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1225,7 +1225,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 359
                 forced_words: 1,277
-                compile_alloc_words: 1,105
+                compile_alloc_words: 1,136
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1234,7 +1234,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,027
                 compiled_words: 12,565
                 forced_words: 385,245
-                compile_alloc_words: 40,200
+                compile_alloc_words: 40,728
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1243,7 +1243,7 @@ let%test_module "consolidated workload statistics" =
                 states: 4,109
                 compiled_words: 51,349
                 forced_words: 407,033
-                compile_alloc_words: 97,614
+                compile_alloc_words: 99,425
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 20,094
@@ -1255,7 +1255,7 @@ let%test_module "consolidated workload statistics" =
                 states: 19
                 compiled_words: 826
                 forced_words: 2,308
-                compile_alloc_words: 1,737
+                compile_alloc_words: 1,813
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1264,7 +1264,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 833
                 forced_words: 5,250
-                compile_alloc_words: 1,768
+                compile_alloc_words: 1,846
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1273,7 +1273,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 846
                 forced_words: 3,820
-                compile_alloc_words: 1,786
+                compile_alloc_words: 1,866
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1282,7 +1282,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 4,858
                 forced_words: 15,766
-                compile_alloc_words: 8,569
+                compile_alloc_words: 9,093
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1291,7 +1291,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 4,865
                 forced_words: 125,348
-                compile_alloc_words: 8,600
+                compile_alloc_words: 9,126
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1300,7 +1300,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 4,878
                 forced_words: 27,822
-                compile_alloc_words: 8,618
+                compile_alloc_words: 9,146
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1309,7 +1309,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 18,682
                 forced_words: 62,290
-                compile_alloc_words: 31,993
+                compile_alloc_words: 34,053
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1318,7 +1318,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,027
                 compiled_words: 18,689
                 forced_words: 1,680,224
-                compile_alloc_words: 32,024
+                compile_alloc_words: 34,086
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1327,7 +1327,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,027
                 compiled_words: 18,702
                 forced_words: 110,442
-                compile_alloc_words: 32,042
+                compile_alloc_words: 34,106
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1336,7 +1336,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 2,579
                 forced_words: 45,826
-                compile_alloc_words: 82,805
+                compile_alloc_words: 83,073
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1345,7 +1345,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 4,115
                 forced_words: 90,050
-                compile_alloc_words: 94,947
+                compile_alloc_words: 95,471
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1354,7 +1354,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 7,187
                 forced_words: 178,498
-                compile_alloc_words: 121,478
+                compile_alloc_words: 122,514
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1363,16 +1363,16 @@ let%test_module "consolidated workload statistics" =
                 states: 2,051
                 compiled_words: 25,619
                 forced_words: 709,186
-                compile_alloc_words: 284,876
-                compile_major_words: 18,847
-                compile_promoted_words: 18,847
+                compile_alloc_words: 288,984
+                compile_major_words: 16,982
+                compile_promoted_words: 16,982
                 forcing: full
               automata/pathological/100:
                 colors: 3
                 states: 103
                 compiled_words: 1,290
                 forced_words: 26,506
-                compile_alloc_words: 2,109
+                compile_alloc_words: 2,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1381,7 +1381,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,003
                 compiled_words: 10,290
                 forced_words: 2,061,340
-                compile_alloc_words: 11,109
+                compile_alloc_words: 11,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -1390,7 +1390,7 @@ let%test_module "consolidated workload statistics" =
                 states: 772
                 compiled_words: 13,088
                 forced_words: 272,821
-                compile_alloc_words: 60,734
+                compile_alloc_words: 63,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1399,7 +1399,7 @@ let%test_module "consolidated workload statistics" =
                 states: 772
                 compiled_words: 13,088
                 forced_words: 272,821
-                compile_alloc_words: 60,734
+                compile_alloc_words: 63,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1408,7 +1408,7 @@ let%test_module "consolidated workload statistics" =
                 states: 772
                 compiled_words: 13,088
                 forced_words: 272,821
-                compile_alloc_words: 60,734
+                compile_alloc_words: 63,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1417,7 +1417,7 @@ let%test_module "consolidated workload statistics" =
                 states: 772
                 compiled_words: 13,088
                 forced_words: 272,821
-                compile_alloc_words: 60,734
+                compile_alloc_words: 63,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1426,7 +1426,7 @@ let%test_module "consolidated workload statistics" =
                 states: 772
                 compiled_words: 13,088
                 forced_words: 272,821
-                compile_alloc_words: 60,734
+                compile_alloc_words: 63,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1435,7 +1435,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,899
                 forced_words: 5,303
-                compile_alloc_words: 30,005
+                compile_alloc_words: 30,537
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1444,7 +1444,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,899
                 forced_words: 5,303
-                compile_alloc_words: 30,005
+                compile_alloc_words: 30,537
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1453,7 +1453,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,899
                 forced_words: 5,303
-                compile_alloc_words: 30,005
+                compile_alloc_words: 30,537
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1462,7 +1462,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,899
                 forced_words: 5,303
-                compile_alloc_words: 30,005
+                compile_alloc_words: 30,537
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1471,7 +1471,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,913
                 forced_words: 5,341
-                compile_alloc_words: 30,028
+                compile_alloc_words: 30,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1480,7 +1480,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,913
                 forced_words: 5,341
-                compile_alloc_words: 30,028
+                compile_alloc_words: 30,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1489,7 +1489,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,913
                 forced_words: 5,341
-                compile_alloc_words: 30,028
+                compile_alloc_words: 30,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1498,7 +1498,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,913
                 forced_words: 5,341
-                compile_alloc_words: 30,028
+                compile_alloc_words: 30,562
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1507,7 +1507,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,985
                 forced_words: 5,485
-                compile_alloc_words: 30,231
+                compile_alloc_words: 30,783
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1516,7 +1516,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,985
                 forced_words: 5,485
-                compile_alloc_words: 30,231
+                compile_alloc_words: 30,783
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1525,7 +1525,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,985
                 forced_words: 5,485
-                compile_alloc_words: 30,231
+                compile_alloc_words: 30,783
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1534,7 +1534,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 4,985
                 forced_words: 5,485
-                compile_alloc_words: 30,231
+                compile_alloc_words: 30,783
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1543,7 +1543,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 5,273
                 forced_words: 6,061
-                compile_alloc_words: 30,915
+                compile_alloc_words: 31,527
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1552,7 +1552,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 5,273
                 forced_words: 6,061
-                compile_alloc_words: 30,915
+                compile_alloc_words: 31,527
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1561,7 +1561,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 5,273
                 forced_words: 6,061
-                compile_alloc_words: 30,915
+                compile_alloc_words: 31,527
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1570,7 +1570,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 5,273
                 forced_words: 6,061
-                compile_alloc_words: 30,915
+                compile_alloc_words: 31,527
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1579,7 +1579,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 6,425
                 forced_words: 8,365
-                compile_alloc_words: 33,651
+                compile_alloc_words: 34,503
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1588,7 +1588,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 6,425
                 forced_words: 8,365
-                compile_alloc_words: 33,651
+                compile_alloc_words: 34,503
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1597,7 +1597,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 6,425
                 forced_words: 8,365
-                compile_alloc_words: 33,651
+                compile_alloc_words: 34,503
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1606,7 +1606,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 6,425
                 forced_words: 8,365
-                compile_alloc_words: 33,651
+                compile_alloc_words: 34,503
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1615,7 +1615,7 @@ let%test_module "consolidated workload statistics" =
                 states: 189
                 compiled_words: 6,828
                 forced_words: 38,345
-                compile_alloc_words: 13,520
+                compile_alloc_words: 13,884
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1624,7 +1624,7 @@ let%test_module "consolidated workload statistics" =
                 states: 189
                 compiled_words: 6,828
                 forced_words: 38,345
-                compile_alloc_words: 13,520
+                compile_alloc_words: 13,884
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1633,7 +1633,7 @@ let%test_module "consolidated workload statistics" =
                 states: 332
                 compiled_words: 52,597
                 forced_words: 262,757
-                compile_alloc_words: 98,952
+                compile_alloc_words: 101,780
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1642,7 +1642,7 @@ let%test_module "consolidated workload statistics" =
                 states: 332
                 compiled_words: 52,597
                 forced_words: 262,757
-                compile_alloc_words: 98,952
+                compile_alloc_words: 101,780
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1651,43 +1651,43 @@ let%test_module "consolidated workload statistics" =
                 states: 745
                 compiled_words: 422,773
                 forced_words: 2,403,095
-                compile_alloc_words: 814,836
-                compile_major_words: 489,829
-                compile_promoted_words: 489,829
+                compile_alloc_words: 837,376
+                compile_major_words: 490,089
+                compile_promoted_words: 490,089
                 forcing: full
               automata/descriptor width/1024/8:
                 colors: 29
                 states: 745
                 compiled_words: 422,773
                 forced_words: 2,403,095
-                compile_alloc_words: 814,836
-                compile_major_words: 489,829
-                compile_promoted_words: 489,829
+                compile_alloc_words: 837,376
+                compile_major_words: 490,089
+                compile_promoted_words: 490,089
                 forcing: full
               automata/descriptor width/4096/1:
                 colors: 31
                 states: 1,883
                 compiled_words: 1,702,261
                 forced_words: 10,786,975
-                compile_alloc_words: 3,365,322
-                compile_major_words: 2,001,357
-                compile_promoted_words: 2,001,357
+                compile_alloc_words: 3,455,446
+                compile_major_words: 1,999,193
+                compile_promoted_words: 1,999,193
                 forcing: full
               automata/descriptor width/4096/8:
                 colors: 31
                 states: 1,883
                 compiled_words: 1,702,261
                 forced_words: 10,786,975
-                compile_alloc_words: 3,365,322
-                compile_major_words: 2,001,357
-                compile_promoted_words: 2,001,357
+                compile_alloc_words: 3,455,446
+                compile_major_words: 1,999,193
+                compile_promoted_words: 1,999,193
                 forcing: full
               automata/interleaved/1:
                 colors: 5
                 states: 8
                 compiled_words: 436
                 forced_words: 982
-                compile_alloc_words: 1,392
+                compile_alloc_words: 1,439
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1696,7 +1696,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 833
                 forced_words: 1,972
-                compile_alloc_words: 2,860
+                compile_alloc_words: 2,988
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1705,7 +1705,7 @@ let%test_module "consolidated workload statistics" =
                 states: 16
                 compiled_words: 1,319
                 forced_words: 3,569
-                compile_alloc_words: 4,414
+                compile_alloc_words: 4,650
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1714,7 +1714,7 @@ let%test_module "consolidated workload statistics" =
                 states: 26
                 compiled_words: 2,279
                 forced_words: 7,668
-                compile_alloc_words: 7,398
+                compile_alloc_words: 7,850
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1723,7 +1723,7 @@ let%test_module "consolidated workload statistics" =
                 states: 45
                 compiled_words: 4,199
                 forced_words: 19,657
-                compile_alloc_words: 13,366
+                compile_alloc_words: 14,250
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1732,7 +1732,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 245
                 forced_words: 364
-                compile_alloc_words: 829
+                compile_alloc_words: 843
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 212
@@ -1744,7 +1744,7 @@ let%test_module "consolidated workload statistics" =
                 states: 4
                 compiled_words: 263
                 forced_words: 502
-                compile_alloc_words: 870
+                compile_alloc_words: 883
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 212
@@ -1756,7 +1756,7 @@ let%test_module "consolidated workload statistics" =
                 states: 37
                 compiled_words: 516
                 forced_words: 3,967
-                compile_alloc_words: 2,006
+                compile_alloc_words: 2,052
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 311
@@ -1768,7 +1768,7 @@ let%test_module "consolidated workload statistics" =
                 states: 4
                 compiled_words: 263
                 forced_words: 502
-                compile_alloc_words: 938
+                compile_alloc_words: 951
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 256
@@ -1780,7 +1780,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 4,859
                 forced_words: 252,746
-                compile_alloc_words: 8,674
+                compile_alloc_words: 9,200
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 2,355
@@ -1792,7 +1792,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 3,329
                 forced_words: 209,415
-                compile_alloc_words: 12,299
+                compile_alloc_words: 13,209
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 3,475
@@ -1804,7 +1804,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 3,317
                 forced_words: 5,996
-                compile_alloc_words: 8,125
+                compile_alloc_words: 8,779
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 2,323
@@ -1816,7 +1816,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 1,787
                 forced_words: 84,642
-                compile_alloc_words: 10,272
+                compile_alloc_words: 10,542
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 5,235
@@ -1828,7 +1828,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 1,787
                 forced_words: 84,642
-                compile_alloc_words: 13,884
+                compile_alloc_words: 14,154
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 11,091
@@ -1840,7 +1840,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 14,574
                 forced_words: 15,315
-                compile_alloc_words: 47,275
+                compile_alloc_words: 49,456
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 5,971
@@ -1852,7 +1852,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 6,413
                 forced_words: 335,804
-                compile_alloc_words: 16,885
+                compile_alloc_words: 17,923
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 9,039
@@ -1864,7 +1864,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 6,011
                 forced_words: 253,898
-                compile_alloc_words: 9,826
+                compile_alloc_words: 10,352
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 3,919
@@ -1876,7 +1876,7 @@ let%test_module "consolidated workload statistics" =
                 states: 4
                 compiled_words: 807
                 forced_words: 1,071
-                compile_alloc_words: 909
+                compile_alloc_words: 924
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 228
@@ -1888,7 +1888,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 245
                 forced_words: 364
-                compile_alloc_words: 829
+                compile_alloc_words: 843
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 208
@@ -1900,7 +1900,7 @@ let%test_module "consolidated workload statistics" =
                 states: 2
                 compiled_words: 245
                 forced_words: 364
-                compile_alloc_words: 829
+                compile_alloc_words: 843
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 208
@@ -1912,7 +1912,7 @@ let%test_module "consolidated workload statistics" =
                 states: 3,075
                 compiled_words: 37,133
                 forced_words: 7,346,016
-                compile_alloc_words: 96,243
+                compile_alloc_words: 102,401
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 18,639
@@ -1924,7 +1924,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1
                 compiled_words: 18,701
                 forced_words: 18,758
-                compile_alloc_words: 51,701
+                compile_alloc_words: 54,787
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 7,859
@@ -1936,7 +1936,7 @@ let%test_module "consolidated workload statistics" =
                 states: 67
                 compiled_words: 1,019
                 forced_words: 24,097
-                compile_alloc_words: 3,055
+                compile_alloc_words: 3,201
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1945,7 +1945,7 @@ let%test_module "consolidated workload statistics" =
                 states: 67
                 compiled_words: 1,019
                 forced_words: 24,097
-                compile_alloc_words: 2,863
+                compile_alloc_words: 3,201
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1954,7 +1954,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 1,787
                 forced_words: 84,642
-                compile_alloc_words: 5,231
+                compile_alloc_words: 5,505
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1963,7 +1963,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 1,787
                 forced_words: 84,642
-                compile_alloc_words: 4,847
+                compile_alloc_words: 5,505
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1972,7 +1972,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 3,323
                 forced_words: 316,452
-                compile_alloc_words: 9,583
+                compile_alloc_words: 10,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1981,7 +1981,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 3,323
                 forced_words: 316,452
-                compile_alloc_words: 8,815
+                compile_alloc_words: 10,113
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1990,7 +1990,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 6,395
                 forced_words: 1,222,440
-                compile_alloc_words: 18,287
+                compile_alloc_words: 19,329
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -1999,7 +1999,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 6,395
                 forced_words: 1,222,440
-                compile_alloc_words: 16,751
+                compile_alloc_words: 19,329
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2008,7 +2008,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,027
                 compiled_words: 12,539
                 forced_words: 4,803,888
-                compile_alloc_words: 35,695
+                compile_alloc_words: 37,761
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2017,7 +2017,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,027
                 compiled_words: 12,539
                 forced_words: 4,803,888
-                compile_alloc_words: 32,623
+                compile_alloc_words: 37,761
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2026,7 +2026,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 782
                 forced_words: 3,868
-                compile_alloc_words: 3,202
+                compile_alloc_words: 3,380
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2038,7 +2038,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 782
                 forced_words: 3,868
-                compile_alloc_words: 3,202
+                compile_alloc_words: 3,380
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2050,7 +2050,7 @@ let%test_module "consolidated workload statistics" =
                 states: 67
                 compiled_words: 1,140
                 forced_words: 7,187
-                compile_alloc_words: 3,723
+                compile_alloc_words: 3,918
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 479
@@ -2062,7 +2062,7 @@ let%test_module "consolidated workload statistics" =
                 states: 36
                 compiled_words: 822
                 forced_words: 4,076
-                compile_alloc_words: 5,455
+                compile_alloc_words: 5,811
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 640
@@ -2074,7 +2074,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 3,703
                 forced_words: 69,711
-                compile_alloc_words: 12,625
+                compile_alloc_words: 13,923
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2086,7 +2086,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 3,703
                 forced_words: 69,711
-                compile_alloc_words: 12,625
+                compile_alloc_words: 13,923
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2098,7 +2098,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 6,301
                 forced_words: 72,742
-                compile_alloc_words: 15,192
+                compile_alloc_words: 16,507
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,879
@@ -2110,7 +2110,7 @@ let%test_module "consolidated workload statistics" =
                 states: 517
                 compiled_words: 3,731
                 forced_words: 70,058
-                compile_alloc_words: 29,092
+                compile_alloc_words: 31,688
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 3,440
@@ -2122,7 +2122,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8,195
                 compiled_words: 49,783
                 forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compile_alloc_words: 152,163
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2134,7 +2134,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8,195
                 compiled_words: 49,783
                 forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compile_alloc_words: 152,163
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2146,7 +2146,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8,195
                 compiled_words: 90,781
                 forced_words: 1,151,782
-                compile_alloc_words: 172,632
+                compile_alloc_words: 193,147
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,849
@@ -2158,9 +2158,9 @@ let%test_module "consolidated workload statistics" =
                 states: 8,197
                 compiled_words: 49,811
                 forced_words: 1,104,002
-                compile_alloc_words: 393,892
-                compile_major_words: 164,172
-                compile_promoted_words: 164,172
+                compile_alloc_words: 434,888
+                compile_major_words: 157,307
+                compile_promoted_words: 157,307
                 construct_alloc_words: 49,388
                 construct_major_words: 2,062
                 construct_promoted_words: 10
@@ -2170,9 +2170,9 @@ let%test_module "consolidated workload statistics" =
                 states: 131,075
                 compiled_words: 787,063
                 forced_words: 17,635,173
-                compile_alloc_words: 2,036,305
-                compile_major_words: 913,411
-                compile_promoted_words: 913,411
+                compile_alloc_words: 2,364,003
+                compile_major_words: 1,147,425
+                compile_promoted_words: 1,147,425
                 construct_alloc_words: 393,425
                 construct_major_words: 344,264
                 construct_promoted_words: 327,876
@@ -2182,9 +2182,9 @@ let%test_module "consolidated workload statistics" =
                 states: 131,075
                 compiled_words: 787,063
                 forced_words: 17,635,173
-                compile_alloc_words: 2,036,305
-                compile_major_words: 913,411
-                compile_promoted_words: 913,411
+                compile_alloc_words: 2,364,003
+                compile_major_words: 1,241,126
+                compile_promoted_words: 1,241,126
                 construct_alloc_words: 393,425
                 construct_major_words: 344,264
                 construct_promoted_words: 327,876
@@ -2194,9 +2194,9 @@ let%test_module "consolidated workload statistics" =
                 states: 131,075
                 compiled_words: 1,442,461
                 forced_words: 18,416,422
-                compile_alloc_words: 2,691,672
-                compile_major_words: 1,568,909
-                compile_promoted_words: 1,568,909
+                compile_alloc_words: 3,019,387
+                compile_major_words: 1,896,601
+                compile_promoted_words: 1,896,601
                 construct_alloc_words: 393,489
                 construct_major_words: 344,273
                 construct_promoted_words: 327,883
@@ -2206,7 +2206,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 782
                 forced_words: 3,868
-                compile_alloc_words: 3,202
+                compile_alloc_words: 3,380
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2218,7 +2218,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 782
                 forced_words: 3,868
-                compile_alloc_words: 3,202
+                compile_alloc_words: 3,380
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2230,7 +2230,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 782
                 forced_words: 3,868
-                compile_alloc_words: 3,202
+                compile_alloc_words: 3,380
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 413
@@ -2242,7 +2242,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 781
                 forced_words: 3,547
-                compile_alloc_words: 2,998
+                compile_alloc_words: 3,177
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 425
@@ -2254,7 +2254,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 3,703
                 forced_words: 69,711
-                compile_alloc_words: 12,625
+                compile_alloc_words: 13,923
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2266,7 +2266,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 3,703
                 forced_words: 69,711
-                compile_alloc_words: 12,625
+                compile_alloc_words: 13,923
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2278,7 +2278,7 @@ let%test_module "consolidated workload statistics" =
                 states: 515
                 compiled_words: 3,703
                 forced_words: 69,711
-                compile_alloc_words: 12,625
+                compile_alloc_words: 13,923
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2290,7 +2290,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 3,702
                 forced_words: 34,376
-                compile_alloc_words: 12,307
+                compile_alloc_words: 13,606
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,825
@@ -2302,7 +2302,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8,195
                 compiled_words: 49,783
                 forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compile_alloc_words: 152,163
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2314,7 +2314,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8,195
                 compiled_words: 49,783
                 forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compile_alloc_words: 152,163
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2326,7 +2326,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8,195
                 compiled_words: 49,783
                 forced_words: 1,102,695
-                compile_alloc_words: 131,665
+                compile_alloc_words: 152,163
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,785
@@ -2338,7 +2338,7 @@ let%test_module "consolidated workload statistics" =
                 states: 4,099
                 compiled_words: 49,782
                 forced_words: 538,376
-                compile_alloc_words: 131,347
+                compile_alloc_words: 151,846
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 24,797
@@ -2350,7 +2350,7 @@ let%test_module "consolidated workload statistics" =
                 states: 1,021
                 compiled_words: 3,329
                 forced_words: 943,572
-                compile_alloc_words: 8,856
+                compile_alloc_words: 10,154
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 1,813
@@ -2360,11 +2360,11 @@ let%test_module "consolidated workload statistics" =
               gitignore/joomla/capturing:
                 colors: 48
                 states: 6,947
-                compiled_words: 383,321
-                forced_words: 1,278,364
-                compile_alloc_words: 1,034,744
-                compile_major_words: 558,178
-                compile_promoted_words: 558,178
+                compiled_words: 106,033
+                forced_words: 893,191
+                compile_alloc_words: 1,545,748
+                compile_major_words: 454,014
+                compile_promoted_words: 454,014
                 construct_alloc_words: 220,816
                 construct_major_words: 9,880
                 construct_promoted_words: 10
@@ -2374,9 +2374,9 @@ let%test_module "consolidated workload statistics" =
                 states: 6,947
                 compiled_words: 106,033
                 forced_words: 893,126
-                compile_alloc_words: 1,369,620
-                compile_major_words: 470,378
-                compile_promoted_words: 470,378
+                compile_alloc_words: 1,534,971
+                compile_major_words: 453,108
+                compile_promoted_words: 453,108
                 construct_alloc_words: 216,586
                 construct_major_words: 10,586
                 construct_promoted_words: 10
@@ -2386,7 +2386,7 @@ let%test_module "consolidated workload statistics" =
                 states: 375
                 compiled_words: 17,983
                 forced_words: 501,965
-                compile_alloc_words: 64,373
+                compile_alloc_words: 70,675
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 18,040
@@ -2398,7 +2398,7 @@ let%test_module "consolidated workload statistics" =
                 states: 375
                 compiled_words: 17,983
                 forced_words: 501,965
-                compile_alloc_words: 63,857
+                compile_alloc_words: 69,385
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 16,879
@@ -2410,7 +2410,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 341
                 forced_words: 932
-                compile_alloc_words: 1,204
+                compile_alloc_words: 1,252
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2419,7 +2419,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 341
                 forced_words: 932
-                compile_alloc_words: 1,204
+                compile_alloc_words: 1,252
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2428,7 +2428,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 341
                 forced_words: 932
-                compile_alloc_words: 1,204
+                compile_alloc_words: 1,252
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2437,7 +2437,7 @@ let%test_module "consolidated workload statistics" =
                 states: 65
                 compiled_words: 461
                 forced_words: 7,858
-                compile_alloc_words: 1,449
+                compile_alloc_words: 1,552
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2446,7 +2446,7 @@ let%test_module "consolidated workload statistics" =
                 states: 15
                 compiled_words: 468
                 forced_words: 1,559
-                compile_alloc_words: 1,808
+                compile_alloc_words: 1,909
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2455,7 +2455,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 311
                 forced_words: 704
-                compile_alloc_words: 1,119
+                compile_alloc_words: 1,165
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2464,7 +2464,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 270
                 forced_words: 595
-                compile_alloc_words: 914
+                compile_alloc_words: 931
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2473,7 +2473,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 280
                 forced_words: 598
-                compile_alloc_words: 924
+                compile_alloc_words: 941
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2482,7 +2482,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 279
                 forced_words: 558
-                compile_alloc_words: 819
+                compile_alloc_words: 846
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2491,7 +2491,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 279
                 forced_words: 558
-                compile_alloc_words: 846
+                compile_alloc_words: 873
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2500,7 +2500,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 279
                 forced_words: 558
-                compile_alloc_words: 846
+                compile_alloc_words: 873
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2509,7 +2509,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 279
                 forced_words: 558
-                compile_alloc_words: 846
+                compile_alloc_words: 873
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2518,7 +2518,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 407
                 forced_words: 1,120
-                compile_alloc_words: 1,651
+                compile_alloc_words: 1,696
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2527,7 +2527,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 407
                 forced_words: 1,120
-                compile_alloc_words: 1,651
+                compile_alloc_words: 1,696
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2536,7 +2536,7 @@ let%test_module "consolidated workload statistics" =
                 states: 30
                 compiled_words: 707
                 forced_words: 3,414
-                compile_alloc_words: 2,941
+                compile_alloc_words: 3,097
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2545,7 +2545,7 @@ let%test_module "consolidated workload statistics" =
                 states: 12
                 compiled_words: 389
                 forced_words: 1,294
-                compile_alloc_words: 1,441
+                compile_alloc_words: 1,507
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2554,7 +2554,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 347
                 forced_words: 1,158
-                compile_alloc_words: 1,268
+                compile_alloc_words: 1,329
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2563,7 +2563,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 324
                 forced_words: 948
-                compile_alloc_words: 1,118
+                compile_alloc_words: 1,156
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2572,7 +2572,7 @@ let%test_module "consolidated workload statistics" =
                 states: 7
                 compiled_words: 316
                 forced_words: 820
-                compile_alloc_words: 1,153
+                compile_alloc_words: 1,204
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2581,7 +2581,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 352
                 forced_words: 906
-                compile_alloc_words: 1,216
+                compile_alloc_words: 1,273
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2590,7 +2590,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 352
                 forced_words: 906
-                compile_alloc_words: 1,216
+                compile_alloc_words: 1,273
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2599,7 +2599,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 3,329
                 forced_words: 20,657
-                compile_alloc_words: 8,856
+                compile_alloc_words: 10,154
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2608,7 +2608,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 353
                 forced_words: 1,061
-                compile_alloc_words: 1,168
+                compile_alloc_words: 1,226
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2617,7 +2617,7 @@ let%test_module "consolidated workload statistics" =
                 states: 6
                 compiled_words: 307
                 forced_words: 657
-                compile_alloc_words: 925
+                compile_alloc_words: 965
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2626,7 +2626,7 @@ let%test_module "consolidated workload statistics" =
                 states: 6
                 compiled_words: 298
                 forced_words: 734
-                compile_alloc_words: 1,058
+                compile_alloc_words: 1,089
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2635,7 +2635,7 @@ let%test_module "consolidated workload statistics" =
                 states: 12
                 compiled_words: 389
                 forced_words: 1,294
-                compile_alloc_words: 1,441
+                compile_alloc_words: 1,507
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2644,7 +2644,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 341
                 forced_words: 932
-                compile_alloc_words: 1,204
+                compile_alloc_words: 1,252
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2653,7 +2653,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 341
                 forced_words: 932
-                compile_alloc_words: 1,204
+                compile_alloc_words: 1,252
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2662,7 +2662,7 @@ let%test_module "consolidated workload statistics" =
                 states: 16
                 compiled_words: 730
                 forced_words: 2,753
-                compile_alloc_words: 3,633
+                compile_alloc_words: 3,944
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2671,7 +2671,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 341
                 forced_words: 932
-                compile_alloc_words: 1,191
+                compile_alloc_words: 1,217
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2680,7 +2680,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 341
                 forced_words: 932
-                compile_alloc_words: 1,204
+                compile_alloc_words: 1,252
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2689,7 +2689,7 @@ let%test_module "consolidated workload statistics" =
                 states: 125
                 compiled_words: 641
                 forced_words: 21,200
-                compile_alloc_words: 1,899
+                compile_alloc_words: 1,977
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2698,7 +2698,7 @@ let%test_module "consolidated workload statistics" =
                 states: 125
                 compiled_words: 641
                 forced_words: 21,200
-                compile_alloc_words: 1,912
+                compile_alloc_words: 2,090
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2707,7 +2707,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 479
                 forced_words: 1,361
-                compile_alloc_words: 1,728
+                compile_alloc_words: 1,765
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2716,7 +2716,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 407
                 forced_words: 1,120
-                compile_alloc_words: 1,660
+                compile_alloc_words: 1,711
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2725,7 +2725,7 @@ let%test_module "consolidated workload statistics" =
                 states: 30
                 compiled_words: 779
                 forced_words: 3,685
-                compile_alloc_words: 3,072
+                compile_alloc_words: 3,170
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2734,7 +2734,7 @@ let%test_module "consolidated workload statistics" =
                 states: 29
                 compiled_words: 707
                 forced_words: 3,334
-                compile_alloc_words: 3,004
+                compile_alloc_words: 3,213
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2743,7 +2743,7 @@ let%test_module "consolidated workload statistics" =
                 states: 10
                 compiled_words: 388
                 forced_words: 1,285
-                compile_alloc_words: 1,230
+                compile_alloc_words: 1,268
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2752,7 +2752,7 @@ let%test_module "consolidated workload statistics" =
                 states: 7
                 compiled_words: 316
                 forced_words: 820
-                compile_alloc_words: 1,162
+                compile_alloc_words: 1,214
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2761,7 +2761,7 @@ let%test_module "consolidated workload statistics" =
                 states: 12
                 compiled_words: 413
                 forced_words: 1,366
-                compile_alloc_words: 1,458
+                compile_alloc_words: 1,493
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2770,7 +2770,7 @@ let%test_module "consolidated workload statistics" =
                 states: 12
                 compiled_words: 389
                 forced_words: 1,294
-                compile_alloc_words: 1,444
+                compile_alloc_words: 1,507
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2779,7 +2779,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 1,850
                 forced_words: 84,172
-                compile_alloc_words: 4,313
+                compile_alloc_words: 4,517
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2788,7 +2788,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 1,082
                 forced_words: 5,685
-                compile_alloc_words: 3,462
+                compile_alloc_words: 3,689
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2797,7 +2797,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 1,466
                 forced_words: 28,353
-                compile_alloc_words: 3,929
+                compile_alloc_words: 4,133
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2806,7 +2806,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 1,466
                 forced_words: 28,353
-                compile_alloc_words: 3,942
+                compile_alloc_words: 4,169
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2815,7 +2815,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 390
                 forced_words: 1,158
-                compile_alloc_words: 1,504
+                compile_alloc_words: 1,534
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2824,7 +2824,7 @@ let%test_module "consolidated workload statistics" =
                 states: 25
                 compiled_words: 324
                 forced_words: 2,634
-                compile_alloc_words: 1,077
+                compile_alloc_words: 1,101
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2833,7 +2833,7 @@ let%test_module "consolidated workload statistics" =
                 states: 11
                 compiled_words: 324
                 forced_words: 1,198
-                compile_alloc_words: 1,091
+                compile_alloc_words: 1,117
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2842,7 +2842,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 382
                 forced_words: 1,053
-                compile_alloc_words: 1,147
+                compile_alloc_words: 1,181
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2851,7 +2851,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8
                 compiled_words: 352
                 forced_words: 944
-                compile_alloc_words: 1,170
+                compile_alloc_words: 1,194
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2860,7 +2860,7 @@ let%test_module "consolidated workload statistics" =
                 states: 34
                 compiled_words: 2,220
                 forced_words: 7,848
-                compile_alloc_words: 7,492
+                compile_alloc_words: 7,968
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2869,7 +2869,7 @@ let%test_module "consolidated workload statistics" =
                 states: 131
                 compiled_words: 1,532
                 forced_words: 9,549
-                compile_alloc_words: 2,098
+                compile_alloc_words: 2,111
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2878,7 +2878,7 @@ let%test_module "consolidated workload statistics" =
                 states: 21
                 compiled_words: 316
                 forced_words: 2,392
-                compile_alloc_words: 1,032
+                compile_alloc_words: 1,056
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2887,7 +2887,7 @@ let%test_module "consolidated workload statistics" =
                 states: 5
                 compiled_words: 308
                 forced_words: 729
-                compile_alloc_words: 981
+                compile_alloc_words: 1,000
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2896,7 +2896,7 @@ let%test_module "consolidated workload statistics" =
                 states: 9
                 compiled_words: 490
                 forced_words: 1,234
-                compile_alloc_words: 1,179
+                compile_alloc_words: 1,207
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2905,7 +2905,7 @@ let%test_module "consolidated workload statistics" =
                 states: 13
                 compiled_words: 396
                 forced_words: 1,485
-                compile_alloc_words: 1,088
+                compile_alloc_words: 1,115
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2914,7 +2914,7 @@ let%test_module "consolidated workload statistics" =
                 states: 259
                 compiled_words: 4,885
                 forced_words: 92,143
-                compile_alloc_words: 29,934
+                compile_alloc_words: 30,460
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2923,7 +2923,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 1,402
                 forced_words: 4,231
-                compile_alloc_words: 2,713
+                compile_alloc_words: 2,853
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2932,7 +2932,7 @@ let%test_module "consolidated workload statistics" =
                 states: 35
                 compiled_words: 408
                 forced_words: 3,534
-                compile_alloc_words: 1,712
+                compile_alloc_words: 1,748
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2941,7 +2941,7 @@ let%test_module "consolidated workload statistics" =
                 states: 27
                 compiled_words: 713
                 forced_words: 3,179
-                compile_alloc_words: 2,776
+                compile_alloc_words: 2,861
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: full
@@ -2950,7 +2950,7 @@ let%test_module "consolidated workload statistics" =
                 states: 68
                 compiled_words: 11,359
                 forced_words: 81,982
-                compile_alloc_words: 51,770
+                compile_alloc_words: 56,707
                 compile_major_words: 10
                 compile_promoted_words: 10
                 forcing: inputs (exponential complete automaton)
@@ -2959,7 +2959,7 @@ let%test_module "consolidated workload statistics" =
                 states: 8,135
                 compiled_words: 23,752
                 forced_words: 992,141
-                compile_alloc_words: 89,599
+                compile_alloc_words: 95,015
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 8,242
@@ -2971,7 +2971,7 @@ let%test_module "consolidated workload statistics" =
                 states: 19,768
                 compiled_words: 45,304
                 forced_words: 2,442,243
-                compile_alloc_words: 180,258
+                compile_alloc_words: 191,124
                 compile_major_words: 10
                 compile_promoted_words: 10
                 construct_alloc_words: 16,542
@@ -2983,9 +2983,9 @@ let%test_module "consolidated workload statistics" =
                 states: 6,034
                 compiled_words: 83,435
                 forced_words: 608,524
-                compile_alloc_words: 353,464
-                compile_major_words: 139,804
-                compile_promoted_words: 139,804
+                compile_alloc_words: 374,730
+                compile_major_words: 141,273
+                compile_promoted_words: 141,273
                 construct_alloc_words: 32,403
                 construct_major_words: 10
                 construct_promoted_words: 10
@@ -2995,9 +2995,9 @@ let%test_module "consolidated workload statistics" =
                 states: 14,174
                 compiled_words: 197,699
                 forced_words: 1,430,165
-                compile_alloc_words: 901,181
-                compile_major_words: 349,197
-                compile_promoted_words: 349,197
+                compile_alloc_words: 954,765
+                compile_major_words: 347,412
+                compile_promoted_words: 347,412
                 construct_alloc_words: 81,630
                 construct_major_words: 10
                 construct_promoted_words: 10
@@ -3007,9 +3007,9 @@ let%test_module "consolidated workload statistics" =
                 states: 26,331
                 compiled_words: 371,915
                 forced_words: 2,663,245
-                compile_alloc_words: 1,818,888
-                compile_major_words: 695,989
-                compile_promoted_words: 695,989
+                compile_alloc_words: 1,925,656
+                compile_major_words: 696,187
+                compile_promoted_words: 696,187
                 construct_alloc_words: 162,656
                 construct_major_words: 10
                 construct_promoted_words: 10
@@ -3019,9 +3019,9 @@ let%test_module "consolidated workload statistics" =
                 states: 26,334
                 compiled_words: 371,964
                 forced_words: 3,163,948
-                compile_alloc_words: 1,819,295
-                compile_major_words: 696,095
-                compile_promoted_words: 696,095
+                compile_alloc_words: 1,926,072
+                compile_major_words: 695,540
+                compile_promoted_words: 695,540
                 construct_alloc_words: 162,656
                 construct_major_words: 10
                 construct_promoted_words: 10
