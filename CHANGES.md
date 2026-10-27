@@ -1,6 +1,8 @@
 Unreleased
 ----------
 
+* Add [Re.Private] containing the [Cset] and [Fmt] modules (#820).
+
 * Add ASCII case-modification escapes `\l`, `\u`, `\L`, `\U`, and `\F`
   to [Re.Perl] patterns, with `\E` ending a case-modification section (#802).
 

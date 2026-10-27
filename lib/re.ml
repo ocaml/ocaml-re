@@ -1,3 +1,8 @@
+module Private = struct
+  module Cset = Cset
+  module Fmt = Fmt
+end
+
 include Core
 include Replace
 module View = View
